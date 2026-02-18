@@ -1,12 +1,8 @@
 
-import { GoogleGenAI } from "@google/genai";
-
 export async function getToolInsights(toolName: string, userContext: string = "") {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-  const model = 'gemini-3-pro-preview';
+  const apiKey = process.env.API_KEY;
   
-  const prompt = `As an Innovation Expert, provide a high-level summary and actionable steps for using the tool: "${toolName}". 
-  ${userContext ? `User context: ${userContext}` : ""}
+  const systemPrompt = `As an Innovation Expert, provide a high-level summary and actionable steps for using the tool: "${toolName}". 
   Format the response with:
   1. What it is (brief)
   2. Why it matters
@@ -14,16 +10,30 @@ export async function getToolInsights(toolName: string, userContext: string = ""
   Keep it professional, encouraging, and concise. Use Markdown.`;
 
   try {
-    const response = await ai.models.generateContent({
-      model,
-      contents: prompt,
-      config: {
-        thinkingConfig: { thinkingBudget: 4096 }
-      }
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o',
+        messages: [
+          { role: 'system', content: 'You are a professional Innovation Consultant.' },
+          { role: 'user', content: `${systemPrompt}${userContext ? `\n\nUser context: ${userContext}` : ""}` }
+        ],
+        temperature: 0.7
+      })
     });
-    return response.text;
+
+    if (!response.ok) {
+      throw new Error(`OpenAI API Error: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data.choices[0].message.content;
   } catch (error) {
-    console.error("Gemini API Error:", error);
-    return "Failed to fetch AI insights. Please try again later.";
+    console.error("AI Insight Error:", error);
+    return "Failed to fetch AI insights. Please check your API key and connection.";
   }
 }

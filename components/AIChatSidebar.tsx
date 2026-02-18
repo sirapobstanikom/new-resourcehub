@@ -1,9 +1,8 @@
 
-import { GoogleGenAI } from "@google/genai";
 import React, { useState, useRef, useEffect } from 'react';
 
 interface Message {
-  role: 'user' | 'model';
+  role: 'user' | 'assistant';
   text: string;
 }
 
@@ -13,7 +12,7 @@ interface AIChatSidebarProps {
 
 const AIChatSidebar: React.FC<AIChatSidebarProps> = ({ toolName }) => {
   const [messages, setMessages] = useState<Message[]>([
-    { role: 'model', text: `สวัสดีครับ! ผมคือผู้เชี่ยวชาญด้านนวัตกรรม มีอะไรอยากสอบถามเกี่ยวกับ ${toolName} ไหมครับ?` }
+    { role: 'assistant', text: `สวัสดีครับ! ผมคือผู้เชี่ยวชาญด้านนวัตกรรม มีอะไรอยากสอบถามเกี่ยวกับ ${toolName} ไหมครับ?` }
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -35,24 +34,37 @@ const AIChatSidebar: React.FC<AIChatSidebarProps> = ({ toolName }) => {
     setLoading(true);
 
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      const model = 'gemini-3-pro-preview';
-      
-      const prompt = `คุณคือผู้เชี่ยวชาญด้านนวัตกรรมและเครื่องมือ ${toolName} 
-      จงตอบคำถามของผู้ใช้อย่างมืออาชีพ กระชับ และเป็นกันเองในภาษาไทย 
-      คำถามคือ: ${userMessage}`;
-
-      const response = await ai.models.generateContent({
-        model,
-        contents: prompt,
-        config: {
-          thinkingConfig: { thinkingBudget: 8192 }
-        }
+      const apiKey = process.env.API_KEY;
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o',
+          messages: [
+            { 
+              role: 'system', 
+              content: `คุณคือผู้เชี่ยวชาญด้านนวัตกรรมและเครื่องมือ ${toolName} ตอบคำถามของผู้ใช้อย่างมืออาชีพ กระชับ และเป็นกันเองในภาษาไทย` 
+            },
+            ...messages.map(m => ({ role: m.role, content: m.text })),
+            { role: 'user', content: userMessage }
+          ],
+          temperature: 0.7
+        })
       });
 
-      setMessages(prev => [...prev, { role: 'model', text: response.text || "ขออภัยครับ ผมไม่สามารถประมวลผลคำตอบได้ในขณะนี้" }]);
+      if (!response.ok) {
+        throw new Error('API request failed');
+      }
+
+      const data = await response.json();
+      const aiText = data.choices[0].message.content;
+
+      setMessages(prev => [...prev, { role: 'assistant', text: aiText || "ขออภัยครับ ผมไม่สามารถประมวลผลคำตอบได้ในขณะนี้" }]);
     } catch (error) {
-      setMessages(prev => [...prev, { role: 'model', text: "เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาลองใหม่ภายหลัง" }]);
+      setMessages(prev => [...prev, { role: 'assistant', text: "เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาตรวจสอบ API Key ของคุณ" }]);
     } finally {
       setLoading(false);
     }
