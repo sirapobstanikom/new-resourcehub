@@ -3,6 +3,7 @@ import React from 'react';
 import { Tool } from '../types';
 import CommentSection from './CommentSection';
 import AIChatSidebar from './AIChatSidebar';
+import MobileAIChatFAB from './MobileAIChatFAB';
 
 interface ToolDetailProps {
   tool: Tool;
@@ -83,8 +84,8 @@ const ToolDetail: React.FC<ToolDetailProps> = ({ tool, onBack, onAskAI }) => {
           <CommentSection toolId={tool.id} />
         </div>
 
-        {/* Sidebar */}
-        <div className="space-y-8">
+        {/* Sidebar - ซ่อนบนมือถือ แสดงเป็น FAB แทน */}
+        <div className="hidden lg:block space-y-8">
           <div className="sticky top-8 space-y-8">
             <AIChatSidebar toolName={tool.name} />
 
@@ -123,6 +124,9 @@ const ToolDetail: React.FC<ToolDetailProps> = ({ tool, onBack, onAskAI }) => {
           </div>
         </div>
       </div>
+
+      {/* มือถือ: ไอคอนการ์ตูนผู้ช่วยแชท ลอยมุมขวาล่าง กดเปิดแชท */}
+      <MobileAIChatFAB toolName={tool.name} />
     </div>
   );
 };

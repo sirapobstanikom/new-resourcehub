@@ -8,9 +8,11 @@ interface Message {
 
 interface AIChatSidebarProps {
   toolName: string;
+  /** ใช้ความสูงเต็ม (สำหรับแสดงในแผงมือถือ) */
+  fillHeight?: boolean;
 }
 
-const AIChatSidebar: React.FC<AIChatSidebarProps> = ({ toolName }) => {
+const AIChatSidebar: React.FC<AIChatSidebarProps> = ({ toolName, fillHeight }) => {
   const [messages, setMessages] = useState<Message[]>([
     { role: 'assistant', text: `สวัสดีครับ! ผมคือผู้เชี่ยวชาญด้านนวัตกรรม มีอะไรอยากสอบถามเกี่ยวกับ ${toolName} ไหมครับ?` }
   ]);
@@ -71,7 +73,7 @@ const AIChatSidebar: React.FC<AIChatSidebarProps> = ({ toolName }) => {
   };
 
   return (
-    <div className="flex flex-col h-[600px] bg-neutral-900 border border-white/10 rounded-[40px] overflow-hidden shadow-2xl">
+    <div className={`flex flex-col bg-neutral-900 border border-white/10 overflow-hidden shadow-2xl ${fillHeight ? 'h-full min-h-0 rounded-none border-0' : 'h-[600px] rounded-[40px] border-white/10'}`}>
       <div className="p-6 bg-yellow-400 text-black flex items-center gap-3">
         <div className="w-8 h-8 bg-black text-yellow-400 rounded-full flex items-center justify-center font-black">AI</div>
         <h3 className="font-black uppercase tracking-tighter">AI Assistant: {toolName}</h3>
