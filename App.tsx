@@ -1,78 +1,88 @@
-
 import React, { useState } from 'react';
-import { JOURNEY_DATA, UPDATES_DATA } from './constants';
-import { Tool, AppView, InnovationUpdate } from './types';
+import { Routes, Route, Link, useNavigate, useParams, Navigate, useLocation } from 'react-router-dom';
+import { JOURNEY_DATA, UPDATES_DATA, getToolById, getUpdateById } from './constants';
+import { Tool, InnovationUpdate } from './types';
 import JourneyCard from './components/JourneyCard';
 import UpdateCard from './components/UpdateCard';
 import ToolDetail from './components/ToolDetail';
 import UpdateDetail from './components/UpdateDetail';
 import AIChatModal from './components/AIChatModal';
 
-const App: React.FC = () => {
-  const [view, setView] = useState<AppView>(AppView.TOOLS);
-  const [selectedTool, setSelectedTool] = useState<Tool | null>(null);
-  const [selectedUpdate, setSelectedUpdate] = useState<InnovationUpdate | null>(null);
+function ToolsPage() {
+  const navigate = useNavigate();
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+      {JOURNEY_DATA.map((category) => (
+        <JourneyCard
+          key={category.id}
+          category={category}
+          onToolClick={(tool: Tool) => {
+            navigate(`/tool/${tool.id}`);
+            window.scrollTo(0, 0);
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+function UpdatesPage() {
+  const navigate = useNavigate();
+  return (
+    <div className="flex flex-col gap-12 max-w-5xl mx-auto">
+      {UPDATES_DATA.map((update) => (
+        <UpdateCard
+          key={update.id}
+          update={update}
+          onClick={(u: InnovationUpdate) => {
+            navigate(`/update/${u.id}`);
+            window.scrollTo(0, 0);
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+function ToolDetailPage() {
+  const { toolId } = useParams<{ toolId: string }>();
+  const navigate = useNavigate();
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
+  const tool = toolId ? getToolById(toolId) : undefined;
 
-  const handleToolClick = (tool: Tool) => {
-    setSelectedTool(tool);
-    setView(AppView.TOOL_DETAIL);
-    window.scrollTo(0, 0);
-  };
+  if (!tool) return <Navigate to="/" replace />;
 
-  const handleUpdateClick = (update: InnovationUpdate) => {
-    setSelectedUpdate(update);
-    setView(AppView.UPDATE_DETAIL);
-    window.scrollTo(0, 0);
-  };
+  return (
+    <>
+      <ToolDetail
+        tool={tool}
+        onBack={() => navigate(-1)}
+        onAskAI={() => setIsAIModalOpen(true)}
+      />
+      {isAIModalOpen && (
+        <AIChatModal toolName={tool.name} onClose={() => setIsAIModalOpen(false)} />
+      )}
+    </>
+  );
+}
 
-  const renderContent = () => {
-    switch (view) {
-      case AppView.TOOLS:
-        return (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {JOURNEY_DATA.map((category) => (
-              <JourneyCard 
-                key={category.id} 
-                category={category} 
-                onToolClick={handleToolClick}
-              />
-            ))}
-          </div>
-        );
-      case AppView.UPDATES:
-        return (
-          <div className="flex flex-col gap-12 max-w-5xl mx-auto">
-            {UPDATES_DATA.map((update) => (
-              <UpdateCard 
-                key={update.id} 
-                update={update} 
-                onClick={handleUpdateClick}
-              />
-            ))}
-          </div>
-        );
-      case AppView.TOOL_DETAIL:
-        return selectedTool ? (
-          <ToolDetail 
-            tool={selectedTool} 
-            onBack={() => { setView(AppView.TOOLS); setSelectedTool(null); }} 
-            onAskAI={() => setIsAIModalOpen(true)}
-          />
-        ) : null;
-      case AppView.UPDATE_DETAIL:
-        return selectedUpdate ? (
-          <UpdateDetail 
-            update={selectedUpdate} 
-            onBack={() => { setView(AppView.UPDATES); setSelectedUpdate(null); }}
-          />
-        ) : null;
-      default:
-        return null;
-    }
-  };
+function UpdateDetailPage() {
+  const { updateId } = useParams<{ updateId: string }>();
+  const navigate = useNavigate();
+  const update = updateId ? getUpdateById(updateId) : undefined;
 
-  const isDetailView = view === AppView.TOOL_DETAIL || view === AppView.UPDATE_DETAIL;
+  if (!update) return <Navigate to="/updates" replace />;
+
+  return (
+    <UpdateDetail update={update} onBack={() => navigate(-1)} />
+  );
+}
+
+const App: React.FC = () => {
+  const location = useLocation();
+  const isDetailView = location.pathname.startsWith('/tool/') || location.pathname.startsWith('/update/');
+  const isTools = location.pathname === '/';
+  const isUpdates = location.pathname === '/updates';
 
   return (
     <div className="min-h-screen bg-black text-white bg-grid flex flex-col selection:bg-yellow-400 selection:text-black">
@@ -84,7 +94,9 @@ const App: React.FC = () => {
                 <div className="w-10 h-10 bg-yellow-400 rounded-lg flex items-center justify-center glow-yellow">
                   <span className="text-black font-black text-xl">M</span>
                 </div>
-                <span className="text-2xl font-bold tracking-tighter text-glow">MindDoJo</span>
+                <Link to="/" className="text-2xl font-bold tracking-tighter text-glow hover:opacity-90">
+                  MindDoJo
+                </Link>
               </div>
             </div>
 
@@ -96,33 +108,39 @@ const App: React.FC = () => {
             </p>
 
             <div className="flex justify-center gap-4">
-              <button 
-                onClick={() => setView(AppView.TOOLS)}
+              <Link
+                to="/"
                 className={`px-8 py-3 rounded-xl font-bold transition-all ${
-                  view === AppView.TOOLS 
-                  ? 'bg-yellow-400 text-black shadow-lg shadow-yellow-400/20' 
-                  : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                  isTools
+                    ? 'bg-yellow-400 text-black shadow-lg shadow-yellow-400/20'
+                    : 'bg-white/5 text-gray-400 hover:bg-white/10'
                 }`}
               >
                 Operational Tools
-              </button>
-              <button 
-                onClick={() => setView(AppView.UPDATES)}
+              </Link>
+              <Link
+                to="/updates"
                 className={`px-8 py-3 rounded-xl font-bold transition-all ${
-                  view === AppView.UPDATES 
-                  ? 'bg-yellow-400 text-black shadow-lg shadow-yellow-400/20' 
-                  : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                  isUpdates
+                    ? 'bg-yellow-400 text-black shadow-lg shadow-yellow-400/20'
+                    : 'bg-white/5 text-gray-400 hover:bg-white/10'
                 }`}
               >
                 Industry Updates
-              </button>
+              </Link>
             </div>
           </div>
         </header>
       )}
 
       <main className={`flex-1 max-w-[1440px] mx-auto w-full px-6 pb-24 ${isDetailView ? 'pt-8' : 'pt-12'}`}>
-        {renderContent()}
+        <Routes>
+          <Route path="/" element={<ToolsPage />} />
+          <Route path="/updates" element={<UpdatesPage />} />
+          <Route path="/tool/:toolId" element={<ToolDetailPage />} />
+          <Route path="/update/:updateId" element={<UpdateDetailPage />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
       </main>
 
       <footer className="py-12 border-t border-white/5 bg-black/50 backdrop-blur-md">
@@ -138,13 +156,6 @@ const App: React.FC = () => {
           </div>
         </div>
       </footer>
-
-      {selectedTool && isAIModalOpen && (
-        <AIChatModal 
-          toolName={selectedTool.name} 
-          onClose={() => setIsAIModalOpen(false)} 
-        />
-      )}
     </div>
   );
 };

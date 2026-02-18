@@ -1,5 +1,4 @@
-
-import { JourneyCategory, InnovationUpdate } from './types';
+import type { JourneyCategory, InnovationUpdate, Tool } from './types';
 
 export const JOURNEY_DATA: JourneyCategory[] = [
   {
@@ -364,3 +363,15 @@ AI นี้ถูกฝึกฝนด้วยชุดข้อมูลม�
     date: 'November 2023'
   }
 ];
+
+export function getToolById(id: string): Tool | undefined {
+  for (const cat of JOURNEY_DATA) {
+    const t = cat.tools.find((x) => x.id === id);
+    if (t) return t;
+  }
+  return undefined;
+}
+
+export function getUpdateById(id: string): InnovationUpdate | undefined {
+  return UPDATES_DATA.find((u) => u.id === id);
+}
