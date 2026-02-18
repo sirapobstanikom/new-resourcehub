@@ -23,7 +23,10 @@ export interface InnovationUpdate {
   id: string;
   title: string;
   description: string;
+  fullContent?: string;
   image: string;
+  sourceUrl?: string;
+  date?: string;
 }
 
 export interface Comment {
@@ -46,5 +49,6 @@ export interface Post {
 export enum AppView {
   TOOLS = 'tools',
   UPDATES = 'updates',
-  TOOL_DETAIL = 'tool_detail'
+  TOOL_DETAIL = 'tool_detail',
+  UPDATE_DETAIL = 'update_detail'
 }

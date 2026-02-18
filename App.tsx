@@ -1,20 +1,28 @@
 
 import React, { useState } from 'react';
 import { JOURNEY_DATA, UPDATES_DATA } from './constants';
-import { Tool, AppView } from './types';
+import { Tool, AppView, InnovationUpdate } from './types';
 import JourneyCard from './components/JourneyCard';
 import UpdateCard from './components/UpdateCard';
 import ToolDetail from './components/ToolDetail';
+import UpdateDetail from './components/UpdateDetail';
 import AIChatModal from './components/AIChatModal';
 
 const App: React.FC = () => {
   const [view, setView] = useState<AppView>(AppView.TOOLS);
   const [selectedTool, setSelectedTool] = useState<Tool | null>(null);
+  const [selectedUpdate, setSelectedUpdate] = useState<InnovationUpdate | null>(null);
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
 
   const handleToolClick = (tool: Tool) => {
     setSelectedTool(tool);
     setView(AppView.TOOL_DETAIL);
+    window.scrollTo(0, 0);
+  };
+
+  const handleUpdateClick = (update: InnovationUpdate) => {
+    setSelectedUpdate(update);
+    setView(AppView.UPDATE_DETAIL);
     window.scrollTo(0, 0);
   };
 
@@ -36,7 +44,11 @@ const App: React.FC = () => {
         return (
           <div className="flex flex-col gap-12 max-w-5xl mx-auto">
             {UPDATES_DATA.map((update) => (
-              <UpdateCard key={update.id} update={update} />
+              <UpdateCard 
+                key={update.id} 
+                update={update} 
+                onClick={handleUpdateClick}
+              />
             ))}
           </div>
         );
@@ -48,14 +60,23 @@ const App: React.FC = () => {
             onAskAI={() => setIsAIModalOpen(true)}
           />
         ) : null;
+      case AppView.UPDATE_DETAIL:
+        return selectedUpdate ? (
+          <UpdateDetail 
+            update={selectedUpdate} 
+            onBack={() => { setView(AppView.UPDATES); setSelectedUpdate(null); }}
+          />
+        ) : null;
       default:
         return null;
     }
   };
 
+  const isDetailView = view === AppView.TOOL_DETAIL || view === AppView.UPDATE_DETAIL;
+
   return (
     <div className="min-h-screen bg-black text-white bg-grid flex flex-col selection:bg-yellow-400 selection:text-black">
-      {view !== AppView.TOOL_DETAIL && (
+      {!isDetailView && (
         <header className="pt-24 pb-16 px-6 relative">
           <div className="max-w-7xl mx-auto text-center relative z-10">
             <div className="flex justify-center mb-8">
@@ -100,7 +121,7 @@ const App: React.FC = () => {
         </header>
       )}
 
-      <main className={`flex-1 max-w-[1440px] mx-auto w-full px-6 pb-24 ${view === AppView.TOOL_DETAIL ? 'pt-8' : 'pt-12'}`}>
+      <main className={`flex-1 max-w-[1440px] mx-auto w-full px-6 pb-24 ${isDetailView ? 'pt-8' : 'pt-12'}`}>
         {renderContent()}
       </main>
 
