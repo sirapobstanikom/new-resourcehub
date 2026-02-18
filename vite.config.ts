@@ -4,8 +4,8 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, '.', '');
-    // Support both OPENAI_API_KEY (used by app) and GEMINI_API_KEY
-    const apiKey = env.OPENAI_API_KEY || env.GEMINI_API_KEY || '';
+    // Support OPENAI_API_KEY from .env (local) or Vercel Environment Variables (deploy)
+    const apiKey = env.OPENAI_API_KEY || process.env.OPENAI_API_KEY || env.GEMINI_API_KEY || process.env.GEMINI_API_KEY || '';
     return {
       server: {
         port: 3000,
