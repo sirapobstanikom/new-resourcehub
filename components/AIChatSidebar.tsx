@@ -1,0 +1,112 @@
+
+import { GoogleGenAI } from "@google/genai";
+import React, { useState, useRef, useEffect } from 'react';
+
+interface Message {
+  role: 'user' | 'model';
+  text: string;
+}
+
+interface AIChatSidebarProps {
+  toolName: string;
+}
+
+const AIChatSidebar: React.FC<AIChatSidebarProps> = ({ toolName }) => {
+  const [messages, setMessages] = useState<Message[]>([
+    { role: 'model', text: `สวัสดีครับ! ผมคือผู้เชี่ยวชาญด้านนวัตกรรม มีอะไรอยากสอบถามเกี่ยวกับ ${toolName} ไหมครับ?` }
+  ]);
+  const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages]);
+
+  const handleSend = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!input.trim() || loading) return;
+
+    const userMessage = input.trim();
+    setInput('');
+    setMessages(prev => [...prev, { role: 'user', text: userMessage }]);
+    setLoading(true);
+
+    try {
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      const model = 'gemini-3-pro-preview';
+      
+      const prompt = `คุณคือผู้เชี่ยวชาญด้านนวัตกรรมและเครื่องมือ ${toolName} 
+      จงตอบคำถามของผู้ใช้อย่างมืออาชีพ กระชับ และเป็นกันเองในภาษาไทย 
+      คำถามคือ: ${userMessage}`;
+
+      const response = await ai.models.generateContent({
+        model,
+        contents: prompt,
+        config: {
+          thinkingConfig: { thinkingBudget: 8192 }
+        }
+      });
+
+      setMessages(prev => [...prev, { role: 'model', text: response.text || "ขออภัยครับ ผมไม่สามารถประมวลผลคำตอบได้ในขณะนี้" }]);
+    } catch (error) {
+      setMessages(prev => [...prev, { role: 'model', text: "เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาลองใหม่ภายหลัง" }]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="flex flex-col h-[600px] bg-neutral-900 border border-white/10 rounded-[40px] overflow-hidden shadow-2xl">
+      <div className="p-6 bg-yellow-400 text-black flex items-center gap-3">
+        <div className="w-8 h-8 bg-black text-yellow-400 rounded-full flex items-center justify-center font-black">AI</div>
+        <h3 className="font-black uppercase tracking-tighter">AI Assistant: {toolName}</h3>
+      </div>
+      
+      <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 space-y-4 scrollbar-hide">
+        {messages.map((msg, i) => (
+          <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+            <div className={`max-w-[85%] p-4 rounded-2xl text-sm leading-relaxed ${
+              msg.role === 'user' 
+              ? 'bg-yellow-400 text-black font-bold rounded-tr-none' 
+              : 'bg-white/5 text-gray-200 border border-white/10 rounded-tl-none shadow-sm'
+            }`}>
+              {msg.text}
+            </div>
+          </div>
+        ))}
+        {loading && (
+          <div className="flex justify-start">
+            <div className="bg-white/5 border border-white/10 p-4 rounded-2xl rounded-tl-none flex gap-1 items-center">
+              <span className="text-[10px] text-yellow-400/50 mr-2 font-bold animate-pulse">Analyzing...</span>
+              <div className="w-1.5 h-1.5 bg-yellow-400 rounded-full animate-bounce" />
+              <div className="w-1.5 h-1.5 bg-yellow-400 rounded-full animate-bounce [animation-delay:0.2s]" />
+              <div className="w-1.5 h-1.5 bg-yellow-400 rounded-full animate-bounce [animation-delay:0.4s]" />
+            </div>
+          </div>
+        )}
+      </div>
+
+      <form onSubmit={handleSend} className="p-4 bg-black/40 border-t border-white/5 flex gap-2">
+        <input 
+          type="text" 
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder="พิมพ์คำถามที่นี่..."
+          className="flex-1 bg-neutral-800 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400 text-white"
+        />
+        <button 
+          type="submit"
+          disabled={loading}
+          className="bg-yellow-400 text-black w-12 h-12 rounded-xl flex items-center justify-center font-black hover:scale-105 transition-transform disabled:opacity-50"
+        >
+          →
+        </button>
+      </form>
+    </div>
+  );
+};
+
+export default AIChatSidebar;
