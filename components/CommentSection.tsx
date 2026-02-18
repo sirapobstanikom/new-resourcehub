@@ -1,6 +1,7 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Post, Comment } from '../types';
+import { isSupabaseConfigured } from '../lib/supabase';
+import { getPosts, createPost, addComment } from '../services/strategyExchange';
 
 // ปรับปรุงชุดข้อมูล Seeds ให้มีความชัดเจนของเพศชายและหญิงมากขึ้นสำหรับสไตล์ adventurer
 const GENDER_OPTIONS = [
@@ -107,6 +108,8 @@ const CommentSection: React.FC<{ toolId?: string }> = ({ toolId = "bmc" }) => {
   const [userAvatar, setUserAvatar] = useState('');
   const [posts, setPosts] = useState<Post[]>([]);
   const [mainInput, setMainInput] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [posting, setPosting] = useState(false);
 
   const randomizeAvatar = (gender: string) => {
     const options = GENDER_OPTIONS.find(g => g.value === gender);
@@ -134,14 +137,47 @@ const CommentSection: React.FC<{ toolId?: string }> = ({ toolId = "bmc" }) => {
     localStorage.setItem('minddojo_user', userName);
   }, [userName]);
 
+  const loadPosts = useCallback(async () => {
+    if (!isSupabaseConfigured) return;
+    setLoading(true);
+    try {
+      const list = await getPosts(toolId);
+      setPosts(list);
+    } finally {
+      setLoading(false);
+    }
+  }, [toolId]);
+
+  useEffect(() => {
+    loadPosts();
+  }, [loadPosts]);
+
   const handleGenderChange = (gender: string) => {
     setUserGender(gender);
     randomizeAvatar(gender);
   };
 
-  const handleCreatePost = (e: React.FormEvent) => {
+  const handleCreatePost = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!userName.trim() || !mainInput.trim()) return;
+
+    if (isSupabaseConfigured) {
+      setPosting(true);
+      try {
+        const newPost = await createPost(toolId, {
+          authorName: userName,
+          authorAvatar: userAvatar,
+          content: mainInput,
+        });
+        if (newPost) {
+          setPosts((prev) => [newPost, ...prev]);
+          setMainInput('');
+        }
+      } finally {
+        setPosting(false);
+      }
+      return;
+    }
 
     const newPost: Post = {
       id: Date.now().toString(),
@@ -149,27 +185,45 @@ const CommentSection: React.FC<{ toolId?: string }> = ({ toolId = "bmc" }) => {
       authorAvatar: userAvatar,
       content: mainInput,
       createdAt: new Date().toISOString(),
-      comments: []
+      comments: [],
     };
-
-    setPosts(prev => [newPost, ...prev]);
+    setPosts((prev) => [newPost, ...prev]);
     setMainInput('');
   };
 
-  const handleAddComment = (postId: string, commentText: string) => {
-    setPosts(prev => prev.map(post => {
-      if (post.id === postId) {
-        const newComment: Comment = {
-          id: Date.now().toString(),
-          authorName: userName,
-          authorAvatar: userAvatar,
-          commentText,
-          createdAt: new Date().toISOString()
-        };
-        return { ...post, comments: [...post.comments, newComment] };
+  const handleAddComment = async (postId: string, commentText: string) => {
+    if (isSupabaseConfigured) {
+      const newComment = await addComment(postId, {
+        authorName: userName,
+        authorAvatar: userAvatar,
+        commentText,
+      });
+      if (newComment) {
+        setPosts((prev) =>
+          prev.map((post) =>
+            post.id === postId
+              ? { ...post, comments: [...post.comments, newComment] }
+              : post
+          )
+        );
       }
-      return post;
-    }));
+      return;
+    }
+    setPosts((prev) =>
+      prev.map((post) => {
+        if (post.id === postId) {
+          const newComment: Comment = {
+            id: Date.now().toString(),
+            authorName: userName,
+            authorAvatar: userAvatar,
+            commentText,
+            createdAt: new Date().toISOString(),
+          };
+          return { ...post, comments: [...post.comments, newComment] };
+        }
+        return post;
+      })
+    );
   };
 
   return (
@@ -229,10 +283,10 @@ const CommentSection: React.FC<{ toolId?: string }> = ({ toolId = "bmc" }) => {
               />
               <button 
                 onClick={handleCreatePost}
-                disabled={!mainInput.trim()}
+                disabled={!mainInput.trim() || posting}
                 className="w-full md:w-auto bg-yellow-400 text-black px-12 py-4 rounded-2xl font-black uppercase tracking-widest hover:bg-yellow-300 transition-all disabled:opacity-50 shadow-lg shadow-yellow-400/10"
               >
-                Post Insight
+                {posting ? 'Posting...' : 'Post Insight'}
               </button>
             </div>
           </div>
@@ -240,8 +294,12 @@ const CommentSection: React.FC<{ toolId?: string }> = ({ toolId = "bmc" }) => {
       </div>
 
       <div className="space-y-8">
-        {posts.length > 0 ? (
-          posts.map(post => (
+        {loading ? (
+          <div className="py-20 text-center border-2 border-dashed border-white/5 rounded-3xl text-gray-500 font-medium">
+            กำลังโหลด...
+          </div>
+        ) : posts.length > 0 ? (
+          posts.map((post) => (
             <PostItem 
               key={post.id} 
               post={post} 
