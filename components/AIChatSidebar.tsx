@@ -6,6 +6,40 @@ interface Message {
   text: string;
 }
 
+const STORAGE_PREFIX = 'minddojo_ai_chat_';
+
+function getStorageKey(toolName: string): string {
+  return STORAGE_PREFIX + toolName.replace(/\s+/g, '_');
+}
+
+function loadMessages(toolName: string): Message[] {
+  try {
+    const raw = localStorage.getItem(getStorageKey(toolName));
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as unknown;
+    if (!Array.isArray(parsed)) return [];
+    const ok = parsed.every(
+      (m: unknown) => m && typeof m === 'object' && 'role' in m && 'text' in m
+    );
+    return ok ? (parsed as Message[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveMessages(toolName: string, messages: Message[]) {
+  try {
+    localStorage.setItem(getStorageKey(toolName), JSON.stringify(messages));
+  } catch {
+    // ignore quota / private mode
+  }
+}
+
+const defaultWelcome = (toolName: string): Message => ({
+  role: 'assistant',
+  text: `สวัสดีครับ! ผมคือผู้เชี่ยวชาญด้านนวัตกรรม มีอะไรอยากสอบถามเกี่ยวกับ ${toolName} ไหมครับ?`,
+});
+
 interface AIChatSidebarProps {
   toolName: string;
   /** ใช้ความสูงเต็ม (สำหรับแสดงในแผงมือถือ) */
@@ -13,9 +47,10 @@ interface AIChatSidebarProps {
 }
 
 const AIChatSidebar: React.FC<AIChatSidebarProps> = ({ toolName, fillHeight }) => {
-  const [messages, setMessages] = useState<Message[]>([
-    { role: 'assistant', text: `สวัสดีครับ! ผมคือผู้เชี่ยวชาญด้านนวัตกรรม มีอะไรอยากสอบถามเกี่ยวกับ ${toolName} ไหมครับ?` }
-  ]);
+  const [messages, setMessages] = useState<Message[]>(() => {
+    const saved = loadMessages(toolName);
+    return saved.length > 0 ? saved : [defaultWelcome(toolName)];
+  });
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -25,6 +60,10 @@ const AIChatSidebar: React.FC<AIChatSidebarProps> = ({ toolName, fillHeight }) =
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
+
+  useEffect(() => {
+    saveMessages(toolName, messages);
+  }, [toolName, messages]);
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();

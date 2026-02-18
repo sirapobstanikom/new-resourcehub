@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, createElement } from 'react';
 import AIChatSidebar from './AIChatSidebar';
 
 interface MobileAIChatFABProps {
@@ -14,25 +14,14 @@ const ChatAssistantIcon: React.FC<{ className?: string }> = ({ className = 'w-10
     className={className}
     aria-hidden
   >
-    {/* หัวกลม - ใช้ currentColor ให้เป็นดำบนปุ่มเหลือง */}
-    <circle cx="32" cy="32" r="26" stroke="currentColor" strokeWidth="2.5" fill="none" />
-    {/* ตาซ้าย */}
-    <circle cx="24" cy="28" r="4" fill="currentColor" />
-    <circle cx="25" cy="27" r="1" fill="white" opacity="0.9" />
-    {/* ตาขวา */}
-    <circle cx="40" cy="28" r="4" fill="currentColor" />
-    <circle cx="41" cy="27" r="1" fill="white" opacity="0.9" />
-    {/* ปากยิ้ม */}
-    <path
-      d="M24 38 Q32 44 40 38"
-      stroke="currentColor"
-      strokeWidth="2.5"
-      strokeLinecap="round"
-      fill="none"
-    />
-    {/* ขนคิ้วเป็นมิตร */}
-    <path d="M22 22 Q24 20 26 22" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" fill="none" />
-    <path d="M38 22 Q40 20 42 22" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" fill="none" />
+    {createElement('circle', { cx: 32, cy: 32, r: 26, stroke: 'currentColor', strokeWidth: 2.5, fill: 'none' })}
+    {createElement('circle', { cx: 24, cy: 28, r: 4, fill: 'currentColor' })}
+    {createElement('circle', { cx: 25, cy: 27, r: 1, fill: 'white', opacity: 0.9 })}
+    {createElement('circle', { cx: 40, cy: 28, r: 4, fill: 'currentColor' })}
+    {createElement('circle', { cx: 41, cy: 27, r: 1, fill: 'white', opacity: 0.9 })}
+    {createElement('path', { d: 'M24 38 Q32 44 40 38', stroke: 'currentColor', strokeWidth: 2.5, strokeLinecap: 'round', fill: 'none' })}
+    {createElement('path', { d: 'M22 22 Q24 20 26 22', stroke: 'currentColor', strokeWidth: 1.5, strokeLinecap: 'round', fill: 'none' })}
+    {createElement('path', { d: 'M38 22 Q40 20 42 22', stroke: 'currentColor', strokeWidth: 1.5, strokeLinecap: 'round', fill: 'none' })}
   </svg>
 );
 
