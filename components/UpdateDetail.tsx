@@ -39,7 +39,7 @@ const UpdateDetail: React.FC<UpdateDetailProps> = ({ update, onBack }) => {
 
         <div className="rounded-[40px] overflow-hidden border border-white/10 aspect-video relative group shadow-2xl">
            <img 
-            src={update.image} 
+            src={update.image.startsWith('/') ? encodeURI(update.image) : update.image} 
             alt={update.title} 
             className="w-full h-full object-cover"
            />

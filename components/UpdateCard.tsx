@@ -29,7 +29,7 @@ const UpdateCard: React.FC<UpdateCardProps> = ({ update, onClick }) => {
       </div>
       <div className="flex-1 min-h-[250px] relative overflow-hidden rounded-2xl">
         <img 
-          src={update.image} 
+          src={update.image.startsWith('/') ? encodeURI(update.image) : update.image} 
           alt={update.title} 
           className="absolute inset-0 w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 scale-100 group-hover:scale-105"
         />

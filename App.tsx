@@ -7,6 +7,8 @@ import UpdateCard from './components/UpdateCard';
 import ToolDetail from './components/ToolDetail';
 import UpdateDetail from './components/UpdateDetail';
 import AIChatModal from './components/AIChatModal';
+import LoginPage from './components/LoginPage';
+import { isAuthenticated, logout } from './lib/auth';
 
 function ToolsPage() {
   const navigate = useNavigate();
@@ -78,11 +80,23 @@ function UpdateDetailPage() {
   );
 }
 
+function ProtectedLayout({ children }: { children: React.ReactNode }) {
+  if (!isAuthenticated()) {
+    return <Navigate to="/login" replace />;
+  }
+  return <>{children}</>;
+}
+
 const App: React.FC = () => {
   const location = useLocation();
+  const isLogin = location.pathname === '/login';
   const isDetailView = location.pathname.startsWith('/tool/') || location.pathname.startsWith('/update/');
   const isTools = location.pathname === '/';
   const isUpdates = location.pathname === '/updates';
+
+  if (isLogin) {
+    return <LoginPage />;
+  }
 
   return (
     <div className="min-h-screen bg-black text-white bg-grid flex flex-col selection:bg-yellow-400 selection:text-black">
@@ -107,7 +121,7 @@ const App: React.FC = () => {
               Explore our curated library of strategic frameworks and operational tools designed for modern organizational growth.
             </p>
 
-            <div className="flex justify-center gap-4">
+            <div className="flex justify-center items-center gap-4 flex-wrap">
               <Link
                 to="/"
                 className={`px-8 py-3 rounded-xl font-bold transition-all ${
@@ -128,6 +142,15 @@ const App: React.FC = () => {
               >
                 Industry Updates
               </Link>
+              <button
+                onClick={() => {
+                  logout();
+                  window.location.href = '/login';
+                }}
+                className="px-6 py-3 rounded-xl font-bold bg-white/5 text-gray-400 hover:bg-red-500/20 hover:text-red-400 transition-all"
+              >
+                ออกจากระบบ
+              </button>
             </div>
           </div>
         </header>
@@ -135,10 +158,39 @@ const App: React.FC = () => {
 
       <main className={`flex-1 max-w-[1440px] mx-auto w-full px-6 pb-24 ${isDetailView ? 'pt-8' : 'pt-12'}`}>
         <Routes>
-          <Route path="/" element={<ToolsPage />} />
-          <Route path="/updates" element={<UpdatesPage />} />
-          <Route path="/tool/:toolId" element={<ToolDetailPage />} />
-          <Route path="/update/:updateId" element={<UpdateDetailPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route
+            path="/"
+            element={
+              <ProtectedLayout>
+                <ToolsPage />
+              </ProtectedLayout>
+            }
+          />
+          <Route
+            path="/updates"
+            element={
+              <ProtectedLayout>
+                <UpdatesPage />
+              </ProtectedLayout>
+            }
+          />
+          <Route
+            path="/tool/:toolId"
+            element={
+              <ProtectedLayout>
+                <ToolDetailPage />
+              </ProtectedLayout>
+            }
+          />
+          <Route
+            path="/update/:updateId"
+            element={
+              <ProtectedLayout>
+                <UpdateDetailPage />
+              </ProtectedLayout>
+            }
+          />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
