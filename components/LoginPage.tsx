@@ -10,7 +10,7 @@ const LoginPage: React.FC = () => {
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   useEffect(() => {
-    if (isAuthenticated()) navigate('/', { replace: true });
+    if (isAuthenticated()) navigate('/resourcehub', { replace: true });
   }, [navigate]);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -21,7 +21,7 @@ const LoginPage: React.FC = () => {
     if (validateCredentials(username, password)) {
       setAuthenticated();
       setMessage({ type: 'success', text: 'เข้าสู่ระบบสำเร็จ' });
-      setTimeout(() => navigate('/', { replace: true }), 400);
+      setTimeout(() => navigate('/resourcehub', { replace: true }), 400);
     } else {
       setMessage({ type: 'error', text: 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง' });
     }

@@ -8,6 +8,8 @@ import ToolDetail from './components/ToolDetail';
 import UpdateDetail from './components/UpdateDetail';
 import AIChatModal from './components/AIChatModal';
 import LoginPage from './components/LoginPage';
+import HomePage from './components/HomePage';
+import DiscAssessment from './components/DiscAssessment';
 import { isAuthenticated, logout } from './lib/auth';
 
 function ToolsPage() {
@@ -52,7 +54,7 @@ function ToolDetailPage() {
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
   const tool = toolId ? getToolById(toolId) : undefined;
 
-  if (!tool) return <Navigate to="/" replace />;
+  if (!tool) return <Navigate to="/resourcehub" replace />;
 
   return (
     <>
@@ -89,13 +91,31 @@ function ProtectedLayout({ children }: { children: React.ReactNode }) {
 
 const App: React.FC = () => {
   const location = useLocation();
-  const isLogin = location.pathname === '/login';
-  const isDetailView = location.pathname.startsWith('/tool/') || location.pathname.startsWith('/update/');
-  const isTools = location.pathname === '/';
-  const isUpdates = location.pathname === '/updates';
+  const pathname = location.pathname;
+  const isLogin = pathname === '/login';
+  const isHome = pathname === '/' || pathname === '/home';
+  const isDetailView = pathname.startsWith('/tool/') || pathname.startsWith('/update/');
+  const isTools = pathname === '/resourcehub';
+  const isUpdates = pathname === '/updates';
 
-  if (isLogin) {
-    return <LoginPage />;
+  if (isLogin) return <LoginPage />;
+
+  if (pathname.startsWith('/assessment')) {
+    return (
+      <Routes>
+        <Route path="/assessment/disc" element={<DiscAssessment />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    );
+  }
+
+  if (isHome) {
+    return (
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/home" element={<HomePage />} />
+      </Routes>
+    );
   }
 
   return (
@@ -123,7 +143,7 @@ const App: React.FC = () => {
 
             <div className="flex justify-center items-center gap-4 flex-wrap">
               <Link
-                to="/"
+                to="/resourcehub"
                 className={`px-8 py-3 rounded-xl font-bold transition-all ${
                   isTools
                     ? 'bg-yellow-400 text-black shadow-lg shadow-yellow-400/20'
@@ -149,39 +169,10 @@ const App: React.FC = () => {
 
       <main className={`flex-1 max-w-[1440px] mx-auto w-full px-6 pb-24 ${isDetailView ? 'pt-8' : 'pt-12'}`}>
         <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route
-            path="/"
-            element={
-              <ProtectedLayout>
-                <ToolsPage />
-              </ProtectedLayout>
-            }
-          />
-          <Route
-            path="/updates"
-            element={
-              <ProtectedLayout>
-                <UpdatesPage />
-              </ProtectedLayout>
-            }
-          />
-          <Route
-            path="/tool/:toolId"
-            element={
-              <ProtectedLayout>
-                <ToolDetailPage />
-              </ProtectedLayout>
-            }
-          />
-          <Route
-            path="/update/:updateId"
-            element={
-              <ProtectedLayout>
-                <UpdateDetailPage />
-              </ProtectedLayout>
-            }
-          />
+          <Route path="/resourcehub" element={<ProtectedLayout><ToolsPage /></ProtectedLayout>} />
+          <Route path="/updates" element={<ProtectedLayout><UpdatesPage /></ProtectedLayout>} />
+          <Route path="/tool/:toolId" element={<ProtectedLayout><ToolDetailPage /></ProtectedLayout>} />
+          <Route path="/update/:updateId" element={<ProtectedLayout><UpdateDetailPage /></ProtectedLayout>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
