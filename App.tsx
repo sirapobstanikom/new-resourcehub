@@ -115,7 +115,7 @@ const App: React.FC = () => {
             </div>
 
             <h1 className="text-5xl md:text-7xl font-extrabold mb-6 tracking-tight leading-tight">
-              INNOVATION <span className="text-yellow-400">NEXUS</span>
+              MindDoJo <span className="text-yellow-400">Resourcehub</span>
             </h1>
             <p className="text-gray-400 text-lg max-w-2xl mx-auto mb-12">
               Explore our curated library of strategic frameworks and operational tools designed for modern organizational growth.
@@ -142,15 +142,6 @@ const App: React.FC = () => {
               >
                 Industry Updates
               </Link>
-              <button
-                onClick={() => {
-                  logout();
-                  window.location.href = '/login';
-                }}
-                className="px-6 py-3 rounded-xl font-bold bg-white/5 text-gray-400 hover:bg-red-500/20 hover:text-red-400 transition-all"
-              >
-                ออกจากระบบ
-              </button>
             </div>
           </div>
         </header>
