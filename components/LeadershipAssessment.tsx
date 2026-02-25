@@ -26,6 +26,13 @@ const DIMENSION_ARTWORK: Record<string, string> = {
   act: 'https://static.wixstatic.com/media/8f9517_148bb0e9ac6c4571834c6f7abd23ab29~mv2.png',
 };
 
+/** คำอธิบายสั้นสำหรับการ์ดผลลัพธ์แต่ละหมวด */
+const DIMENSION_CARD_DESC: Record<string, string> = {
+  aware: 'การตระหนักรู้',
+  adapt: 'ปรับตัว ยืดหยุ่น เรียนรู้',
+  act: 'ลงมือทำ ตัดสินใจ ผลักดันการเปลี่ยนแปลง',
+};
+
 const LeadershipAssessment: React.FC = () => {
   const [step, setStep] = useState<Step>('login');
   const [user, setUser] = useState({ name: '', email: '', company: '' });
@@ -332,71 +339,74 @@ const LeadershipAssessment: React.FC = () => {
 
         {/* Result */}
         {step === 'result' && (
-          <div className="space-y-10">
-            <div ref={resultPdfRef} className="space-y-10 rounded-2xl border border-transparent p-4">
-              <h1 className="text-2xl md:text-3xl font-black text-center">
-                ผลการประเมินสมรรถนะภาวะผู้นำ
-              </h1>
+          <div className="space-y-10 bg-amber-50/95 min-h-screen -mx-6 px-6 py-8 md:-mx-8 md:px-8">
+            <div ref={resultPdfRef} className="space-y-8">
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-to-b from-amber-200/60 to-transparent h-24 -mx-6 md:-mx-8" aria-hidden />
+                <h1 className="relative text-2xl md:text-3xl font-black text-center text-black pt-2">
+                  ผลแบบประเมินสมรรถนะภาวะผู้นำ
+                </h1>
+              </div>
 
               {/* สถานะการบันทึกลง Supabase */}
             {saveStatus === 'saving' && (
-              <p className="text-center text-gray-400 text-sm">กำลังบันทึกผลลง ระบบ...</p>
+              <p className="text-center text-amber-900/70 text-sm">กำลังบันทึกผลลง ระบบ...</p>
             )}
             {saveStatus === 'success' && (
-              <p className="text-center text-green-400 text-sm">บันทึกผลลง ระบบ แล้ว</p>
+              <p className="text-center text-green-700 text-sm">บันทึกผลลง ระบบ แล้ว</p>
             )}
             {saveStatus === 'error' && (
-              <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-center">
-                <p className="text-red-400 text-sm font-medium">บันทึกลง ระบบ ไม่สำเร็จ</p>
-                {saveError && <p className="text-red-300/80 text-xs mt-1">{saveError}</p>}
+              <div className="rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-center">
+                <p className="text-red-700 text-sm font-medium">บันทึกลง ระบบ ไม่สำเร็จ</p>
+                {saveError && <p className="text-red-600 text-xs mt-1">{saveError}</p>}
               </div>
             )}
             {!isSupabaseConfigured && (
-              <p className="text-center text-amber-400/80 text-xs">
+              <p className="text-center text-amber-800/70 text-xs">
                 ไม่ได้บันทึกลง ระบบ (ขาดการเชื่อมต่อกับ ระบบ)
               </p>
             )}
 
-            <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {LEADERSHIP_DIMENSIONS.map((dim, idx) => (
                 <div
                   key={dim.id}
-                  className="rounded-2xl border border-white/10 bg-white/5 p-6 flex flex-col sm:flex-row gap-6 items-center"
+                  className="rounded-2xl bg-white p-6 shadow-md shadow-black/5 flex flex-col items-center text-center"
                 >
-                  <div className="flex-shrink-0 w-32 h-32 sm:w-40 sm:h-40 rounded-xl overflow-hidden bg-white/5 border border-white/10">
+                  <div className="inline-flex items-center gap-2 rounded-full bg-white shadow-sm border border-amber-100 px-3 py-1.5 mb-4">
+                    <span className="w-2 h-2 rounded-full bg-amber-400 flex-shrink-0" />
+                    <span className="text-black font-medium text-sm">{dim.name}</span>
+                  </div>
+                  <div className="relative w-36 h-36 flex items-center justify-center mb-3">
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                      <DonutChart
+                        percent={getDimensionPercent(dim)}
+                        size={140}
+                        strokeColor="rgb(245, 158, 11)"
+                        backgroundColor="rgba(245, 158, 11, 0.2)"
+                      />
+                    </div>
                     <img
                       src={DIMENSION_ARTWORK[dim.id]}
                       alt={dim.name}
-                      className="w-full h-full object-contain"
+                      className="relative z-10 w-20 h-20 object-contain"
                     />
                   </div>
-                  <div className="flex-1 flex flex-col sm:flex-row items-center gap-4 w-full">
-                    <div className="flex-shrink-0">
-                      <DonutChart percent={getDimensionPercent(dim)} size={120} />
-                    </div>
-                    <div className="flex-1 text-center sm:text-left min-w-0">
-                      <div className="text-gray-500 text-sm font-medium">
-                        {idx + 1}. {dim.name}
-                      </div>
-                      <div className="text-2xl font-black text-yellow-400">
-                        {getDimensionPercent(dim)}%
-                      </div>
-                      {DIMENSION_DESCRIPTIONS[dim.id] && (
-                        <p className="text-gray-500 text-xs mt-1">
-                          {DIMENSION_DESCRIPTIONS[dim.id]}
-                        </p>
-                      )}
-                    </div>
+                  <div className="text-2xl md:text-3xl font-black text-black">
+                    {getDimensionPercent(dim)}%
                   </div>
+                  <p className="text-black/80 text-sm mt-1">
+                    {DIMENSION_CARD_DESC[dim.id]}
+                  </p>
                 </div>
               ))}
             </div>
 
-            <div className="rounded-2xl border border-yellow-400/30 bg-yellow-400/5 p-6 space-y-4">
-              <h3 className="text-lg font-bold text-yellow-400">Feedback จาก AI</h3>
+            <div className="rounded-2xl border border-amber-200 bg-white/90 p-6 space-y-4 shadow-sm">
+              <h3 className="text-lg font-bold text-amber-800">Feedback จาก AI</h3>
               {aiLoading && (
-                <div className="flex items-center gap-3 text-gray-400">
-                  <div className="w-5 h-5 border-2 border-yellow-400 border-t-transparent rounded-full animate-spin" />
+                <div className="flex items-center gap-3 text-amber-900/70">
+                  <div className="w-5 h-5 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
                   <span>กำลังสร้าง feedback...</span>
                 </div>
               )}
@@ -404,14 +414,14 @@ const LeadershipAssessment: React.FC = () => {
                 <button
                   type="button"
                   onClick={fetchAIFeedback}
-                  className="px-6 py-3 rounded-xl font-bold bg-yellow-400 text-black hover:bg-yellow-300 transition-all"
+                  className="px-6 py-3 rounded-xl font-bold bg-amber-400 text-black hover:bg-amber-300 transition-all"
                 >
                   รับ Feedback จาก AI
                 </button>
               )}
               {aiFeedback && (
-                <div className="prose prose-invert prose-yellow max-w-none">
-                  <div className="whitespace-pre-wrap text-gray-300 text-sm leading-relaxed">
+                <div className="prose prose-amber max-w-none">
+                  <div className="whitespace-pre-wrap text-amber-950/90 text-sm leading-relaxed">
                     {aiFeedback}
                   </div>
                 </div>
@@ -425,11 +435,11 @@ const LeadershipAssessment: React.FC = () => {
                 type="button"
                 onClick={handleDownloadPdf}
                 disabled={pdfLoading}
-                className="px-6 py-3 rounded-xl font-bold border border-yellow-400/50 text-yellow-400 hover:bg-yellow-400/10 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+                className="px-6 py-3 rounded-xl font-bold border border-amber-500 text-amber-800 bg-white hover:bg-amber-50 disabled:opacity-50 transition-all flex items-center justify-center gap-2 shadow-sm"
               >
                 {pdfLoading ? (
                   <>
-                    <span className="w-4 h-4 border-2 border-yellow-400 border-t-transparent rounded-full animate-spin" />
+                    <span className="w-4 h-4 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
                     กำลังสร้าง PDF...
                   </>
                 ) : (
@@ -446,13 +456,13 @@ const LeadershipAssessment: React.FC = () => {
                   setSaveStatus('idle');
                   setSaveError(null);
                 }}
-                className="px-6 py-3 rounded-xl font-bold border border-white/10 hover:bg-white/5 transition-all"
+                className="px-6 py-3 rounded-xl font-bold border border-amber-200 text-amber-900 bg-white hover:bg-amber-50 transition-all shadow-sm"
               >
                 ทำแบบประเมินใหม่
               </button>
               <Link
                 to="/"
-                className="px-6 py-3 rounded-xl font-bold bg-yellow-400 text-black hover:bg-yellow-300 text-center transition-all"
+                className="px-6 py-3 rounded-xl font-bold bg-amber-400 text-black hover:bg-amber-300 text-center transition-all shadow-sm"
               >
                 กลับหน้าแรก
               </Link>
@@ -474,9 +484,18 @@ const LeadershipAssessment: React.FC = () => {
 interface DonutChartProps {
   percent: number;
   size?: number;
+  strokeColor?: string;
+  backgroundColor?: string;
+  className?: string;
 }
 
-const DonutChart: React.FC<DonutChartProps> = ({ percent, size = 120 }) => {
+const DonutChart: React.FC<DonutChartProps> = ({
+  percent,
+  size = 120,
+  strokeColor = 'rgb(250, 204, 21)',
+  backgroundColor = 'rgba(255,255,255,0.1)',
+  className,
+}) => {
   const strokeWidth = 12;
   const r = (size - strokeWidth) / 2;
   const cx = size / 2;
@@ -486,13 +505,17 @@ const DonutChart: React.FC<DonutChartProps> = ({ percent, size = 120 }) => {
   const dash = filled * circumference;
   const gap = circumference - dash;
   return (
-    <svg width={size} height={size} className="transform -rotate-90">
+    <svg
+      width={size}
+      height={size}
+      className={`transform -rotate-90 ${className ?? ''}`}
+    >
       <circle
         cx={cx}
         cy={cy}
         r={r}
         fill="none"
-        stroke="rgba(255,255,255,0.1)"
+        stroke={backgroundColor}
         strokeWidth={strokeWidth}
       />
       <circle
@@ -500,7 +523,7 @@ const DonutChart: React.FC<DonutChartProps> = ({ percent, size = 120 }) => {
         cy={cy}
         r={r}
         fill="none"
-        stroke="rgb(250, 204, 21)"
+        stroke={strokeColor}
         strokeWidth={strokeWidth}
         strokeDasharray={`${dash} ${gap}`}
         strokeLinecap="round"
