@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
@@ -43,6 +43,7 @@ const LeadershipAssessment: React.FC = () => {
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
   const [saveError, setSaveError] = useState<string | null>(null);
   const [pdfLoading, setPdfLoading] = useState(false);
+  const [pngLoading, setPngLoading] = useState(false);
   const resultPdfRef = useRef<HTMLDivElement>(null);
 
   const currentDimension = LEADERSHIP_DIMENSIONS[dimensionIndex];
@@ -79,6 +80,13 @@ const LeadershipAssessment: React.FC = () => {
       setSaveStatus('success');
     }
   };
+
+  // ซ่อนข้อความสถานะการบันทึกหลัง 3 วินาที
+  useEffect(() => {
+    if (saveStatus !== 'success' && saveStatus !== 'error') return;
+    const t = setTimeout(() => setSaveStatus('idle'), 3000);
+    return () => clearTimeout(t);
+  }, [saveStatus]);
 
   const setQuestionRating = (dimId: string, questionId: string, rating: RatingLevel) => {
     setAnswers((prev) => ({
@@ -151,8 +159,9 @@ const LeadershipAssessment: React.FC = () => {
       const canvas = await html2canvas(resultPdfRef.current, {
         scale: 2,
         useCORS: true,
-        backgroundColor: '#000000',
+        backgroundColor: '#ffffff',
         logging: false,
+        ignoreElements: (el) => el.classList?.contains('exclude-from-pdf') === true,
       });
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF('p', 'mm', 'a4');
@@ -171,6 +180,29 @@ const LeadershipAssessment: React.FC = () => {
       console.error('PDF export failed:', e);
     } finally {
       setPdfLoading(false);
+    }
+  };
+
+  const handleDownloadPng = async () => {
+    if (!resultPdfRef.current) return;
+    setPngLoading(true);
+    try {
+      const canvas = await html2canvas(resultPdfRef.current, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+        logging: false,
+        ignoreElements: (el) => el.classList?.contains('exclude-from-pdf') === true,
+      });
+      const fileName = `ผลการประเมินสมรรถนะภาวะผู้นำ_${user.name || 'ผู้ประเมิน'}_${new Date().toISOString().slice(0, 10)}.png`;
+      const link = document.createElement('a');
+      link.download = fileName;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    } catch (e) {
+      console.error('PNG export failed:', e);
+    } finally {
+      setPngLoading(false);
     }
   };
 
@@ -339,42 +371,43 @@ const LeadershipAssessment: React.FC = () => {
 
         {/* Result */}
         {step === 'result' && (
-          <div className="space-y-10 bg-amber-50/95 min-h-screen -mx-6 px-6 py-8 md:-mx-8 md:px-8">
-            <div ref={resultPdfRef} className="space-y-8">
-              <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-b from-amber-200/60 to-transparent h-24 -mx-6 md:-mx-8" aria-hidden />
-                <h1 className="relative text-2xl md:text-3xl font-black text-center text-black pt-2">
+          <div className="space-y-10 bg-white min-h-screen -mx-6 px-6 py-8 md:-mx-8 md:px-8">
+            {/* สถานะการบันทึก — แสดงบนเว็บเท่านั้น ไม่รวมใน PDF, หายหลัง 3 วินาที */}
+            <div className="exclude-from-pdf">
+              {saveStatus === 'saving' && (
+                <p className="text-center text-black/70 text-sm">กำลังบันทึกผลลง ระบบ...</p>
+              )}
+              {saveStatus === 'success' && (
+                <p className="text-center text-green-700 text-sm">บันทึกผลลง ระบบ แล้ว</p>
+              )}
+              {saveStatus === 'error' && (
+                <div className="rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-center">
+                  <p className="text-red-700 text-sm font-medium">บันทึกลง ระบบ ไม่สำเร็จ</p>
+                  {saveError && <p className="text-red-600 text-xs mt-1">{saveError}</p>}
+                </div>
+              )}
+              {!isSupabaseConfigured && (
+                <p className="text-center text-black/70 text-xs">
+                  ไม่ได้บันทึกลง ระบบ (ขาดการเชื่อมต่อกับ ระบบ)
+                </p>
+              )}
+            </div>
+
+            <div ref={resultPdfRef} className="space-y-8 rounded-xl bg-white p-6 shadow-sm">
+              <div className="bg-white rounded-lg px-4 py-3 text-center">
+                <h1 className="text-2xl md:text-3xl font-black text-black">
                   ผลแบบประเมินสมรรถนะภาวะผู้นำ
                 </h1>
               </div>
-
-              {/* สถานะการบันทึกลง Supabase */}
-            {saveStatus === 'saving' && (
-              <p className="text-center text-amber-900/70 text-sm">กำลังบันทึกผลลง ระบบ...</p>
-            )}
-            {saveStatus === 'success' && (
-              <p className="text-center text-green-700 text-sm">บันทึกผลลง ระบบ แล้ว</p>
-            )}
-            {saveStatus === 'error' && (
-              <div className="rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-center">
-                <p className="text-red-700 text-sm font-medium">บันทึกลง ระบบ ไม่สำเร็จ</p>
-                {saveError && <p className="text-red-600 text-xs mt-1">{saveError}</p>}
-              </div>
-            )}
-            {!isSupabaseConfigured && (
-              <p className="text-center text-amber-800/70 text-xs">
-                ไม่ได้บันทึกลง ระบบ (ขาดการเชื่อมต่อกับ ระบบ)
-              </p>
-            )}
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {LEADERSHIP_DIMENSIONS.map((dim, idx) => (
                 <div
                   key={dim.id}
-                  className="rounded-2xl bg-white p-6 shadow-md shadow-black/5 flex flex-col items-center text-center"
+                  className="rounded-2xl bg-white p-6 flex flex-col items-center text-center shadow-[0_-6px_16px_-4px_rgba(0,0,0,0.08),0_10px_24px_-4px_rgba(0,0,0,0.12)]"
                 >
-                  <div className="inline-flex items-center gap-2 rounded-full bg-white shadow-sm border border-amber-100 px-3 py-1.5 mb-4">
-                    <span className="w-2 h-2 rounded-full bg-amber-400 flex-shrink-0" />
+                  <div className="inline-flex items-center gap-2 rounded-full bg-white shadow-sm border border-[#fed201]/40 px-3 py-1.5 mb-4">
+                    <span className="w-2 h-2 rounded-full bg-[#fed201] flex-shrink-0" />
                     <span className="text-black font-medium text-sm">{dim.name}</span>
                   </div>
                   <div className="relative w-36 h-36 flex items-center justify-center mb-3">
@@ -382,8 +415,8 @@ const LeadershipAssessment: React.FC = () => {
                       <DonutChart
                         percent={getDimensionPercent(dim)}
                         size={140}
-                        strokeColor="rgb(245, 158, 11)"
-                        backgroundColor="rgba(245, 158, 11, 0.2)"
+                        strokeColor="#fed201"
+                        backgroundColor="rgba(254, 210, 1, 0.25)"
                       />
                     </div>
                     <img
@@ -402,11 +435,11 @@ const LeadershipAssessment: React.FC = () => {
               ))}
             </div>
 
-            <div className="rounded-2xl border border-amber-200 bg-white/90 p-6 space-y-4 shadow-sm">
-              <h3 className="text-lg font-bold text-amber-800">Feedback จาก AI</h3>
+            <div className="rounded-2xl border border-[#fed201]/50 bg-white p-6 space-y-4 shadow-sm">
+              <h3 className="text-lg font-bold text-black">Feedback จาก AI</h3>
               {aiLoading && (
-                <div className="flex items-center gap-3 text-amber-900/70">
-                  <div className="w-5 h-5 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
+                <div className="flex items-center gap-3 text-black/70">
+                  <div className="w-5 h-5 border-2 border-[#fed201] border-t-transparent rounded-full animate-spin" />
                   <span>กำลังสร้าง feedback...</span>
                 </div>
               )}
@@ -414,14 +447,14 @@ const LeadershipAssessment: React.FC = () => {
                 <button
                   type="button"
                   onClick={fetchAIFeedback}
-                  className="px-6 py-3 rounded-xl font-bold bg-amber-400 text-black hover:bg-amber-300 transition-all"
+                  className="px-6 py-3 rounded-xl font-bold bg-[#fed201] text-black hover:bg-[#fed201]/90 transition-all"
                 >
                   รับ Feedback จาก AI
                 </button>
               )}
               {aiFeedback && (
-                <div className="prose prose-amber max-w-none">
-                  <div className="whitespace-pre-wrap text-amber-950/90 text-sm leading-relaxed">
+                <div className="prose max-w-none">
+                  <div className="whitespace-pre-wrap text-gray-800 text-sm leading-relaxed">
                     {aiFeedback}
                   </div>
                 </div>
@@ -433,13 +466,28 @@ const LeadershipAssessment: React.FC = () => {
             <div className="flex flex-col sm:flex-row gap-3 justify-center pt-4 flex-wrap">
               <button
                 type="button"
+                onClick={handleDownloadPng}
+                disabled={pngLoading}
+                className="px-6 py-3 rounded-xl font-bold border-2 border-[#fed201] text-black bg-white hover:bg-black/5 disabled:opacity-50 transition-all flex items-center justify-center gap-2 shadow-sm"
+              >
+                {pngLoading ? (
+                  <>
+                    <span className="w-4 h-4 border-2 border-[#fed201] border-t-transparent rounded-full animate-spin" />
+                    กำลังสร้างภาพ...
+                  </>
+                ) : (
+                  'ดาวน์โหลด PNG'
+                )}
+              </button>
+              <button
+                type="button"
                 onClick={handleDownloadPdf}
                 disabled={pdfLoading}
-                className="px-6 py-3 rounded-xl font-bold border border-amber-500 text-amber-800 bg-white hover:bg-amber-50 disabled:opacity-50 transition-all flex items-center justify-center gap-2 shadow-sm"
+                className="px-6 py-3 rounded-xl font-bold border-2 border-[#fed201] text-black bg-white hover:bg-black/5 disabled:opacity-50 transition-all flex items-center justify-center gap-2 shadow-sm"
               >
                 {pdfLoading ? (
                   <>
-                    <span className="w-4 h-4 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
+                    <span className="w-4 h-4 border-2 border-[#fed201] border-t-transparent rounded-full animate-spin" />
                     กำลังสร้าง PDF...
                   </>
                 ) : (
@@ -456,13 +504,13 @@ const LeadershipAssessment: React.FC = () => {
                   setSaveStatus('idle');
                   setSaveError(null);
                 }}
-                className="px-6 py-3 rounded-xl font-bold border border-amber-200 text-amber-900 bg-white hover:bg-amber-50 transition-all shadow-sm"
+                className="px-6 py-3 rounded-xl font-bold border border-[#fed201]/60 text-black bg-white hover:bg-black/5 transition-all shadow-sm"
               >
                 ทำแบบประเมินใหม่
               </button>
               <Link
                 to="/"
-                className="px-6 py-3 rounded-xl font-bold bg-amber-400 text-black hover:bg-amber-300 text-center transition-all shadow-sm"
+                className="px-6 py-3 rounded-xl font-bold bg-[#fed201] text-black hover:bg-[#fed201]/90 text-center transition-all shadow-sm"
               >
                 กลับหน้าแรก
               </Link>
