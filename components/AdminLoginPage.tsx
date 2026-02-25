@@ -47,16 +47,18 @@ const AdminLoginPage: React.FC = () => {
       return;
     }
     setLoading(true);
+    let notifyOk = false;
     if (isSupabaseConfigured) {
-      await supabase.functions
-        .invoke('notify-admin-signup', {
-          body: { email: regEmail.trim(), username: regUsername.trim(), isAdminRequest: true },
-        })
-        .catch(() => {});
+      const { data, error } = await supabase.functions.invoke('notify-admin-signup', {
+        body: { email: regEmail.trim(), username: regUsername.trim(), isAdminRequest: true },
+      });
+      notifyOk = !error && !data?.error;
     }
     setMessage({
       type: 'success',
-      text: 'ส่งคำขอสมัครแอดมินแล้ว กรุณาติดต่อ phet@minddojo.me เพื่อยืนยัน',
+      text: notifyOk
+        ? 'ส่งคำขอสมัครแอดมินแล้ว ระบบได้แจ้งไปที่ phet@minddojo.me แล้ว กรุณาติดต่อเพื่อยืนยัน'
+        : 'ส่งคำขอสมัครแอดมินแล้ว กรุณาติดต่อ phet@minddojo.me โดยตรงเพื่อยืนยัน (ระบบแจ้งอีเมลอาจยังไม่พร้อม)',
     });
     setLoading(false);
   };
