@@ -1,32 +1,40 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { isAuthenticated, setAuthenticated, validateCredentials } from '../lib/auth';
+import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
-  const [username, setUsername] = useState('');
+  const { user, loading: authLoading, signIn } = useAuth();
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   useEffect(() => {
-    if (isAuthenticated()) navigate('/resourcehub', { replace: true });
-  }, [navigate]);
+    if (!authLoading && user) navigate('/resourcehub', { replace: true });
+  }, [user, authLoading, navigate]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage(null);
     setLoading(true);
-
-    if (validateCredentials(username, password)) {
-      setAuthenticated();
+    const result = await signIn(email.trim(), password);
+    setLoading(false);
+    if (result.ok) {
       setMessage({ type: 'success', text: 'เข้าสู่ระบบสำเร็จ' });
       setTimeout(() => navigate('/resourcehub', { replace: true }), 400);
     } else {
-      setMessage({ type: 'error', text: 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง' });
+      setMessage({ type: 'error', text: result.error });
     }
-    setLoading(false);
   };
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-black text-white bg-grid flex items-center justify-center p-6">
+        <div className="text-gray-400">กำลังโหลด...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-black text-white bg-grid flex items-center justify-center p-6">
@@ -44,25 +52,20 @@ const LoginPage: React.FC = () => {
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label htmlFor="username" className="block text-sm font-medium text-gray-400 mb-2">
-                Username
-              </label>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-400 mb-2">อีเมล</label>
               <input
-                id="username"
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="กรอก username"
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="your@email.com"
                 required
-                autoComplete="username"
+                autoComplete="email"
                 className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-all"
               />
             </div>
-
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-400 mb-2">
-                Password
-              </label>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-400 mb-2">รหัสผ่าน</label>
               <input
                 id="password"
                 type="password"
@@ -74,17 +77,11 @@ const LoginPage: React.FC = () => {
                 className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-all"
               />
             </div>
-
             {message && (
-              <div
-                className={`p-3 rounded-xl text-sm ${
-                  message.type === 'success' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
-                }`}
-              >
+              <div className={`p-3 rounded-xl text-sm ${message.type === 'success' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
                 {message.text}
               </div>
             )}
-
             <button
               type="submit"
               disabled={loading}
@@ -93,6 +90,10 @@ const LoginPage: React.FC = () => {
               {loading ? 'กำลังดำเนินการ...' : 'เข้าสู่ระบบ'}
             </button>
           </form>
+
+          <p className="text-center text-gray-500 text-sm mt-6">
+            <Link to="/" className="text-gray-400 hover:underline">← กลับหน้าหลัก</Link>
+          </p>
         </div>
       </div>
     </div>

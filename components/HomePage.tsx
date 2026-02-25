@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { isAuthenticated } from '../lib/auth';
+import { useAuth } from '../contexts/AuthContext';
 
 const ASSESSMENTS = [
   {
@@ -35,7 +35,8 @@ const ASSESSMENTS = [
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
-  const loggedIn = isAuthenticated();
+  const { user } = useAuth();
+  const loggedIn = !!user;
 
   return (
     <div className="min-h-screen bg-black text-white bg-grid flex flex-col selection:bg-yellow-400 selection:text-black">
@@ -47,21 +48,29 @@ const HomePage: React.FC = () => {
           </div>
           <span className="text-xl font-bold tracking-tighter">MindDoJo</span>
         </Link>
-        {loggedIn ? (
+        <div className="flex items-center gap-3">
           <Link
-            to="/resourcehub"
-            className="px-5 py-2.5 rounded-xl font-bold bg-yellow-400 text-black hover:bg-yellow-300 transition-colors"
+            to="/admin/login"
+            className="px-4 py-2 rounded-xl font-medium text-sm bg-white/5 text-gray-400 hover:bg-white/10 border border-white/10 transition-colors"
           >
-             ResourceHub
+            Login Admin MindDojo
           </Link>
-        ) : (
-          <Link
-            to="/login"
-            className="px-5 py-2.5 rounded-xl font-bold bg-white/10 text-white hover:bg-white/20 border border-white/10 transition-colors"
-          >
-            เข้าสู่ระบบ
-          </Link>
-        )}
+          {loggedIn ? (
+            <Link
+              to="/resourcehub"
+              className="px-5 py-2.5 rounded-xl font-bold bg-yellow-400 text-black hover:bg-yellow-300 transition-colors"
+            >
+              ResourceHub
+            </Link>
+          ) : (
+            <Link
+              to="/login"
+              className="px-5 py-2.5 rounded-xl font-bold bg-white/10 text-white hover:bg-white/20 border border-white/10 transition-colors"
+            >
+              เข้าสู่ระบบ
+            </Link>
+          )}
+        </div>
       </header>
 
       {/* Hero */}

@@ -5,13 +5,17 @@ import { Tool, InnovationUpdate } from './types';
 import JourneyCard from './components/JourneyCard';
 import UpdateCard from './components/UpdateCard';
 import ToolDetail from './components/ToolDetail';
+import RegisterPage from './components/RegisterPage';
 import UpdateDetail from './components/UpdateDetail';
 import AIChatModal from './components/AIChatModal';
 import LoginPage from './components/LoginPage';
+import AdminLoginPage from './components/AdminLoginPage';
+import AdminDashboard from './components/AdminDashboard';
 import HomePage from './components/HomePage';
 import DiscAssessment from './components/DiscAssessment';
 import LeadershipAssessment from './components/LeadershipAssessment';
-import { isAuthenticated, logout } from './lib/auth';
+import { useAuth } from './contexts/AuthContext';
+import { isAdminAuthenticated } from './lib/auth';
 
 function ToolsPage() {
   const navigate = useNavigate();
@@ -84,22 +88,35 @@ function UpdateDetailPage() {
 }
 
 function ProtectedLayout({ children }: { children: React.ReactNode }) {
-  if (!isAuthenticated()) {
-    return <Navigate to="/login" replace />;
+  const { user, loading } = useAuth();
+  if (loading) return null;
+  if (!user) return <Navigate to="/login" replace />;
+  return <>{children}</>;
+}
+
+function AdminLayout({ children }: { children: React.ReactNode }) {
+  if (!isAdminAuthenticated()) {
+    return <Navigate to="/admin/login" replace />;
   }
   return <>{children}</>;
 }
 
 const App: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, signOut } = useAuth();
   const pathname = location.pathname;
   const isLogin = pathname === '/login';
+  const isAdminLogin = pathname === '/admin/login';
   const isHome = pathname === '/' || pathname === '/home';
   const isDetailView = pathname.startsWith('/tool/') || pathname.startsWith('/update/');
   const isTools = pathname === '/resourcehub';
   const isUpdates = pathname === '/updates';
 
   if (isLogin) return <LoginPage />;
+  if (pathname === '/register') return <Navigate to="/login" replace />;
+  if (isAdminLogin) return <AdminLoginPage />;
+  if (pathname === '/admin') return <AdminLayout><AdminDashboard /></AdminLayout>;
 
   if (pathname.startsWith('/assessment')) {
     return (
@@ -164,6 +181,18 @@ const App: React.FC = () => {
               >
                 Industry Updates
               </Link>
+              {user && (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    await signOut();
+                    navigate('/');
+                  }}
+                  className="px-5 py-3 rounded-xl font-medium bg-white/5 text-gray-400 hover:bg-red-500/20 hover:text-red-400 border border-white/10 transition-all"
+                >
+                  ออกจากระบบ
+                </button>
+              )}
             </div>
           </div>
         </header>
