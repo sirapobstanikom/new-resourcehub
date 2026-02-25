@@ -16,8 +16,9 @@ npx supabase link --project-ref axaasphuaaadzjoffznj
 
 ## 3. Deploy ฟังก์ชัน
 ```bash
-npx supabase functions deploy notify-admin-signup
+npx supabase functions deploy notify-admin-signup --no-verify-jwt
 ```
+**สำคัญ:** ต้องใส่ `--no-verify-jwt` เพื่อให้หน้า admin สมัคร (ที่ยังไม่ได้ล็อกอิน) เรียกฟังก์ชันได้ ไม่เกิด 401
 
 หรือใช้สคริปต์จาก package.json (หลัง login แล้ว):
 ```bash
