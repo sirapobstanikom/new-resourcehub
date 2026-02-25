@@ -195,10 +195,58 @@ const LeadershipAssessment: React.FC = () => {
         ignoreElements: (el) => el.classList?.contains('exclude-from-pdf') === true,
       });
       const fileName = `ผลการประเมินสมรรถนะภาวะผู้นำ_${user.name || 'ผู้ประเมิน'}_${new Date().toISOString().slice(0, 10)}.png`;
-      const link = document.createElement('a');
-      link.download = fileName;
-      link.href = canvas.toDataURL('image/png');
-      link.click();
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || (typeof navigator.maxTouchPoints === 'number' && navigator.maxTouchPoints > 0);
+
+      await new Promise<void>((resolve, reject) => {
+        canvas.toBlob(
+          (blob) => {
+            if (!blob) {
+              reject(new Error('toBlob failed'));
+              return;
+            }
+            const file = new File([blob], fileName, { type: 'image/png' });
+            const blobUrl = URL.createObjectURL(blob);
+
+            const tryShare = () => {
+              if (typeof navigator.share === 'function' && navigator.canShare?.({ files: [file] })) {
+                navigator
+                  .share({
+                    files: [file],
+                    title: 'ผลแบบประเมินสมรรถนะภาวะผู้นำ',
+                  })
+                  .then(() => {
+                    URL.revokeObjectURL(blobUrl);
+                    resolve();
+                  })
+                  .catch(() => {
+                    fallbackSave(blobUrl);
+                    resolve();
+                  });
+              } else {
+                fallbackSave(blobUrl);
+                resolve();
+              }
+            };
+
+            const fallbackSave = (url: string) => {
+              if (isMobile) {
+                window.open(url, '_blank', 'noopener');
+                setTimeout(() => URL.revokeObjectURL(url), 2000);
+              } else {
+                const link = document.createElement('a');
+                link.download = fileName;
+                link.href = url;
+                link.click();
+                URL.revokeObjectURL(url);
+              }
+            };
+
+            tryShare();
+          },
+          'image/png',
+          1
+        );
+      });
     } catch (e) {
       console.error('PNG export failed:', e);
     } finally {
