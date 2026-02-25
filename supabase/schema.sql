@@ -32,14 +32,46 @@ create index if not exists idx_strategy_comments_post
 alter table public.strategy_posts enable row level security;
 alter table public.strategy_comments enable row level security;
 
+drop policy if exists "Allow read strategy_posts" on public.strategy_posts;
 create policy "Allow read strategy_posts"
   on public.strategy_posts for select using (true);
 
+drop policy if exists "Allow insert strategy_posts" on public.strategy_posts;
 create policy "Allow insert strategy_posts"
   on public.strategy_posts for insert with check (true);
 
+drop policy if exists "Allow read strategy_comments" on public.strategy_comments;
 create policy "Allow read strategy_comments"
   on public.strategy_comments for select using (true);
 
+drop policy if exists "Allow insert strategy_comments" on public.strategy_comments;
 create policy "Allow insert strategy_comments"
   on public.strategy_comments for insert with check (true);
+
+-- แบบประเมินสมรรถนะภาวะผู้นำ: เก็บชื่อ อีเมล บริษัท เวลา และคะแนน 3 หมวด
+create table if not exists public.leadership_entries (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  email text not null,
+  company text not null,
+  score_aware integer,
+  score_adapt integer,
+  score_act integer,
+  created_at timestamptz not null default now()
+);
+
+-- ถ้าตารางมีอยู่แล้วแต่ยังไม่มีคอลัมน์คะแนน ให้รันใน SQL Editor:
+-- alter table public.leadership_entries add column score_aware integer;
+
+create index if not exists idx_leadership_entries_created
+  on public.leadership_entries(created_at desc);
+
+alter table public.leadership_entries enable row level security;
+
+drop policy if exists "Allow insert leadership_entries" on public.leadership_entries;
+create policy "Allow insert leadership_entries"
+  on public.leadership_entries for insert with check (true);
+
+drop policy if exists "Allow read leadership_entries" on public.leadership_entries;
+create policy "Allow read leadership_entries"
+  on public.leadership_entries for select using (true);

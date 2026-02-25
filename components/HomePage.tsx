@@ -4,6 +4,13 @@ import { isAuthenticated } from '../lib/auth';
 
 const ASSESSMENTS = [
   {
+    id: 'leadership',
+    title: 'แบบประเมินสมรรถนะภาวะผู้นำ',
+    description: 'Dynamic Leadership Capability Wheel — ประเมินสมรรถนะด้าน Be AWARE, ADAPT, ACT',
+    href: '/assessment/leadership',
+    comingSoon: false,
+  },
+  {
     id: 'DISC',
     title: 'DISC Assessment',
     description: 'แบบทดสอบประเมินบุคลิกภาพของคุณ',

@@ -10,6 +10,7 @@ import AIChatModal from './components/AIChatModal';
 import LoginPage from './components/LoginPage';
 import HomePage from './components/HomePage';
 import DiscAssessment from './components/DiscAssessment';
+import LeadershipAssessment from './components/LeadershipAssessment';
 import { isAuthenticated, logout } from './lib/auth';
 
 function ToolsPage() {
@@ -104,6 +105,7 @@ const App: React.FC = () => {
     return (
       <Routes>
         <Route path="/assessment/disc" element={<DiscAssessment />} />
+        <Route path="/assessment/leadership" element={<LeadershipAssessment />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     );
