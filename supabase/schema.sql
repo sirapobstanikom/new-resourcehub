@@ -106,3 +106,80 @@ alter table public.admin_users enable row level security;
 -- admin_users: ไม่สร้าง policy สำหรับ anon (เฉพาะ service role ใช้ใน Edge Function)
 drop policy if exists "Allow read admin_signup_requests" on public.admin_signup_requests;
 create policy "Allow read admin_signup_requests" on public.admin_signup_requests for select using (true);
+
+-- ระบบลา MindDojo: คำขอลาของแอดมิน
+create table if not exists public.leave_requests (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  user_email text not null,
+  user_display_name text,
+  leave_type text not null check (leave_type in ('personal', 'sick', 'wfh', 'unpaid')),
+  start_date date not null,
+  end_date date not null,
+  reason text,
+  status text not null default 'pending' check (status in ('pending', 'approved', 'rejected')),
+  created_at timestamptz not null default now()
+);
+
+create index if not exists idx_leave_requests_user_created on public.leave_requests(user_id, created_at desc);
+create index if not exists idx_leave_requests_dates on public.leave_requests(start_date, end_date);
+
+alter table public.leave_requests enable row level security;
+
+-- ผู้ล็อกอินแล้ว insert ได้เฉพาะของตัวเอง
+drop policy if exists "Allow insert own leave_requests" on public.leave_requests;
+create policy "Allow insert own leave_requests"
+  on public.leave_requests for insert with check (auth.uid() = user_id);
+
+-- ผู้ล็อกอินแล้วอ่านได้ทุกแถว (เพื่อดูใครลาบ้าง)
+drop policy if exists "Allow read leave_requests" on public.leave_requests;
+create policy "Allow read leave_requests"
+  on public.leave_requests for select using (auth.role() = 'authenticated');
+
+-- เก็บ OAuth tokens ของ Google Calendar ต่อ user (ตารางงานของฉัน)
+create table if not exists public.user_calendar_settings (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  refresh_token text,
+  access_token text,
+  token_expires_at timestamptz,
+  updated_at timestamptz not null default now()
+);
+
+-- ถ้ามีตารางเดิมใช้ calendar_embed_url ให้รันแยก:
+-- alter table public.user_calendar_settings drop column if exists calendar_embed_url;
+-- alter table public.user_calendar_settings add column if not exists refresh_token text;
+-- alter table public.user_calendar_settings add column if not exists access_token text;
+-- alter table public.user_calendar_settings add column if not exists token_expires_at timestamptz;
+
+alter table public.user_calendar_settings enable row level security;
+
+drop policy if exists "Allow read own calendar_settings" on public.user_calendar_settings;
+create policy "Allow read own calendar_settings"
+  on public.user_calendar_settings for select using (auth.uid() = user_id);
+
+drop policy if exists "Allow insert own calendar_settings" on public.user_calendar_settings;
+create policy "Allow insert own calendar_settings"
+  on public.user_calendar_settings for insert with check (auth.uid() = user_id);
+
+drop policy if exists "Allow update own calendar_settings" on public.user_calendar_settings;
+create policy "Allow update own calendar_settings"
+  on public.user_calendar_settings for update using (auth.uid() = user_id);
+
+-- เมื่อมี user ใหม่ใน auth.users ให้เพิ่มใน admin_users โดยอัตโนมัติ
+create or replace function public.handle_new_auth_user()
+returns trigger
+language plpgsql
+security definer set search_path = public
+as $$
+begin
+  insert into public.admin_users (username, email, password_hash)
+  values (new.email, new.email, '')
+  on conflict (username) do update set email = excluded.email;
+  return new;
+end;
+$$;
+
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute function public.handle_new_auth_user();

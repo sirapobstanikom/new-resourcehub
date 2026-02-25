@@ -1,40 +1,31 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { isAuthenticated, setAuthenticated, validateResourceHubCredentials } from '../lib/auth';
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
-  const { user, loading: authLoading, signIn } = useAuth();
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   useEffect(() => {
-    if (!authLoading && user) navigate('/resourcehub', { replace: true });
-  }, [user, authLoading, navigate]);
+    if (isAuthenticated()) navigate('/resourcehub', { replace: true });
+  }, [navigate]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setMessage(null);
     setLoading(true);
-    const result = await signIn(email.trim(), password);
-    setLoading(false);
-    if (result.ok) {
+    if (validateResourceHubCredentials(username.trim(), password)) {
+      setAuthenticated(username.trim());
       setMessage({ type: 'success', text: 'เข้าสู่ระบบสำเร็จ' });
       setTimeout(() => navigate('/resourcehub', { replace: true }), 400);
     } else {
-      setMessage({ type: 'error', text: result.error });
+      setMessage({ type: 'error', text: 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง' });
     }
+    setLoading(false);
   };
-
-  if (authLoading) {
-    return (
-      <div className="min-h-screen bg-black text-white bg-grid flex items-center justify-center p-6">
-        <div className="text-gray-400">กำลังโหลด...</div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-black text-white bg-grid flex items-center justify-center p-6">
@@ -52,15 +43,15 @@ const LoginPage: React.FC = () => {
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-400 mb-2">อีเมล</label>
+              <label htmlFor="username" className="block text-sm font-medium text-gray-400 mb-2">Username</label>
               <input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="your@email.com"
+                id="username"
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="กรอก username"
                 required
-                autoComplete="email"
+                autoComplete="username"
                 className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-all"
               />
             </div>

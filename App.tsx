@@ -11,11 +11,13 @@ import LoginPage from './components/LoginPage';
 import AdminLoginPage from './components/AdminLoginPage';
 import AdminApprovePage from './components/AdminApprovePage';
 import AdminDashboard from './components/AdminDashboard';
+import AdminLayoutWithSidebar from './components/AdminLayoutWithSidebar';
+import AdminLeavePage from './components/AdminLeavePage';
 import HomePage from './components/HomePage';
 import DiscAssessment from './components/DiscAssessment';
 import LeadershipAssessment from './components/LeadershipAssessment';
 import { useAuth } from './contexts/AuthContext';
-import { isAdminAuthenticated } from './lib/auth';
+import { isAdminAuthenticated, isAuthenticated, logoutResourceHub } from './lib/auth';
 
 function ToolsPage() {
   const navigate = useNavigate();
@@ -89,8 +91,9 @@ function UpdateDetailPage() {
 
 function ProtectedLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
-  if (loading) return null;
-  if (!user) return <Navigate to="/login" replace />;
+  const resourceHubLoggedIn = isAuthenticated();
+  if (loading && !resourceHubLoggedIn) return null;
+  if (!user && !resourceHubLoggedIn) return <Navigate to="/login" replace />;
   return <>{children}</>;
 }
 
@@ -105,6 +108,7 @@ const App: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
+  const resourceHubLoggedIn = isAuthenticated();
   const pathname = location.pathname;
   const isLogin = pathname === '/login';
   const isAdminLogin = pathname === '/admin/login';
@@ -117,7 +121,18 @@ const App: React.FC = () => {
   if (pathname === '/register') return <Navigate to="/login" replace />;
   if (isAdminLogin) return <AdminLoginPage />;
   if (pathname === '/admin/approve') return <AdminApprovePage />;
-  if (pathname === '/admin') return <AdminLayout><AdminDashboard /></AdminLayout>;
+  if (pathname === '/admin' || pathname === '/admin/leave') {
+    return (
+      <AdminLayout>
+        <Routes>
+          <Route path="/admin" element={<AdminLayoutWithSidebar />}>
+            <Route index element={<AdminDashboard />} />
+            <Route path="leave" element={<AdminLeavePage />} />
+          </Route>
+        </Routes>
+      </AdminLayout>
+    );
+  }
 
   if (pathname.startsWith('/assessment')) {
     return (
@@ -182,10 +197,11 @@ const App: React.FC = () => {
               >
                 Industry Updates
               </Link>
-              {user && (
+              {(user || resourceHubLoggedIn) && (
                 <button
                   type="button"
                   onClick={async () => {
+                    logoutResourceHub();
                     await signOut();
                     navigate('/');
                   }}

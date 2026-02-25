@@ -1,7 +1,39 @@
 import type { User, Session } from '@supabase/supabase-js';
 import { supabase, isSupabaseConfigured } from './supabase';
 
-// --- User Auth (Supabase) ---
+// --- ResourceHub Login (ใช้แค่ innoclub / 12345678) ---
+const AUTH_KEY = 'resourcehub_authenticated';
+const USERNAME_KEY = 'resourcehub_username';
+export const LOGIN_USERNAME = 'innoclub';
+export const LOGIN_PASSWORD = '12345678';
+
+export function isAuthenticated(): boolean {
+  return typeof window !== 'undefined' && localStorage.getItem(AUTH_KEY) === 'true';
+}
+
+export function setAuthenticated(username?: string): void {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(AUTH_KEY, 'true');
+  if (username != null) localStorage.setItem(USERNAME_KEY, username);
+}
+
+export function getResourceHubDisplayName(): string {
+  if (typeof window === 'undefined') return LOGIN_USERNAME;
+  return localStorage.getItem(USERNAME_KEY) || LOGIN_USERNAME;
+}
+
+export function logoutResourceHub(): void {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem(AUTH_KEY);
+    localStorage.removeItem(USERNAME_KEY);
+  }
+}
+
+export function validateResourceHubCredentials(username: string, password: string): boolean {
+  return username === LOGIN_USERNAME && password === LOGIN_PASSWORD;
+}
+
+// --- User Auth (Supabase) - ใช้สำหรับฟีเจอร์อื่นถ้ามี ---
 export async function getSession(): Promise<Session | null> {
   if (!isSupabaseConfigured) return null;
   const { data: { session } } = await supabase.auth.getSession();

@@ -1,13 +1,17 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabaseUrl = (import.meta.env.VITE_SUPABASE_URL || '').replace(/\/$/, '');
+const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-if (!supabaseUrl || !supabaseAnonKey) {
+if (!supabaseUrl || !anonKey) {
   console.warn(
     'Supabase env missing. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in .env for Strategy Exchange.'
   );
 }
 
-export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
-export const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '');
+export const isSupabaseConfigured = Boolean(supabaseUrl && anonKey);
+export const supabase = createClient(supabaseUrl || '', anonKey || '');
+/** URL ของโปรเจกต์ Supabase (ไม่มี slash ท้าย) ใช้สำหรับเรียก Edge Functions */
+export const supabaseFunctionsUrl = supabaseUrl || '';
+/** Anon key สำหรับใส่ในคำขอ Edge Functions (เช่น redirect ไม่ส่ง header ได้) */
+export const supabaseAnonKey = anonKey || '';

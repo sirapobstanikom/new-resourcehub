@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { isAuthenticated } from '../lib/auth';
 
 const ASSESSMENTS = [
   {
@@ -36,7 +37,7 @@ const ASSESSMENTS = [
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const loggedIn = !!user;
+  const loggedIn = isAuthenticated() || !!user;
 
   return (
     <div className="min-h-screen bg-black text-white bg-grid flex flex-col selection:bg-yellow-400 selection:text-black">
