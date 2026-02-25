@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 import {
   LEADERSHIP_DIMENSIONS,
   RATING_SCORE,
@@ -17,6 +19,13 @@ type Step = 'login' | 'assessment' | 'result';
 
 const RATING_ORDER: RatingLevel[] = ['S', 'ME', 'AFI', 'ASD'];
 
+/** Artwork สำหรับแต่ละหมวด (Be AWARE, ADAPT, ACT) */
+const DIMENSION_ARTWORK: Record<string, string> = {
+  aware: 'https://static.wixstatic.com/media/8f9517_4a4e1857cee1428c8864aa4d1a232bf0~mv2.png',
+  adapt: 'https://static.wixstatic.com/media/8f9517_24a9a186e21a426d8904e8fe90a5ef94~mv2.png',
+  act: 'https://static.wixstatic.com/media/8f9517_148bb0e9ac6c4571834c6f7abd23ab29~mv2.png',
+};
+
 const LeadershipAssessment: React.FC = () => {
   const [step, setStep] = useState<Step>('login');
   const [user, setUser] = useState({ name: '', email: '', company: '' });
@@ -26,6 +35,8 @@ const LeadershipAssessment: React.FC = () => {
   const [aiLoading, setAiLoading] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [pdfLoading, setPdfLoading] = useState(false);
+  const resultPdfRef = useRef<HTMLDivElement>(null);
 
   const currentDimension = LEADERSHIP_DIMENSIONS[dimensionIndex];
   const totalDimensions = LEADERSHIP_DIMENSIONS.length;
@@ -124,6 +135,36 @@ const LeadershipAssessment: React.FC = () => {
     const text = await getLeadershipFeedback(payload);
     setAiFeedback(text);
     setAiLoading(false);
+  };
+
+  const handleDownloadPdf = async () => {
+    if (!resultPdfRef.current) return;
+    setPdfLoading(true);
+    try {
+      const canvas = await html2canvas(resultPdfRef.current, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#000000',
+        logging: false,
+      });
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pageW = pdf.internal.pageSize.getWidth();
+      const pageH = pdf.internal.pageSize.getHeight();
+      const imgW = pageW;
+      const imgH = (canvas.height * imgW) / canvas.width;
+      const totalPages = Math.ceil(imgH / pageH) || 1;
+      for (let p = 0; p < totalPages; p++) {
+        if (p > 0) pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, -p * pageH, imgW, imgH);
+      }
+      const fileName = `ผลการประเมินสมรรถนะภาวะผู้นำ_${user.name || 'ผู้ประเมิน'}_${new Date().toISOString().slice(0, 10)}.pdf`;
+      pdf.save(fileName);
+    } catch (e) {
+      console.error('PDF export failed:', e);
+    } finally {
+      setPdfLoading(false);
+    }
   };
 
   /** คะแนนเฉลี่ยต่อหมวด (1–4) แปลงเป็น percent 0–100 */
@@ -292,11 +333,12 @@ const LeadershipAssessment: React.FC = () => {
         {/* Result */}
         {step === 'result' && (
           <div className="space-y-10">
-            <h1 className="text-2xl md:text-3xl font-black text-center">
-              ผลการประเมินสมรรถนะภาวะผู้นำ
-            </h1>
+            <div ref={resultPdfRef} className="space-y-10 rounded-2xl border border-transparent p-4">
+              <h1 className="text-2xl md:text-3xl font-black text-center">
+                ผลการประเมินสมรรถนะภาวะผู้นำ
+              </h1>
 
-            {/* สถานะการบันทึกลง Supabase */}
+              {/* สถานะการบันทึกลง Supabase */}
             {saveStatus === 'saving' && (
               <p className="text-center text-gray-400 text-sm">กำลังบันทึกผลลง ระบบ...</p>
             )}
@@ -319,27 +361,33 @@ const LeadershipAssessment: React.FC = () => {
               {LEADERSHIP_DIMENSIONS.map((dim, idx) => (
                 <div
                   key={dim.id}
-                  className="rounded-2xl border border-white/10 bg-white/5 p-6 space-y-3"
+                  className="rounded-2xl border border-white/10 bg-white/5 p-6 flex flex-col sm:flex-row gap-6 items-center"
                 >
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-500 text-sm font-medium">
-                      {idx + 1}. {dim.name}
-                    </span>
-                    <span className="text-2xl font-black text-yellow-400">
-                      {getDimensionPercent(dim)}%
-                    </span>
-                  </div>
-                  <div className="h-3 rounded-full bg-white/10 overflow-hidden">
-                    <div
-                      className="h-full bg-yellow-400 rounded-full transition-all duration-500"
-                      style={{ width: `${getDimensionPercent(dim)}%` }}
+                  <div className="flex-shrink-0 w-32 h-32 sm:w-40 sm:h-40 rounded-xl overflow-hidden bg-white/5 border border-white/10">
+                    <img
+                      src={DIMENSION_ARTWORK[dim.id]}
+                      alt={dim.name}
+                      className="w-full h-full object-contain"
                     />
                   </div>
-                  {DIMENSION_DESCRIPTIONS[dim.id] && (
-                    <p className="text-gray-500 text-xs">
-                      {DIMENSION_DESCRIPTIONS[dim.id]}
-                    </p>
-                  )}
+                  <div className="flex-1 flex flex-col sm:flex-row items-center gap-4 w-full">
+                    <div className="flex-shrink-0">
+                      <DonutChart percent={getDimensionPercent(dim)} size={120} />
+                    </div>
+                    <div className="flex-1 text-center sm:text-left min-w-0">
+                      <div className="text-gray-500 text-sm font-medium">
+                        {idx + 1}. {dim.name}
+                      </div>
+                      <div className="text-2xl font-black text-yellow-400">
+                        {getDimensionPercent(dim)}%
+                      </div>
+                      {DIMENSION_DESCRIPTIONS[dim.id] && (
+                        <p className="text-gray-500 text-xs mt-1">
+                          {DIMENSION_DESCRIPTIONS[dim.id]}
+                        </p>
+                      )}
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
@@ -370,7 +418,24 @@ const LeadershipAssessment: React.FC = () => {
               )}
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-3 justify-center pt-4">
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-3 justify-center pt-4 flex-wrap">
+              <button
+                type="button"
+                onClick={handleDownloadPdf}
+                disabled={pdfLoading}
+                className="px-6 py-3 rounded-xl font-bold border border-yellow-400/50 text-yellow-400 hover:bg-yellow-400/10 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+              >
+                {pdfLoading ? (
+                  <>
+                    <span className="w-4 h-4 border-2 border-yellow-400 border-t-transparent rounded-full animate-spin" />
+                    กำลังสร้าง PDF...
+                  </>
+                ) : (
+                  'ดาวน์โหลด PDF'
+                )}
+              </button>
               <button
                 type="button"
                 onClick={() => {
@@ -402,6 +467,46 @@ const LeadershipAssessment: React.FC = () => {
         </div>
       </footer>
     </div>
+  );
+};
+
+/** Donut (pie) chart แสดงเปอร์เซ็นต์ 0–100 */
+interface DonutChartProps {
+  percent: number;
+  size?: number;
+}
+
+const DonutChart: React.FC<DonutChartProps> = ({ percent, size = 120 }) => {
+  const strokeWidth = 12;
+  const r = (size - strokeWidth) / 2;
+  const cx = size / 2;
+  const cy = size / 2;
+  const circumference = 2 * Math.PI * r;
+  const filled = Math.max(0, Math.min(100, percent)) / 100;
+  const dash = filled * circumference;
+  const gap = circumference - dash;
+  return (
+    <svg width={size} height={size} className="transform -rotate-90">
+      <circle
+        cx={cx}
+        cy={cy}
+        r={r}
+        fill="none"
+        stroke="rgba(255,255,255,0.1)"
+        strokeWidth={strokeWidth}
+      />
+      <circle
+        cx={cx}
+        cy={cy}
+        r={r}
+        fill="none"
+        stroke="rgb(250, 204, 21)"
+        strokeWidth={strokeWidth}
+        strokeDasharray={`${dash} ${gap}`}
+        strokeLinecap="round"
+        className="transition-all duration-700"
+      />
+    </svg>
   );
 };
 
