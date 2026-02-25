@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "supabase:login": "supabase login",
     "supabase:link": "supabase link --project-ref axaasphuaaadzjoffznj",
-    "supabase:deploy": "supabase functions deploy notify-admin-signup --no-verify-jwt"
+    "supabase:deploy": "supabase functions deploy notify-admin-signup --no-verify-jwt && supabase functions deploy approve-admin --no-verify-jwt && supabase functions deploy admin-login --no-verify-jwt"
   },
   "dependencies": {
     "@google/genai": "^1.42.0",

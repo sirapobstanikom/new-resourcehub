@@ -75,3 +75,34 @@ create policy "Allow insert leadership_entries"
 drop policy if exists "Allow read leadership_entries" on public.leadership_entries;
 create policy "Allow read leadership_entries"
   on public.leadership_entries for select using (true);
+
+-- คำขอสมัครแอดมิน (ให้ phet กดลิงก์ในเมลเพื่ออนุมัติ)
+create table if not exists public.admin_signup_requests (
+  id uuid primary key default gen_random_uuid(),
+  email text not null,
+  username text not null,
+  token text not null unique,
+  status text not null default 'pending' check (status in ('pending', 'approved')),
+  created_at timestamptz not null default now()
+);
+
+-- แอดมินที่อนุมัติแล้ว (ใช้ล็อกอินได้)
+create table if not exists public.admin_users (
+  id uuid primary key default gen_random_uuid(),
+  username text not null unique,
+  email text not null,
+  password_hash text not null,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists idx_admin_signup_requests_token on public.admin_signup_requests(token);
+create index if not exists idx_admin_users_username on public.admin_users(username);
+
+alter table public.admin_signup_requests enable row level security;
+alter table public.admin_users enable row level security;
+
+-- Edge Function ใช้ service role (bypass RLS) สำหรับ insert/update
+-- admin_signup_requests: ให้อ่านได้ (หน้า approve ใช้ token จาก URL ไม่ต้องอ่านตาราง)
+-- admin_users: ไม่สร้าง policy สำหรับ anon (เฉพาะ service role ใช้ใน Edge Function)
+drop policy if exists "Allow read admin_signup_requests" on public.admin_signup_requests;
+create policy "Allow read admin_signup_requests" on public.admin_signup_requests for select using (true);

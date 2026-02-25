@@ -21,11 +21,19 @@ const AdminLoginPage: React.FC = () => {
     if (isAdminAuthenticated()) navigate('/admin', { replace: true });
   }, [navigate]);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage(null);
     setLoading(true);
-    if (validateAdminCredentials(username, password)) {
+    let ok = false;
+    if (isSupabaseConfigured) {
+      const { data, error } = await supabase.functions.invoke('admin-login', {
+        body: { username, password },
+      });
+      ok = !error && data?.ok === true;
+    }
+    if (!ok) ok = validateAdminCredentials(username, password);
+    if (ok) {
       setAdminAuthenticated();
       setMessage({ type: 'success', text: 'เข้าสู่ระบบ Admin สำเร็จ' });
       setTimeout(() => navigate('/admin', { replace: true }), 400);
@@ -49,8 +57,9 @@ const AdminLoginPage: React.FC = () => {
     setLoading(true);
     let notifyOk = false;
     if (isSupabaseConfigured) {
+      const siteUrl = typeof window !== 'undefined' ? window.location.origin : '';
       const { data, error } = await supabase.functions.invoke('notify-admin-signup', {
-        body: { email: regEmail.trim(), username: regUsername.trim(), isAdminRequest: true },
+        body: { email: regEmail.trim(), username: regUsername.trim(), isAdminRequest: true, siteUrl },
       });
       notifyOk = !error && !data?.error;
     }

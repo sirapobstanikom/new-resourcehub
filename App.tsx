@@ -5,11 +5,11 @@ import { Tool, InnovationUpdate } from './types';
 import JourneyCard from './components/JourneyCard';
 import UpdateCard from './components/UpdateCard';
 import ToolDetail from './components/ToolDetail';
-import RegisterPage from './components/RegisterPage';
 import UpdateDetail from './components/UpdateDetail';
 import AIChatModal from './components/AIChatModal';
 import LoginPage from './components/LoginPage';
 import AdminLoginPage from './components/AdminLoginPage';
+import AdminApprovePage from './components/AdminApprovePage';
 import AdminDashboard from './components/AdminDashboard';
 import HomePage from './components/HomePage';
 import DiscAssessment from './components/DiscAssessment';
@@ -116,6 +116,7 @@ const App: React.FC = () => {
   if (isLogin) return <LoginPage />;
   if (pathname === '/register') return <Navigate to="/login" replace />;
   if (isAdminLogin) return <AdminLoginPage />;
+  if (pathname === '/admin/approve') return <AdminApprovePage />;
   if (pathname === '/admin') return <AdminLayout><AdminDashboard /></AdminLayout>;
 
   if (pathname.startsWith('/assessment')) {
