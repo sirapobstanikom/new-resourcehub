@@ -4,6 +4,7 @@ import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import {
   LEADERSHIP_DIMENSIONS,
+  RATING_LABELS,
   RATING_SCORE,
   DIMENSION_DESCRIPTIONS,
   getAllQuestionIds,
@@ -378,11 +379,11 @@ const LeadershipAssessment: React.FC = () => {
                   key={r}
                   className="flex-1 text-center py-2 text-[10px] md:text-xs font-medium text-gray-400 border-r border-white/10 last:border-r-0"
                 >
-                  {r}
+                  {RATING_LABELS[r]}
                 </div>
               ))}
             </div>
-            <p className="text-gray-500 text-sm text-center">{currentDimension.name} — เลือกระดับ S, ME, AFI หรือ ASD ที่ตรงกับคุณที่สุดในแต่ละข้อ (คะแนน 1–4)</p>
+            <p className="text-gray-500 text-sm text-center">{currentDimension.name} — เลือกระดับ จุดแข็ง / ตรงตามความคาดหวัง / พื้นที่ที่ต้องปรับปรุง / พื้นที่ที่ต้องปรับปรุงอย่างมีนัยสำคัญ ที่ตรงกับคุณที่สุดในแต่ละข้อ (คะแนน 1–4)</p>
 
             <div className="space-y-10">
               {currentDimension.subItems.map((subItem) => (
@@ -683,19 +684,19 @@ const QuestionBlock: React.FC<QuestionBlockProps> = ({
         </h4>
         <p className="text-gray-400 text-sm leading-relaxed mt-1">{question.description}</p>
       </div>
-      <div className="flex gap-1 md:gap-2">
+      <div className="flex gap-1 md:gap-2 flex-wrap">
         {RATING_ORDER.map((r) => (
           <button
             key={r}
             type="button"
             onClick={() => onSelect(r)}
-            className={`flex-1 py-3 rounded-xl text-xs md:text-sm font-medium transition-all ${
+            className={`flex-1 min-w-0 py-3 rounded-xl text-xs md:text-sm font-medium transition-all ${
               selected === r
                 ? 'bg-yellow-400 text-black ring-2 ring-yellow-400'
                 : 'bg-white/5 text-gray-400 hover:bg-white/10 border border-white/10'
             }`}
           >
-            {r}
+            {RATING_LABELS[r]}
           </button>
         ))}
       </div>

@@ -57,9 +57,9 @@ export async function getLeadershipFeedback(payload: LeadershipResultPayload): P
     .join('\n');
 
   const systemPrompt = `You are a professional Leadership Coach. The user has completed "แบบประเมินสมรรถนะภาวะผู้นำ" (Dynamic Leadership Capability Wheel).
-S = Strength, ME = Meets Expectations, AFI = Area for Improvement, ASD = Area of Significant Improvement.
-Scoring: S=1, ME=2, AFI=3, ASD=4. Higher percent = stronger in that dimension.
-Provide personalized feedback in Thai:
+S = จุดแข็ง, ME = ตรงตามความคาดหวัง, AFI = พื้นที่ที่ต้องปรับปรุง, ASD = พื้นที่ที่ต้องปรับปรุงอย่างมีนัยสำคัญ
+คะแนน: S=1, ME=2, AFI=3, ASD=4 คะแนนสูงขึ้น = สมรรถนะด้านนั้นแข็งแกร่งขึ้น
+ให้ feedback เป็นภาษาไทย:
 1. สรุปภาพรวมสมรรถนะ (2-3 ประโยค)
 2. จุดแข็งที่ควรใช้ต่อ (ตาม S / คะแนนสูง)
 3. ด้านที่ควรพัฒนา (ตาม AFI/ASD / คะแนนต่ำ) พร้อมข้อเสนอแนะสั้นๆ 1-2 ข้อต่อด้าน
