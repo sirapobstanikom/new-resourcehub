@@ -8,6 +8,7 @@ import {
   RATING_DESCRIPTIONS,
   RATING_SCORE,
   DIMENSION_DESCRIPTIONS,
+  DIMENSION_MEANING,
   getAllQuestionIds,
   type RatingLevel,
   type LeadershipDimension,
@@ -36,13 +37,34 @@ const DIMENSION_CARD_DESC: Record<string, string> = {
   act: 'ลงมือทำ ตัดสินใจ ผลักดันการเปลี่ยนแปลง',
 };
 
-const INTRO_TITLE = 'แบบประเมินสมรรถนะภาวะผู้นำ';
-const INTRO_DESCRIPTION =
-  'แบบประเมินนี้ใช้ประเมินสมรรถนะภาวะผู้นำตามกรอบ Dynamic Leadership Capability Wheel ประกอบด้วย 3 หมวดหลัก คือ Be AWARE (การตระหนักรู้), ADAPT (การปรับตัวและเรียนรู้) และ ACT (การลงมือทำและผลักดันการเปลี่ยนแปลง) เพื่อให้คุณเห็นจุดแข็งและพื้นที่ที่ควรพัฒนา';
-
 /** จำนวนข้อรวมทั้งแบบประเมิน */
 const getTotalQuestionCount = () =>
   LEADERSHIP_DIMENSIONS.reduce((acc, d) => acc + getAllQuestionIds(d).length, 0);
+
+const INTRO_TITLE = 'แบบประเมินสมรรถนะภาวะผู้นำ';
+const INTRO_BODY = (
+  <>
+    <p className="mb-4">
+      แบบประเมินนี้ใช้กรอบ <strong className="text-white">Dynamic Leadership Capability Wheel</strong> ในการประเมินสมรรถนะภาวะผู้นำของคุณ
+    </p>
+    <p className="mb-4 text-gray-400">
+      ประกอบด้วย 3 หมวดหลัก คือ <strong className="text-yellow-400/90">Be AWARE</strong> (การตระหนักรู้),{' '}
+      <strong className="text-yellow-400/90">ADAPT</strong> (การปรับตัวและเรียนรู้) และ{' '}
+      <strong className="text-yellow-400/90">ACT</strong> (การลงมือทำและผลักดันการเปลี่ยนแปลง) เพื่อให้คุณเห็นจุดแข็งและพื้นที่ที่ควรพัฒนา
+    </p>
+    <p className="mb-4 text-gray-400">
+      แบบประเมินรวมทั้งหมด <strong className="text-yellow-400/90">{getTotalQuestionCount()}</strong> ข้อ
+    </p>
+    <div className="text-left bg-white/5 rounded-xl p-4 border border-white/10">
+      <p className="font-semibold text-white text-sm mb-2">วิธีการทำแบบประเมิน</p>
+      <ol className="text-gray-400 text-sm space-y-1.5 list-decimal list-inside">
+        <li>อ่านแต่ละข้อแล้วพิจารณาว่าตรงกับคุณมากที่สุด</li>
+        <li>เลือกหนึ่งระดับจาก 4 ระดับ ได้แก่ ต้องพัฒนาอย่างจริงจัง / ควรพัฒนา / ดี / จุดแข็ง</li>
+        <li>ทำครบทั้ง 3 หมวด แล้วกดดูผลลัพธ์</li>
+      </ol>
+    </div>
+  </>
+);
 
 const LeadershipAssessment: React.FC = () => {
   const [showIntroModal, setShowIntroModal] = useState(false);
@@ -312,9 +334,9 @@ const LeadershipAssessment: React.FC = () => {
               <h2 className="text-2xl md:text-3xl font-black text-white tracking-tight mb-4">
                 {INTRO_TITLE}
               </h2>
-              <p className="text-gray-400 text-sm md:text-base leading-relaxed mb-8">
-                {INTRO_DESCRIPTION}
-              </p>
+              <div className="text-sm md:text-base leading-relaxed mb-8 text-gray-400">
+                {INTRO_BODY}
+              </div>
               <button
                 type="button"
                 onClick={handleCloseIntroAndStartAssessment}
@@ -429,23 +451,8 @@ const LeadershipAssessment: React.FC = () => {
               {currentDimension.name}
             </h2>
 
-            <div className="flex justify-between items-center text-xs text-gray-500 px-1">
-              <span>ต้องพัฒนาอย่างจริงจัง</span>
-              <span>จุดแข็ง</span>
-            </div>
-            <div className="flex gap-0 border border-white/10 rounded-xl overflow-hidden bg-white/5">
-              {RATING_ORDER.map((r) => (
-                <div
-                  key={r}
-                  className="flex-1 text-center py-2 text-[10px] md:text-xs font-medium text-gray-400 border-r border-white/10 last:border-r-0"
-                  title={RATING_DESCRIPTIONS[r]}
-                >
-                  {RATING_LABELS[r]}
-                </div>
-              ))}
-            </div>
-            <p className="text-gray-500 text-sm text-center">
-              {currentDimension.name} — เลือกระดับ ต้องพัฒนาอย่างจริงจัง / ควรพัฒนา / ดี / จุดแข็ง ที่ตรงกับคุณที่สุดในแต่ละข้อ
+            <p className="text-gray-400 text-sm md:text-base leading-relaxed text-center max-w-2xl mx-auto">
+              {DIMENSION_MEANING[currentDimension.id] || DIMENSION_DESCRIPTIONS[currentDimension.id]}
             </p>
 
             <div className="space-y-10">
