@@ -437,7 +437,7 @@ const LeadershipAssessment: React.FC = () => {
                 หมวด {dimensionIndex + 1}/{totalDimensions}
               </span>
               <span>
-                หมวดนี้ {getAllQuestionIds(currentDimension).length} ข้อ · รวมทั้งหมด {getTotalQuestionCount()} ข้อ
+                หมวดนี้ {getAllQuestionIds(currentDimension).length} ข้อ
               </span>
             </div>
             <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
