@@ -455,6 +455,18 @@ const LeadershipAssessment: React.FC = () => {
               {DIMENSION_MEANING[currentDimension.id] || DIMENSION_DESCRIPTIONS[currentDimension.id]}
             </p>
 
+            <div className="rounded-xl border border-white/10 bg-white/5 p-4 text-sm text-gray-400">
+              <p className="font-semibold text-gray-300 mb-3">คำอธิบาย</p>
+              <ul className="space-y-2">
+                {RATING_ORDER.map((r) => (
+                  <li key={r}>
+                    <span className="font-medium text-gray-200">{RATING_LABELS[r]}</span>
+                    <span className="text-gray-500"> – {RATING_DESCRIPTIONS[r]}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
             <div className="space-y-10">
               {currentDimension.subItems.map((subItem) => (
                 <SubItemSection
