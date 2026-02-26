@@ -5,6 +5,7 @@ import { jsPDF } from 'jspdf';
 import {
   LEADERSHIP_DIMENSIONS,
   RATING_LABELS,
+  RATING_DESCRIPTIONS,
   RATING_SCORE,
   DIMENSION_DESCRIPTIONS,
   getAllQuestionIds,
@@ -18,7 +19,8 @@ import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
 type Step = 'login' | 'assessment' | 'result';
 
-const RATING_ORDER: RatingLevel[] = ['S', 'ME', 'AFI', 'ASD'];
+/** เรียงจากซ้าย (ต้องพัฒนาอย่างจริงจัง) → ขวา (จุดแข็ง) */
+const RATING_ORDER: RatingLevel[] = ['ASD', 'AFI', 'ME', 'S'];
 
 /** Artwork สำหรับแต่ละหมวด (Be AWARE, ADAPT, ACT) */
 const DIMENSION_ARTWORK: Record<string, string> = {
@@ -34,7 +36,16 @@ const DIMENSION_CARD_DESC: Record<string, string> = {
   act: 'ลงมือทำ ตัดสินใจ ผลักดันการเปลี่ยนแปลง',
 };
 
+const INTRO_TITLE = 'แบบประเมินสมรรถนะภาวะผู้นำ';
+const INTRO_DESCRIPTION =
+  'แบบประเมินนี้ใช้ประเมินสมรรถนะภาวะผู้นำตามกรอบ Dynamic Leadership Capability Wheel ประกอบด้วย 3 หมวดหลัก คือ Be AWARE (การตระหนักรู้), ADAPT (การปรับตัวและเรียนรู้) และ ACT (การลงมือทำและผลักดันการเปลี่ยนแปลง) เพื่อให้คุณเห็นจุดแข็งและพื้นที่ที่ควรพัฒนา';
+
+/** จำนวนข้อรวมทั้งแบบประเมิน */
+const getTotalQuestionCount = () =>
+  LEADERSHIP_DIMENSIONS.reduce((acc, d) => acc + getAllQuestionIds(d).length, 0);
+
 const LeadershipAssessment: React.FC = () => {
+  const [showIntroModal, setShowIntroModal] = useState(false);
   const [step, setStep] = useState<Step>('login');
   const [user, setUser] = useState({ name: '', email: '', company: '' });
   const [dimensionIndex, setDimensionIndex] = useState(0);
@@ -57,8 +68,13 @@ const LeadershipAssessment: React.FC = () => {
       setDimensionIndex(0);
       setAnswers({});
       setAiFeedback(null);
-      setStep('assessment');
+      setShowIntroModal(true);
     }
+  };
+
+  const handleCloseIntroAndStartAssessment = () => {
+    setShowIntroModal(false);
+    setStep('assessment');
   };
 
   const saveToSupabase = async (payload: {
@@ -275,6 +291,42 @@ const LeadershipAssessment: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-black text-white bg-grid flex flex-col selection:bg-yellow-400 selection:text-black">
+      {/* ป๊อปอัพแนะนำก่อนเริ่มแบบประเมิน */}
+      {showIntroModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          aria-modal="true"
+          role="dialog"
+        >
+          <div
+            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            onClick={handleCloseIntroAndStartAssessment}
+            aria-hidden="true"
+          />
+          <div className="relative w-full max-w-lg rounded-3xl border border-white/20 bg-gradient-to-b from-neutral-900/95 to-black/95 shadow-2xl shadow-yellow-400/10 overflow-hidden">
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(250,204,21,0.12),transparent)] pointer-events-none" />
+            <div className="relative p-8 md:p-10 text-center">
+              <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-yellow-400/20 border border-yellow-400/30 flex items-center justify-center">
+                <span className="text-3xl">📋</span>
+              </div>
+              <h2 className="text-2xl md:text-3xl font-black text-white tracking-tight mb-4">
+                {INTRO_TITLE}
+              </h2>
+              <p className="text-gray-400 text-sm md:text-base leading-relaxed mb-8">
+                {INTRO_DESCRIPTION}
+              </p>
+              <button
+                type="button"
+                onClick={handleCloseIntroAndStartAssessment}
+                className="w-full py-3.5 px-6 rounded-xl font-bold bg-yellow-400 text-black hover:bg-yellow-300 shadow-lg shadow-yellow-400/25 transition-all hover:scale-[1.02] active:scale-[0.98]"
+              >
+                เริ่มทำแบบประเมิน
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <header className="flex justify-between items-center px-6 py-6 max-w-4xl mx-auto w-full">
         <Link to="/" className="flex items-center gap-3">
           <div className="w-10 h-10 bg-yellow-400 rounded-lg flex items-center justify-center glow-yellow">
@@ -358,6 +410,14 @@ const LeadershipAssessment: React.FC = () => {
         {/* Assessment */}
         {step === 'assessment' && currentDimension && (
           <div className="space-y-8">
+            <div className="flex items-center justify-between gap-2 text-sm text-gray-500">
+              <span>
+                หมวด {dimensionIndex + 1}/{totalDimensions}
+              </span>
+              <span>
+                หมวดนี้ {getAllQuestionIds(currentDimension).length} ข้อ · รวมทั้งหมด {getTotalQuestionCount()} ข้อ
+              </span>
+            </div>
             <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
               <div
                 className="h-full bg-yellow-400 rounded-full transition-all duration-300"
@@ -370,20 +430,23 @@ const LeadershipAssessment: React.FC = () => {
             </h2>
 
             <div className="flex justify-between items-center text-xs text-gray-500 px-1">
-              <span>เป็นไปได้น้อยที่สุด</span>
-              <span>เป็นไปได้มากที่สุด</span>
+              <span>ต้องพัฒนาอย่างจริงจัง</span>
+              <span>จุดแข็ง</span>
             </div>
             <div className="flex gap-0 border border-white/10 rounded-xl overflow-hidden bg-white/5">
               {RATING_ORDER.map((r) => (
                 <div
                   key={r}
                   className="flex-1 text-center py-2 text-[10px] md:text-xs font-medium text-gray-400 border-r border-white/10 last:border-r-0"
+                  title={RATING_DESCRIPTIONS[r]}
                 >
                   {RATING_LABELS[r]}
                 </div>
               ))}
             </div>
-            <p className="text-gray-500 text-sm text-center">{currentDimension.name} — เลือกระดับ จุดแข็ง / ตรงตามความคาดหวัง / พื้นที่ที่ต้องปรับปรุง / พื้นที่ที่ต้องปรับปรุงอย่างมีนัยสำคัญ ที่ตรงกับคุณที่สุดในแต่ละข้อ (คะแนน 1–4)</p>
+            <p className="text-gray-500 text-sm text-center">
+              {currentDimension.name} — เลือกระดับ ต้องพัฒนาอย่างจริงจัง / ควรพัฒนา / ดี / จุดแข็ง ที่ตรงกับคุณที่สุดในแต่ละข้อ
+            </p>
 
             <div className="space-y-10">
               {currentDimension.subItems.map((subItem) => (
@@ -690,6 +753,7 @@ const QuestionBlock: React.FC<QuestionBlockProps> = ({
             key={r}
             type="button"
             onClick={() => onSelect(r)}
+            title={`${RATING_LABELS[r]} – ${RATING_DESCRIPTIONS[r]}`}
             className={`flex-1 min-w-0 py-3 rounded-xl text-xs md:text-sm font-medium transition-all ${
               selected === r
                 ? 'bg-yellow-400 text-black ring-2 ring-yellow-400'

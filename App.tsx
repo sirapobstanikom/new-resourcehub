@@ -139,6 +139,7 @@ const App: React.FC = () => {
       <Routes>
         <Route path="/assessment/disc" element={<DiscAssessment />} />
         <Route path="/assessment/leadership" element={<LeadershipAssessment />} />
+        <Route path="/assessment/leaderships" element={<LeadershipAssessment />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     );
