@@ -167,7 +167,7 @@ function getMonthGrid(year: number, month: number): { date: Date; isCurrentMonth
   return out;
 }
 
-const ADMIN_LEAVE_MANAGER_EMAIL = 'admin@minddojo.me';
+const ADMIN_LEAVE_MANAGER_EMAILS = ['pink@minddojo.me', 'koy@minddojo.me', 'tonji@minddojo.me'];
 
 const AdminLeavePage: React.FC = () => {
   const { user } = useAuth();
@@ -197,6 +197,9 @@ const AdminLeavePage: React.FC = () => {
   const [wfhUsedThisMonth, setWfhUsedThisMonth] = useState<boolean>(false);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [cancelError, setCancelError] = useState<string | null>(null);
+  const ROWS_PER_PAGE = 20;
+  const [myLeavePage, setMyLeavePage] = useState(1);
+  const [approvedPage, setApprovedPage] = useState(1);
 
   const currentYear = new Date().getFullYear();
   const now = new Date();
@@ -574,11 +577,18 @@ create policy "Allow update own leave_requests cancel"
             <div className="min-h-[80px] rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-gray-500 text-sm">
               กำลังโหลด...
             </div>
-          ) : myLeaveList.filter((r) => r.status !== 'cancelled').length === 0 ? (
-            <div className="min-h-[80px] rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-gray-500 text-sm">
-              ยังไม่มีรายการลา (ที่ยังไม่ยกเลิก)
-            </div>
-          ) : (
+          ) : (() => {
+            const myList = myLeaveList.filter((r) => r.status !== 'cancelled');
+            const myTotal = myList.length;
+            const myTotalPages = Math.max(1, Math.ceil(myTotal / ROWS_PER_PAGE));
+            const myPage = Math.min(myLeavePage, myTotalPages);
+            const myRows = myList.slice((myPage - 1) * ROWS_PER_PAGE, myPage * ROWS_PER_PAGE);
+            return myTotal === 0 ? (
+              <div className="min-h-[80px] rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-gray-500 text-sm">
+                ยังไม่มีรายการลา (ที่ยังไม่ยกเลิก)
+              </div>
+            ) : (
+            <>
             <div className="rounded-xl border border-white/10 overflow-x-auto">
               <table className="w-full text-left text-sm min-w-[400px]">
                 <thead>
@@ -591,7 +601,7 @@ create policy "Allow update own leave_requests cancel"
                   </tr>
                 </thead>
                 <tbody>
-                  {myLeaveList.filter((r) => r.status !== 'cancelled').map((row) => (
+                  {myRows.map((row) => (
                     <tr key={row.id} className="border-b border-white/5 hover:bg-white/5">
                       <td className="px-3 py-2 text-gray-300">{LEAVE_TYPES.find((t) => t.id === row.leave_type)?.label ?? row.leave_type}</td>
                       <td className="px-3 py-2 text-gray-300">{formatThaiDate(row.start_date)}</td>
@@ -628,7 +638,26 @@ create policy "Allow update own leave_requests cancel"
                 </tbody>
               </table>
             </div>
-          )}
+            {myTotalPages > 1 && (
+              <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-white/10 pt-3">
+                <span className="text-xs text-gray-500">แถว {(myPage - 1) * ROWS_PER_PAGE + 1}–{Math.min(myPage * ROWS_PER_PAGE, myTotal)} จาก {myTotal} · หน้าแรก = ข้อมูลล่าสุด</span>
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <button type="button" onClick={() => setMyLeavePage((p) => Math.max(1, p - 1))} disabled={myPage <= 1}
+                    className="px-2 py-1 rounded text-sm bg-white/10 text-white hover:bg-white/20 disabled:opacity-40 disabled:cursor-not-allowed">← ก่อนหน้า</button>
+                  {Array.from({ length: myTotalPages }, (_, i) => i + 1).map((p) => (
+                    <button key={p} type="button" onClick={() => setMyLeavePage(p)}
+                      className={`px-2 py-1 rounded text-sm min-w-[1.75rem] ${myPage === p ? 'bg-yellow-400/20 text-yellow-400' : 'bg-white/10 text-white hover:bg-white/20'}`}>
+                      {p}
+                    </button>
+                  ))}
+                  <button type="button" onClick={() => setMyLeavePage((p) => Math.min(myTotalPages, p + 1))} disabled={myPage >= myTotalPages}
+                    className="px-2 py-1 rounded text-sm bg-white/10 text-white hover:bg-white/20 disabled:opacity-40 disabled:cursor-not-allowed">ถัดไป →</button>
+                </div>
+              </div>
+            )}
+            </>
+            );
+          })()}
         </section>
 
         <section className="rounded-2xl border border-white/10 bg-white/5 p-4 sm:p-6">
@@ -735,7 +764,7 @@ create policy "Allow update own leave_requests cancel"
           </div>
         </section>
 
-        {user?.email === ADMIN_LEAVE_MANAGER_EMAIL && (
+        {user?.email != null && ADMIN_LEAVE_MANAGER_EMAILS.includes(user.email) && (
           <div className="rounded-2xl border border-amber-500/30 bg-amber-500/5 p-4 sm:p-6">
             <Link
               to="/admin/leave/manage"
@@ -743,7 +772,7 @@ create policy "Allow update own leave_requests cancel"
             >
               จัดการคำขอลา (อนุมัติ/ไม่อนุมัติ)
             </Link>
-            <p className="text-xs text-gray-500 mt-2">เห็นได้เฉพาะ admin@minddojo.me</p>
+            <p className="text-xs text-gray-500 mt-2">เห็นได้เฉพาะผู้จัดการลา (pink, koy, tonji@minddojo.me)</p>
           </div>
         )}
 
@@ -825,11 +854,18 @@ alter table public.leave_requests add column if not exists approved_at timestamp
             <div className="min-h-[100px] rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-gray-500 text-sm">
               กำลังโหลด...
             </div>
-          ) : leaveList.filter((r) => r.status === 'approved').length === 0 ? (
-            <div className="min-h-[100px] rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-gray-500 text-sm">
-              ยังไม่มีรายการที่อนุมัติแล้ว
-            </div>
-          ) : (
+          ) : (() => {
+            const apprList = leaveList.filter((r) => r.status === 'approved');
+            const apprTotal = apprList.length;
+            const apprTotalPages = Math.max(1, Math.ceil(apprTotal / ROWS_PER_PAGE));
+            const apprPage = Math.min(approvedPage, apprTotalPages);
+            const apprRows = apprList.slice((apprPage - 1) * ROWS_PER_PAGE, apprPage * ROWS_PER_PAGE);
+            return apprTotal === 0 ? (
+              <div className="min-h-[100px] rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-gray-500 text-sm">
+                ยังไม่มีรายการที่อนุมัติแล้ว
+              </div>
+            ) : (
+            <>
             <div className="rounded-xl border border-white/10 overflow-x-auto -mx-2 sm:mx-0">
               <table className="w-full text-left text-sm min-w-[720px]">
                 <thead>
@@ -845,9 +881,7 @@ alter table public.leave_requests add column if not exists approved_at timestamp
                   </tr>
                 </thead>
                 <tbody>
-                  {leaveList
-                    .filter((r) => r.status === 'approved')
-                    .map((row) => (
+                  {apprRows.map((row) => (
                       <tr key={row.id} className="border-b border-white/5 hover:bg-white/5">
                         <td className="px-3 sm:px-4 py-2 sm:py-3 text-gray-300 text-xs sm:text-sm">
                           {row.user_display_name || row.user_email}
@@ -874,7 +908,26 @@ alter table public.leave_requests add column if not exists approved_at timestamp
                 </tbody>
               </table>
             </div>
-          )}
+            {apprTotalPages > 1 && (
+              <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-white/10 pt-3">
+                <span className="text-xs text-gray-500">แถว {(apprPage - 1) * ROWS_PER_PAGE + 1}–{Math.min(apprPage * ROWS_PER_PAGE, apprTotal)} จาก {apprTotal} · หน้าแรก = ข้อมูลล่าสุด</span>
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <button type="button" onClick={() => setApprovedPage((p) => Math.max(1, p - 1))} disabled={apprPage <= 1}
+                    className="px-2 py-1 rounded text-sm bg-white/10 text-white hover:bg-white/20 disabled:opacity-40 disabled:cursor-not-allowed">← ก่อนหน้า</button>
+                  {Array.from({ length: apprTotalPages }, (_, i) => i + 1).map((p) => (
+                    <button key={p} type="button" onClick={() => setApprovedPage(p)}
+                      className={`px-2 py-1 rounded text-sm min-w-[1.75rem] ${apprPage === p ? 'bg-yellow-400/20 text-yellow-400' : 'bg-white/10 text-white hover:bg-white/20'}`}>
+                      {p}
+                    </button>
+                  ))}
+                  <button type="button" onClick={() => setApprovedPage((p) => Math.min(apprTotalPages, p + 1))} disabled={apprPage >= apprTotalPages}
+                    className="px-2 py-1 rounded text-sm bg-white/10 text-white hover:bg-white/20 disabled:opacity-40 disabled:cursor-not-allowed">ถัดไป →</button>
+                </div>
+              </div>
+            )}
+            </>
+            );
+          })()}
         </section>
       </main>
 

@@ -4,7 +4,7 @@ import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { logoutAdmin } from '../lib/auth';
 import { useAuth } from '../contexts/AuthContext';
 
-const ADMIN_LEAVE_MANAGER_EMAIL = 'admin@minddojo.me';
+const ADMIN_LEAVE_MANAGER_EMAILS = ['pink@minddojo.me', 'koy@minddojo.me', 'tonji@minddojo.me'];
 
 const AdminLayoutWithSidebar: React.FC = () => {
   const { user } = useAuth();
@@ -12,7 +12,7 @@ const AdminLayoutWithSidebar: React.FC = () => {
   const isLeave = location.pathname === '/admin/leave';
   const isLeaveManage = location.pathname === '/admin/leave/manage';
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const showLeaveManageLink = user?.email === ADMIN_LEAVE_MANAGER_EMAIL;
+  const showLeaveManageLink = user?.email != null && ADMIN_LEAVE_MANAGER_EMAILS.includes(user.email);
   type AdminUserRow = {
     full_name: string | null;
     phone: string | null;

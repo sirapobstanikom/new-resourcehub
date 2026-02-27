@@ -3,7 +3,7 @@ import { Link, Navigate } from 'react-router-dom';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 
-const ADMIN_LEAVE_MANAGER_EMAIL = 'admin@minddojo.me';
+const ADMIN_LEAVE_MANAGER_EMAILS = ['pink@minddojo.me', 'koy@minddojo.me', 'tonji@minddojo.me'];
 
 const LEAVE_TYPES = [
   { id: 'personal', label: 'ลากิจ' },
@@ -38,7 +38,7 @@ const AdminLeaveManagePage: React.FC = () => {
   const [actionId, setActionId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const isAdmin = user?.email === ADMIN_LEAVE_MANAGER_EMAIL;
+  const isAdmin = user?.email != null && ADMIN_LEAVE_MANAGER_EMAILS.includes(user.email);
 
   useEffect(() => {
     if (!isSupabaseConfigured || !isAdmin) {
@@ -75,17 +75,17 @@ const AdminLeaveManagePage: React.FC = () => {
       .select('id');
     setActionId(null);
     if (err) {
-      setError(err.message || 'ไม่สามารถอัปเดตได้ กรุณาตรวจสอบว่าเข้าสู่ระบบด้วย admin@minddojo.me และมี policy อัปเดต leave_requests ใน Supabase');
+      setError(err.message || 'ไม่สามารถอัปเดตได้ กรุณาตรวจสอบว่าเข้าสู่ระบบด้วยอีเมลผู้จัดการลา (pink/koy/tonji@minddojo.me) และมี policy อัปเดต leave_requests ใน Supabase');
       return;
     }
     if (!data || data.length === 0) {
-      setError('อัปเดตไม่สำเร็จ (ไม่มีสิทธิ์หรือไม่พบแถว) — ตรวจสอบว่าเข้าสู่ระบบด้วย admin@minddojo.me และรัน policy ใน Supabase แล้ว');
+      setError('อัปเดตไม่สำเร็จ (ไม่มีสิทธิ์หรือไม่พบแถว) — ตรวจสอบว่าเข้าสู่ระบบด้วยอีเมลผู้จัดการลา (pink/koy/tonji@minddojo.me) และรัน policy ใน Supabase แล้ว');
       return;
     }
     setPendingList((prev) => prev.filter((r) => r.id !== id));
   };
 
-  if (user && user.email !== ADMIN_LEAVE_MANAGER_EMAIL) {
+  if (user && !ADMIN_LEAVE_MANAGER_EMAILS.includes(user.email)) {
     return <Navigate to="/admin/leave" replace />;
   }
 
@@ -112,7 +112,7 @@ const AdminLeaveManagePage: React.FC = () => {
 
       <main className="flex-1 max-w-4xl mx-auto w-full px-4 sm:px-6 py-6 sm:py-8 space-y-6">
         <h2 className="text-xl font-bold text-gray-300">จัดการคำขอลา — อนุมัติ/ไม่อนุมัติ</h2>
-        <p className="text-sm text-gray-500">หน้านี้เห็นได้เฉพาะ admin@minddojo.me</p>
+        <p className="text-sm text-gray-500">หน้านี้เห็นได้เฉพาะผู้จัดการลา (pink, koy, tonji@minddojo.me)</p>
 
         {error && (
           <div className="rounded-xl bg-red-500/20 border border-red-500/40 text-red-400 px-4 py-3 text-sm">

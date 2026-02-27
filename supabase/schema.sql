@@ -179,12 +179,12 @@ drop policy if exists "Allow read leave_requests" on public.leave_requests;
 create policy "Allow read leave_requests"
   on public.leave_requests for select using (auth.role() = 'authenticated');
 
--- เฉพาะ admin@minddojo.me อัปเดตสถานะคำขอลา (อนุมัติ/ไม่อนุมัติ)
+-- เฉพาะผู้จัดการลา (pink, koy, tonji@minddojo.me) อัปเดตสถานะคำขอลา (อนุมัติ/ไม่อนุมัติ)
 drop policy if exists "Allow update leave_requests for admin" on public.leave_requests;
 create policy "Allow update leave_requests for admin"
   on public.leave_requests for update
-  using ((auth.jwt() ->> 'email') = 'admin@minddojo.me')
-  with check ((auth.jwt() ->> 'email') = 'admin@minddojo.me');
+  using ((auth.jwt() ->> 'email') in ('pink@minddojo.me', 'koy@minddojo.me', 'tonji@minddojo.me'))
+  with check ((auth.jwt() ->> 'email') in ('pink@minddojo.me', 'koy@minddojo.me', 'tonji@minddojo.me'));
 
 -- ผู้ใช้ยกเลิกคำขอลาของตัวเองได้เฉพาะสถานะ pending
 drop policy if exists "Allow update own leave_requests cancel" on public.leave_requests;
