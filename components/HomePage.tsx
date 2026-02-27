@@ -154,10 +154,33 @@ const HomePage: React.FC = () => {
         <h2 className="text-xl font-bold text-gray-300 mb-6 text-center">
           Gamification ของ MindDojo
         </h2>
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-6 md:p-8 text-center">
-          <p className="text-gray-500 text-sm max-w-lg mx-auto">
-            ระบบเกมมิฟิเคชันเพื่อส่งเสริมการเรียนรู้ออนไลน์และความผูกพันของทีม — เร็วๆ นี้
-          </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Link
+            to="/gamification/10-timeout"
+            className="block rounded-2xl border border-white/10 p-6 text-left transition-all bg-white/5 hover:bg-white/10 hover:border-emerald-500/30 group"
+          >
+            <div className="w-12 h-12 rounded-xl bg-emerald-500/20 flex items-center justify-center mb-4 group-hover:bg-emerald-500/30 transition-colors">
+              <span className="text-2xl" aria-hidden>⏱</span>
+            </div>
+            <h3 className="font-bold text-lg mb-2 text-white">10 Timeout</h3>
+            <p className="text-gray-500 text-sm">
+              กดเริ่มจับเวลา แล้วกดหยุด — (วินาที)
+            </p>
+          </Link>
+          <div className="rounded-2xl border border-white/10 p-6 text-left bg-white/5 opacity-80 cursor-default">
+            <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center mb-4">
+              <span className="text-2xl text-gray-500" aria-hidden>🎮</span>
+            </div>
+            <h3 className="font-bold text-lg mb-2 flex items-center gap-2">
+              เกมอื่นๆ
+              <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-yellow-400/20 text-yellow-400">
+                เร็วๆ นี้
+              </span>
+            </h3>
+            <p className="text-gray-500 text-sm">
+              ระบบเกมมิฟิเคชันเพื่อส่งเสริมการเรียนรู้ออนไลน์และความผูกพันของทีม
+            </p>
+          </div>
         </div>
       </section>
 

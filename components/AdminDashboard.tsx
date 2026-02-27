@@ -113,26 +113,26 @@ const AdminDashboard: React.FC = () => {
 
   return (
     <div className="flex flex-col min-h-full">
-        <header className="flex justify-between items-center px-6 py-6 border-b border-white/10">
-          <div className="flex items-center gap-4">
-            <Link to="/" className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-yellow-400 rounded-lg flex items-center justify-center glow-yellow">
-                <span className="text-black font-black text-xl">M</span>
+        <header className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 px-4 sm:px-6 py-4 sm:py-6 border-b border-white/10 pl-14 sm:pl-6">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-4 min-w-0">
+            <Link to="/" className="flex items-center gap-2 sm:gap-3 shrink-0">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 bg-yellow-400 rounded-lg flex items-center justify-center glow-yellow">
+                <span className="text-black font-black text-lg sm:text-xl">M</span>
               </div>
-              <span className="text-xl font-bold tracking-tighter">MindDoJo</span>
+              <span className="text-base sm:text-xl font-bold tracking-tighter">MindDoJo</span>
             </Link>
-            <span className="text-gray-500">|</span>
-            <span className="text-yellow-400 font-semibold">Admin — ดูข้อมูล Supabase</span>
+            <span className="hidden sm:inline text-gray-500">|</span>
+            <span className="text-yellow-400 font-semibold text-sm sm:text-base truncate">Admin — ดูข้อมูล Supabase</span>
           </div>
           <Link
             to="/"
-            className="px-4 py-2 rounded-xl font-medium bg-white/10 text-white hover:bg-white/20 border border-white/10"
+            className="px-4 py-2 rounded-xl font-medium bg-white/10 text-white hover:bg-white/20 border border-white/10 w-full sm:w-auto text-center"
           >
             กลับหน้าหลัก
           </Link>
         </header>
 
-        <main className="flex-1 max-w-6xl mx-auto w-full px-6 py-8">
+        <main className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 py-6 sm:py-8">
         {!isSupabaseConfigured ? (
           <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-6 text-amber-200">
             <p className="font-medium">ยังไม่ได้ตั้งค่า Supabase</p>
@@ -143,7 +143,7 @@ const AdminDashboard: React.FC = () => {
         ) : (
           <>
             <h2 className="text-lg font-bold text-gray-300 mb-4">เลือก Collection (ตาราง)</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 mb-8 sm:mb-10">
               {COLLECTIONS.map((col) => (
                 <button
                   key={col.id}
@@ -162,27 +162,27 @@ const AdminDashboard: React.FC = () => {
 
             {selectedCollection && (
               <div className="rounded-2xl border border-white/10 bg-white/5 overflow-hidden">
-                <div className="px-6 py-4 border-b border-white/10 space-y-3">
-                  <div className="flex items-center justify-between gap-4 flex-wrap">
+                <div className="px-4 sm:px-6 py-4 border-b border-white/10 space-y-3">
+                  <div className="flex flex-col gap-3">
                     <h3 className="font-bold text-lg">{COLLECTIONS.find((c) => c.id === selectedCollection)?.label}</h3>
-                    <div className="flex items-center gap-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 flex-wrap">
                       <span className="text-sm text-gray-500">
-                        {sortedRows.length} แถว · แสดงทั้งหมด {displayColumns.length} คอลัมน์ · หน้า {currentPage}/{totalPages}
+                        {sortedRows.length} แถว · {displayColumns.length} คอลัมน์ · หน้า {currentPage}/{totalPages}
                       </span>
                       <button
                         type="button"
                         onClick={downloadExcel}
                         disabled={sortedRows.length === 0}
-                        className="px-4 py-2 rounded-xl text-sm font-medium bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 border border-emerald-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        className="px-4 py-2 rounded-xl text-sm font-medium bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 border border-emerald-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors w-full sm:w-auto"
                       >
                         ดาวน์โหลด Excel
                       </button>
                     </div>
                   </div>
                   {columns.length > 0 && (
-                    <div className="flex flex-wrap items-center gap-4">
-                      <div className="flex items-center gap-3 flex-wrap">
-                        <label className="text-sm text-gray-400">เรียงตาม</label>
+                    <div className="flex flex-col gap-3 sm:gap-4">
+                      <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                        <label className="text-sm text-gray-400 w-full sm:w-auto">เรียงตาม</label>
                         <select
                           value={sortColumn ?? ''}
                           onChange={(e) => {
@@ -190,7 +190,7 @@ const AdminDashboard: React.FC = () => {
                             setSortColumn(v || null);
                             setPage(1);
                           }}
-                          className="px-3 py-2 rounded-lg bg-white border border-white/20 text-black text-sm focus:outline-none focus:border-yellow-400 min-w-[160px]"
+                          className="px-3 py-2 rounded-lg bg-white border border-white/20 text-black text-sm focus:outline-none focus:border-yellow-400 min-w-0 flex-1 sm:min-w-[160px] sm:flex-none"
                         >
                           <option value="">— ไม่เรียง</option>
                           {columns.map((col) => (
@@ -200,40 +200,42 @@ const AdminDashboard: React.FC = () => {
                           ))}
                         </select>
                       </div>
-                      <div className="flex items-center gap-2 flex-wrap border-l border-white/10 pl-4">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-2 sm:border-l sm:border-white/10 sm:pl-4">
                         <span className="text-sm text-gray-400">ช่วงเวลา (คอลัมน์ {DATE_COLUMN})</span>
-                        <input
-                          type="datetime-local"
-                          value={dateFrom}
-                          onChange={(e) => {
-                            setDateFrom(e.target.value);
-                            setPage(1);
-                          }}
-                          className="px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white text-sm focus:outline-none focus:border-yellow-400"
-                        />
-                        <span className="text-gray-500">ถึง</span>
-                        <input
-                          type="datetime-local"
-                          value={dateTo}
-                          onChange={(e) => {
-                            setDateTo(e.target.value);
-                            setPage(1);
-                          }}
-                          className="px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white text-sm focus:outline-none focus:border-yellow-400"
-                        />
-                        {(dateFrom || dateTo) && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setDateFrom('');
-                              setDateTo('');
+                        <div className="flex flex-wrap items-center gap-2">
+                          <input
+                            type="datetime-local"
+                            value={dateFrom}
+                            onChange={(e) => {
+                              setDateFrom(e.target.value);
                               setPage(1);
                             }}
-                            className="px-3 py-2 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-white/10"
-                          >
-                            ล้างช่วง
-                          </button>
-                        )}
+                            className="px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white text-sm focus:outline-none focus:border-yellow-400 min-w-0 flex-1"
+                          />
+                          <span className="text-gray-500 text-sm">ถึง</span>
+                          <input
+                            type="datetime-local"
+                            value={dateTo}
+                            onChange={(e) => {
+                              setDateTo(e.target.value);
+                              setPage(1);
+                            }}
+                            className="px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white text-sm focus:outline-none focus:border-yellow-400 min-w-0 flex-1"
+                          />
+                          {(dateFrom || dateTo) && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setDateFrom('');
+                                setDateTo('');
+                                setPage(1);
+                              }}
+                              className="px-3 py-2 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-white/10"
+                            >
+                              ล้างช่วง
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
                   )}
@@ -247,12 +249,12 @@ const AdminDashboard: React.FC = () => {
                   <div className="p-12 text-center text-gray-500">ไม่มีข้อมูลใน collection นี้{dateFrom || dateTo ? ' ในช่วงเวลาที่เลือก' : ''}</div>
                 ) : (
                   <>
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left text-sm">
+                  <div className="overflow-x-auto -mx-4 sm:mx-0">
+                    <table className="w-full text-left text-sm min-w-[600px]">
                       <thead>
                         <tr className="border-b border-white/10">
                           {displayColumns.map((col) => (
-                            <th key={col} className="px-4 py-3 font-semibold text-gray-400 whitespace-nowrap">
+                            <th key={col} className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-400 whitespace-nowrap">
                               <button
                                 type="button"
                                 onClick={() => {
@@ -282,7 +284,7 @@ const AdminDashboard: React.FC = () => {
                                     ? JSON.stringify(val)
                                     : String(val ?? '—');
                               return (
-                                <td key={col} className="px-4 py-3 text-gray-300 max-w-xs truncate" title={col === 'created_at' ? formatThaiTime(val) : String(val ?? '')}>
+                                <td key={col} className="px-3 sm:px-4 py-2 sm:py-3 text-gray-300 max-w-[200px] sm:max-w-xs truncate" title={col === 'created_at' ? formatThaiTime(val) : String(val ?? '')}>
                                   {display}
                                 </td>
                               );
@@ -293,27 +295,27 @@ const AdminDashboard: React.FC = () => {
                     </table>
                   </div>
                   {totalPages > 1 && (
-                    <div className="px-6 py-4 border-t border-white/10 flex items-center justify-between gap-4">
+                    <div className="px-4 sm:px-6 py-4 border-t border-white/10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                       <span className="text-sm text-gray-500">
-                        แสดงแถวที่ {(currentPage - 1) * PER_PAGE + 1}–{Math.min(currentPage * PER_PAGE, sortedRows.length)} จาก {sortedRows.length}
+                        แถว {(currentPage - 1) * PER_PAGE + 1}–{Math.min(currentPage * PER_PAGE, sortedRows.length)} จาก {sortedRows.length}
                       </span>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center justify-between sm:justify-end gap-2">
                         <button
                           type="button"
                           onClick={() => setPage((p) => Math.max(1, p - 1))}
                           disabled={currentPage <= 1}
-                          className="px-4 py-2 rounded-lg text-sm font-medium bg-white/10 text-white hover:bg-white/20 disabled:opacity-40 disabled:cursor-not-allowed border border-white/10"
+                          className="px-3 sm:px-4 py-2 rounded-lg text-sm font-medium bg-white/10 text-white hover:bg-white/20 disabled:opacity-40 disabled:cursor-not-allowed border border-white/10"
                         >
                           ← ก่อนหน้า
                         </button>
-                        <span className="text-sm text-gray-400 px-2">
+                        <span className="text-sm text-gray-400 px-1 sm:px-2">
                           หน้า {currentPage} / {totalPages}
                         </span>
                         <button
                           type="button"
                           onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                           disabled={currentPage >= totalPages}
-                          className="px-4 py-2 rounded-lg text-sm font-medium bg-white/10 text-white hover:bg-white/20 disabled:opacity-40 disabled:cursor-not-allowed border border-white/10"
+                          className="px-3 sm:px-4 py-2 rounded-lg text-sm font-medium bg-white/10 text-white hover:bg-white/20 disabled:opacity-40 disabled:cursor-not-allowed border border-white/10"
                         >
                           ถัดไป →
                         </button>

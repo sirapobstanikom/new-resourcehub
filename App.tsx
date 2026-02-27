@@ -16,6 +16,7 @@ import AdminLeavePage from './components/AdminLeavePage';
 import HomePage from './components/HomePage';
 import DiscAssessment from './components/DiscAssessment';
 import LeadershipAssessment from './components/LeadershipAssessment';
+import Game10Timeout from './components/Game10Timeout';
 import { useAuth } from './contexts/AuthContext';
 import { isAdminAuthenticated, isAuthenticated, logoutResourceHub } from './lib/auth';
 
@@ -140,6 +141,15 @@ const App: React.FC = () => {
         <Route path="/assessment/disc" element={<DiscAssessment />} />
         <Route path="/assessment/leadership" element={<LeadershipAssessment />} />
         <Route path="/assessment/leaderships" element={<LeadershipAssessment />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    );
+  }
+
+  if (pathname.startsWith('/gamification')) {
+    return (
+      <Routes>
+        <Route path="/gamification/10-timeout" element={<Game10Timeout />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     );

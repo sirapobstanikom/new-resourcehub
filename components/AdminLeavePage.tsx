@@ -229,29 +229,29 @@ const AdminLeavePage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col">
-      <header className="flex justify-between items-center px-6 py-6 border-b border-white/10">
-        <div className="flex items-center gap-4">
-          <Link to="/" className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-yellow-400 rounded-lg flex items-center justify-center glow-yellow">
-              <span className="text-black font-black text-xl">M</span>
+      <header className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 px-4 sm:px-6 py-4 sm:py-6 border-b border-white/10 pl-14 sm:pl-6">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-4 min-w-0">
+          <Link to="/" className="flex items-center gap-2 sm:gap-3 shrink-0">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 bg-yellow-400 rounded-lg flex items-center justify-center glow-yellow">
+              <span className="text-black font-black text-lg sm:text-xl">M</span>
             </div>
-            <span className="text-xl font-bold tracking-tighter">MindDoJo</span>
+            <span className="text-base sm:text-xl font-bold tracking-tighter">MindDoJo</span>
           </Link>
-          <span className="text-gray-500">|</span>
-          <span className="text-yellow-400 font-semibold">ระบบลา MindDojo</span>
+          <span className="hidden sm:inline text-gray-500">|</span>
+          <span className="text-yellow-400 font-semibold text-sm sm:text-base truncate">ระบบลา MindDojo</span>
         </div>
         <Link
           to="/"
-          className="px-4 py-2 rounded-xl font-medium bg-white/10 text-white hover:bg-white/20 border border-white/10"
+          className="px-4 py-2 rounded-xl font-medium bg-white/10 text-white hover:bg-white/20 border border-white/10 w-full sm:w-auto text-center"
         >
           กลับหน้าหลัก
         </Link>
       </header>
 
-      <main className="flex-1 max-w-4xl mx-auto w-full px-6 py-8 space-y-10">
+      <main className="flex-1 max-w-4xl mx-auto w-full px-4 sm:px-6 py-6 sm:py-8 space-y-8 sm:space-y-10">
         <h2 className="text-xl font-bold text-gray-300">ยื่นคำขอลา</h2>
 
-        <form onSubmit={handleSubmit} className="rounded-2xl border border-white/10 bg-white/5 p-6 space-y-5">
+        <form onSubmit={handleSubmit} className="rounded-2xl border border-white/10 bg-white/5 p-4 sm:p-6 space-y-5">
           <div>
             <label className="block text-sm font-medium text-gray-400 mb-2">ประเภทการลา</label>
             <select
@@ -313,7 +313,7 @@ const AdminLeavePage: React.FC = () => {
           )}
         </form>
 
-        <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
+        <section className="rounded-2xl border border-white/10 bg-white/5 p-4 sm:p-6">
           <h3 className="font-bold text-gray-300 mb-2">ตารางงานรวม (Google Calendar)</h3>
           <p className="text-sm text-gray-500 mb-4">
             ปฏิทินรายเดือนรวมทั้ง <strong className="text-white/90">ตารางงานของฉัน</strong> และ{' '}
@@ -327,18 +327,18 @@ const AdminLeavePage: React.FC = () => {
             <button
               type="button"
               onClick={startCalendarOAuth}
-              className="mb-4 px-4 py-2 rounded-xl text-sm font-medium bg-white/10 text-white hover:bg-white/20 border border-white/20"
+              className="mb-4 px-4 py-2 rounded-xl text-sm font-medium bg-white/10 text-white hover:bg-white/20 border border-white/20 w-full sm:w-auto"
             >
               เชื่อมต่อ Google Calendar
             </button>
           )}
           {calendarLoading || sharedCalendarLoading ? (
-            <div className="min-h-[320px] rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-gray-500 text-sm">
+            <div className="min-h-[280px] sm:min-h-[320px] rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-gray-500 text-sm">
               กำลังโหลดปฏิทิน...
             </div>
           ) : calendarConnected || calendarLoading || sharedCalendarLoading || calendarEvents.length > 0 || sharedCalendarEvents.length > 0 ? (
             <div className="space-y-3">
-              <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center justify-between gap-2 flex-wrap">
                 <button
                   type="button"
                   onClick={() => {
@@ -347,11 +347,11 @@ const AdminLeavePage: React.FC = () => {
                     d.setDate(1);
                     setCalendarViewDate(d);
                   }}
-                  className="px-3 py-1.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white hover:bg-white/10 border border-white/10"
+                  className="px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium text-gray-400 hover:text-white hover:bg-white/10 border border-white/10"
                 >
                   ‹ เดือนก่อน
                 </button>
-                <span className="text-base font-semibold text-white">
+                <span className="text-sm sm:text-base font-semibold text-white text-center min-w-[140px]">
                   {calendarViewDate.toLocaleDateString('th-TH', { month: 'long', year: 'numeric' })}
                 </span>
                 <button
@@ -362,17 +362,17 @@ const AdminLeavePage: React.FC = () => {
                     d.setDate(1);
                     setCalendarViewDate(d);
                   }}
-                  className="px-3 py-1.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white hover:bg-white/10 border border-white/10"
+                  className="px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium text-gray-400 hover:text-white hover:bg-white/10 border border-white/10"
                 >
                   เดือนถัดไป ›
                 </button>
               </div>
-              <div className="rounded-xl border border-white/10 overflow-hidden">
-                <table className="w-full text-sm border-collapse">
+              <div className="rounded-xl border border-white/10 overflow-x-auto -mx-2 sm:mx-0">
+                <table className="w-full text-sm border-collapse min-w-[320px]">
                   <thead>
                     <tr className="bg-white/5 border-b border-white/10">
                       {WEEKDAY_LABELS.map((label) => (
-                        <th key={label} className="py-2 font-semibold text-gray-400 w-[14.28%]">
+                        <th key={label} className="py-1.5 sm:py-2 font-semibold text-gray-400 w-[14.28%] text-center min-w-[36px]">
                           {label}
                         </th>
                       ))}
@@ -397,14 +397,14 @@ const AdminLeavePage: React.FC = () => {
                             const isToday =
                               dayKey ===
                               toDateKey(new Date());
-                            return (
+                              return (
                               <td
                                 key={dayKey}
-                                className={`align-top p-1 min-h-[88px] border-r border-white/5 last:border-r-0 ${
+                                className={`align-top p-0.5 sm:p-1 min-h-[64px] sm:min-h-[88px] border-r border-white/5 last:border-r-0 text-xs sm:text-sm ${
                                   isCurrentMonth ? 'text-gray-200' : 'text-gray-600'
                                 } ${isToday ? 'bg-yellow-400/10 ring-1 ring-yellow-400/30' : ''}`}
                               >
-                                <span className="inline-block w-7 h-7 flex items-center justify-center rounded-full text-xs font-medium">
+                                <span className="inline-flex w-6 h-6 sm:w-7 sm:h-7 items-center justify-center rounded-full text-xs font-medium">
                                   {date.getDate()}
                                 </span>
                                 <ul className="space-y-0.5 mt-0.5">
@@ -447,44 +447,44 @@ const AdminLeavePage: React.FC = () => {
           ) : null}
         </section>
 
-        <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
+        <section className="rounded-2xl border border-white/10 bg-white/5 p-4 sm:p-6">
           <h3 className="font-bold text-gray-300 mb-2">ใครลาบ้าง</h3>
           <p className="text-sm text-gray-500 mb-4">
             รายการคำขอลาจากระบบ (ปฏิทินรวมจากแอดมิน <strong className="text-yellow-400/90">phet@minddojo.me</strong> ในนาม{' '}
             <strong className="text-yellow-400/90">Admin &amp; Production &amp; Marketing</strong> ดูได้ที่ Google Calendar)
           </p>
           {leaveListLoading ? (
-            <div className="min-h-[120px] rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-gray-500 text-sm">
+            <div className="min-h-[100px] sm:min-h-[120px] rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-gray-500 text-sm">
               กำลังโหลด...
             </div>
           ) : leaveList.length === 0 ? (
-            <div className="min-h-[120px] rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-gray-500 text-sm">
+            <div className="min-h-[100px] sm:min-h-[120px] rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-gray-500 text-sm">
               ยังไม่มีคำขอลา
             </div>
           ) : (
-            <div className="rounded-xl border border-white/10 overflow-hidden">
-              <table className="w-full text-left text-sm">
+            <div className="rounded-xl border border-white/10 overflow-x-auto -mx-2 sm:mx-0">
+              <table className="w-full text-left text-sm min-w-[480px]">
                 <thead>
                   <tr className="border-b border-white/10 bg-white/5">
-                    <th className="px-4 py-3 font-semibold text-gray-400">ผู้ลา</th>
-                    <th className="px-4 py-3 font-semibold text-gray-400">ประเภท</th>
-                    <th className="px-4 py-3 font-semibold text-gray-400">วันเริ่ม</th>
-                    <th className="px-4 py-3 font-semibold text-gray-400">วันสิ้นสุด</th>
-                    <th className="px-4 py-3 font-semibold text-gray-400">สถานะ</th>
+                    <th className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-400">ผู้ลา</th>
+                    <th className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-400">ประเภท</th>
+                    <th className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-400">วันเริ่ม</th>
+                    <th className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-400">วันสิ้นสุด</th>
+                    <th className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-400">สถานะ</th>
                   </tr>
                 </thead>
                 <tbody>
                   {leaveList.map((row) => (
                     <tr key={row.id} className="border-b border-white/5 hover:bg-white/5">
-                      <td className="px-4 py-3 text-gray-300">
+                      <td className="px-3 sm:px-4 py-2 sm:py-3 text-gray-300 text-xs sm:text-sm">
                         {row.user_display_name || row.user_email}
                       </td>
-                      <td className="px-4 py-3 text-gray-300">
+                      <td className="px-3 sm:px-4 py-2 sm:py-3 text-gray-300 text-xs sm:text-sm">
                         {LEAVE_TYPES.find((t) => t.id === row.leave_type)?.label ?? row.leave_type}
                       </td>
-                      <td className="px-4 py-3 text-gray-300">{formatThaiDate(row.start_date)}</td>
-                      <td className="px-4 py-3 text-gray-300">{formatThaiDate(row.end_date)}</td>
-                      <td className="px-4 py-3">
+                      <td className="px-3 sm:px-4 py-2 sm:py-3 text-gray-300 text-xs sm:text-sm">{formatThaiDate(row.start_date)}</td>
+                      <td className="px-3 sm:px-4 py-2 sm:py-3 text-gray-300 text-xs sm:text-sm">{formatThaiDate(row.end_date)}</td>
+                      <td className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm">
                         <span className={row.status === 'approved' ? 'text-emerald-400' : row.status === 'rejected' ? 'text-red-400' : 'text-amber-400'}>
                           {row.status === 'approved' ? 'อนุมัติ' : row.status === 'rejected' ? 'ไม่อนุมัติ' : 'รอตรวจ'}
                         </span>
