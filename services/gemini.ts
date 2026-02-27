@@ -1,7 +1,27 @@
 
+import { supabaseFunctionsUrl, supabaseAnonKey } from '../lib/supabase';
+
+async function callOpenAIProxy(messages: Array<{ role: string; content: string }>, temperature = 0.7) {
+  if (!supabaseFunctionsUrl || !supabaseAnonKey) {
+    throw new Error('Supabase not configured. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.');
+  }
+  const response = await fetch(`${supabaseFunctionsUrl}/functions/v1/openai-proxy`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${supabaseAnonKey}`,
+    },
+    body: JSON.stringify({ model: 'gpt-4o', messages, temperature }),
+  });
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err?.error || response.statusText);
+  }
+  const data = await response.json();
+  return data.choices?.[0]?.message?.content ?? '';
+}
+
 export async function getToolInsights(toolName: string, userContext: string = "") {
-  const apiKey = process.env.API_KEY;
-  
   const systemPrompt = `As an Innovation Expert, provide a high-level summary and actionable steps for using the tool: "${toolName}". 
   Format the response with:
   1. What it is (brief)
@@ -10,31 +30,13 @@ export async function getToolInsights(toolName: string, userContext: string = ""
   Keep it professional, encouraging, and concise. Use Markdown.`;
 
   try {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o',
-        messages: [
-          { role: 'system', content: 'You are a professional Innovation Consultant.' },
-          { role: 'user', content: `${systemPrompt}${userContext ? `\n\nUser context: ${userContext}` : ""}` }
-        ],
-        temperature: 0.7
-      })
-    });
-
-    if (!response.ok) {
-      throw new Error(`OpenAI API Error: ${response.statusText}`);
-    }
-
-    const data = await response.json();
-    return data.choices[0].message.content;
+    const content = await callOpenAIProxy([
+      { role: 'system', content: 'You are a professional Innovation Consultant.' },
+      { role: 'user', content: `${systemPrompt}${userContext ? `\n\nUser context: ${userContext}` : ""}` }
+    ], 0.7);
+    return content || 'Failed to fetch AI insights.';
   } catch (error) {
-    console.error("AI Insight Error:", error);
-    return "Failed to fetch AI insights. Please check your API key and connection.";
+    return "Failed to fetch AI insights. Please check Supabase config and openai-proxy (OPENAI_API_KEY in Secrets).";
   }
 }
 
@@ -46,7 +48,6 @@ export interface LeadershipResultPayload {
 }
 
 export async function getLeadershipFeedback(payload: LeadershipResultPayload): Promise<string> {
-  const apiKey = process.env.API_KEY;
   const resultsText = Object.entries(payload.results)
     .map(([dimId, caps]) => {
       const capList = Object.entries(caps)
@@ -69,30 +70,12 @@ S = จุดแข็ง, ME = ดี, AFI = ควรพัฒนา, ASD = �
   const userContent = `ผู้ประเมิน: ${payload.user.name}, อีเมล: ${payload.user.email}, บริษัท: ${payload.user.company}\n\nผลประเมินแต่ละด้าน:\n${resultsText}`;
 
   try {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userContent },
-        ],
-        temperature: 0.6,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`OpenAI API Error: ${response.statusText}`);
-    }
-
-    const data = await response.json();
-    return data.choices?.[0]?.message?.content ?? 'ไม่สามารถสร้าง feedback ได้ในขณะนี้';
+    const content = await callOpenAIProxy([
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userContent },
+    ], 0.6);
+    return content || 'ไม่สามารถสร้าง feedback ได้ในขณะนี้';
   } catch (error) {
-    console.error('Leadership feedback error:', error);
-    return 'ไม่สามารถโหลด feedback จาก AI ได้ กรุณาตรวจสอบการเชื่อมต่อหรือ API key';
+    return 'ไม่สามารถโหลด feedback จาก AI ได้ กรุณาตรวจสอบการเชื่อมต่อและ Supabase (openai-proxy + OPENAI_API_KEY)';
   }
 }

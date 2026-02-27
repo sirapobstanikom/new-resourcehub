@@ -235,7 +235,7 @@ const App: React.FC = () => {
             <span className="font-bold tracking-tight">MindDoJo</span>
           </div>
           <div className="text-gray-500 text-sm">
-            © 2024 MindDoJo CO., LTD. All rights reserved.
+            © 2008 MindDoJo CO., LTD. All rights reserved.
           </div>
         </div>
       </footer>

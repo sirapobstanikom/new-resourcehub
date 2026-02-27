@@ -77,7 +77,6 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
     if (!tokenRes.ok) {
       const errText = await tokenRes.text();
-      console.error('Google token error', errText);
       return Response.redirect(`${returnUrl}?error=token_failed`, 302);
     }
 
@@ -106,17 +105,11 @@ Deno.serve(async (req: Request): Promise<Response> => {
     );
 
     if (error) {
-      console.error('DB upsert error', error);
-      const detail = error.code || error.message || 'unknown';
-      return Response.redirect(
-        `${returnUrl}?error=db_failed&detail=${encodeURIComponent(String(detail).slice(0, 100))}`,
-        302
-      );
+      return Response.redirect(`${returnUrl}?error=db_failed&detail=${encodeURIComponent(String(error.code || error.message).slice(0, 100))}`, 302);
     }
 
     return Response.redirect(`${returnUrl}?calendar=connected`, 302);
   } catch (e) {
-    console.error(e);
     return Response.redirect('/admin/leave?error=callback_failed', 302);
   }
 });

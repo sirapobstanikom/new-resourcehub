@@ -1,5 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
+import { supabaseFunctionsUrl, supabaseAnonKey } from '../lib/supabase';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -75,19 +76,22 @@ const AIChatSidebar: React.FC<AIChatSidebarProps> = ({ toolName, fillHeight }) =
     setLoading(true);
 
     try {
-      const apiKey = process.env.API_KEY;
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      if (!supabaseFunctionsUrl || !supabaseAnonKey) {
+        setMessages(prev => [...prev, { role: 'assistant', text: 'กรุณาตั้งค่า VITE_SUPABASE_URL และ VITE_SUPABASE_ANON_KEY ใน .env และ deploy ฟังก์ชัน openai-proxy พร้อมใส่ OPENAI_API_KEY ใน Supabase Secrets' }]);
+        return;
+      }
+      const response = await fetch(`${supabaseFunctionsUrl}/functions/v1/openai-proxy`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`
+          'Authorization': `Bearer ${supabaseAnonKey}`,
         },
         body: JSON.stringify({
           model: 'gpt-4o',
           messages: [
-            { 
-              role: 'system', 
-              content: `คุณคือผู้เชี่ยวชาญด้านนวัตกรรมและเครื่องมือ ${toolName} ตอบคำถามของผู้ใช้อย่างมืออาชีพ กระชับ และเป็นกันเองในภาษาไทย` 
+            {
+              role: 'system',
+              content: `คุณคือผู้เชี่ยวชาญด้านนวัตกรรมและเครื่องมือ ${toolName} ตอบคำถามของผู้ใช้อย่างมืออาชีพ กระชับ และเป็นกันเองในภาษาไทย`
             },
             ...messages.map(m => ({ role: m.role, content: m.text })),
             { role: 'user', content: userMessage }

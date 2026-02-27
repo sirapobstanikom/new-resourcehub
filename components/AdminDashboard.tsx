@@ -35,23 +35,40 @@ function compare(a: unknown, b: unknown): number {
   return String(av).localeCompare(String(bv));
 }
 
+const PER_PAGE = 10;
+const DATE_COLUMN = 'created_at'; // คอลัมน์ที่ใช้กรองช่วงเวลา
+
 const AdminDashboard: React.FC = () => {
   const [selectedCollection, setSelectedCollection] = useState<CollectionId | null>(null);
   const [rows, setRows] = useState<Record<string, unknown>[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sortColumn, setSortColumn] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [dateFrom, setDateFrom] = useState<string>('');
+  const [dateTo, setDateTo] = useState<string>('');
 
   useEffect(() => {
     if (!selectedCollection || !isSupabaseConfigured) return;
     setSortColumn(null);
+    setPage(1);
     setLoading(true);
     setError(null);
-    supabase
+    let query = supabase
       .from(selectedCollection)
       .select('*')
-      .order('created_at', { ascending: false })
-      .then(({ data, error: err }) => {
+      .order(DATE_COLUMN, { ascending: false });
+
+    if (dateFrom) {
+      const fromISO = new Date(dateFrom).toISOString();
+      query = query.gte(DATE_COLUMN, fromISO);
+    }
+    if (dateTo) {
+      const toISO = new Date(dateTo).toISOString();
+      query = query.lte(DATE_COLUMN, toISO);
+    }
+
+    query.then(({ data, error: err }) => {
         setLoading(false);
         if (err) {
           setError(err.message);
@@ -60,16 +77,19 @@ const AdminDashboard: React.FC = () => {
         }
         setRows((data as Record<string, unknown>[]) || []);
       });
-  }, [selectedCollection]);
+  }, [selectedCollection, dateFrom, dateTo]);
 
   const columns = rows.length > 0 ? Object.keys(rows[0]) : [];
-  const DISPLAY_COLUMN_COUNT = 10;
-  const displayColumns = columns.slice(0, DISPLAY_COLUMN_COUNT);
+  const displayColumns = columns;
 
   const sortedRows = useMemo(() => {
     if (!sortColumn || columns.length === 0) return rows;
     return [...rows].sort((a, b) => compare(a[sortColumn], b[sortColumn]));
   }, [rows, sortColumn, columns.length]);
+
+  const totalPages = Math.max(1, Math.ceil(sortedRows.length / PER_PAGE));
+  const currentPage = Math.min(page, totalPages);
+  const paginatedRows = sortedRows.slice((currentPage - 1) * PER_PAGE, currentPage * PER_PAGE);
 
   const handleSort = (col: string) => {
     setSortColumn((prev) => (prev === col ? null : col));
@@ -147,7 +167,7 @@ const AdminDashboard: React.FC = () => {
                     <h3 className="font-bold text-lg">{COLLECTIONS.find((c) => c.id === selectedCollection)?.label}</h3>
                     <div className="flex items-center gap-3">
                       <span className="text-sm text-gray-500">
-                        {rows.length} แถว · แสดง {displayColumns.length}{columns.length > DISPLAY_COLUMN_COUNT ? ` จาก ${columns.length}` : ''} คอลัมน์
+                        {sortedRows.length} แถว · แสดงทั้งหมด {displayColumns.length} คอลัมน์ · หน้า {currentPage}/{totalPages}
                       </span>
                       <button
                         type="button"
@@ -160,23 +180,61 @@ const AdminDashboard: React.FC = () => {
                     </div>
                   </div>
                   {columns.length > 0 && (
-                    <div className="flex items-center gap-3 flex-wrap">
-                      <label className="text-sm text-gray-400">เรียงตาม</label>
-                      <select
-                        value={sortColumn ?? ''}
-                        onChange={(e) => {
-                          const v = e.target.value;
-                          setSortColumn(v || null);
-                        }}
-                        className="px-3 py-2 rounded-lg bg-white border border-white/20 text-black text-sm focus:outline-none focus:border-yellow-400 min-w-[160px]"
-                      >
-                        <option value="">— ไม่เรียง</option>
-                        {columns.map((col) => (
-                          <option key={col} value={col}>
-                            {col}
-                          </option>
-                        ))}
-                      </select>
+                    <div className="flex flex-wrap items-center gap-4">
+                      <div className="flex items-center gap-3 flex-wrap">
+                        <label className="text-sm text-gray-400">เรียงตาม</label>
+                        <select
+                          value={sortColumn ?? ''}
+                          onChange={(e) => {
+                            const v = e.target.value;
+                            setSortColumn(v || null);
+                            setPage(1);
+                          }}
+                          className="px-3 py-2 rounded-lg bg-white border border-white/20 text-black text-sm focus:outline-none focus:border-yellow-400 min-w-[160px]"
+                        >
+                          <option value="">— ไม่เรียง</option>
+                          {columns.map((col) => (
+                            <option key={col} value={col}>
+                              {col}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="flex items-center gap-2 flex-wrap border-l border-white/10 pl-4">
+                        <span className="text-sm text-gray-400">ช่วงเวลา (คอลัมน์ {DATE_COLUMN})</span>
+                        <input
+                          type="datetime-local"
+                          value={dateFrom}
+                          onChange={(e) => {
+                            setDateFrom(e.target.value);
+                            setPage(1);
+                          }}
+                          className="px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white text-sm focus:outline-none focus:border-yellow-400"
+                        />
+                        <span className="text-gray-500">ถึง</span>
+                        <input
+                          type="datetime-local"
+                          value={dateTo}
+                          onChange={(e) => {
+                            setDateTo(e.target.value);
+                            setPage(1);
+                          }}
+                          className="px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white text-sm focus:outline-none focus:border-yellow-400"
+                        />
+                        {(dateFrom || dateTo) && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setDateFrom('');
+                              setDateTo('');
+                              setPage(1);
+                            }}
+                            className="px-3 py-2 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-white/10"
+                          >
+                            ล้างช่วง
+                          </button>
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>
@@ -186,8 +244,9 @@ const AdminDashboard: React.FC = () => {
                 ) : error ? (
                   <div className="p-6 bg-red-500/10 text-red-400 rounded-xl mx-6 my-4">{error}</div>
                 ) : rows.length === 0 ? (
-                  <div className="p-12 text-center text-gray-500">ไม่มีข้อมูลใน collection นี้</div>
+                  <div className="p-12 text-center text-gray-500">ไม่มีข้อมูลใน collection นี้{dateFrom || dateTo ? ' ในช่วงเวลาที่เลือก' : ''}</div>
                 ) : (
+                  <>
                   <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm">
                       <thead>
@@ -196,7 +255,10 @@ const AdminDashboard: React.FC = () => {
                             <th key={col} className="px-4 py-3 font-semibold text-gray-400 whitespace-nowrap">
                               <button
                                 type="button"
-                                onClick={() => handleSort(col)}
+                                onClick={() => {
+                                  handleSort(col);
+                                  setPage(1);
+                                }}
                                 className="flex items-center gap-1.5 text-left hover:text-yellow-400 transition-colors w-full"
                               >
                                 {col}
@@ -209,8 +271,8 @@ const AdminDashboard: React.FC = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        {sortedRows.map((row, i) => (
-                          <tr key={i} className="border-b border-white/5 hover:bg-white/5">
+                        {paginatedRows.map((row, i) => (
+                          <tr key={(currentPage - 1) * PER_PAGE + i} className="border-b border-white/5 hover:bg-white/5">
                             {displayColumns.map((col) => {
                               const val = row[col];
                               const display =
@@ -230,6 +292,35 @@ const AdminDashboard: React.FC = () => {
                       </tbody>
                     </table>
                   </div>
+                  {totalPages > 1 && (
+                    <div className="px-6 py-4 border-t border-white/10 flex items-center justify-between gap-4">
+                      <span className="text-sm text-gray-500">
+                        แสดงแถวที่ {(currentPage - 1) * PER_PAGE + 1}–{Math.min(currentPage * PER_PAGE, sortedRows.length)} จาก {sortedRows.length}
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setPage((p) => Math.max(1, p - 1))}
+                          disabled={currentPage <= 1}
+                          className="px-4 py-2 rounded-lg text-sm font-medium bg-white/10 text-white hover:bg-white/20 disabled:opacity-40 disabled:cursor-not-allowed border border-white/10"
+                        >
+                          ← ก่อนหน้า
+                        </button>
+                        <span className="text-sm text-gray-400 px-2">
+                          หน้า {currentPage} / {totalPages}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                          disabled={currentPage >= totalPages}
+                          className="px-4 py-2 rounded-lg text-sm font-medium bg-white/10 text-white hover:bg-white/20 disabled:opacity-40 disabled:cursor-not-allowed border border-white/10"
+                        >
+                          ถัดไป →
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                  </>
                 )}
               </div>
             )}

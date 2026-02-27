@@ -51,7 +51,6 @@ export async function getPosts(toolId: string): Promise<Post[]> {
     .order('created_at', { ascending: false });
 
   if (postsError) {
-    console.error('getPosts error:', postsError);
     return [];
   }
 
@@ -66,7 +65,6 @@ export async function getPosts(toolId: string): Promise<Post[]> {
     .order('created_at', { ascending: true });
 
   if (commentsError) {
-    console.error('getComments error:', commentsError);
     return posts.map((p) => mapPost(p, []));
   }
 
@@ -97,7 +95,6 @@ export async function createPost(
     .single();
 
   if (error) {
-    console.error('createPost error:', error);
     return null;
   }
 
@@ -121,7 +118,6 @@ export async function addComment(
     .single();
 
   if (error) {
-    console.error('addComment error:', error);
     return null;
   }
 

@@ -114,7 +114,6 @@ const LeadershipAssessment: React.FC = () => {
     if (error) {
       setSaveStatus('error');
       setSaveError(error.message);
-      console.error('Failed to save leadership scores:', error);
     } else {
       setSaveStatus('success');
     }
@@ -216,7 +215,6 @@ const LeadershipAssessment: React.FC = () => {
       const fileName = `ผลการประเมินสมรรถนะภาวะผู้นำ_${user.name || 'ผู้ประเมิน'}_${new Date().toISOString().slice(0, 10)}.pdf`;
       pdf.save(fileName);
     } catch (e) {
-      console.error('PDF export failed:', e);
     } finally {
       setPdfLoading(false);
     }
@@ -287,7 +285,6 @@ const LeadershipAssessment: React.FC = () => {
         );
       });
     } catch (e) {
-      console.error('PNG export failed:', e);
     } finally {
       setPngLoading(false);
     }

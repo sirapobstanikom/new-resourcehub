@@ -50,12 +50,6 @@ const HomePage: React.FC = () => {
           <span className="text-xl font-bold tracking-tighter">MindDoJo</span>
         </Link>
         <div className="flex items-center gap-3">
-          <Link
-            to="/admin/login"
-            className="px-4 py-2 rounded-xl font-medium text-sm bg-white/5 text-gray-400 hover:bg-white/10 border border-white/10 transition-colors"
-          >
-            Login Admin MindDojo
-          </Link>
           {loggedIn ? (
             <Link
               to="/resourcehub"
@@ -154,6 +148,27 @@ const HomePage: React.FC = () => {
           })}
         </div>
       </section>
+
+      {/* Gamification ของ MindDojo */}
+      <section className="px-6 pb-24 max-w-5xl mx-auto w-full">
+        <h2 className="text-xl font-bold text-gray-300 mb-6 text-center">
+          Gamification ของ MindDojo
+        </h2>
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-6 md:p-8 text-center">
+          <p className="text-gray-500 text-sm max-w-lg mx-auto">
+            ระบบเกมมิฟิเคชันเพื่อส่งเสริมการเรียนรู้ออนไลน์และความผูกพันของทีม — เร็วๆ นี้
+          </p>
+        </div>
+      </section>
+
+      {/* ปุ่ม Admin — ซ่อนมุมขวาล่าง เพื่อไม่ให้ user ทั่วไปสับสน */}
+      <Link
+        to="/admin/login"
+        className="fixed bottom-4 right-4 px-3 py-1.5 rounded-lg text-xs font-medium text-gray-500 hover:text-gray-400 hover:bg-white/5 border border-white/5 transition-colors z-10"
+        title="Login Admin MindDojo"
+      >
+        Admin
+      </Link>
 
       {/* Footer */}
       <footer className="py-8 border-t border-white/5">

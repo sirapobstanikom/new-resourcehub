@@ -20,6 +20,7 @@ npx supabase link --project-ref axaasphuaaadzjoffznj
 - **RESEND_API_KEY** = API key จาก resend.com (ให้ส่งเมลได้)
 - (ถ้าต้องการ) **ADMIN_USERNAME** / **ADMIN_PASSWORD** = แอดมินหลักที่ใช้ล็อกอินได้โดยไม่ต้องอนุมัติ
 - สำหรับปฏิทิน: **GOOGLE_CLIENT_ID**, **GOOGLE_CLIENT_SECRET** (ดู `supabase/GOOGLE-CALENDAR-OAUTH.md`)
+- สำหรับ AI (Chat + แบบประเมินภาวะผู้นำ): **OPENAI_API_KEY** = API key ใหม่จาก [OpenAI API Keys](https://platform.openai.com/api-keys) (ห้ามใส่ในโค้ดหรือ .env ที่ commit ขึ้น Git — ใส่เฉพาะใน Supabase Secrets)
 
 ## 5. Deploy ฟังก์ชัน
 
@@ -38,6 +39,12 @@ npx supabase functions deploy google-calendar-auth --no-verify-jwt
 npx supabase functions deploy google-calendar-callback --no-verify-jwt
 npx supabase functions deploy create-leave-calendar-event --no-verify-jwt
 ```
+
+### AI (OpenAI proxy — ป้องกัน key หลุดตอน deploy)
+```bash
+npx supabase functions deploy openai-proxy --no-verify-jwt
+```
+จากนั้นใน Supabase → Edge Functions → Secrets ใส่ **OPENAI_API_KEY** = คีย์ใหม่จาก OpenAI (ห้ามใช้คีย์เก่าที่หลุดแล้ว)
 
 หรือรันครั้งเดียว (แอดมิน + เมลเท่านั้น):
 ```bash
@@ -58,4 +65,5 @@ npm run supabase:deploy
   - หน้าลงทะเบียนแอดมิน → `notify-admin-signup`
   - หน้าแอดมินล็อกอิน → `admin-login`
   - หน้าลางาน/ปฏิทิน (โหลด events หรือเชื่อม Google) → `get-calendar-events`, `get-shared-calendar-events`, `google-calendar-auth`, `google-calendar-callback`
+  - AI Chat / แบบประเมินภาวะผู้นำ (feedback) → `openai-proxy` + ใส่ **OPENAI_API_KEY** ใน Secrets
 - หลัง deploy แล้ว ดูใน Supabase Dashboard → Edge Functions ว่ามีชื่อฟังก์ชันนั้นในรายการหรือไม่
