@@ -17,6 +17,7 @@ import HomePage from './components/HomePage';
 import DiscAssessment from './components/DiscAssessment';
 import LeadershipAssessment from './components/LeadershipAssessment';
 import Game10Timeout from './components/Game10Timeout';
+import InnoClubEvaluationPage from './components/InnoClubEvaluationPage';
 import { useAuth } from './contexts/AuthContext';
 import { isAdminAuthenticated, isAuthenticated, logoutResourceHub } from './lib/auth';
 
@@ -150,6 +151,15 @@ const App: React.FC = () => {
     return (
       <Routes>
         <Route path="/gamification/10-timeout" element={<Game10Timeout />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    );
+  }
+
+  if (pathname.startsWith('/evaluation')) {
+    return (
+      <Routes>
+        <Route path="/evaluation/innoclub" element={<InnoClubEvaluationPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     );

@@ -165,6 +165,39 @@ drop policy if exists "Allow update own calendar_settings" on public.user_calend
 create policy "Allow update own calendar_settings"
   on public.user_calendar_settings for update using (auth.uid() = user_id);
 
+-- แบบประเมินความพึงพอใจ PTT GROUP INNO Club (ไม่ต้องล็อกอิน)
+create table if not exists public.innoclub_evaluation_responses (
+  id uuid primary key default gen_random_uuid(),
+  facilitator_score smallint check (facilitator_score between 1 and 5),
+  facilitator_comment text,
+  content_score smallint check (content_score between 1 and 5),
+  content_comment text,
+  overall_score smallint check (overall_score between 1 and 5),
+  atmosphere_score smallint check (atmosphere_score between 1 and 5),
+  sharing_score smallint check (sharing_score between 1 and 5),
+  decision_score smallint check (decision_score between 1 and 5),
+  overall_comment text,
+  learn_apply text,
+  ai_plan_6months text,
+  activity_learning_satisfaction text,
+  networking_collaboration text,
+  improvement_suggestions text,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists idx_innoclub_evaluation_created
+  on public.innoclub_evaluation_responses(created_at desc);
+
+alter table public.innoclub_evaluation_responses enable row level security;
+
+drop policy if exists "Allow insert innoclub_evaluation" on public.innoclub_evaluation_responses;
+create policy "Allow insert innoclub_evaluation"
+  on public.innoclub_evaluation_responses for insert with check (true);
+
+drop policy if exists "Allow read innoclub_evaluation" on public.innoclub_evaluation_responses;
+create policy "Allow read innoclub_evaluation"
+  on public.innoclub_evaluation_responses for select using (true);
+
 -- เมื่อมี user ใหม่ใน auth.users ให้เพิ่มใน admin_users โดยอัตโนมัติ
 create or replace function public.handle_new_auth_user()
 returns trigger

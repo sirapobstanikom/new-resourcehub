@@ -53,6 +53,14 @@ const AdminLayoutWithSidebar: React.FC = () => {
         >
           ระบบลา MindDojo
         </Link>
+        <a
+          href="/evaluation/innoclub"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block py-2.5 px-3 rounded-lg text-sm font-medium text-gray-400 hover:bg-white/5 hover:text-white transition-colors"
+        >
+          แบบประเมิน INNO Club
+        </a>
       </nav>
 
       <button

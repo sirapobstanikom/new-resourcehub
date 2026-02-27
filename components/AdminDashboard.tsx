@@ -3,12 +3,13 @@ import { Link } from 'react-router-dom';
 import * as XLSX from 'xlsx';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
-export type CollectionId = 'strategy_posts' | 'strategy_comments' | 'leadership_entries';
+export type CollectionId = 'strategy_posts' | 'strategy_comments' | 'leadership_entries' | 'innoclub_evaluation_responses';
 
 const COLLECTIONS: { id: CollectionId; label: string; description: string }[] = [
   { id: 'strategy_posts', label: 'Strategy Posts', description: 'โพสต์ตาม tool_id' },
   { id: 'strategy_comments', label: 'Strategy Comments', description: 'คอมเมนต์ของแต่ละโพสต์' },
   { id: 'leadership_entries', label: 'Leadership Entries', description: 'ผลแบบประเมินสมรรถนะภาวะผู้นำ' },
+  { id: 'innoclub_evaluation_responses', label: 'แบบประเมิน INNO Club', description: 'ความพึงพอใจ PTT GROUP INNO Club' },
 ];
 
 function cellValue(val: unknown): string | number {
