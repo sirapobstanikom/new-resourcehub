@@ -21,6 +21,11 @@ const AdminLayoutWithSidebar: React.FC = () => {
     sick_remaining: number;
     annual_remaining: number;
     unpaid_remaining: number;
+    hours_remaining?: number;
+    hours_personal_remaining?: number;
+    hours_sick_remaining?: number;
+    hours_annual_remaining?: number;
+    hours_unpaid_remaining?: number;
   };
   const [adminUser, setAdminUser] = useState<AdminUserRow | null>(null);
   const [adminUserError, setAdminUserError] = useState<string | null>(null);
@@ -38,6 +43,13 @@ const AdminLayoutWithSidebar: React.FC = () => {
     sick_remaining: 30,
     annual_remaining: 6,
     unpaid_remaining: 0,
+    hours_remaining: 0,
+  };
+
+  const formatDaysHours = (days: number, hours: number): string => {
+    const h = Number(hours ?? 0);
+    if (h > 0) return `${days} วัน ${h} ชม.`;
+    return `${days} วัน`;
   };
 
   const fetchAdminUser = React.useCallback(async () => {
@@ -58,7 +70,7 @@ const AdminLayoutWithSidebar: React.FC = () => {
     log('querying admin_users for email', user.email);
     const { data, error } = await supabase
       .from('admin_users')
-      .select('full_name, phone, department, personal_remaining, sick_remaining, unpaid_remaining')
+      .select('full_name, phone, department, personal_remaining, sick_remaining, annual_remaining, unpaid_remaining, hours_remaining, hours_personal_remaining, hours_sick_remaining, hours_annual_remaining, hours_unpaid_remaining')
       .eq('email', user.email)
       .maybeSingle();
 
@@ -82,6 +94,11 @@ const AdminLayoutWithSidebar: React.FC = () => {
         sick_remaining: d.sick_remaining ?? 30,
         annual_remaining: d.annual_remaining ?? 6,
         unpaid_remaining: d.unpaid_remaining ?? 0,
+        hours_remaining: d.hours_remaining != null ? Number(d.hours_remaining) : 0,
+        hours_personal_remaining: d.hours_personal_remaining,
+        hours_sick_remaining: d.hours_sick_remaining,
+        hours_annual_remaining: d.hours_annual_remaining,
+        hours_unpaid_remaining: d.hours_unpaid_remaining,
       };
       log('admin_users OK, setting state', payload);
       setAdminUserNoRow(false);
@@ -176,10 +193,10 @@ const AdminLayoutWithSidebar: React.FC = () => {
           {adminUser?.department != null && adminUser.department !== '' && (
             <p><span className="text-gray-500">แผนก</span> <span className="text-white/90">{adminUser.department}</span></p>
           )}
-          <p><span className="text-gray-500">วันลาคงเหลือ (ลากิจ)</span> <span className="text-yellow-400 font-medium">{adminUser?.personal_remaining ?? 15} วัน</span></p>
-          <p><span className="text-gray-500">วันลาคงเหลือ (ลาป่วย)</span> <span className="text-yellow-400 font-medium">{adminUser?.sick_remaining ?? 30} วัน</span></p>
-          <p><span className="text-gray-500">วันลาคงเหลือ (ลาพักร้อน)</span> <span className="text-yellow-400 font-medium">{adminUser?.annual_remaining ?? 6} วัน</span></p>
-          <p><span className="text-gray-500">วันลาคงเหลือ (ลาไม่รับเงิน)</span> <span className="text-yellow-400 font-medium">{adminUser?.unpaid_remaining ?? 0} วัน</span></p>
+          <p><span className="text-gray-500">ลาคงเหลือ (ลากิจ)</span> <span className="text-yellow-400 font-medium">{formatDaysHours(adminUser?.personal_remaining ?? 15, adminUser?.hours_personal_remaining ?? 0)}</span></p>
+          <p><span className="text-gray-500">ลาคงเหลือ (ลาป่วย)</span> <span className="text-yellow-400 font-medium">{formatDaysHours(adminUser?.sick_remaining ?? 30, adminUser?.hours_sick_remaining ?? 0)}</span></p>
+          <p><span className="text-gray-500">ลาคงเหลือ (ลาพักร้อน)</span> <span className="text-yellow-400 font-medium">{formatDaysHours(adminUser?.annual_remaining ?? 6, adminUser?.hours_annual_remaining ?? 0)}</span></p>
+          <p><span className="text-gray-500">ลาคงเหลือ (ลาไม่รับเงิน)</span> <span className="text-yellow-400 font-medium">{formatDaysHours(adminUser?.unpaid_remaining ?? 0, adminUser?.hours_unpaid_remaining ?? 0)}</span></p>
           <p><span className="text-gray-500">Work from Home เดือนนี้</span>{' '}
             <span className={wfhUsedThisMonth ? 'text-amber-400' : 'text-emerald-400'}>
               {wfhUsedThisMonth ? 'ใช้แล้ว (ลาอีกได้เดือนถัดไป)' : 'ยังใช้ได้'}

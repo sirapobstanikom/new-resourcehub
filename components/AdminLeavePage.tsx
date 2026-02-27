@@ -33,6 +33,12 @@ function formatThaiDate(dateStr: string): string {
   return d.toLocaleDateString('th-TH', { timeZone: 'Asia/Bangkok', dateStyle: 'short' });
 }
 
+function formatDaysHours(days: number, hours: number): string {
+  const h = Number(hours ?? 0);
+  if (h > 0) return `${days} วัน ${h} ชม.`;
+  return `${days} วัน`;
+}
+
 /** เวลาที่ยื่นคำขอลา (จาก created_at) แสดงเป็น 24 ชม. เช่น 13.00 */
 function formatSubmittedAt(createdAt: string | null | undefined): string {
   if (!createdAt) return '—';
@@ -193,7 +199,17 @@ const AdminLeavePage: React.FC = () => {
   const [selectedLeave, setSelectedLeave] = useState<LeaveRequestRow | null>(null);
   const [myLeaveList, setMyLeaveList] = useState<LeaveRequestRow[]>([]);
   const [myLeaveListLoading, setMyLeaveListLoading] = useState(false);
-  const [leaveBalance, setLeaveBalance] = useState<{ personal_remaining: number; sick_remaining: number; annual_remaining: number; unpaid_remaining: number } | null>(null);
+  const [leaveBalance, setLeaveBalance] = useState<{
+    personal_remaining: number;
+    sick_remaining: number;
+    annual_remaining: number;
+    unpaid_remaining: number;
+    hours_remaining?: number;
+    hours_personal_remaining?: number;
+    hours_sick_remaining?: number;
+    hours_annual_remaining?: number;
+    hours_unpaid_remaining?: number;
+  } | null>(null);
   const [wfhUsedThisMonth, setWfhUsedThisMonth] = useState<boolean>(false);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [cancelError, setCancelError] = useState<string | null>(null);
@@ -250,20 +266,35 @@ const AdminLeavePage: React.FC = () => {
     if (!isSupabaseConfigured || !user?.email) return;
     supabase
       .from('admin_users')
-      .select('personal_remaining, sick_remaining, annual_remaining, unpaid_remaining')
+      .select('personal_remaining, sick_remaining, annual_remaining, unpaid_remaining, hours_remaining, hours_personal_remaining, hours_sick_remaining, hours_annual_remaining, hours_unpaid_remaining')
       .eq('email', user.email)
       .maybeSingle()
       .then(({ data }) => {
         if (data) {
-          const d = data as { personal_remaining?: number; sick_remaining?: number; annual_remaining?: number; unpaid_remaining?: number };
+          const d = data as {
+            personal_remaining?: number;
+            sick_remaining?: number;
+            annual_remaining?: number;
+            unpaid_remaining?: number;
+            hours_remaining?: number;
+            hours_personal_remaining?: number;
+            hours_sick_remaining?: number;
+            hours_annual_remaining?: number;
+            hours_unpaid_remaining?: number;
+          };
           setLeaveBalance({
             personal_remaining: d.personal_remaining ?? 15,
             sick_remaining: d.sick_remaining ?? 30,
             annual_remaining: d.annual_remaining ?? 6,
             unpaid_remaining: d.unpaid_remaining ?? 0,
+            hours_remaining: d.hours_remaining != null ? Number(d.hours_remaining) : 0,
+            hours_personal_remaining: d.hours_personal_remaining,
+            hours_sick_remaining: d.hours_sick_remaining,
+            hours_annual_remaining: d.hours_annual_remaining,
+            hours_unpaid_remaining: d.hours_unpaid_remaining,
           });
         } else {
-          setLeaveBalance({ personal_remaining: 15, sick_remaining: 30, annual_remaining: 6, unpaid_remaining: 0 });
+          setLeaveBalance({ personal_remaining: 15, sick_remaining: 30, annual_remaining: 6, unpaid_remaining: 0, hours_remaining: 0 });
         }
       });
   }, [user?.email]);
@@ -428,8 +459,8 @@ const AdminLeavePage: React.FC = () => {
         {leaveBalance !== null && (
           <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-gray-300">
             <span className="font-medium text-gray-400">ลาคงเหลือ (ปี {currentYear}):</span>{' '}
-            ลากิจ {leaveBalance.personal_remaining} วัน · ลาป่วย {leaveBalance.sick_remaining} วัน · ลาพักร้อน {leaveBalance.annual_remaining} วัน ·{' '}
-            WFH 1 วัน/เดือน (เดือนนี้{wfhUsedThisMonth ? 'ใช้แล้ว — ลาอีกได้เดือนถัดไป' : 'ยังใช้ได้'}) · ลาไม่รับเงิน {leaveBalance.unpaid_remaining} วัน
+            ลากิจ {formatDaysHours(leaveBalance.personal_remaining, leaveBalance.hours_personal_remaining ?? 0)} · ลาป่วย {formatDaysHours(leaveBalance.sick_remaining, leaveBalance.hours_sick_remaining ?? 0)} · ลาพักร้อน {formatDaysHours(leaveBalance.annual_remaining, leaveBalance.hours_annual_remaining ?? 0)} ·{' '}
+            WFH 1 วัน/เดือน (เดือนนี้{wfhUsedThisMonth ? 'ใช้แล้ว — ลาอีกได้เดือนถัดไป' : 'ยังใช้ได้'}) · ลาไม่รับเงิน {formatDaysHours(leaveBalance.unpaid_remaining, leaveBalance.hours_unpaid_remaining ?? 0)}
           </div>
         )}
 
