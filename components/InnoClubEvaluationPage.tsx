@@ -284,7 +284,7 @@ const InnoClubEvaluationPage: React.FC = () => {
             <h2 className="text-lg font-bold text-yellow-400 mb-6">ข้อเสนอแนะและแนวทางการนำไปใช้</h2>
             <div className="space-y-6">
               <div>
-                <p className="text-white font-medium mb-2">1. จากกิจกรรม Innoclub ในครั้งนี้ ช่วยให้ท่าน "เห็นภาพ"ขั้นตอน DMAIC ชัดเจนขึ้นเพียงใด?</p>
+                <p className="text-white font-medium mb-2">1. จากกิจกรรม Innoclub ในครั้งนี้ท่านเข้าใจแนวคิด SIT (Systematic Innovation Thinking) ชัดเจนขึ้นเพียงใด?</p>
                 <textarea
                   value={form.learn_apply}
                   onChange={(e) => setText('learn_apply', e.target.value)}
@@ -294,7 +294,7 @@ const InnoClubEvaluationPage: React.FC = () => {
                 />
               </div>
               <div>
-                <p className="text-white font-medium mb-2">2. ท่านสามารถนำกระบวนการ "ลดปัญหาหรือเพิ่มประสิทธิภาพการทำงาน" จากกิจกรรมในวันนี้ไปประยุกต์กับงานของท่านได้มากน้อยเพียงใด?</p>
+                <p className="text-white font-medium mb-2">2. ท่านคิดว่าท่านสามารถนำ SIT ไปลองใช้กับงานของท่านได้มากน้อยเพียงใด?</p>
                 <textarea
                   value={form.ai_plan_6months}
                   onChange={(e) => setText('ai_plan_6months', e.target.value)}
@@ -304,7 +304,7 @@ const InnoClubEvaluationPage: React.FC = () => {
                 />
               </div>
               <div>
-                <p className="text-white font-medium mb-2">3. ท่านพึงพอใจต่อรูปแบบการเรียนรู้ผ่านกิจกรรม (Activity Based Learning) ในครั้งนี้เพียงใด?</p>
+                <p className="text-white font-medium mb-2">3. หลังจบกิจกรรมนี้ ท่านรู้สึกมั่นใจเพียงใดในการเลือกใช้เครื่องมือ SIT ให้เหมาะกับสถานการณ์ (เช่นลบ/เพิ่ม/แบ่ง/ควบรวม/ปรับตามเงื่อนไข)?</p>
                 <textarea
                   value={form.activity_learning_satisfaction}
                   onChange={(e) => setText('activity_learning_satisfaction', e.target.value)}
@@ -314,7 +314,7 @@ const InnoClubEvaluationPage: React.FC = () => {
                 />
               </div>
               <div>
-                <p className="text-white font-medium mb-2">4. club นี้ช่วยให้ท่านสร้างเครือข่าย (Networking) และ Innovation Collaboration ได้ดีเพียงใด?</p>
+                <p className="text-white font-medium mb-2">4. ท่านพึงพอใจต่อรูปแบบการเรียนรู้ผ่านกิจกรรม (Activity Based Learning) ในครั้งนี้เพียงใด?</p>
                 <textarea
                   value={form.networking_collaboration}
                   onChange={(e) => setText('networking_collaboration', e.target.value)}
@@ -324,7 +324,7 @@ const InnoClubEvaluationPage: React.FC = () => {
                 />
               </div>
               <div>
-                <p className="text-white font-medium mb-2">5. สิ่งที่ควรพัฒนาหรือปรับปรุง?</p>
+                <p className="text-white font-medium mb-2">5.กิจกรรมนี้ช่วยให้คุณได้เเลกเปลี่ยนไอเดีย และรู้จัก/เชื่อมต่อกับผู้อื่นเพื่อทำงานร่วมกันด้านนวัตกรรมได้มากน้อยเพียงใด?</p>
                 <textarea
                   value={form.improvement_suggestions}
                   onChange={(e) => setText('improvement_suggestions', e.target.value)}
