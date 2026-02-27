@@ -1,16 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
-import { supabase, isSupabaseConfigured, supabaseFunctionsUrl, supabaseAnonKey } from '../lib/supabase';
+import { Link } from 'react-router-dom';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-
-const SUPABASE_URL = supabaseFunctionsUrl;
-
-type CalendarEvent = { id: string; summary: string; start?: string; end?: string; status?: string };
 
 const LEAVE_TYPES = [
   { id: 'personal', label: 'ลากิจ' },
   { id: 'sick', label: 'ลาป่วย' },
   { id: 'wfh', label: 'Work from Home' },
+  { id: 'vacation', label: 'ลาพักร้อน' },
   { id: 'unpaid', label: 'ลาไม่รับเงินเดือน' },
 ] as const;
 
@@ -21,8 +18,12 @@ type LeaveRequestRow = {
   leave_type: string;
   start_date: string;
   end_date: string;
+  start_time: string | null;
+  end_time: string | null;
   reason: string | null;
   status: string;
+  approved_by_email: string | null;
+  approved_at: string | null;
   created_at: string;
 };
 
@@ -32,12 +33,102 @@ function formatThaiDate(dateStr: string): string {
   return d.toLocaleDateString('th-TH', { timeZone: 'Asia/Bangkok', dateStyle: 'short' });
 }
 
-function formatCalendarDate(iso: string | undefined): string {
+/** เวลาที่ยื่นคำขอลา (จาก created_at) แสดงเป็น 24 ชม. เช่น 13.00 */
+function formatSubmittedAt(createdAt: string | null | undefined): string {
+  if (!createdAt) return '—';
+  const d = new Date(createdAt);
+  if (Number.isNaN(d.getTime())) return '—';
+  return d.toLocaleTimeString('th-TH', { timeZone: 'Asia/Bangkok', hour: '2-digit', minute: '2-digit', hour12: false });
+}
+
+/** วันที่+เวลา แบบไทย 24 ชม. (ไม่มี AM/PM) */
+function formatDateTime24(iso: string | null | undefined): string {
   if (!iso) return '—';
   const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return iso;
-  return d.toLocaleString('th-TH', { timeZone: 'Asia/Bangkok', dateStyle: 'short', timeStyle: 'short' });
+  if (Number.isNaN(d.getTime())) return '—';
+  const date = d.toLocaleDateString('th-TH', { timeZone: 'Asia/Bangkok', day: '2-digit', month: '2-digit', year: 'numeric' });
+  const time = d.toLocaleTimeString('th-TH', { timeZone: 'Asia/Bangkok', hour: '2-digit', minute: '2-digit', hour12: false });
+  return `${date} ${time}`;
 }
+
+/** เวลาแบบไทย 24 ชม. (เช่น 13.00 หลังเที่ยง) */
+function formatTime24(th: string | null | undefined): string {
+  if (!th) return '—';
+  const s = String(th).trim().slice(0, 5); // HH:mm
+  if (!s) return '—';
+  const [h, m] = s.split(':').map(Number);
+  if (Number.isNaN(h)) return s;
+  const mm = Number.isNaN(m) ? 0 : m;
+  return `${h}.${String(mm).padStart(2, '0')}`;
+}
+
+/** แสดงช่วงเวลาลา (ลา 1 วัน) เป็น 9.00–17.00 (เวลาไทย 24 ชม.) */
+function formatLeaveTimeRange(startTime: string | null | undefined, endTime: string | null | undefined): string {
+  if (!startTime && !endTime) return '';
+  return `${formatTime24(startTime)}–${formatTime24(endTime)}`;
+}
+
+/** แสดงช่วงเวลา + จำนวนชั่วโมงเมื่อลาไม่ถึง 1 วัน (รายชั่วโมง) */
+function formatLeaveTimeRangeWithHours(
+  startTime: string | null | undefined,
+  endTime: string | null | undefined,
+  startDate?: string,
+  endDate?: string
+): string {
+  const range = formatLeaveTimeRange(startTime, endTime);
+  if (!range) return '';
+  if (startDate && endDate && startDate === endDate) {
+    const hrs = hoursBetween(startTime, endTime);
+    if (hrs != null) return `${range} (${hrs} ชั่วโมง)`;
+  }
+  return range;
+}
+
+/** คำนวณจำนวนชั่วโมงระหว่างเวลา (รับ HH:mm หรือ HH:mm:ss) */
+function hoursBetween(startTime: string | null | undefined, endTime: string | null | undefined): number | null {
+  if (!startTime || !endTime) return null;
+  const parse = (t: string) => {
+    const parts = String(t).trim().split(':');
+    const h = parseInt(parts[0], 10);
+    const m = parts[1] ? parseInt(parts[1], 10) : 0;
+    return (Number.isNaN(h) ? 0 : h) + (Number.isNaN(m) ? 0 : m) / 60;
+  };
+  const start = parse(startTime);
+  const end = parse(endTime);
+  if (end < start) return null; // ข้ามวันไม่นับ
+  return Math.round((end - start) * 100) / 100;
+}
+
+/** ตรวจว่าวันนี้เป็นเสาร์หรืออาทิตย์ (ISO date YYYY-MM-DD) */
+function isWeekend(isoDate: string): boolean {
+  const d = new Date(isoDate + 'T12:00:00Z');
+  const day = d.getUTCDay();
+  return day === 0 || day === 6;
+}
+
+/** ตรวจว่าช่วงวันที่มีวันเสาร์หรืออาทิตย์รวมอยู่หรือไม่ */
+function dateRangeIncludesWeekend(startIso: string, endIso: string): boolean {
+  const start = new Date(startIso + 'T12:00:00Z').getTime();
+  const end = new Date(endIso + 'T12:00:00Z').getTime();
+  const oneDay = 24 * 60 * 60 * 1000;
+  for (let t = start; t <= end; t += oneDay) {
+    const d = new Date(t);
+    if (d.getUTCDay() === 0 || d.getUTCDay() === 6) return true;
+  }
+  return false;
+}
+
+/** ช่วงเวลา 9.00–17.00 น. ทุก 30 นาที สำหรับ dropdown (ค่าเป็น HH:mm, แสดงเป็น 24 ชม.) */
+const WORK_TIME_OPTIONS: string[] = (() => {
+  const opts: string[] = [];
+  for (let h = 9; h <= 17; h++) {
+    for (const m of [0, 30]) {
+      if (h === 17 && m === 30) break;
+      opts.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
+    }
+  }
+  return opts;
+})();
 
 /** วันในสัปดาห์ (อาทิตย์–เสาร์) สำหรับหัวตาราง */
 const WEEKDAY_LABELS = ['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'];
@@ -50,13 +141,12 @@ function toDateKey(d: Date): string {
   return `${y}-${m}-${day}`;
 }
 
-/** ตรวจว่า event ทับกับวันนี้หรือไม่ (ใช้ date เทียบตาม Asia/Bangkok, end เป็น exclusive ตาม Google) */
-function eventOverlapsDay(e: CalendarEvent, dayKey: string): boolean {
-  const start = e.start ? e.start.slice(0, 10) : '';
-  const end = e.end ? e.end.slice(0, 10) : '';
+/** ตรวจว่าช่วงลาทับกับวันนี้หรือไม่ (end_date เป็น inclusive) */
+function leaveOverlapsDay(row: LeaveRequestRow, dayKey: string): boolean {
+  const start = row.start_date;
+  const end = row.end_date;
   if (!start) return false;
-  if (!end || end === start) return start === dayKey;
-  return dayKey >= start && dayKey < end;
+  return dayKey >= start && dayKey <= end;
 }
 
 /** สร้าง grid 42 ช่อง (6 สัปดาห์) สำหรับเดือนที่กำหนด */
@@ -77,116 +167,136 @@ function getMonthGrid(year: number, month: number): { date: Date; isCurrentMonth
   return out;
 }
 
+const ADMIN_LEAVE_MANAGER_EMAIL = 'admin@minddojo.me';
+
 const AdminLeavePage: React.FC = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const { user, session } = useAuth();
+  const { user } = useAuth();
   const [leaveType, setLeaveType] = useState<string>(LEAVE_TYPES[0].id);
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const [startDate, setStartDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [endDate, setEndDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [startTime, setStartTime] = useState('');
+  const [endTime, setEndTime] = useState('');
   const [reason, setReason] = useState('');
+  const [weekendError, setWeekendError] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [leaveList, setLeaveList] = useState<LeaveRequestRow[]>([]);
   const [leaveListLoading, setLeaveListLoading] = useState(true);
-  const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>([]);
-  const [calendarLoading, setCalendarLoading] = useState(false);
-  const [calendarMessage, setCalendarMessage] = useState<string | null>(null);
+  const [leaveListError, setLeaveListError] = useState<string | null>(null);
+  const [approvedLeaves, setApprovedLeaves] = useState<LeaveRequestRow[]>([]);
   const [calendarViewDate, setCalendarViewDate] = useState<Date>(() => {
     const d = new Date();
     d.setDate(1);
     return d;
   });
-  const [calendarConnected, setCalendarConnected] = useState(false);
-  const [sharedCalendarEvents, setSharedCalendarEvents] = useState<CalendarEvent[]>([]);
-  const [sharedCalendarLoading, setSharedCalendarLoading] = useState(false);
+  const [selectedLeave, setSelectedLeave] = useState<LeaveRequestRow | null>(null);
+  const [myLeaveList, setMyLeaveList] = useState<LeaveRequestRow[]>([]);
+  const [myLeaveListLoading, setMyLeaveListLoading] = useState(false);
+  const [leaveBalance, setLeaveBalance] = useState<{ personal_remaining: number; sick_remaining: number; annual_remaining: number; unpaid_remaining: number } | null>(null);
+  const [wfhUsedThisMonth, setWfhUsedThisMonth] = useState<boolean>(false);
+  const [cancellingId, setCancellingId] = useState<string | null>(null);
+  const [cancelError, setCancelError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const connected = searchParams.get('calendar');
-    const err = searchParams.get('error');
-    const detail = searchParams.get('detail');
-    if (connected === 'connected') {
-      setCalendarMessage('เชื่อมต่อ Google Calendar แล้ว');
-      setCalendarConnected(true);
-      setSearchParams({}, { replace: true });
-    }
-    if (err) {
-      let msg = err === 'no_refresh_token' ? 'ไม่ได้รับ refresh token จาก Google' : `เกิดข้อผิดพลาด: ${err}`;
-      if (err === 'db_failed' && detail) msg += ` (${decodeURIComponent(detail)})`;
-      setCalendarMessage(msg);
-      setSearchParams({}, { replace: true });
-    }
-  }, [searchParams, setSearchParams]);
-
-  useEffect(() => {
-    if (!session?.access_token || !SUPABASE_URL) return;
-    const y = calendarViewDate.getFullYear();
-    const m = calendarViewDate.getMonth() + 1;
-    const timeMin = new Date(y, m - 1, 1).toISOString();
-    const timeMax = new Date(y, m, 1).toISOString();
-    setCalendarLoading(true);
-    fetch(
-      `${SUPABASE_URL}/functions/v1/get-calendar-events?timeMin=${encodeURIComponent(timeMin)}&timeMax=${encodeURIComponent(timeMax)}`,
-      { headers: { Authorization: `Bearer ${session.access_token}` } }
-    )
-      .then((r) => r.json())
-      .then((data) => {
-        setCalendarLoading(false);
-        if (data.events) {
-          setCalendarEvents(data.events);
-          if (!data.error) setCalendarConnected(true);
-        }
-      })
-      .catch(() => setCalendarLoading(false));
-  }, [session?.access_token, calendarViewDate.getFullYear(), calendarViewDate.getMonth()]);
-
-  useEffect(() => {
-    if (!session?.access_token || !SUPABASE_URL) return;
-    const y = calendarViewDate.getFullYear();
-    const m = calendarViewDate.getMonth() + 1;
-    const timeMin = new Date(y, m - 1, 1).toISOString();
-    const timeMax = new Date(y, m, 1).toISOString();
-    setSharedCalendarLoading(true);
-    fetch(
-      `${SUPABASE_URL}/functions/v1/get-shared-calendar-events?timeMin=${encodeURIComponent(timeMin)}&timeMax=${encodeURIComponent(timeMax)}`,
-      { headers: { Authorization: `Bearer ${session.access_token}` } }
-    )
-      .then((r) => r.json())
-      .then((data) => {
-        setSharedCalendarLoading(false);
-        if (data.events) setSharedCalendarEvents(data.events);
-      })
-      .catch(() => setSharedCalendarLoading(false));
-  }, [session?.access_token, calendarViewDate.getFullYear(), calendarViewDate.getMonth()]);
-
-  const startCalendarOAuth = () => {
-    if (!user?.id || !SUPABASE_URL) return;
-    if (!supabaseAnonKey) {
-      setCalendarMessage('ไม่พบ API key ใน .env กรุณาตั้ง VITE_SUPABASE_ANON_KEY แล้วรีสตาร์ท dev server');
-      return;
-    }
-    const returnUrl = `${window.location.origin}/admin/leave`;
-    const state = btoa(JSON.stringify({ userId: user.id, returnUrl }));
-    const params = new URLSearchParams({ state, apikey: supabaseAnonKey });
-    window.location.href = `${SUPABASE_URL}/functions/v1/google-calendar-auth?${params.toString()}`;
-  };
+  const currentYear = new Date().getFullYear();
+  const now = new Date();
+  const thisMonthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
+  const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  const thisMonthEnd = `${lastDayOfMonth.getFullYear()}-${String(lastDayOfMonth.getMonth() + 1).padStart(2, '0')}-${String(lastDayOfMonth.getDate()).padStart(2, '0')}`;
 
   useEffect(() => {
     if (!isSupabaseConfigured) {
       setLeaveListLoading(false);
+      setLeaveListError(null);
       return;
     }
+    setLeaveListError(null);
     supabase
       .from('leave_requests')
-      .select('id, user_email, user_display_name, leave_type, start_date, end_date, reason, status, created_at')
+      .select('id, user_email, user_display_name, leave_type, start_date, end_date, start_time, end_time, reason, status, approved_by_email, approved_at, created_at')
       .order('created_at', { ascending: false })
-      .limit(50)
+      .limit(100)
       .then(({ data, error }) => {
         setLeaveListLoading(false);
-        if (error) return;
+        if (error) {
+          setLeaveListError(error.message);
+          setLeaveList([]);
+          return;
+        }
         setLeaveList((data as LeaveRequestRow[]) ?? []);
       });
   }, [submitted]);
+
+  useEffect(() => {
+    if (!isSupabaseConfigured || !user?.id) return;
+    setMyLeaveListLoading(true);
+    supabase
+      .from('leave_requests')
+      .select('id, user_email, user_display_name, leave_type, start_date, end_date, start_time, end_time, reason, status, approved_by_email, approved_at, created_at')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .then(({ data, error }) => {
+        setMyLeaveListLoading(false);
+        if (error) return;
+        setMyLeaveList((data as LeaveRequestRow[]) ?? []);
+      });
+  }, [user?.id, submitted]);
+
+  useEffect(() => {
+    if (!isSupabaseConfigured || !user?.email) return;
+    supabase
+      .from('admin_users')
+      .select('personal_remaining, sick_remaining, annual_remaining, unpaid_remaining')
+      .eq('email', user.email)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data) {
+          const d = data as { personal_remaining?: number; sick_remaining?: number; annual_remaining?: number; unpaid_remaining?: number };
+          setLeaveBalance({
+            personal_remaining: d.personal_remaining ?? 15,
+            sick_remaining: d.sick_remaining ?? 30,
+            annual_remaining: d.annual_remaining ?? 6,
+            unpaid_remaining: d.unpaid_remaining ?? 0,
+          });
+        } else {
+          setLeaveBalance({ personal_remaining: 15, sick_remaining: 30, annual_remaining: 6, unpaid_remaining: 0 });
+        }
+      });
+  }, [user?.email]);
+
+  useEffect(() => {
+    if (!isSupabaseConfigured || !user?.id) return;
+    supabase
+      .from('leave_requests')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('leave_type', 'wfh')
+      .eq('status', 'approved')
+      .gte('end_date', thisMonthStart)
+      .lte('start_date', thisMonthEnd)
+      .then(({ data }) => {
+        setWfhUsedThisMonth((data?.length ?? 0) > 0);
+      });
+  }, [user?.id, thisMonthStart, thisMonthEnd]);
+
+  const monthStart = `${calendarViewDate.getFullYear()}-${String(calendarViewDate.getMonth() + 1).padStart(2, '0')}-01`;
+  const lastDay = new Date(calendarViewDate.getFullYear(), calendarViewDate.getMonth() + 1, 0);
+  const monthEnd = `${lastDay.getFullYear()}-${String(lastDay.getMonth() + 1).padStart(2, '0')}-${String(lastDay.getDate()).padStart(2, '0')}`;
+
+  useEffect(() => {
+    if (!isSupabaseConfigured) return;
+    supabase
+      .from('leave_requests')
+      .select('id, user_email, user_display_name, leave_type, start_date, end_date, start_time, end_time, reason, status, approved_by_email, approved_at, created_at')
+      .eq('status', 'approved')
+      .lte('start_date', monthEnd)
+      .gte('end_date', monthStart)
+      .order('start_date', { ascending: true })
+      .then(({ data, error }) => {
+        if (error) return;
+        setApprovedLeaves((data as LeaveRequestRow[]) ?? []);
+      });
+  }, [monthStart, monthEnd]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -199,9 +309,41 @@ const AdminLeavePage: React.FC = () => {
       setSubmitError('ยังไม่ได้ตั้งค่า Supabase');
       return;
     }
+    const today = new Date().toISOString().slice(0, 10);
+    if (leaveType !== 'sick' && (startDate < today || endDate < today)) {
+      setSubmitError('เฉพาะลาป่วยเท่านั้นที่ยื่นย้อนหลังได้');
+      return;
+    }
+    if (dateRangeIncludesWeekend(startDate, endDate)) {
+      setSubmitError('ห้ามลาวันเสาร์และอาทิตย์ (เวลาทำงาน จันทร์–ศุกร์)');
+      return;
+    }
+    if (leaveType === 'wfh') {
+      if (startDate !== endDate) {
+        setSubmitError('ลาประเภท Work from Home ได้แค่ 1 วันต่อเดือน กรุณาเลือกวันเริ่มต้นและวันสิ้นสุดเป็นวันเดียวกัน');
+        return;
+      }
+      const [y, m] = startDate.split('-').map(Number);
+      const monthStart = `${y}-${String(m).padStart(2, '0')}-01`;
+      const lastDay = new Date(y, m, 0).getDate();
+      const monthEnd = `${y}-${String(m).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+      const { data: existingWfh } = await supabase
+        .from('leave_requests')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('leave_type', 'wfh')
+        .eq('status', 'approved')
+        .lte('start_date', monthEnd)
+        .gte('end_date', monthStart);
+      if (existingWfh && existingWfh.length > 0) {
+        setSubmitError('ลาประเภท Work from Home ได้แค่ 1 วันต่อเดือน ถ้าลาแล้วจะลาอีกได้ในเดือนถัดไป');
+        return;
+      }
+    }
     setLoading(true);
     const displayName = user.user_metadata?.full_name ?? user.email.split('@')[0];
-    const { error } = await supabase.from('leave_requests').insert({
+    const isOneDay = startDate === endDate;
+    const payload: Record<string, unknown> = {
       user_id: user.id,
       user_email: user.email,
       user_display_name: displayName,
@@ -210,7 +352,14 @@ const AdminLeavePage: React.FC = () => {
       end_date: endDate,
       reason: reason.trim() || null,
       status: 'pending',
-    });
+    };
+    if (isOneDay) {
+      const fromTime = startTime || '09:00';
+      const toTime = endTime || '17:00';
+      payload.start_time = fromTime.length === 5 ? `${fromTime}:00` : fromTime;
+      payload.end_time = toTime.length === 5 ? `${toTime}:00` : toTime;
+    }
+    const { error } = await supabase.from('leave_requests').insert(payload);
     setLoading(false);
     if (error) {
       setSubmitError(error.message);
@@ -219,12 +368,26 @@ const AdminLeavePage: React.FC = () => {
     setSubmitted(true);
     setStartDate('');
     setEndDate('');
+    setStartTime('');
+    setEndTime('');
     setReason('');
+  };
 
-    // ยังไม่ส่งการลาลง Google Calendar (รอสิทธิ์ Make changes to events)
-    // if (SUPABASE_URL && session?.access_token) {
-    //   fetch(`${SUPABASE_URL}/functions/v1/create-leave-calendar-event`, { ... });
-    // }
+  const handleCancelRequest = async (id: string) => {
+    setCancelError(null);
+    setCancellingId(id);
+    const { data, error } = await supabase.from('leave_requests').update({ status: 'cancelled' }).eq('id', id).select('id');
+    setCancellingId(null);
+    if (error) {
+      setCancelError(error.message || 'ยกเลิกไม่สำเร็จ กรุณาลองใหม่');
+      return;
+    }
+    if (!data || data.length === 0) {
+      setCancelError('ยกเลิกไม่สำเร็จ (ไม่มีสิทธิ์หรือไม่พบแถว) — ตรวจสอบว่าเป็นคำขอของตัวเองและสถานะรออนุมัติ');
+      return;
+    }
+    setMyLeaveList((prev) => prev.filter((r) => r.id !== id));
+    setLeaveList((prev) => prev.filter((r) => r.id !== id));
   };
 
   return (
@@ -251,6 +414,14 @@ const AdminLeavePage: React.FC = () => {
       <main className="flex-1 max-w-4xl mx-auto w-full px-4 sm:px-6 py-6 sm:py-8 space-y-8 sm:space-y-10">
         <h2 className="text-xl font-bold text-gray-300">ยื่นคำขอลา</h2>
 
+        {leaveBalance !== null && (
+          <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-gray-300">
+            <span className="font-medium text-gray-400">ลาคงเหลือ (ปี {currentYear}):</span>{' '}
+            ลากิจ {leaveBalance.personal_remaining} วัน · ลาป่วย {leaveBalance.sick_remaining} วัน · ลาพักร้อน {leaveBalance.annual_remaining} วัน ·{' '}
+            WFH 1 วัน/เดือน (เดือนนี้{wfhUsedThisMonth ? 'ใช้แล้ว — ลาอีกได้เดือนถัดไป' : 'ยังใช้ได้'}) · ลาไม่รับเงิน {leaveBalance.unpaid_remaining} วัน
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="rounded-2xl border border-white/10 bg-white/5 p-4 sm:p-6 space-y-5">
           <div>
             <label className="block text-sm font-medium text-gray-400 mb-2">ประเภทการลา</label>
@@ -265,14 +436,30 @@ const AdminLeavePage: React.FC = () => {
                 </option>
               ))}
             </select>
+            <p className="text-xs text-gray-500 mt-1">เฉพาะลาป่วยเท่านั้นที่ยื่นย้อนหลังได้</p>
           </div>
+          <p className="text-xs text-gray-500">เวลาทำงาน จันทร์–ศุกร์ 9.00–17.00 น. หยุดเสาร์–อาทิตย์ (ห้ามเลือกวันเสาร์และอาทิตย์)</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-400 mb-2">วันเริ่มต้น</label>
               <input
                 type="date"
                 value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  if (v && isWeekend(v)) {
+                    setWeekendError('ห้ามเลือกวันเสาร์และอาทิตย์');
+                    setStartDate('');
+                    return;
+                  }
+                  setWeekendError(null);
+                  setSubmitError(null);
+                  setStartDate(v);
+                  if (v && endDate && v === endDate && !startTime && !endTime) {
+                    setStartTime('09:00');
+                    setEndTime('17:00');
+                  }
+                }}
                 required
                 className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/20 text-white text-sm focus:outline-none focus:border-yellow-400"
               />
@@ -282,12 +469,60 @@ const AdminLeavePage: React.FC = () => {
               <input
                 type="date"
                 value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  if (v && isWeekend(v)) {
+                    setWeekendError('ห้ามเลือกวันเสาร์และอาทิตย์');
+                    setEndDate('');
+                    return;
+                  }
+                  setWeekendError(null);
+                  setSubmitError(null);
+                  setEndDate(v);
+                  if (v && startDate && v === startDate && !startTime && !endTime) {
+                    setStartTime('09:00');
+                    setEndTime('17:00');
+                  }
+                }}
                 required
                 className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/20 text-white text-sm focus:outline-none focus:border-yellow-400"
               />
             </div>
           </div>
+          {weekendError && <p className="text-sm text-amber-400">{weekendError}</p>}
+          {startDate && endDate && startDate === endDate && !dateRangeIncludesWeekend(startDate, endDate) && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-2">ลา 1 วัน — จากเวลา (เลือกได้ 9.00–17.00 น.)</label>
+                <select
+                  value={startTime || '09:00'}
+                  onChange={(e) => setStartTime(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/20 text-white text-sm focus:outline-none focus:border-yellow-400"
+                >
+                  {WORK_TIME_OPTIONS.map((t) => (
+                    <option key={t} value={t} className="bg-neutral-900 text-white">
+                      {t.replace(':', '.')} น.
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-2">ถึงเวลา (เลือกได้ 9.00–17.00 น.)</label>
+                <select
+                  value={endTime || '17:00'}
+                  onChange={(e) => setEndTime(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/20 text-white text-sm focus:outline-none focus:border-yellow-400"
+                >
+                  {WORK_TIME_OPTIONS.map((t) => (
+                    <option key={t} value={t} className="bg-neutral-900 text-white">
+                      {t.replace(':', '.')} น.
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <p className="text-xs text-gray-500 col-span-full">รูปแบบเวลา 24 ชม. (09.00–17.00 น.) ค่าเริ่มต้น 9.00–17.00 น. ลาไม่ถึง 1 วันจะนับเป็นรายชั่วโมง</p>
+            </div>
+          )}
           <div>
             <label className="block text-sm font-medium text-gray-400 mb-2">เหตุผล (ถ้ามี)</label>
             <textarea
@@ -309,157 +544,243 @@ const AdminLeavePage: React.FC = () => {
             {loading ? 'กำลังส่ง...' : 'ส่งคำขอลา'}
           </button>
           {submitted && !submitError && (
-            <p className="text-sm text-emerald-400">ส่งคำขอลาแล้ว บันทึกในระบบเรียบร้อย (เชื่อม Google Calendar ได้ในขั้นตอนถัดไป)</p>
+            <p className="text-sm text-emerald-400">ส่งคำขอลาแล้ว บันทึกในระบบเรียบร้อย รอการอนุมัติจากแอดมิน</p>
           )}
         </form>
 
         <section className="rounded-2xl border border-white/10 bg-white/5 p-4 sm:p-6">
-          <h3 className="font-bold text-gray-300 mb-2">ตารางงานรวม (Google Calendar)</h3>
-          <p className="text-sm text-gray-500 mb-4">
-            ปฏิทินรายเดือนรวมทั้ง <strong className="text-white/90">ตารางงานของฉัน</strong> และ{' '}
-            <strong className="text-amber-400/90">ปฏิทินรวม phet@minddojo.me (Admin &amp; Production &amp; Marketing)</strong>{' '}
-            — เลื่อนเดือนดูได้ครบ
-          </p>
-          {calendarMessage && (
-            <p className="text-sm text-amber-400 mb-3">{calendarMessage}</p>
-          )}
-          {!calendarConnected && !calendarLoading && (
-            <button
-              type="button"
-              onClick={startCalendarOAuth}
-              className="mb-4 px-4 py-2 rounded-xl text-sm font-medium bg-white/10 text-white hover:bg-white/20 border border-white/20 w-full sm:w-auto"
-            >
-              เชื่อมต่อ Google Calendar
-            </button>
-          )}
-          {calendarLoading || sharedCalendarLoading ? (
-            <div className="min-h-[280px] sm:min-h-[320px] rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-gray-500 text-sm">
-              กำลังโหลดปฏิทิน...
+          <h3 className="font-bold text-gray-300 mb-2">รายการลาของตัวเอง</h3>
+          <p className="text-sm text-gray-500 mb-4">รายการขอลาที่ยังไม่ยกเลิก สามารถยกเลิกได้เฉพาะคำขอที่รออนุมัติ</p>
+          {cancelError && (
+            <div className="text-sm mb-3 space-y-2">
+              <p className="text-red-400">{cancelError}</p>
+              <p className="text-gray-500">ให้เปิด Supabase → SQL Editor แล้วรันไฟล์ <code className="bg-white/10 px-1 rounded">supabase/fix_leave_cancel_policy.sql</code> หรือรันคำสั่งด้านล่าง (รวมแก้ constraint ให้รองรับสถานะ ยกเลิกแล้ว):</p>
+              <pre className="text-xs bg-black/30 p-3 rounded-lg overflow-x-auto text-gray-300 whitespace-pre">
+{`-- แก้ constraint ให้มี 'cancelled'
+alter table public.leave_requests drop constraint if exists leave_requests_status_check;
+alter table public.leave_requests add constraint leave_requests_status_check
+  check (status in ('pending', 'approved', 'rejected', 'cancelled'));
+
+-- RLS ให้ผู้ใช้ยกเลิกคำขอของตัวเองได้
+drop policy if exists "Allow update own leave_requests cancel" on public.leave_requests;
+create policy "Allow update own leave_requests cancel"
+  on public.leave_requests for update
+  using (auth.uid() = user_id and status = 'pending')
+  with check (auth.uid() = user_id and status = 'cancelled');`}
+              </pre>
             </div>
-          ) : calendarConnected || calendarLoading || sharedCalendarLoading || calendarEvents.length > 0 || sharedCalendarEvents.length > 0 ? (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between gap-2 flex-wrap">
-                <button
-                  type="button"
-                  onClick={() => {
-                    const d = new Date(calendarViewDate);
-                    d.setMonth(d.getMonth() - 1);
-                    d.setDate(1);
-                    setCalendarViewDate(d);
-                  }}
-                  className="px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium text-gray-400 hover:text-white hover:bg-white/10 border border-white/10"
-                >
-                  ‹ เดือนก่อน
-                </button>
-                <span className="text-sm sm:text-base font-semibold text-white text-center min-w-[140px]">
-                  {calendarViewDate.toLocaleDateString('th-TH', { month: 'long', year: 'numeric' })}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const d = new Date(calendarViewDate);
-                    d.setMonth(d.getMonth() + 1);
-                    d.setDate(1);
-                    setCalendarViewDate(d);
-                  }}
-                  className="px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium text-gray-400 hover:text-white hover:bg-white/10 border border-white/10"
-                >
-                  เดือนถัดไป ›
-                </button>
-              </div>
-              <div className="rounded-xl border border-white/10 overflow-x-auto -mx-2 sm:mx-0">
-                <table className="w-full text-sm border-collapse min-w-[320px]">
-                  <thead>
-                    <tr className="bg-white/5 border-b border-white/10">
-                      {WEEKDAY_LABELS.map((label) => (
-                        <th key={label} className="py-1.5 sm:py-2 font-semibold text-gray-400 w-[14.28%] text-center min-w-[36px]">
-                          {label}
-                        </th>
-                      ))}
+          )}
+          {myLeaveListLoading ? (
+            <div className="min-h-[80px] rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-gray-500 text-sm">
+              กำลังโหลด...
+            </div>
+          ) : myLeaveList.filter((r) => r.status !== 'cancelled').length === 0 ? (
+            <div className="min-h-[80px] rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-gray-500 text-sm">
+              ยังไม่มีรายการลา (ที่ยังไม่ยกเลิก)
+            </div>
+          ) : (
+            <div className="rounded-xl border border-white/10 overflow-x-auto">
+              <table className="w-full text-left text-sm min-w-[400px]">
+                <thead>
+                  <tr className="border-b border-white/10 bg-white/5">
+                    <th className="px-3 py-2 font-semibold text-gray-400">ประเภท</th>
+                    <th className="px-3 py-2 font-semibold text-gray-400">วันเริ่ม</th>
+                    <th className="px-3 py-2 font-semibold text-gray-400">วันสิ้นสุด</th>
+                    <th className="px-3 py-2 font-semibold text-gray-400">สถานะ</th>
+                    <th className="px-3 py-2 font-semibold text-gray-400 text-right">ดำเนินการ</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {myLeaveList.filter((r) => r.status !== 'cancelled').map((row) => (
+                    <tr key={row.id} className="border-b border-white/5 hover:bg-white/5">
+                      <td className="px-3 py-2 text-gray-300">{LEAVE_TYPES.find((t) => t.id === row.leave_type)?.label ?? row.leave_type}</td>
+                      <td className="px-3 py-2 text-gray-300">{formatThaiDate(row.start_date)}</td>
+                      <td className="px-3 py-2 text-gray-300">{formatThaiDate(row.end_date)}</td>
+                      <td className="px-3 py-2">
+                        <span
+                          className={
+                            row.status === 'approved'
+                              ? 'text-emerald-400'
+                              : row.status === 'rejected'
+                                ? 'text-red-400'
+                                : row.status === 'cancelled'
+                                  ? 'text-gray-500'
+                                  : 'text-amber-400'
+                          }
+                        >
+                          {row.status === 'approved' ? 'อนุมัติ' : row.status === 'rejected' ? 'ไม่อนุมัติ' : row.status === 'cancelled' ? 'ยกเลิกแล้ว' : 'รอตรวจ'}
+                        </span>
+                      </td>
+                      <td className="px-3 py-2 text-right">
+                        {row.status === 'pending' && (
+                          <button
+                            type="button"
+                            onClick={() => handleCancelRequest(row.id)}
+                            disabled={cancellingId === row.id}
+                            className="px-3 py-1.5 rounded-lg text-xs font-medium bg-red-500/20 text-red-300 hover:bg-red-500/30 border border-red-500/30 disabled:opacity-50"
+                          >
+                            {cancellingId === row.id ? 'กำลังยกเลิก...' : 'ยกเลิก'}
+                          </button>
+                        )}
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    {Array.from({ length: 6 }, (_, rowIndex) => (
-                      <tr key={rowIndex} className="border-b border-white/5 last:border-0">
-                        {getMonthGrid(
-                          calendarViewDate.getFullYear(),
-                          calendarViewDate.getMonth() + 1
-                        )
-                          .slice(rowIndex * 7, rowIndex * 7 + 7)
-                          .map(({ date, isCurrentMonth }) => {
-                            const dayKey = toDateKey(date);
-                            const myDayEvents = calendarEvents.filter((e) => eventOverlapsDay(e, dayKey));
-                            const sharedDayEvents = sharedCalendarEvents.filter((e) => eventOverlapsDay(e, dayKey));
-                            const dayEventsWithSource: { e: CalendarEvent; isShared: boolean }[] = [
-                              ...myDayEvents.map((e) => ({ e, isShared: false })),
-                              ...sharedDayEvents.map((e) => ({ e, isShared: true })),
-                            ];
-                            const isToday =
-                              dayKey ===
-                              toDateKey(new Date());
-                              return (
-                              <td
-                                key={dayKey}
-                                className={`align-top p-0.5 sm:p-1 min-h-[64px] sm:min-h-[88px] border-r border-white/5 last:border-r-0 text-xs sm:text-sm ${
-                                  isCurrentMonth ? 'text-gray-200' : 'text-gray-600'
-                                } ${isToday ? 'bg-yellow-400/10 ring-1 ring-yellow-400/30' : ''}`}
-                              >
-                                <span className="inline-flex w-6 h-6 sm:w-7 sm:h-7 items-center justify-center rounded-full text-xs font-medium">
-                                  {date.getDate()}
-                                </span>
-                                <ul className="space-y-0.5 mt-0.5">
-                                  {dayEventsWithSource.slice(0, 6).map(({ e, isShared }) => (
-                                    <li
-                                      key={isShared ? `shared-${e.id}` : e.id}
-                                      className={`text-xs truncate px-1 py-0.5 rounded text-gray-300 ${
-                                        isShared ? 'bg-amber-500/20 text-amber-200' : 'bg-white/10'
-                                      }`}
-                                      title={`${e.summary} ${formatCalendarDate(e.start)} – ${formatCalendarDate(e.end)}${isShared ? ' (ปฏิทินรวม phet@minddojo.me)' : ''}`}
-                                    >
-                                      {e.summary}
-                                    </li>
-                                  ))}
-                                  {dayEventsWithSource.length > 6 && (
-                                    <li className="text-xs text-gray-500 px-1">+{dayEventsWithSource.length - 6}</li>
-                                  )}
-                                </ul>
-                              </td>
-                            );
-                          })}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <p className="text-xs text-gray-500 flex items-center gap-3 flex-wrap">
-                <span className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded bg-white/20" /> ตารางงานของฉัน
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded bg-amber-500/30" /> ปฏิทินรวม phet@minddojo.me
-                </span>
-              </p>
+                  ))}
+                </tbody>
+              </table>
             </div>
-          ) : session?.access_token ? (
-            <div className="min-h-[120px] rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-gray-500 text-sm">
-              กดปุ่มด้านบนเพื่อเชื่อมต่อ Google Calendar
-            </div>
-          ) : null}
+          )}
         </section>
 
         <section className="rounded-2xl border border-white/10 bg-white/5 p-4 sm:p-6">
-          <h3 className="font-bold text-gray-300 mb-2">ใครลาบ้าง</h3>
+          <h3 className="font-bold text-gray-300 mb-2">ตารางรายเดือน — ใครลาบ้าง</h3>
           <p className="text-sm text-gray-500 mb-4">
-            รายการคำขอลาจากระบบ (ปฏิทินรวมจากแอดมิน <strong className="text-yellow-400/90">phet@minddojo.me</strong> ในนาม{' '}
-            <strong className="text-yellow-400/90">Admin &amp; Production &amp; Marketing</strong> ดูได้ที่ Google Calendar)
+            ปฏิทินรายเดือนแสดงการลาที่อนุมัติแล้ว — เลื่อนเดือนดูได้
+          </p>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              <button
+                type="button"
+                onClick={() => {
+                  const d = new Date(calendarViewDate);
+                  d.setMonth(d.getMonth() - 1);
+                  d.setDate(1);
+                  setCalendarViewDate(d);
+                }}
+                className="px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium text-gray-400 hover:text-white hover:bg-white/10 border border-white/10"
+              >
+                ‹ เดือนก่อน
+              </button>
+              <span className="text-sm sm:text-base font-semibold text-white text-center min-w-[140px]">
+                {calendarViewDate.toLocaleDateString('th-TH', { month: 'long', year: 'numeric' })}
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  const d = new Date(calendarViewDate);
+                  d.setMonth(d.getMonth() + 1);
+                  d.setDate(1);
+                  setCalendarViewDate(d);
+                }}
+                className="px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium text-gray-400 hover:text-white hover:bg-white/10 border border-white/10"
+              >
+                เดือนถัดไป ›
+              </button>
+            </div>
+            <div className="rounded-xl border border-white/10 overflow-x-auto -mx-2 sm:mx-0">
+              <table className="w-full text-sm border-collapse min-w-[320px]">
+                <thead>
+                  <tr className="bg-white/5 border-b border-white/10">
+                    {WEEKDAY_LABELS.map((label) => (
+                      <th key={label} className="py-1.5 sm:py-2 font-semibold text-gray-400 w-[14.28%] text-center min-w-[36px]">
+                        {label}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {Array.from({ length: 6 }, (_, rowIndex) => (
+                    <tr key={rowIndex} className="border-b border-white/5 last:border-0">
+                      {getMonthGrid(
+                        calendarViewDate.getFullYear(),
+                        calendarViewDate.getMonth() + 1
+                      )
+                        .slice(rowIndex * 7, rowIndex * 7 + 7)
+                        .map(({ date, isCurrentMonth }) => {
+                          const dayKey = toDateKey(date);
+                          const dayLeaves = approvedLeaves.filter((row) => leaveOverlapsDay(row, dayKey));
+                          const isToday = dayKey === toDateKey(new Date());
+                          return (
+                            <td
+                              key={dayKey}
+                              className={`align-top p-0.5 sm:p-1 min-h-[64px] sm:min-h-[88px] border-r border-white/5 last:border-r-0 text-xs sm:text-sm ${
+                                isCurrentMonth ? 'text-gray-200' : 'text-gray-600'
+                              } ${isToday ? 'bg-yellow-400/10 ring-1 ring-yellow-400/30' : ''}`}
+                            >
+                              <span className="inline-flex w-6 h-6 sm:w-7 sm:h-7 items-center justify-center rounded-full text-xs font-medium">
+                                {date.getDate()}
+                              </span>
+                              <ul className="space-y-0.5 mt-0.5">
+                                {dayLeaves.slice(0, 5).map((row) => {
+                                  const label = LEAVE_TYPES.find((t) => t.id === row.leave_type)?.label ?? row.leave_type;
+                                  const timeRange = formatLeaveTimeRangeWithHours(row.start_time, row.end_time, row.start_date, row.end_date);
+                                  const displayText = timeRange
+                                    ? `${row.user_display_name || row.user_email} — ${label} ${timeRange}`
+                                    : `${row.user_display_name || row.user_email} — ${label}`;
+                                  return (
+                                    <li
+                                      key={row.id}
+                                      role="button"
+                                      tabIndex={0}
+                                      onClick={() => setSelectedLeave(row)}
+                                      onKeyDown={(e) => e.key === 'Enter' && setSelectedLeave(row)}
+                                      className="text-xs truncate px-1 py-0.5 rounded bg-emerald-500/20 text-emerald-200 cursor-pointer hover:bg-emerald-500/30 transition-colors"
+                                      title="คลิกดูรายละเอียด"
+                                    >
+                                      {displayText}
+                                    </li>
+                                  );
+                                })}
+                                {dayLeaves.length > 5 && (
+                                  <li className="text-xs text-gray-500 px-1">+{dayLeaves.length - 5}</li>
+                                )}
+                              </ul>
+                            </td>
+                          );
+                        })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        {user?.email === ADMIN_LEAVE_MANAGER_EMAIL && (
+          <div className="rounded-2xl border border-amber-500/30 bg-amber-500/5 p-4 sm:p-6">
+            <Link
+              to="/admin/leave/manage"
+              className="inline-flex items-center gap-2 px-4 py-3 rounded-xl font-medium bg-amber-500/20 text-amber-300 hover:bg-amber-500/30 border border-amber-500/30 transition-colors"
+            >
+              จัดการคำขอลา (อนุมัติ/ไม่อนุมัติ)
+            </Link>
+            <p className="text-xs text-gray-500 mt-2">เห็นได้เฉพาะ admin@minddojo.me</p>
+          </div>
+        )}
+
+        <section className="rounded-2xl border border-white/10 bg-white/5 p-4 sm:p-6">
+          <h3 className="font-bold text-gray-300 mb-2">รายการลาที่รออนุมัติ</h3>
+          <p className="text-sm text-gray-500 mb-4">
+            คำขอลาที่ยังไม่ได้รับการอนุมัติ
           </p>
           {leaveListLoading ? (
-            <div className="min-h-[100px] sm:min-h-[120px] rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-gray-500 text-sm">
+            <div className="min-h-[120px] rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-gray-500 text-sm py-8">
               กำลังโหลด...
             </div>
-          ) : leaveList.length === 0 ? (
-            <div className="min-h-[100px] sm:min-h-[120px] rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-gray-500 text-sm">
-              ยังไม่มีคำขอลา
+          ) : leaveListError ? (
+            <div className="min-h-[120px] rounded-xl bg-red-500/10 border border-red-500/20 flex flex-col items-center justify-center text-red-400 text-sm py-8 px-4">
+              <span className="font-medium mb-1">โหลดรายการลาไม่สำเร็จ</span>
+              <span className="text-red-300/80 text-xs text-center">{leaveListError}</span>
+              {(leaveListError.includes('approved_by_email') || leaveListError.includes('does not exist')) ? (
+                <div className="mt-4 p-3 rounded-lg bg-black/30 text-left w-full max-w-md">
+                  <p className="text-amber-200 text-xs font-medium mb-2">แก้ไข: ไปที่ Supabase → SQL Editor แล้วรัน:</p>
+                  <code className="block text-xs text-gray-300 whitespace-pre overflow-x-auto">
+{`alter table public.leave_requests add column if not exists approved_by_email text;
+alter table public.leave_requests add column if not exists approved_at timestamptz;`}
+                  </code>
+                </div>
+              ) : (
+                <span className="text-gray-500 text-xs mt-2">กรุณาเข้าสู่ระบบใหม่อีกครั้ง</span>
+              )}
+            </div>
+          ) : !leaveList.length ? (
+            <div className="min-h-[120px] rounded-xl bg-white/5 border border-white/10 flex flex-col items-center justify-center text-gray-500 text-sm py-8 px-4">
+              <span className="text-amber-400/80 mb-1">ยังไม่มีคำขอลาในระบบ</span>
+              <span className="text-gray-500 text-xs">เมื่อมีคำขอลาที่รอตรวจ จะแสดงในตารางด้านล่าง</span>
+            </div>
+          ) : leaveList.filter((r) => r.status === 'pending').length === 0 ? (
+            <div className="min-h-[120px] rounded-xl bg-white/5 border border-white/10 flex flex-col items-center justify-center text-gray-400 text-sm py-8 px-4">
+              <span>ไม่มีคำขอลาที่รออนุมัติ</span>
+              <span className="text-gray-500 text-xs mt-1">ขณะนี้ไม่มีคำขอที่รอการตรวจสอบ</span>
             </div>
           ) : (
             <div className="rounded-xl border border-white/10 overflow-x-auto -mx-2 sm:mx-0">
@@ -474,7 +795,7 @@ const AdminLeavePage: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {leaveList.map((row) => (
+                  {leaveList.filter((r) => r.status === 'pending').map((row) => (
                     <tr key={row.id} className="border-b border-white/5 hover:bg-white/5">
                       <td className="px-3 sm:px-4 py-2 sm:py-3 text-gray-300 text-xs sm:text-sm">
                         {row.user_display_name || row.user_email}
@@ -485,9 +806,7 @@ const AdminLeavePage: React.FC = () => {
                       <td className="px-3 sm:px-4 py-2 sm:py-3 text-gray-300 text-xs sm:text-sm">{formatThaiDate(row.start_date)}</td>
                       <td className="px-3 sm:px-4 py-2 sm:py-3 text-gray-300 text-xs sm:text-sm">{formatThaiDate(row.end_date)}</td>
                       <td className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm">
-                        <span className={row.status === 'approved' ? 'text-emerald-400' : row.status === 'rejected' ? 'text-red-400' : 'text-amber-400'}>
-                          {row.status === 'approved' ? 'อนุมัติ' : row.status === 'rejected' ? 'ไม่อนุมัติ' : 'รอตรวจ'}
-                        </span>
+                        <span className="text-amber-400">รอตรวจ</span>
                       </td>
                     </tr>
                   ))}
@@ -495,28 +814,185 @@ const AdminLeavePage: React.FC = () => {
               </table>
             </div>
           )}
+        </section>
 
-          <h4 className="font-semibold text-gray-400 mt-6 mb-2">จากปฏิทินรวม (Admin &amp; Production &amp; Marketing)</h4>
-          {sharedCalendarLoading ? (
-            <div className="min-h-[80px] rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-gray-500 text-sm">
-              กำลังโหลดปฏิทิน...
+        <section className="rounded-2xl border border-white/10 bg-white/5 p-4 sm:p-6">
+          <h3 className="font-bold text-gray-300 mb-2">รายการลาที่อนุมัติแล้วของทุกคน</h3>
+          <p className="text-sm text-gray-500 mb-4">
+            แสดงคำขอลาที่อนุมัติแล้ว ตอนยื่นคำขอลาตอนเวลาเท่าไร และเมลผู้อนุมัติ
+          </p>
+          {leaveListLoading ? (
+            <div className="min-h-[100px] rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-gray-500 text-sm">
+              กำลังโหลด...
             </div>
-          ) : sharedCalendarEvents.length > 0 ? (
-            <ul className="divide-y divide-white/10 rounded-xl border border-white/10 max-h-64 overflow-y-auto">
-              {sharedCalendarEvents.map((e) => (
-                <li key={e.id} className="px-4 py-2 text-sm text-gray-300 flex flex-col gap-0.5">
-                  <span className="font-medium text-white">{e.summary}</span>
-                  <span className="text-gray-500 text-xs">
-                    {formatCalendarDate(e.start)} – {formatCalendarDate(e.end)}
-                  </span>
-                </li>
-              ))}
-            </ul>
+          ) : leaveList.filter((r) => r.status === 'approved').length === 0 ? (
+            <div className="min-h-[100px] rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-gray-500 text-sm">
+              ยังไม่มีรายการที่อนุมัติแล้ว
+            </div>
           ) : (
-            <p className="text-sm text-gray-500">ยังไม่มีอีเวนต์จากปฏิทิน หรือยังไม่ได้ตั้งค่า Service Account / Calendar ID</p>
+            <div className="rounded-xl border border-white/10 overflow-x-auto -mx-2 sm:mx-0">
+              <table className="w-full text-left text-sm min-w-[720px]">
+                <thead>
+                  <tr className="border-b border-white/10 bg-white/5">
+                    <th className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-400">ผู้ลา</th>
+                    <th className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-400">ประเภท</th>
+                    <th className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-400">วันเริ่ม</th>
+                    <th className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-400">วันสิ้นสุด</th>
+                    <th className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-400">ช่วงเวลา (ลา 1 วัน)</th>
+                    <th className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-400">ยื่นคำขอลาตอน</th>
+                    <th className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-400">อนุมัติโดย</th>
+                    <th className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-400">วันที่อนุมัติ</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {leaveList
+                    .filter((r) => r.status === 'approved')
+                    .map((row) => (
+                      <tr key={row.id} className="border-b border-white/5 hover:bg-white/5">
+                        <td className="px-3 sm:px-4 py-2 sm:py-3 text-gray-300 text-xs sm:text-sm">
+                          {row.user_display_name || row.user_email}
+                        </td>
+                        <td className="px-3 sm:px-4 py-2 sm:py-3 text-gray-300 text-xs sm:text-sm">
+                          {LEAVE_TYPES.find((t) => t.id === row.leave_type)?.label ?? row.leave_type}
+                        </td>
+                        <td className="px-3 sm:px-4 py-2 sm:py-3 text-gray-300 text-xs sm:text-sm">{formatThaiDate(row.start_date)}</td>
+                        <td className="px-3 sm:px-4 py-2 sm:py-3 text-gray-300 text-xs sm:text-sm">{formatThaiDate(row.end_date)}</td>
+                        <td className="px-3 sm:px-4 py-2 sm:py-3 text-gray-400 text-xs sm:text-sm">
+                          {formatLeaveTimeRangeWithHours(row.start_time, row.end_time, row.start_date, row.end_date) || '—'}
+                        </td>
+                        <td className="px-3 sm:px-4 py-2 sm:py-3 text-gray-400 text-xs sm:text-sm">
+                          {formatSubmittedAt(row.created_at)}
+                        </td>
+                        <td className="px-3 sm:px-4 py-2 sm:py-3 text-emerald-400/90 text-xs sm:text-sm">
+                          {row.approved_by_email || '—'}
+                        </td>
+                        <td className="px-3 sm:px-4 py-2 sm:py-3 text-gray-400 text-xs sm:text-sm">
+                          {formatDateTime24(row.approved_at)}
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </section>
       </main>
+
+      {/* ป๊อปอัปรายละเอียดการลา */}
+      {selectedLeave && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+          onClick={() => setSelectedLeave(null)}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="leave-detail-title"
+        >
+          <div
+            className="rounded-2xl border border-white/20 bg-neutral-900 shadow-xl max-w-md w-full p-6 space-y-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 id="leave-detail-title" className="text-lg font-bold text-yellow-400">
+              รายละเอียดการลา
+            </h3>
+            <dl className="space-y-3 text-sm">
+              <div>
+                <dt className="text-gray-500">ชื่อ-นามสกุล</dt>
+                <dd className="text-white font-medium">{selectedLeave.user_display_name || selectedLeave.user_email}</dd>
+              </div>
+              <div>
+                <dt className="text-gray-500">อีเมล</dt>
+                <dd className="text-gray-300">{selectedLeave.user_email}</dd>
+              </div>
+              <div>
+                <dt className="text-gray-500">ประเภทการลา</dt>
+                <dd className="text-gray-300">
+                  {LEAVE_TYPES.find((t) => t.id === selectedLeave.leave_type)?.label ?? selectedLeave.leave_type}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-gray-500">วันที่เริ่ม</dt>
+                <dd className="text-gray-300">{formatThaiDate(selectedLeave.start_date)}</dd>
+              </div>
+              <div>
+                <dt className="text-gray-500">วันที่สิ้นสุด</dt>
+                <dd className="text-gray-300">{formatThaiDate(selectedLeave.end_date)}</dd>
+              </div>
+              {(selectedLeave.start_time || selectedLeave.end_time) && (
+                <div>
+                  <dt className="text-gray-500">ช่วงเวลา (ลา 1 วัน) · เวลาไทย 24 ชม. · นับรายชั่วโมงถ้าไม่ถึง 1 วัน</dt>
+                  <dd className="text-gray-300">
+                    {formatLeaveTimeRangeWithHours(
+                      selectedLeave.start_time,
+                      selectedLeave.end_time,
+                      selectedLeave.start_date,
+                      selectedLeave.end_date
+                    )}
+                  </dd>
+                </div>
+              )}
+              <div>
+                <dt className="text-gray-500">ยื่นคำขอลาตอน</dt>
+                <dd className="text-gray-300">{formatSubmittedAt(selectedLeave.created_at)}</dd>
+              </div>
+              {selectedLeave.reason && (
+                <div>
+                  <dt className="text-gray-500">เหตุผล</dt>
+                  <dd className="text-gray-300 whitespace-pre-wrap">{selectedLeave.reason}</dd>
+                </div>
+              )}
+                <div>
+                <dt className="text-gray-500">สถานะ</dt>
+                <dd>
+                  <span
+                    className={
+                      selectedLeave.status === 'approved'
+                        ? 'text-emerald-400'
+                        : selectedLeave.status === 'rejected'
+                          ? 'text-red-400'
+                          : selectedLeave.status === 'cancelled'
+                            ? 'text-gray-500'
+                            : 'text-amber-400'
+                    }
+                  >
+                    {selectedLeave.status === 'approved'
+                      ? 'อนุมัติ'
+                      : selectedLeave.status === 'rejected'
+                        ? 'ไม่อนุมัติ'
+                        : selectedLeave.status === 'cancelled'
+                          ? 'ยกเลิกแล้ว'
+                          : 'รอตรวจ'}
+                  </span>
+                </dd>
+              </div>
+              {selectedLeave.status === 'approved' && (selectedLeave.approved_by_email || selectedLeave.approved_at) && (
+                <>
+                  {selectedLeave.approved_by_email && (
+                    <div>
+                      <dt className="text-gray-500">อนุมัติโดย</dt>
+                      <dd className="text-emerald-400/90">{selectedLeave.approved_by_email}</dd>
+                    </div>
+                  )}
+                  {selectedLeave.approved_at && (
+                    <div>
+                      <dt className="text-gray-500">วันที่อนุมัติ</dt>
+                      <dd className="text-gray-300">{formatDateTime24(selectedLeave.approved_at)}</dd>
+                    </div>
+                  )}
+                </>
+              )}
+            </dl>
+            <div className="pt-2 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setSelectedLeave(null)}
+                className="px-4 py-2 rounded-xl font-medium bg-white/10 text-white hover:bg-white/20 border border-white/20 transition-colors"
+              >
+                ปิด
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

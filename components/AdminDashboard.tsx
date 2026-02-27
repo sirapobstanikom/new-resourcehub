@@ -3,13 +3,14 @@ import { Link } from 'react-router-dom';
 import * as XLSX from 'xlsx';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
-export type CollectionId = 'strategy_posts' | 'strategy_comments' | 'leadership_entries' | 'innoclub_evaluation_responses';
+export type CollectionId = 'strategy_posts' | 'strategy_comments' | 'leadership_entries' | 'innoclub_evaluation_responses' | 'leave_requests';
 
 const COLLECTIONS: { id: CollectionId; label: string; description: string }[] = [
   { id: 'strategy_posts', label: 'Strategy Posts', description: 'โพสต์ตาม tool_id' },
   { id: 'strategy_comments', label: 'Strategy Comments', description: 'คอมเมนต์ของแต่ละโพสต์' },
   { id: 'leadership_entries', label: 'Leadership Entries', description: 'ผลแบบประเมินสมรรถนะภาวะผู้นำ' },
   { id: 'innoclub_evaluation_responses', label: 'แบบประเมิน INNO Club', description: 'ความพึงพอใจ PTT GROUP INNO Club' },
+  { id: 'leave_requests', label: 'คำขอลา (Leave Requests)', description: 'คำขอลาทุกประเภท รวมลากิจ ลาป่วย Work from Home ลาพักร้อน ลาไม่รับเงิน' },
 ];
 
 function cellValue(val: unknown): string | number {
@@ -79,6 +80,8 @@ const AdminDashboard: React.FC = () => {
         setRows((data as Record<string, unknown>[]) || []);
       });
   }, [selectedCollection, dateFrom, dateTo]);
+
+  const isPermissionError = error?.toLowerCase().includes('policy') || error?.toLowerCase().includes('permission') || error?.toLowerCase().includes('row-level security') || error?.toLowerCase().includes('rlspolicy');
 
   const columns = rows.length > 0 ? Object.keys(rows[0]) : [];
   const displayColumns = columns;
@@ -245,7 +248,20 @@ const AdminDashboard: React.FC = () => {
                 {loading ? (
                   <div className="p-12 text-center text-gray-400">กำลังโหลด...</div>
                 ) : error ? (
-                  <div className="p-6 bg-red-500/10 text-red-400 rounded-xl mx-6 my-4">{error}</div>
+                  <div className="p-6 mx-6 my-4 space-y-2">
+                    <div className="bg-red-500/10 text-red-400 rounded-xl p-4">{error}</div>
+                    {isPermissionError && selectedCollection === 'innoclub_evaluation_responses' && (
+                      <div className="bg-amber-500/10 text-amber-200 rounded-xl p-4 text-sm">
+                        <p className="font-medium mb-1">ให้เห็นข้อมูลแบบประเมิน INNO Club:</p>
+                        <p className="text-gray-400 mb-2">ไปที่ Supabase → SQL Editor แล้วรัน:</p>
+                        <code className="block bg-black/30 p-3 rounded-lg text-xs overflow-x-auto whitespace-pre">
+{`drop policy if exists "Allow read innoclub_evaluation" on public.innoclub_evaluation_responses;
+create policy "Allow read innoclub_evaluation"
+  on public.innoclub_evaluation_responses for select using (true);`}
+                        </code>
+                      </div>
+                    )}
+                  </div>
                 ) : rows.length === 0 ? (
                   <div className="p-12 text-center text-gray-500">ไม่มีข้อมูลใน collection นี้{dateFrom || dateTo ? ' ในช่วงเวลาที่เลือก' : ''}</div>
                 ) : (

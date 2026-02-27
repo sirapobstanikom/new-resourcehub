@@ -13,6 +13,7 @@ import AdminApprovePage from './components/AdminApprovePage';
 import AdminDashboard from './components/AdminDashboard';
 import AdminLayoutWithSidebar from './components/AdminLayoutWithSidebar';
 import AdminLeavePage from './components/AdminLeavePage';
+import AdminLeaveManagePage from './components/AdminLeaveManagePage';
 import HomePage from './components/HomePage';
 import DiscAssessment from './components/DiscAssessment';
 import LeadershipAssessment from './components/LeadershipAssessment';
@@ -123,13 +124,14 @@ const App: React.FC = () => {
   if (pathname === '/register') return <Navigate to="/login" replace />;
   if (isAdminLogin) return <AdminLoginPage />;
   if (pathname === '/admin/approve') return <AdminApprovePage />;
-  if (pathname === '/admin' || pathname === '/admin/leave') {
+  if (pathname.startsWith('/admin')) {
     return (
       <AdminLayout>
         <Routes>
           <Route path="/admin" element={<AdminLayoutWithSidebar />}>
             <Route index element={<AdminDashboard />} />
             <Route path="leave" element={<AdminLeavePage />} />
+            <Route path="leave/manage" element={<AdminLeaveManagePage />} />
           </Route>
         </Routes>
       </AdminLayout>

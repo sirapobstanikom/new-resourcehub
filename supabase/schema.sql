@@ -86,40 +86,83 @@ create table if not exists public.admin_signup_requests (
   created_at timestamptz not null default now()
 );
 
--- แอดมินที่อนุมัติแล้ว (ใช้ล็อกอินได้)
+-- แอดมิน/พนักงาน (ใช้ล็อกอินได้) — มีข้อมูลส่วนตัว + ลาคงเหลือ
 create table if not exists public.admin_users (
   id uuid primary key default gen_random_uuid(),
   username text not null unique,
   email text not null,
   password_hash text not null,
+  full_name text,
+  phone text,
+  department text,
+  personal_remaining int not null default 15,
+  sick_remaining int not null default 30,
+  annual_remaining int not null default 6,
+  unpaid_remaining int not null default 0,
   created_at timestamptz not null default now()
 );
 
+-- ถ้าตาราง admin_users มีอยู่แล้ว ให้รันแยกเพิ่มคอลัมน์:
+-- alter table public.admin_users add column if not exists full_name text;
+-- alter table public.admin_users add column if not exists phone text;
+-- alter table public.admin_users add column if not exists department text;
+-- alter table public.admin_users add column if not exists personal_remaining int not null default 15;
+-- alter table public.admin_users add column if not exists sick_remaining int not null default 30;
+-- alter table public.admin_users add column if not exists annual_remaining int not null default 6;
+-- alter table public.admin_users add column if not exists unpaid_remaining int not null default 0;
+
 create index if not exists idx_admin_signup_requests_token on public.admin_signup_requests(token);
 create index if not exists idx_admin_users_username on public.admin_users(username);
+create index if not exists idx_admin_users_email on public.admin_users(email);
 
 alter table public.admin_signup_requests enable row level security;
 alter table public.admin_users enable row level security;
 
 -- Edge Function ใช้ service role (bypass RLS) สำหรับ insert/update
--- admin_signup_requests: ให้อ่านได้ (หน้า approve ใช้ token จาก URL ไม่ต้องอ่านตาราง)
--- admin_users: ไม่สร้าง policy สำหรับ anon (เฉพาะ service role ใช้ใน Edge Function)
 drop policy if exists "Allow read admin_signup_requests" on public.admin_signup_requests;
 create policy "Allow read admin_signup_requests" on public.admin_signup_requests for select using (true);
 
--- ระบบลา MindDojo: คำขอลาของแอดมิน
+-- ผู้ล็อกอินอ่านข้อมูลตัวเองจาก admin_users ได้ (เทียบ email จาก JWT — อย่าใช้ auth.users ใน policy เพราะ permission denied)
+drop policy if exists "Allow read own admin_user" on public.admin_users;
+create policy "Allow read own admin_user"
+  on public.admin_users for select using ((auth.jwt() ->> 'email') = email);
+
+-- ผู้ล็อกอินอัปเดตข้อมูลส่วนตัวตัวเองได้ (full_name, phone, department)
+drop policy if exists "Allow update own admin_user" on public.admin_users;
+create policy "Allow update own admin_user"
+  on public.admin_users for update
+  using ((auth.jwt() ->> 'email') = email)
+  with check ((auth.jwt() ->> 'email') = email);
+
+-- ระบบลา MindDojo: คำขอลาของแอดมิน (รวม Work from Home = leave_type 'wfh', 1 วัน/เดือน)
 create table if not exists public.leave_requests (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
   user_email text not null,
   user_display_name text,
-  leave_type text not null check (leave_type in ('personal', 'sick', 'wfh', 'unpaid')),
+  leave_type text not null check (leave_type in ('personal', 'sick', 'wfh', 'unpaid', 'vacation')),
   start_date date not null,
   end_date date not null,
+  start_time time,
+  end_time time,
   reason text,
-  status text not null default 'pending' check (status in ('pending', 'approved', 'rejected')),
+  status text not null default 'pending' check (status in ('pending', 'approved', 'rejected', 'cancelled')),
+  approved_by_email text,
+  approved_at timestamptz,
   created_at timestamptz not null default now()
 );
+
+-- ถ้าตารางมีอยู่แล้ว ให้รันแยกเพิ่มคอลัมน์ (หรือใช้ไฟล์ supabase/add_leave_approved_columns.sql):
+-- alter table public.leave_requests add column if not exists approved_by_email text;
+-- alter table public.leave_requests add column if not exists approved_at timestamptz;
+-- alter table public.leave_requests add column if not exists start_time time;
+-- alter table public.leave_requests add column if not exists end_time time;
+
+-- ถ้าตารางมีอยู่แล้ว ให้รันแยกเพื่อเพิ่ม 'cancelled' หรือ 'vacation':
+-- alter table public.leave_requests drop constraint if exists leave_requests_status_check;
+-- alter table public.leave_requests add constraint leave_requests_status_check check (status in ('pending', 'approved', 'rejected', 'cancelled'));
+-- alter table public.leave_requests drop constraint if exists leave_requests_leave_type_check;
+-- alter table public.leave_requests add constraint leave_requests_leave_type_check check (leave_type in ('personal', 'sick', 'wfh', 'unpaid', 'vacation'));
 
 create index if not exists idx_leave_requests_user_created on public.leave_requests(user_id, created_at desc);
 create index if not exists idx_leave_requests_dates on public.leave_requests(start_date, end_date);
@@ -135,6 +178,67 @@ create policy "Allow insert own leave_requests"
 drop policy if exists "Allow read leave_requests" on public.leave_requests;
 create policy "Allow read leave_requests"
   on public.leave_requests for select using (auth.role() = 'authenticated');
+
+-- เฉพาะ admin@minddojo.me อัปเดตสถานะคำขอลา (อนุมัติ/ไม่อนุมัติ)
+drop policy if exists "Allow update leave_requests for admin" on public.leave_requests;
+create policy "Allow update leave_requests for admin"
+  on public.leave_requests for update
+  using ((auth.jwt() ->> 'email') = 'admin@minddojo.me')
+  with check ((auth.jwt() ->> 'email') = 'admin@minddojo.me');
+
+-- ผู้ใช้ยกเลิกคำขอลาของตัวเองได้เฉพาะสถานะ pending
+drop policy if exists "Allow update own leave_requests cancel" on public.leave_requests;
+create policy "Allow update own leave_requests cancel"
+  on public.leave_requests for update
+  using (auth.uid() = user_id and status = 'pending')
+  with check (auth.uid() = user_id and status = 'cancelled');
+
+-- เมื่ออนุมัติคำขอลา ให้หักลาคงเหลือใน admin_users อัตโนมัติ
+create or replace function public.deduct_leave_balance_on_approve()
+returns trigger
+language plpgsql
+security definer set search_path = public
+as $$
+declare
+  days int;
+begin
+  if NEW.status = 'approved' and (OLD.status is null or OLD.status <> 'approved') then
+    days := (NEW.end_date - NEW.start_date) + 1;
+    if NEW.leave_type = 'personal' then
+      update public.admin_users set personal_remaining = greatest(0, personal_remaining - days) where email = NEW.user_email;
+    elsif NEW.leave_type = 'sick' then
+      update public.admin_users set sick_remaining = greatest(0, sick_remaining - days) where email = NEW.user_email;
+    elsif NEW.leave_type = 'vacation' then
+      update public.admin_users set annual_remaining = greatest(0, annual_remaining - days) where email = NEW.user_email;
+    elsif NEW.leave_type = 'unpaid' then
+      update public.admin_users set unpaid_remaining = greatest(0, unpaid_remaining - days) where email = NEW.user_email;
+    end if;
+  end if;
+  return NEW;
+end;
+$$;
+
+drop trigger if exists trigger_deduct_leave_on_approve on public.leave_requests;
+create trigger trigger_deduct_leave_on_approve
+  after update on public.leave_requests
+  for each row execute function public.deduct_leave_balance_on_approve();
+
+-- ลาคงเหลืออยู่ที่ admin_users แล้ว (personal_remaining, sick_remaining, annual_remaining, unpaid_remaining)
+-- ตารางด้านล่างเก็บไว้ถ้าต้องการใช้แบบแยกตามปี (optional)
+create table if not exists public.user_leave_balance (
+  user_id uuid not null references auth.users(id) on delete cascade,
+  year smallint not null,
+  personal_remaining int not null default 15,
+  sick_remaining int not null default 30,
+  unpaid_remaining int not null default 0,
+  primary key (user_id, year)
+);
+
+alter table public.user_leave_balance enable row level security;
+
+drop policy if exists "Allow read own leave_balance" on public.user_leave_balance;
+create policy "Allow read own leave_balance"
+  on public.user_leave_balance for select using (auth.uid() = user_id);
 
 -- เก็บ OAuth tokens ของ Google Calendar ต่อ user (ตารางงานของฉัน)
 create table if not exists public.user_calendar_settings (
@@ -194,9 +298,14 @@ drop policy if exists "Allow insert innoclub_evaluation" on public.innoclub_eval
 create policy "Allow insert innoclub_evaluation"
   on public.innoclub_evaluation_responses for insert with check (true);
 
+-- ให้ทุกคน (รวม anon) อ่านได้ — หน้าแบบประเมินส่งได้ หน้า Admin ดูข้อมูลได้
 drop policy if exists "Allow read innoclub_evaluation" on public.innoclub_evaluation_responses;
 create policy "Allow read innoclub_evaluation"
   on public.innoclub_evaluation_responses for select using (true);
+
+-- ถ้าหน้า ดูข้อมูล Database ยังไม่เห็น ให้รันใน Supabase → SQL Editor:
+-- drop policy if exists "Allow read innoclub_evaluation" on public.innoclub_evaluation_responses;
+-- create policy "Allow read innoclub_evaluation" on public.innoclub_evaluation_responses for select using (true);
 
 -- เมื่อมี user ใหม่ใน auth.users ให้เพิ่มใน admin_users โดยอัตโนมัติ
 create or replace function public.handle_new_auth_user()
