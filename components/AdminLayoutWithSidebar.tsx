@@ -45,7 +45,7 @@ const AdminLayoutWithSidebar: React.FC = () => {
           to="/admin"
           className={`block py-2.5 px-3 rounded-lg text-sm font-medium transition-colors ${!isLeave ? 'bg-yellow-400/20 text-yellow-400' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
         >
-          ดูข้อมูล Supabase
+          ดูข้อมูล Database
         </Link>
         <Link
           to="/admin/leave"

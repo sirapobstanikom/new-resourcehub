@@ -69,14 +69,15 @@ export async function signOut(): Promise<void> {
   if (isSupabaseConfigured) await supabase.auth.signOut();
 }
 
-// --- Admin MindDojo (สำหรับดูข้อมูล Supabase) ---
+// --- Admin MindDojo (สำหรับดูข้อมูล Database) ---
 const ADMIN_AUTH_KEY = 'minddojo_admin_authenticated';
 
 export const ADMIN_USERNAME = import.meta.env.VITE_ADMIN_USERNAME || 'admin';
 export const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD || 'minddojo';
 
 export function isAdminAuthenticated(): boolean {
-  return typeof window !== 'undefined' && localStorage.getItem(ADMIN_AUTH_KEY) === 'true';
+  return typeof window !== 'undefined' && localStorage.getItem(ADMIN_AUTH_KEY) 
+  === 'true';
 }
 
 export function setAdminAuthenticated(): void {

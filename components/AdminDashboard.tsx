@@ -122,7 +122,7 @@ const AdminDashboard: React.FC = () => {
               <span className="text-base sm:text-xl font-bold tracking-tighter">MindDoJo</span>
             </Link>
             <span className="hidden sm:inline text-gray-500">|</span>
-            <span className="text-yellow-400 font-semibold text-sm sm:text-base truncate">Admin — ดูข้อมูล Supabase</span>
+            <span className="text-yellow-400 font-semibold text-sm sm:text-base truncate">Admin — ดูข้อมูล Database</span>
           </div>
           <Link
             to="/"
