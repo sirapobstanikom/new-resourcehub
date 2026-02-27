@@ -91,7 +91,7 @@ const AdminLeaveManagePage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col">
-      <header className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 px-4 sm:px-6 py-4 sm:py-6 border-b border-white/10 pl-14 sm:pl-6">
+      <header className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 px-4 sm:px-6 py-4 sm:py-6 border-b border-white/10">
         <div className="flex flex-wrap items-center gap-2 sm:gap-4 min-w-0">
           <Link to="/admin/leave" className="flex items-center gap-2 sm:gap-3 shrink-0">
             <div className="w-9 h-9 sm:w-10 sm:h-10 bg-yellow-400 rounded-lg flex items-center justify-center glow-yellow">
@@ -104,7 +104,7 @@ const AdminLeaveManagePage: React.FC = () => {
         </div>
         <Link
           to="/admin/leave"
-          className="px-4 py-2 rounded-xl font-medium bg-white/10 text-white hover:bg-white/20 border border-white/10 w-full sm:w-auto text-center"
+          className="min-h-[44px] flex items-center justify-center px-4 py-3 rounded-xl font-medium bg-white/10 text-white hover:bg-white/20 border border-white/10 w-full sm:w-auto text-center"
         >
           กลับหน้าระบบลา
         </Link>
@@ -129,7 +129,9 @@ const AdminLeaveManagePage: React.FC = () => {
             ไม่มีคำขอลาที่รออนุมัติ
           </div>
         ) : (
-          <div className="rounded-xl border border-white/10 overflow-x-auto">
+          <>
+          <p className="sm:hidden text-xs text-gray-500 mb-2">เลื่อนซ้าย-ขวาเพื่อดูตาราง</p>
+          <div className="rounded-xl border border-white/10 overflow-x-auto -mx-1 sm:mx-0">
             <table className="w-full text-left text-sm min-w-[520px]">
               <thead>
                 <tr className="border-b border-white/10 bg-white/5">
@@ -161,7 +163,7 @@ const AdminLeaveManagePage: React.FC = () => {
                           type="button"
                           onClick={() => handleStatus(row.id, 'approved')}
                           disabled={actionId === row.id}
-                          className="px-3 py-1.5 rounded-lg text-xs font-medium bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 border border-emerald-500/30 disabled:opacity-50"
+                          className="min-h-[40px] min-w-[72px] px-3 py-2 rounded-lg text-xs font-medium bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 border border-emerald-500/30 disabled:opacity-50 touch-manipulation"
                         >
                           อนุมัติ
                         </button>
@@ -169,7 +171,7 @@ const AdminLeaveManagePage: React.FC = () => {
                           type="button"
                           onClick={() => handleStatus(row.id, 'rejected')}
                           disabled={actionId === row.id}
-                          className="px-3 py-1.5 rounded-lg text-xs font-medium bg-red-500/20 text-red-300 hover:bg-red-500/30 border border-red-500/30 disabled:opacity-50"
+                          className="min-h-[40px] min-w-[72px] px-3 py-2 rounded-lg text-xs font-medium bg-red-500/20 text-red-300 hover:bg-red-500/30 border border-red-500/30 disabled:opacity-50 touch-manipulation"
                         >
                           ไม่อนุมัติ
                         </button>
@@ -180,6 +182,7 @@ const AdminLeaveManagePage: React.FC = () => {
               </tbody>
             </table>
           </div>
+          </>
         )}
       </main>
     </div>

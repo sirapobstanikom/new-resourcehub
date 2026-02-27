@@ -117,7 +117,7 @@ const AdminDashboard: React.FC = () => {
 
   return (
     <div className="flex flex-col min-h-full">
-        <header className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 px-4 sm:px-6 py-4 sm:py-6 border-b border-white/10 pl-14 sm:pl-6">
+        <header className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 px-4 sm:px-6 py-4 sm:py-6 border-b border-white/10">
           <div className="flex flex-wrap items-center gap-2 sm:gap-4 min-w-0">
             <Link to="/" className="flex items-center gap-2 sm:gap-3 shrink-0">
               <div className="w-9 h-9 sm:w-10 sm:h-10 bg-yellow-400 rounded-lg flex items-center justify-center glow-yellow">
@@ -130,13 +130,13 @@ const AdminDashboard: React.FC = () => {
           </div>
           <Link
             to="/"
-            className="px-4 py-2 rounded-xl font-medium bg-white/10 text-white hover:bg-white/20 border border-white/10 w-full sm:w-auto text-center"
+            className="min-h-[44px] flex items-center justify-center px-4 py-3 rounded-xl font-medium bg-white/10 text-white hover:bg-white/20 border border-white/10 w-full sm:w-auto text-center"
           >
             กลับหน้าหลัก
           </Link>
         </header>
 
-        <main className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 py-6 sm:py-8">
+        <main className="flex-1 max-w-6xl mx-auto w-full px-3 sm:px-6 py-5 sm:py-8">
         {!isSupabaseConfigured ? (
           <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-6 text-amber-200">
             <p className="font-medium">ยังไม่ได้ตั้งค่า Supabase</p>
@@ -266,7 +266,8 @@ create policy "Allow read innoclub_evaluation"
                   <div className="p-12 text-center text-gray-500">ไม่มีข้อมูลใน collection นี้{dateFrom || dateTo ? ' ในช่วงเวลาที่เลือก' : ''}</div>
                 ) : (
                   <>
-                  <div className="overflow-x-auto -mx-4 sm:mx-0">
+                  <p className="sm:hidden text-xs text-gray-500 mb-2 px-1">เลื่อนซ้าย-ขวาเพื่อดูตาราง</p>
+                  <div className="overflow-x-auto -mx-1 sm:mx-0">
                     <table className="w-full text-left text-sm min-w-[600px]">
                       <thead>
                         <tr className="border-b border-white/10">

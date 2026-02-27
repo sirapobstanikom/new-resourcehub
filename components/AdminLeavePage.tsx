@@ -206,6 +206,7 @@ const AdminLeavePage: React.FC = () => {
   const thisMonthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
   const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
   const thisMonthEnd = `${lastDayOfMonth.getFullYear()}-${String(lastDayOfMonth.getMonth() + 1).padStart(2, '0')}-${String(lastDayOfMonth.getDate()).padStart(2, '0')}`;
+  const today = new Date().toISOString().slice(0, 10);
 
   useEffect(() => {
     if (!isSupabaseConfigured) {
@@ -281,6 +282,13 @@ const AdminLeavePage: React.FC = () => {
         setWfhUsedThisMonth((data?.length ?? 0) > 0);
       });
   }, [user?.id, thisMonthStart, thisMonthEnd]);
+
+  useEffect(() => {
+    if (leaveType !== 'sick' && startDate && startDate < today) {
+      setStartDate(today);
+      setEndDate(today);
+    }
+  }, [leaveType, today]);
 
   const monthStart = `${calendarViewDate.getFullYear()}-${String(calendarViewDate.getMonth() + 1).padStart(2, '0')}-01`;
   const lastDay = new Date(calendarViewDate.getFullYear(), calendarViewDate.getMonth() + 1, 0);
@@ -395,7 +403,7 @@ const AdminLeavePage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col">
-      <header className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 px-4 sm:px-6 py-4 sm:py-6 border-b border-white/10 pl-14 sm:pl-6">
+      <header className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 px-4 sm:px-6 py-4 sm:py-6 border-b border-white/10">
         <div className="flex flex-wrap items-center gap-2 sm:gap-4 min-w-0">
           <Link to="/" className="flex items-center gap-2 sm:gap-3 shrink-0">
             <div className="w-9 h-9 sm:w-10 sm:h-10 bg-yellow-400 rounded-lg flex items-center justify-center glow-yellow">
@@ -408,13 +416,13 @@ const AdminLeavePage: React.FC = () => {
         </div>
         <Link
           to="/"
-          className="px-4 py-2 rounded-xl font-medium bg-white/10 text-white hover:bg-white/20 border border-white/10 w-full sm:w-auto text-center"
+          className="min-h-[44px] flex items-center justify-center px-4 py-3 rounded-xl font-medium bg-white/10 text-white hover:bg-white/20 border border-white/10 w-full sm:w-auto text-center"
         >
           กลับหน้าหลัก
         </Link>
       </header>
 
-      <main className="flex-1 max-w-4xl mx-auto w-full px-4 sm:px-6 py-6 sm:py-8 space-y-8 sm:space-y-10">
+      <main className="flex-1 max-w-4xl mx-auto w-full px-3 sm:px-6 py-5 sm:py-8 space-y-6 sm:space-y-10">
         <h2 className="text-xl font-bold text-gray-300">ยื่นคำขอลา</h2>
 
         {leaveBalance !== null && (
@@ -448,6 +456,7 @@ const AdminLeavePage: React.FC = () => {
               <input
                 type="date"
                 value={startDate}
+                min={leaveType === 'sick' ? undefined : today}
                 onChange={(e) => {
                   const v = e.target.value;
                   if (v && isWeekend(v)) {
@@ -458,7 +467,13 @@ const AdminLeavePage: React.FC = () => {
                   setWeekendError(null);
                   setSubmitError(null);
                   setStartDate(v);
-                  if (v && endDate && v === endDate && !startTime && !endTime) {
+                  if (v && endDate && v > endDate) {
+                    setEndDate(v);
+                    if (!startTime && !endTime) {
+                      setStartTime('09:00');
+                      setEndTime('17:00');
+                    }
+                  } else if (v && endDate && v === endDate && !startTime && !endTime) {
                     setStartTime('09:00');
                     setEndTime('17:00');
                   }
@@ -472,6 +487,7 @@ const AdminLeavePage: React.FC = () => {
               <input
                 type="date"
                 value={endDate}
+                min={startDate || undefined}
                 onChange={(e) => {
                   const v = e.target.value;
                   if (v && isWeekend(v)) {
@@ -542,7 +558,7 @@ const AdminLeavePage: React.FC = () => {
           <button
             type="submit"
             disabled={loading}
-            className="px-6 py-3 rounded-xl font-medium bg-yellow-400 text-black hover:bg-yellow-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="min-h-[48px] px-6 py-3 rounded-xl font-medium bg-yellow-400 text-black hover:bg-yellow-300 active:bg-yellow-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
           >
             {loading ? 'กำลังส่ง...' : 'ส่งคำขอลา'}
           </button>
@@ -589,7 +605,8 @@ create policy "Allow update own leave_requests cancel"
               </div>
             ) : (
             <>
-            <div className="rounded-xl border border-white/10 overflow-x-auto">
+            <p className="sm:hidden text-xs text-gray-500 mb-2">เลื่อนซ้าย-ขวาเพื่อดูตาราง</p>
+            <div className="rounded-xl border border-white/10 overflow-x-auto -mx-1 sm:mx-0">
               <table className="w-full text-left text-sm min-w-[400px]">
                 <thead>
                   <tr className="border-b border-white/10 bg-white/5">
@@ -627,7 +644,7 @@ create policy "Allow update own leave_requests cancel"
                             type="button"
                             onClick={() => handleCancelRequest(row.id)}
                             disabled={cancellingId === row.id}
-                            className="px-3 py-1.5 rounded-lg text-xs font-medium bg-red-500/20 text-red-300 hover:bg-red-500/30 border border-red-500/30 disabled:opacity-50"
+                            className="min-h-[40px] min-w-[72px] px-3 py-2 rounded-lg text-xs font-medium bg-red-500/20 text-red-300 hover:bg-red-500/30 border border-red-500/30 disabled:opacity-50 touch-manipulation"
                           >
                             {cancellingId === row.id ? 'กำลังยกเลิก...' : 'ยกเลิก'}
                           </button>
@@ -812,7 +829,9 @@ alter table public.leave_requests add column if not exists approved_at timestamp
               <span className="text-gray-500 text-xs mt-1">ขณะนี้ไม่มีคำขอที่รอการตรวจสอบ</span>
             </div>
           ) : (
-            <div className="rounded-xl border border-white/10 overflow-x-auto -mx-2 sm:mx-0">
+            <>
+            <p className="sm:hidden text-xs text-gray-500 mb-2">เลื่อนซ้าย-ขวาเพื่อดูตาราง</p>
+            <div className="rounded-xl border border-white/10 overflow-x-auto -mx-1 sm:mx-0">
               <table className="w-full text-left text-sm min-w-[480px]">
                 <thead>
                   <tr className="border-b border-white/10 bg-white/5">
@@ -842,6 +861,7 @@ alter table public.leave_requests add column if not exists approved_at timestamp
                 </tbody>
               </table>
             </div>
+            </>
           )}
         </section>
 
@@ -866,7 +886,8 @@ alter table public.leave_requests add column if not exists approved_at timestamp
               </div>
             ) : (
             <>
-            <div className="rounded-xl border border-white/10 overflow-x-auto -mx-2 sm:mx-0">
+            <p className="sm:hidden text-xs text-gray-500 mb-2">เลื่อนซ้าย-ขวาเพื่อดูตาราง</p>
+            <div className="rounded-xl border border-white/10 overflow-x-auto -mx-1 sm:mx-0">
               <table className="w-full text-left text-sm min-w-[720px]">
                 <thead>
                   <tr className="border-b border-white/10 bg-white/5">
@@ -934,14 +955,15 @@ alter table public.leave_requests add column if not exists approved_at timestamp
       {/* ป๊อปอัปรายละเอียดการลา */}
       {selectedLeave && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/70 backdrop-blur-sm"
+          style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}
           onClick={() => setSelectedLeave(null)}
           role="dialog"
           aria-modal="true"
           aria-labelledby="leave-detail-title"
         >
           <div
-            className="rounded-2xl border border-white/20 bg-neutral-900 shadow-xl max-w-md w-full p-6 space-y-4"
+            className="rounded-t-2xl sm:rounded-2xl border border-white/20 bg-neutral-900 shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto p-6 space-y-4"
             onClick={(e) => e.stopPropagation()}
           >
             <h3 id="leave-detail-title" className="text-lg font-bold text-yellow-400">
@@ -1038,7 +1060,7 @@ alter table public.leave_requests add column if not exists approved_at timestamp
               <button
                 type="button"
                 onClick={() => setSelectedLeave(null)}
-                className="px-4 py-2 rounded-xl font-medium bg-white/10 text-white hover:bg-white/20 border border-white/20 transition-colors"
+                className="min-h-[44px] min-w-[80px] px-4 py-3 rounded-xl font-medium bg-white/10 text-white hover:bg-white/20 border border-white/20 transition-colors touch-manipulation"
               >
                 ปิด
               </button>

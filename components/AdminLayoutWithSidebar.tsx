@@ -129,6 +129,14 @@ const AdminLayoutWithSidebar: React.FC = () => {
     setSidebarOpen(false);
   }, [location.pathname]);
 
+  // ล็อก scroll หลังเมื่อเปิด sidebar บนมือถือ
+  useEffect(() => {
+    if (!sidebarOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = prev; };
+  }, [sidebarOpen]);
+
   // WFH เดือนนี้ใช้แล้วหรือยัง (1 วัน/เดือน)
   useEffect(() => {
     if (!isSupabaseConfigured || !user?.id) return;
@@ -252,38 +260,41 @@ const AdminLayoutWithSidebar: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-black text-white bg-grid flex selection:bg-yellow-400 selection:text-black">
-      {/* Mobile: hamburger + overlay */}
+      {/* Mobile: hamburger (touch-friendly 44px) + overlay */}
       <button
         type="button"
         onClick={() => setSidebarOpen(true)}
-        className="md:hidden fixed top-4 left-4 z-40 p-2 rounded-lg bg-white/10 text-white hover:bg-white/20 border border-white/10"
+        className="md:hidden fixed z-40 rounded-xl bg-white/10 text-white hover:bg-white/20 active:bg-white/25 border border-white/10 flex items-center justify-center min-w-[44px] min-h-[44px] touch-manipulation"
+        style={{ top: 'max(env(safe-area-inset-top), 0.5rem)', left: 'max(env(safe-area-inset-left), 0.5rem)' }}
         aria-label="เปิดเมนู"
       >
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
         </svg>
       </button>
       {sidebarOpen && (
         <>
           <div
-            className="md:hidden fixed inset-0 bg-black/70 z-40"
+            className="md:hidden fixed inset-0 bg-black/80 z-40"
             onClick={() => setSidebarOpen(false)}
             aria-hidden
           />
-          <aside className="md:hidden fixed top-0 left-0 bottom-0 w-72 max-w-[85vw] z-50 shrink-0 border-r border-white/10 bg-black/95 backdrop-blur flex flex-col py-6 px-4 shadow-xl">
-            <div className="flex justify-end mb-2">
+          <aside className="md:hidden fixed top-0 left-0 bottom-0 w-72 max-w-[min(85vw,320px)] z-50 shrink-0 border-r border-white/10 bg-black/95 backdrop-blur flex flex-col shadow-xl overflow-hidden" style={{ paddingTop: 'max(env(safe-area-inset-top), 1rem)', paddingBottom: 'env(safe-area-inset-bottom)' }}>
+            <div className="flex justify-end mb-2 px-4 shrink-0">
               <button
                 type="button"
                 onClick={() => setSidebarOpen(false)}
-                className="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/10"
+                className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl text-gray-400 hover:text-white hover:bg-white/10 active:bg-white/15 -m-2"
                 aria-label="ปิดเมนู"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
-            {sidebarContent}
+            <div className="flex-1 overflow-y-auto overscroll-contain px-4 pb-6 flex flex-col min-h-0">
+              {sidebarContent}
+            </div>
           </aside>
         </>
       )}
@@ -292,7 +303,7 @@ const AdminLayoutWithSidebar: React.FC = () => {
       <aside className="hidden md:flex w-64 shrink-0 border-r border-white/10 bg-black/80 flex-col py-6 px-4">
         {sidebarContent}
       </aside>
-      <div className="flex-1 min-w-0 pt-12 md:pt-0">
+      <div className="flex-1 min-w-0 pt-14 md:pt-0 md:pl-0 pl-[max(4rem,calc(1rem+env(safe-area-inset-left)))]">
         <Outlet />
       </div>
     </div>
