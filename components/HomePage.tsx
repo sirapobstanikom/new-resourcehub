@@ -156,6 +156,18 @@ const HomePage: React.FC = () => {
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Link
+            to="/room"
+            className="block rounded-2xl border border-white/10 p-6 text-left transition-all bg-white/5 hover:bg-white/10 hover:border-amber-400/30 group"
+          >
+            <div className="w-12 h-12 rounded-xl bg-amber-400/20 flex items-center justify-center mb-4 group-hover:bg-amber-400/30 transition-colors">
+              <span className="text-xl font-black text-amber-400">WB</span>
+            </div>
+            <h3 className="font-bold text-lg mb-2 text-white">Workshop Board MindDoJo</h3>
+            <p className="text-gray-500 text-sm">
+              เข้าห้อง workshop ใส่รหัส แปะโพสต์อิทร่วมกัน เลือก template บอร์ด
+            </p>
+          </Link>
+          <Link
             to="/gamification/10-timeout"
             className="block rounded-2xl border border-white/10 p-6 text-left transition-all bg-white/5 hover:bg-white/10 hover:border-emerald-500/30 group"
           >

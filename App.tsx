@@ -14,6 +14,9 @@ import AdminDashboard from './components/AdminDashboard';
 import AdminLayoutWithSidebar from './components/AdminLayoutWithSidebar';
 import AdminLeavePage from './components/AdminLeavePage';
 import AdminLeaveManagePage from './components/AdminLeaveManagePage';
+import AdminStickycloudPage from './components/AdminStickycloudPage';
+import JoinRoomPage from './components/JoinRoomPage';
+import RoomWorkspacePage from './components/RoomWorkspacePage';
 import HomePage from './components/HomePage';
 import DiscAssessment from './components/DiscAssessment';
 import LeadershipAssessment from './components/LeadershipAssessment';
@@ -132,6 +135,7 @@ const App: React.FC = () => {
             <Route index element={<AdminDashboard />} />
             <Route path="leave" element={<AdminLeavePage />} />
             <Route path="leave/manage" element={<AdminLeaveManagePage />} />
+            <Route path="rooms" element={<AdminStickycloudPage />} />
           </Route>
         </Routes>
       </AdminLayout>
@@ -163,6 +167,16 @@ const App: React.FC = () => {
       <Routes>
         <Route path="/evaluation/innoclub" element={<InnoClubEvaluationPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    );
+  }
+
+  if (pathname.startsWith('/room')) {
+    return (
+      <Routes>
+        <Route path="/room" element={<JoinRoomPage />} />
+        <Route path="/room/:roomId" element={<RoomWorkspacePage />} />
+        <Route path="*" element={<Navigate to="/room" replace />} />
       </Routes>
     );
   }
