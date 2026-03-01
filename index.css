@@ -1,0 +1,36 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* สไตล์พื้นฐาน — ใส่หลัง Tailwind base เพื่อให้ชนะ preflight */
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    font-family: 'Inter', sans-serif !important;
+    background-color: #000 !important;
+    color: #fff !important;
+    margin: 0 !important;
+    overflow-x: hidden !important;
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+}
+
+/* คลาสเพิ่มเติมของโปรเจกต์ */
+.bg-grid {
+  background-size: 50px 50px;
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+}
+
+.glow-yellow {
+  box-shadow: 0 0 20px rgba(250, 204, 21, 0.3);
+}
+
+.text-glow {
+  text-shadow: 0 0 10px rgba(250, 204, 21, 0.5);
+}
