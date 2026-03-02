@@ -175,8 +175,14 @@ function getMonthGrid(year: number, month: number): { date: Date; isCurrentMonth
 
 const ADMIN_LEAVE_MANAGER_EMAILS = ['pink@minddojo.me', 'koy@minddojo.me', 'tonji@minddojo.me'];
 
+const THAI_MONTHS = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
+
+type PublicHoliday = { id: number; month: number; day: number; name: string | null };
+
 const AdminLeavePage: React.FC = () => {
   const { user } = useAuth();
+  const [publicHolidays, setPublicHolidays] = useState<PublicHoliday[]>([]);
+  const [holidaysOpen, setHolidaysOpen] = useState(false);
   const [leaveType, setLeaveType] = useState<string>(LEAVE_TYPES[0].id);
   const [startDate, setStartDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [endDate, setEndDate] = useState(() => new Date().toISOString().slice(0, 10));
@@ -246,6 +252,18 @@ const AdminLeavePage: React.FC = () => {
         setLeaveList((data as LeaveRequestRow[]) ?? []);
       });
   }, [submitted]);
+
+  useEffect(() => {
+    if (!isSupabaseConfigured) return;
+    supabase
+      .from('public_holidays')
+      .select('id, month, day, name')
+      .order('month')
+      .order('day')
+      .then(({ data }) => {
+        if (data) setPublicHolidays(data as PublicHoliday[]);
+      });
+  }, []);
 
   useEffect(() => {
     if (!isSupabaseConfigured || !user?.id) return;
@@ -463,6 +481,44 @@ const AdminLeavePage: React.FC = () => {
             WFH 1 วัน/เดือน (เดือนนี้{wfhUsedThisMonth ? 'ใช้แล้ว — ลาอีกได้เดือนถัดไป' : 'ยังใช้ได้'}) · ลาไม่รับเงิน {formatDaysHours(leaveBalance.unpaid_remaining, leaveBalance.hours_unpaid_remaining ?? 0)}
           </div>
         )}
+
+        <div className="rounded-xl border border-amber-400/30 bg-amber-400/5 overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setHolidaysOpen((o) => !o)}
+            className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-amber-400/10 transition"
+          >
+            <span className="font-semibold text-amber-300">วันหยุดประจำปี</span>
+            <span className="text-gray-400 text-sm">
+              {publicHolidays.length > 0 ? `${publicHolidays.length} วัน` : 'โหลด...'}
+            </span>
+            <svg className={`w-5 h-5 text-gray-400 transition-transform ${holidaysOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          {holidaysOpen && (
+            <div className="px-4 pb-4 pt-0 border-t border-amber-400/20">
+              <p className="text-xs text-gray-400 mt-2 mb-3">วันเหล่านี้ไม่หักวันลา (นอกจากเสาร์–อาทิตย์)</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-64 overflow-y-auto">
+                {THAI_MONTHS.map((monthName, i) => {
+                  const monthNum = i + 1;
+                  const days = publicHolidays.filter((h) => h.month === monthNum);
+                  if (days.length === 0) return null;
+                  return (
+                    <div key={monthNum} className="rounded-lg bg-black/20 px-3 py-2">
+                      <span className="text-amber-300/90 font-medium text-sm">{monthName}</span>
+                      <ul className="mt-1 space-y-0.5 text-sm text-gray-300">
+                        {days.map((h) => (
+                          <li key={h.id}>วันที่ {h.day} — {h.name || 'วันหยุด'}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
 
         <form onSubmit={handleSubmit} className="rounded-2xl border border-white/10 bg-white/5 p-4 sm:p-6 space-y-5">
           <div>
