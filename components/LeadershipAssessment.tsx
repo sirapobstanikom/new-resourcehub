@@ -749,14 +749,44 @@ interface QuestionBlockProps {
   onSelect: (r: RatingLevel) => void;
 }
 
+/** เลื่อนไป element อย่างนุ่มนวล (ease-out, ประมาณ 600ms) */
+function smoothScrollToElement(el: HTMLElement, durationMs = 600) {
+  const startY = window.scrollY;
+  const endY = el.getBoundingClientRect().top + startY - 24;
+  const distance = endY - startY;
+  if (Math.abs(distance) < 10) return;
+  const start = performance.now();
+  function easeOutCubic(t: number) {
+    return 1 - (1 - t) ** 3;
+  }
+  function tick(now: number) {
+    const elapsed = now - start;
+    const progress = Math.min(elapsed / durationMs, 1);
+    const eased = easeOutCubic(progress);
+    window.scrollTo(0, startY + distance * eased);
+    if (progress < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
 const QuestionBlock: React.FC<QuestionBlockProps> = ({
   index,
   question,
   selected,
   onSelect,
 }) => {
+  const blockRef = useRef<HTMLDivElement>(null);
+
+  const handleSelect = (r: RatingLevel) => {
+    onSelect(r);
+    requestAnimationFrame(() => {
+      const next = blockRef.current?.nextElementSibling as HTMLElement | null;
+      if (next) smoothScrollToElement(next);
+    });
+  };
+
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/5 p-5 md:p-6 space-y-4">
+    <div ref={blockRef} className="rounded-2xl border border-white/10 bg-white/5 p-5 md:p-6 space-y-4">
       <div>
         <h4 className="font-bold text-base text-white">
           {index}. {question.title}
@@ -768,7 +798,7 @@ const QuestionBlock: React.FC<QuestionBlockProps> = ({
           <button
             key={r}
             type="button"
-            onClick={() => onSelect(r)}
+            onClick={() => handleSelect(r)}
             title={`${RATING_LABELS[r]} – ${RATING_DESCRIPTIONS[r]}`}
             className={`flex-1 min-w-0 py-3 rounded-xl text-xs md:text-sm font-medium transition-all ${
               selected === r
