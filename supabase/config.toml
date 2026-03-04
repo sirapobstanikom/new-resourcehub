@@ -1,6 +1,0 @@
-# Supabase local config (ใช้กับ supabase start)
-# สำหรับ deploy: การปิด verify_jwt ต้องใช้ flag ตอน deploy
-
-[functions.notify-admin-signup]
-# ให้เรียกได้โดยไม่ต้องมี JWT (หน้า admin สมัครยังไม่ได้ล็อกอิน)
-verify_jwt = false

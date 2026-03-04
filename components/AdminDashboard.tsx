@@ -183,8 +183,8 @@ const AdminDashboard: React.FC = () => {
                       </button>
                     </div>
                   </div>
-                  {columns.length > 0 && (
-                    <div className="flex flex-col gap-3 sm:gap-4">
+                  <div className="flex flex-col gap-3 sm:gap-4">
+                    {columns.length > 0 && (
                       <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                         <label className="text-sm text-gray-400 w-full sm:w-auto">เรียงตาม</label>
                         <select
@@ -204,45 +204,45 @@ const AdminDashboard: React.FC = () => {
                           ))}
                         </select>
                       </div>
-                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-2 sm:border-l sm:border-white/10 sm:pl-4">
-                        <span className="text-sm text-gray-400">ช่วงเวลา (คอลัมน์ {DATE_COLUMN})</span>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <input
-                            type="datetime-local"
-                            value={dateFrom}
-                            onChange={(e) => {
-                              setDateFrom(e.target.value);
+                    )}
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-2 sm:border-l sm:border-white/10 sm:pl-4">
+                      <span className="text-sm text-gray-400">ช่วงเวลา (คอลัมน์ {DATE_COLUMN})</span>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <input
+                          type="datetime-local"
+                          value={dateFrom}
+                          onChange={(e) => {
+                            setDateFrom(e.target.value);
+                            setPage(1);
+                          }}
+                          className="px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white text-sm focus:outline-none focus:border-yellow-400 min-w-0 flex-1"
+                        />
+                        <span className="text-gray-500 text-sm">ถึง</span>
+                        <input
+                          type="datetime-local"
+                          value={dateTo}
+                          onChange={(e) => {
+                            setDateTo(e.target.value);
+                            setPage(1);
+                          }}
+                          className="px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white text-sm focus:outline-none focus:border-yellow-400 min-w-0 flex-1"
+                        />
+                        {(dateFrom || dateTo) && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setDateFrom('');
+                              setDateTo('');
                               setPage(1);
                             }}
-                            className="px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white text-sm focus:outline-none focus:border-yellow-400 min-w-0 flex-1"
-                          />
-                          <span className="text-gray-500 text-sm">ถึง</span>
-                          <input
-                            type="datetime-local"
-                            value={dateTo}
-                            onChange={(e) => {
-                              setDateTo(e.target.value);
-                              setPage(1);
-                            }}
-                            className="px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white text-sm focus:outline-none focus:border-yellow-400 min-w-0 flex-1"
-                          />
-                          {(dateFrom || dateTo) && (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setDateFrom('');
-                                setDateTo('');
-                                setPage(1);
-                              }}
-                              className="px-3 py-2 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-white/10"
-                            >
-                              ล้างช่วง
-                            </button>
-                          )}
-                        </div>
+                            className="px-3 py-2 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-white/10"
+                          >
+                            ล้างช่วง
+                          </button>
+                        )}
                       </div>
                     </div>
-                  )}
+                  </div>
                 </div>
 
                 {loading ? (
