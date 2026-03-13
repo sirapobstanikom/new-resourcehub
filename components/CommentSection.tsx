@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Post, Comment } from '../types';
 import { isSupabaseConfigured } from '../lib/supabase';
-import { getPosts, createPost, addComment } from '../services/strategyExchange';
+import { getPosts, createPost, addComment, incrementPostLike } from '../services/strategyExchange';
 
 // ปรับปรุงชุดข้อมูล Seeds ให้มีความชัดเจนของเพศชายและหญิงมากขึ้นสำหรับสไตล์ adventurer
 const GENDER_OPTIONS = [
@@ -29,14 +29,46 @@ const readFileAsDataUrl = (file: File): Promise<string> =>
     reader.readAsDataURL(file);
   });
 
+/** Lightbox แสดงรูปเต็มหน้าจอ คลิกปิด */
+const ImageLightbox: React.FC<{ src: string | null; onClose: () => void }> = ({ src, onClose }) => {
+  if (!src) return null;
+  return (
+    <div
+      className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center p-4"
+      onClick={onClose}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => e.key === 'Escape' && onClose()}
+      aria-label="ปิด"
+    >
+      <button
+        type="button"
+        onClick={onClose}
+        className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white text-xl font-bold flex items-center justify-center"
+        aria-label="ปิด"
+      >
+        ×
+      </button>
+      <img
+        src={src}
+        alt="ดูรูปเต็ม"
+        className="max-w-full max-h-full w-auto h-auto object-contain"
+        onClick={(e) => e.stopPropagation()}
+      />
+    </div>
+  );
+};
+
 interface PostItemProps {
   post: Post;
   userAvatar: string;
   userName: string;
   onAddComment: (postId: string, commentText: string, imageUrl?: string) => void;
+  onImageClick?: (url: string) => void;
+  onLike?: (postId: string) => void;
 }
 
-const PostItem: React.FC<PostItemProps> = ({ post, userAvatar, userName, onAddComment }) => {
+const PostItem: React.FC<PostItemProps> = ({ post, userAvatar, userName, onAddComment, onImageClick, onLike }) => {
   const [isReplying, setIsReplying] = useState(false);
   const [replyText, setReplyText] = useState('');
   const [replyImageUrl, setReplyImageUrl] = useState('');
@@ -80,18 +112,37 @@ const PostItem: React.FC<PostItemProps> = ({ post, userAvatar, userName, onAddCo
               {new Date(post.createdAt).toLocaleDateString()}
             </span>
           </div>
-          <p className="text-gray-300 leading-relaxed mb-2">{post.content}</p>
+          <p className="text-gray-300 leading-relaxed mb-2 whitespace-pre-wrap break-words">{post.content}</p>
           {post.imageUrl && (
-            <div className="rounded-2xl overflow-hidden border border-white/10 mb-4 max-w-md">
-              <img src={post.imageUrl} alt="Post attachment" className="w-full h-auto max-h-80 object-cover" />
+            <div
+              className="rounded-2xl overflow-hidden border border-white/10 mb-3 max-w-full w-full sm:max-w-md cursor-pointer hover:opacity-90 transition-opacity"
+              onClick={() => onImageClick?.(post.imageUrl!)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => e.key === 'Enter' && onImageClick?.(post.imageUrl!)}
+            >
+              <img src={post.imageUrl} alt="Post attachment คลิกดูเต็ม" className="w-full h-auto max-h-64 sm:max-h-72 object-contain bg-white/5" />
             </div>
           )}
-          <button 
-            onClick={() => setIsReplying(!isReplying)}
-            className="text-xs font-bold text-yellow-400 hover:text-yellow-300 transition-colors uppercase tracking-widest"
-          >
-            {isReplying ? 'Cancel' : 'Reply'}
-          </button>
+          <div className="flex items-center gap-4 flex-wrap">
+            {onLike && (
+              <button
+                type="button"
+                onClick={() => onLike(post.id)}
+                className="flex items-center gap-1.5 text-gray-400 hover:text-yellow-400 transition-colors"
+                title="ไลค์"
+              >
+                <span className="text-lg" aria-hidden>♥</span>
+                <span className="text-sm font-medium">{post.likeCount ?? 0}</span>
+              </button>
+            )}
+            <button 
+              onClick={() => setIsReplying(!isReplying)}
+              className="text-xs font-bold text-yellow-400 hover:text-yellow-300 transition-colors uppercase tracking-widest"
+            >
+              {isReplying ? 'Cancel' : 'Reply'}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -106,8 +157,14 @@ const PostItem: React.FC<PostItemProps> = ({ post, userAvatar, userName, onAddCo
                 <span className="text-xs font-bold text-white block mb-1">{comment.authorName}</span>
                 <p className="text-gray-400 text-sm">{comment.commentText}</p>
                 {comment.imageUrl && (
-                  <div className="mt-2 rounded-xl overflow-hidden border border-white/10 max-w-xs">
-                    <img src={comment.imageUrl} alt="Comment attachment" className="w-full h-auto max-h-48 object-cover" />
+                  <div
+                    className={`mt-2 rounded-xl overflow-hidden border border-white/10 max-w-full w-full sm:max-w-[280px] ${onImageClick ? 'cursor-pointer hover:opacity-90 transition-opacity' : ''}`}
+                    onClick={onImageClick ? () => onImageClick(comment.imageUrl!) : undefined}
+                    role={onImageClick ? 'button' : undefined}
+                    tabIndex={onImageClick ? 0 : undefined}
+                    onKeyDown={onImageClick ? (e) => e.key === 'Enter' && onImageClick(comment.imageUrl!) : undefined}
+                  >
+                    <img src={comment.imageUrl} alt="Comment attachment คลิกดูเต็ม" className="w-full h-auto max-h-44 sm:max-h-52 object-contain bg-white/5" />
                   </div>
                 )}
               </div>
@@ -138,8 +195,8 @@ const PostItem: React.FC<PostItemProps> = ({ post, userAvatar, userName, onAddCo
             />
           </div>
           {replyImagePreview && (
-            <div className="relative inline-block rounded-xl overflow-hidden border border-white/10 max-w-[200px]">
-              <img src={replyImagePreview} alt="Preview" className="w-full h-auto max-h-32 object-cover" />
+            <div className="relative rounded-xl overflow-hidden border border-white/10 max-w-[200px] w-full">
+              <img src={replyImagePreview} alt="Preview" className="w-full h-auto max-h-28 object-contain bg-white/5" />
               <button
                 type="button"
                 onClick={() => { setReplyImageFile(null); setReplyImagePreview(''); }}
@@ -175,6 +232,7 @@ const CommentSection: React.FC<{ toolId?: string }> = ({ toolId = "bmc" }) => {
   const [mainImagePreview, setMainImagePreview] = useState('');
   const [loading, setLoading] = useState(false);
   const [posting, setPosting] = useState(false);
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
 
   const randomizeAvatar = (gender: string) => {
     const options = GENDER_OPTIONS.find(g => g.value === gender);
@@ -278,6 +336,23 @@ const CommentSection: React.FC<{ toolId?: string }> = ({ toolId = "bmc" }) => {
     setMainImageFile(null);
     setMainImagePreview('');
   };
+
+  const handleImageClick = (url: string) => setLightboxSrc(url);
+
+  const handleLike = useCallback(async (postId: string) => {
+    if (!isSupabaseConfigured) {
+      setPosts((prev) =>
+        prev.map((p) => (p.id === postId ? { ...p, likeCount: (p.likeCount ?? 0) + 1 } : p))
+      );
+      return;
+    }
+    const next = await incrementPostLike(postId);
+    if (next != null) {
+      setPosts((prev) =>
+        prev.map((p) => (p.id === postId ? { ...p, likeCount: next } : p))
+      );
+    }
+  }, []);
 
   const handleAddComment = async (postId: string, commentText: string, imageUrl?: string) => {
     if (isSupabaseConfigured) {
@@ -392,8 +467,8 @@ const CommentSection: React.FC<{ toolId?: string }> = ({ toolId = "bmc" }) => {
                 />
               </div>
               {mainImagePreview && (
-                <div className="relative inline-block rounded-xl overflow-hidden border border-white/10 max-w-[220px] mb-3">
-                  <img src={mainImagePreview} alt="Preview" className="w-full h-auto max-h-40 object-cover" />
+                <div className="relative rounded-xl overflow-hidden border border-white/10 max-w-[220px] w-full mb-3">
+                  <img src={mainImagePreview} alt="Preview" className="w-full h-auto max-h-36 object-contain bg-white/5" />
                   <button
                     type="button"
                     onClick={() => { setMainImageFile(null); setMainImagePreview(''); setMainImageUrl(''); }}
@@ -428,6 +503,8 @@ const CommentSection: React.FC<{ toolId?: string }> = ({ toolId = "bmc" }) => {
               userAvatar={userAvatar} 
               userName={userName} 
               onAddComment={handleAddComment}
+              onImageClick={handleImageClick}
+              onLike={handleLike}
             />
           ))
         ) : (
@@ -436,6 +513,8 @@ const CommentSection: React.FC<{ toolId?: string }> = ({ toolId = "bmc" }) => {
           </div>
         )}
       </div>
+
+      <ImageLightbox src={lightboxSrc} onClose={() => setLightboxSrc(null)} />
     </section>
   );
 };

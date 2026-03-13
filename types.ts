@@ -44,6 +44,7 @@ export interface Post {
   authorAvatar: string;
   content: string;
   imageUrl?: string;
+  likeCount?: number;
   createdAt: string;
   comments: Comment[];
 }

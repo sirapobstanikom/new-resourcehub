@@ -8,6 +8,7 @@ type DbPost = {
   author_avatar: string;
   content: string;
   image_url?: string | null;
+  like_count?: number | null;
   created_at: string;
 };
 
@@ -39,6 +40,7 @@ function mapPost(row: DbPost, comments: Comment[] = []): Post {
     authorAvatar: row.author_avatar || '',
     content: row.content,
     imageUrl: row.image_url ?? undefined,
+    likeCount: row.like_count ?? 0,
     createdAt: row.created_at,
     comments: comments.sort(
       (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
@@ -130,4 +132,21 @@ export async function addComment(
   }
 
   return mapComment(data as DbComment);
+}
+
+/** กดไลค์โพสต์ (เพิ่ม like_count 1) */
+export async function incrementPostLike(postId: string): Promise<number | null> {
+  const { data: row, error: fetchError } = await supabase
+    .from('strategy_posts')
+    .select('like_count')
+    .eq('id', postId)
+    .single();
+  if (fetchError || row == null) return null;
+  const next = (Number((row as { like_count?: number }).like_count) || 0) + 1;
+  const { error: setError } = await supabase
+    .from('strategy_posts')
+    .update({ like_count: next })
+    .eq('id', postId);
+  if (setError) return null;
+  return next;
 }
