@@ -34,6 +34,7 @@ export interface Comment {
   authorName: string;
   authorAvatar: string;
   commentText: string;
+  imageUrl?: string;
   createdAt: string;
 }
 
@@ -42,6 +43,7 @@ export interface Post {
   authorName: string;
   authorAvatar: string;
   content: string;
+  imageUrl?: string;
   createdAt: string;
   comments: Comment[];
 }

@@ -7,6 +7,7 @@ type DbPost = {
   author_name: string;
   author_avatar: string;
   content: string;
+  image_url?: string | null;
   created_at: string;
 };
 
@@ -16,6 +17,7 @@ type DbComment = {
   author_name: string;
   author_avatar: string;
   comment_text: string;
+  image_url?: string | null;
   created_at: string;
 };
 
@@ -25,6 +27,7 @@ function mapComment(row: DbComment): Comment {
     authorName: row.author_name,
     authorAvatar: row.author_avatar || '',
     commentText: row.comment_text,
+    imageUrl: row.image_url ?? undefined,
     createdAt: row.created_at,
   };
 }
@@ -35,6 +38,7 @@ function mapPost(row: DbPost, comments: Comment[] = []): Post {
     authorName: row.author_name,
     authorAvatar: row.author_avatar || '',
     content: row.content,
+    imageUrl: row.image_url ?? undefined,
     createdAt: row.created_at,
     comments: comments.sort(
       (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
@@ -81,16 +85,18 @@ export async function getPosts(toolId: string): Promise<Post[]> {
 /** สร้างโพสต์ใหม่ */
 export async function createPost(
   toolId: string,
-  payload: { authorName: string; authorAvatar: string; content: string }
+  payload: { authorName: string; authorAvatar: string; content: string; imageUrl?: string }
 ): Promise<Post | null> {
+  const row: Record<string, unknown> = {
+    tool_id: toolId,
+    author_name: payload.authorName,
+    author_avatar: payload.authorAvatar,
+    content: payload.content,
+  };
+  if (payload.imageUrl) row.image_url = payload.imageUrl;
   const { data, error } = await supabase
     .from('strategy_posts')
-    .insert({
-      tool_id: toolId,
-      author_name: payload.authorName,
-      author_avatar: payload.authorAvatar,
-      content: payload.content,
-    })
+    .insert(row)
     .select()
     .single();
 
@@ -104,16 +110,18 @@ export async function createPost(
 /** เพิ่มคอมเมนต์ในโพสต์ */
 export async function addComment(
   postId: string,
-  payload: { authorName: string; authorAvatar: string; commentText: string }
+  payload: { authorName: string; authorAvatar: string; commentText: string; imageUrl?: string }
 ): Promise<Comment | null> {
+  const row: Record<string, unknown> = {
+    post_id: postId,
+    author_name: payload.authorName,
+    author_avatar: payload.authorAvatar,
+    comment_text: payload.commentText,
+  };
+  if (payload.imageUrl) row.image_url = payload.imageUrl;
   const { data, error } = await supabase
     .from('strategy_comments')
-    .insert({
-      post_id: postId,
-      author_name: payload.authorName,
-      author_avatar: payload.authorAvatar,
-      comment_text: payload.commentText,
-    })
+    .insert(row)
     .select()
     .single();
 
