@@ -12,6 +12,13 @@ const ASSESSMENTS = [
     comingSoon: false,
   },
   {
+    id: 'persuasion',
+    title: 'Persuasion Test (Th)',
+    description: 'Persuasion Psychology · Interest-Based Persuasion — ประเมินสไตล์การโน้มน้าวของคุณ',
+    href: '/assessment/persuasion',
+    comingSoon: false,
+  },
+  {
     id: 'DISC',
     title: 'DISC Assessment',
     description: 'แบบทดสอบประเมินบุคลิกภาพของคุณ',

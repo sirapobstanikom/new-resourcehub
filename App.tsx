@@ -20,6 +20,7 @@ import RoomWorkspacePage from './components/RoomWorkspacePage';
 import HomePage from './components/HomePage';
 import DiscAssessment from './components/DiscAssessment';
 import LeadershipAssessment from './components/LeadershipAssessment';
+import PersuasionAssessment from './components/PersuasionAssessment';
 import Game10Timeout from './components/Game10Timeout';
 import InnoClubEvaluationPage from './components/InnoClubEvaluationPage';
 import { useAuth } from './contexts/AuthContext';
@@ -148,6 +149,7 @@ const App: React.FC = () => {
         <Route path="/assessment/disc" element={<DiscAssessment />} />
         <Route path="/assessment/leadership" element={<LeadershipAssessment />} />
         <Route path="/assessment/leaderships" element={<LeadershipAssessment />} />
+        <Route path="/assessment/persuasion" element={<PersuasionAssessment />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     );
