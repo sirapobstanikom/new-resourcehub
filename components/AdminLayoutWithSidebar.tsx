@@ -1,14 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { Link, Outlet, useLocation } from 'react-router-dom';
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { logoutAdmin } from '../lib/auth';
 import { useAuth } from '../contexts/AuthContext';
 
 const ADMIN_LEAVE_MANAGER_EMAILS = ['pink@minddojo.me', 'koy@minddojo.me', 'tonji@minddojo.me'];
+const DEPRECATED_ADMIN_EMAIL = 'admin@minddojo.me';
 
 const AdminLayoutWithSidebar: React.FC = () => {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user?.email?.toLowerCase() === DEPRECATED_ADMIN_EMAIL.toLowerCase()) {
+      logoutAdmin();
+      signOut().then(() => navigate('/admin/login', { replace: true }));
+    }
+  }, [user?.email, signOut, navigate]);
   const isLeave = location.pathname === '/admin/leave';
   const isLeaveManage = location.pathname === '/admin/leave/manage';
   const isStickycloud = location.pathname === '/admin/rooms';

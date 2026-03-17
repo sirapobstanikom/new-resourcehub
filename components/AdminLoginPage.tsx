@@ -1,18 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { isAdminAuthenticated, setAdminAuthenticated } from '../lib/auth';
+import { isAdminAuthenticated, setAdminAuthenticated, logoutAdmin } from '../lib/auth';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { useAuth } from '../contexts/AuthContext';
+
+const DEPRECATED_ADMIN_EMAIL = 'admin@minddojo.me';
 
 const AdminLoginPage: React.FC = () => {
   const navigate = useNavigate();
+  const { user, signOut } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   useEffect(() => {
+    if (user?.email?.toLowerCase() === DEPRECATED_ADMIN_EMAIL.toLowerCase()) {
+      logoutAdmin();
+      signOut();
+      return;
+    }
     if (isAdminAuthenticated()) navigate('/admin', { replace: true });
-  }, [navigate]);
+  }, [user?.email, signOut, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
