@@ -151,6 +151,30 @@ export const JOURNEY_DATA: JourneyCategory[] = [
         ],
         templateUrl: 'https://www.minddojo.co.th/_files/ugd/8f9517_e72ed88c4107433e96390b6999c13853.pdf',
         exampleImage: 'https://static.wixstatic.com/media/8f9517_0427b51d62034be49fff9c83e8860090~mv2.jpg'
+      },
+      {
+        id: 'experiment-canvas',
+        name: 'Experiment Canvas',
+        description: 'เครื่องมือที่ช่วยให้ทีมสามารถออกแบบ การทดลองธุรกิจหรือผลิตภัณฑ์ ได้อย่างเป็นระบบ โดยมุ่งเน้นไปที่การทดสอบสมมติฐานสําคัญ',
+        longDescription: 'Experiment Canvas เป็นเครื่องมือที่ช่วยให้ทีมสามารถออกแบบ การทดลองธุรกิจหรือผลิตภัณฑ์ ได้อย่างเป็นระบบ โดยมุ่งเน้นไปที่การทดสอบสมมติฐานสําคัญ (Critical Assumption) และช่วยให้ตัดสินใจได้ว่าควรเดินหน้าหรือปรับเปลี่ยนแผนอย่างไร ช่วยประหยัดเวลาและทรัพยากรโดยการพิสูจน์ไอเดียก่อนลงมือทำจริง',
+        usageInstructions: 'วิธีใช้งาน: เขียนรายละเอียดการเตรียมตัวการทดลอง และผลการทดลองลงใน Canvas ตามลำดับขั้นตอนตั้งแต่การระบุสมมติฐานไปจนถึงข้อสรุป',
+        blocks: [
+          { title: 'Critical Assumption', detail: 'ระบุสิ่งที่คุณต้องพิสูจน์ว่าเป็นจริง เช่น "ลูกค้าต้องการจ่ายเงินเพื่อใช้ฟีเจอร์นี้"' },
+          { title: 'Measurable Outcome & Timeframe', detail: 'ระบุสิ่งที่ต้องการวัด (เช่น อัตราการสมัครสมาชิก) และกําหนดระยะเวลาที่ใช้ (เช่น 1 สัปดาห์)' },
+          { title: 'Experiment Plan (MVP)', detail: 'กําหนดวิธีการที่จะใช้ทดสอบ เช่น การปล่อยโฆษณา, A/B Testing, การสัมภาษณ์ลูกค้า หรือ Landing Page' },
+          { title: 'Preparation', detail: 'สิ่งที่ต้องเตรียมก่อนการทดลอง เช่น เครื่องมือที่ต้องใช้, ทีมงานผู้รับผิดชอบ, และงบประมาณ' },
+          { title: 'Results & Insights', detail: 'บันทึกผลลัพธ์ (เช่น จํานวนคลิก) และวิเคราะห์ว่าผลลัพธ์นั้นบ่งบอกอะไร (เช่น ลูกค้าสนใจแต่ไม่ยอมจ่ายเงิน)' },
+          { title: 'Conclusion', detail: '✔ Validated: สมมติฐานถูก | ❌ Invalidated: สมมติฐานผิด | ❓ Inconclusive: ผลยังไม่ชัดเจน' },
+          { title: 'Next Step', detail: 'วางแผนการดําเนินงานต่อไป ว่าจะพัฒนาต่อ ปรับเปลี่ยนแนวทาง หรือทดสอบเพิ่มเติมอย่างไร' }
+        ],
+        source: 'ที่มา: Experiment Canvas ได้รับแรงบันดาลใจจากแนวคิด Lean Startup โดย Eric Ries และกลยุทธ์การทดสอบสมมติฐานจาก Strategyzer',
+        additionalResources: [
+          { label: 'The Lean Startup โดย Eric Ries', url: 'http://theleanstartup.com/' },
+          { label: 'Testing Business Ideas - David J. Bland', url: 'https://www.strategyzer.com/books/testing-business-ideas' },
+          { label: 'เว็บไซต์ Strategyzer', url: 'https://www.strategyzer.com' }
+        ],
+        templateUrl: 'https://www.minddojo.co.th/_files/ugd/a57aeb_bf71ec294b9f419c9a9f2544be1fb296.pdf',
+        exampleImage: 'https://static.wixstatic.com/media/8f9517_a49f98b8ea854fbab7554ba755913889~mv2.jpg'
       }
     ]
   },
@@ -229,33 +253,31 @@ export const JOURNEY_DATA: JourneyCategory[] = [
     ]
   },
   {
-    id: 'execution',
-    title: 'Execution & Impact Tools',
-    image: 'https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=800&auto=format&fit=crop',
+    id: 'assignment-dropoff',
+    title: 'Assignment Submission Hub',
+    image: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?q=80&w=800&auto=format&fit=crop',
     tools: [
       {
-        id: 'experiment-canvas',
-        name: 'Experiment Canvas',
-        description: 'เครื่องมือที่ช่วยให้ทีมสามารถออกแบบ การทดลองธุรกิจหรือผลิตภัณฑ์ ได้อย่างเป็นระบบ โดยมุ่งเน้นไปที่การทดสอบสมมติฐานสําคัญ',
-        longDescription: 'Experiment Canvas เป็นเครื่องมือที่ช่วยให้ทีมสามารถออกแบบ การทดลองธุรกิจหรือผลิตภัณฑ์ ได้อย่างเป็นระบบ โดยมุ่งเน้นไปที่การทดสอบสมมติฐานสําคัญ (Critical Assumption) และช่วยให้ตัดสินใจได้ว่าควรเดินหน้าหรือปรับเปลี่ยนแผนอย่างไร ช่วยประหยัดเวลาและทรัพยากรโดยการพิสูจน์ไอเดียก่อนลงมือทำจริง',
-        usageInstructions: 'วิธีใช้งาน: เขียนรายละเอียดการเตรียมตัวการทดลอง และผลการทดลองลงใน Canvas ตามลำดับขั้นตอนตั้งแต่การระบุสมมติฐานไปจนถึงข้อสรุป',
+        id: 'systematic-inventive-thinking',
+        name: 'Systematic Inventive Thinking',
+        description: 'กรอบคิดเชิงระบบเพื่อสร้างนวัตกรรม โดยใช้ 5 เทคนิคหลัก (Subtraction, Task Unification, Multiplication, Division, Attribute Dependency) ช่วยให้ทีมคิดนอกกรอบอย่างมีโครงสร้าง',
+        longDescription: 'Systematic Inventive Thinking (SIT) เป็นวิธีการคิดเชิงนวัตกรรมที่มีโครงสร้างชัดเจน พัฒนาจากการวิจัยของ Jacob Goldenberg และคณะ โดยใช้หลักการ "Inside the Box" คือการสร้างไอเดียใหม่จากทรัพยากรหรือองค์ประกอบที่มีอยู่แล้วภายในระบบ ไม่ต้องพึ่งไอเดียจากภายนอก ช่วยให้ทีมสามารถสร้างสรรค์ผลิตภัณฑ์ บริการ หรือกระบวนการใหม่ได้อย่างเป็นระบบและนำไปปฏิบัติได้จริง',
+        usageInstructions: 'วิธีใช้งาน: เลือกผลิตภัณฑ์หรือบริการที่มีอยู่ (Closed World) จากนั้นนำ 5 เทคนิค SIT มาปรับใช้ทีละตัว — ลบองค์ประกอบ (Subtraction), รวมหน้าที่ (Task Unification), คูณแล้วแปรรูป (Multiplication), แบ่งส่วนแล้วจัดใหม่ (Division), หรือทำให้คุณลักษณะขึ้นต่อกัน (Attribute Dependency) — แล้ววิเคราะห์ว่าคอนเซปต์ไหนนำไปพัฒนาต่อได้',
         blocks: [
-          { title: 'Critical Assumption', detail: 'ระบุสิ่งที่คุณต้องพิสูจน์ว่าเป็นจริง เช่น "ลูกค้าต้องการจ่ายเงินเพื่อใช้ฟีเจอร์นี้"' },
-          { title: 'Measurable Outcome & Timeframe', detail: 'ระบุสิ่งที่ต้องการวัด (เช่น อัตราการสมัครสมาชิก) และกําหนดระยะเวลาที่ใช้ (เช่น 1 สัปดาห์)' },
-          { title: 'Experiment Plan (MVP)', detail: 'กําหนดวิธีการที่จะใช้ทดสอบ เช่น การปล่อยโฆษณา, A/B Testing, การสัมภาษณ์ลูกค้า หรือ Landing Page' },
-          { title: 'Preparation', detail: 'สิ่งที่ต้องเตรียมก่อนการทดลอง เช่น เครื่องมือที่ต้องใช้, ทีมงานผู้รับผิดชอบ, และงบประมาณ' },
-          { title: 'Results & Insights', detail: 'บันทึกผลลัพธ์ (เช่น จํานวนคลิก) และวิเคราะห์ว่าผลลัพธ์นั้นบ่งบอกอะไร (เช่น ลูกค้าสนใจแต่ไม่ยอมจ่ายเงิน)' },
-          { title: 'Conclusion', detail: '✔ Validated: สมมติฐานถูก | ❌ Invalidated: สมมติฐานผิด | ❓ Inconclusive: ผลยังไม่ชัดเจน' },
-          { title: 'Next Step', detail: 'วางแผนการดําเนินงานต่อไป ว่าจะพัฒนาต่อ ปรับเปลี่ยนแนวทาง หรือทดสอบเพิ่มเติมอย่างไร' }
+          { title: 'Subtraction', detail: 'ลบองค์ประกอบสำคัญออกจากระบบ (ที่ดูเหมือนจำเป็น) แล้วคิดว่าผู้ใช้จะได้ประโยชน์อย่างไร หรือจะชดเชยอย่างไร' },
+          { title: 'Task Unification', detail: 'มอบหมายหน้าที่เพิ่มเติมให้องค์ประกอบที่มีอยู่แล้ว (ให้ส่วนหนึ่งทำ 2 งาน) เพื่อลดความซับซ้อนหรือต้นทุน' },
+          { title: 'Multiplication', detail: 'คัดลอกองค์ประกอบที่มีอยู่ แต่ทำให้สำเนาแตกต่างจากต้นฉบับ (ขนาด หน้าที่ หรือบริบท) แล้วหาการใช้งานใหม่' },
+          { title: 'Division', detail: 'แบ่งระบบ/ผลิตภัณฑ์เป็นส่วนย่อย แล้วจัดเรียงใหม่ (แยกตามเวลา สถานที่ หรือความสัมพันธ์) เพื่อสร้างฟังก์ชันหรือคุณค่าใหม่' },
+          { title: 'Attribute Dependency', detail: 'สร้างความสัมพันธ์ระหว่างคุณลักษณะ (attributes) ของผลิตภัณฑ์กับสภาพแวดล้อมหรือผู้ใช้ ที่ก่อนหน้านี้ไม่สัมพันธ์กัน' }
         ],
-        source: 'ที่มา: Experiment Canvas ได้รับแรงบันดาลใจจากแนวคิด Lean Startup โดย Eric Ries และกลยุทธ์การทดสอบสมมติฐานจาก Strategyzer',
+        source: 'ที่มา: พัฒนาโดย Jacob Goldenberg, Roni Horowitz และคณะ จากมหาวิทยาลัย Tel Aviv และ Columbia ต่อยอดจากทฤษฎี TRIZ และการวิจัยด้าน Creativity in Product Development',
         additionalResources: [
-          { label: 'The Lean Startup โดย Eric Ries', url: 'http://theleanstartup.com/' },
-          { label: 'Testing Business Ideas - David J. Bland', url: 'https://www.strategyzer.com/books/testing-business-ideas' },
-          { label: 'เว็บไซต์ Strategyzer', url: 'https://www.strategyzer.com' }
+          { label: 'Inside the Box โดย Drew Boyd & Jacob Goldenberg', url: 'https://www.insidetheboxinnovation.com/' },
+          { label: 'SIT – Systematic Inventive Thinking', url: 'https://www.sitsite.com/' },
+          { label: 'HBR: Finding Your Innovation Sweet Spot', url: 'https://hbr.org/2017/03/finding-your-innovation-sweet-spot' }
         ],
-        templateUrl: 'https://www.minddojo.co.th/_files/ugd/a57aeb_bf71ec294b9f419c9a9f2544be1fb296.pdf',
-        exampleImage: 'https://static.wixstatic.com/media/8f9517_a49f98b8ea854fbab7554ba755913889~mv2.jpg'
+        templateUrl: '',
+        exampleImage: 'https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=800&auto=format&fit=crop'
       }
     ]
   }

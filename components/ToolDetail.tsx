@@ -89,38 +89,41 @@ const ToolDetail: React.FC<ToolDetailProps> = ({ tool, onBack, onAskAI }) => {
           <div className="sticky top-8 space-y-8">
             <AIChatSidebar toolName={tool.name} />
 
-            <div className="bg-yellow-400 p-8 rounded-3xl text-black shadow-xl shadow-yellow-400/10">
-              <h3 className="text-2xl font-black mb-4 leading-tight">Professional Templates</h3>
-              <p className="font-medium mb-8 opacity-80">Download high-resolution assets and execution guides for this framework.</p>
-              
-              <div className="space-y-4">
+            {(tool.templateUrl || (tool.additionalResources && tool.additionalResources.length > 0)) && (
+              <div className="bg-yellow-400 p-8 rounded-3xl text-black shadow-xl shadow-yellow-400/10">
                 {tool.templateUrl && (
-                  <a 
-                    href={tool.templateUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block w-full bg-black text-white text-center font-bold py-4 rounded-xl hover:bg-neutral-900 transition-all transform hover:-translate-y-1 shadow-lg"
-                  >
-                    Download PDF Template
-                  </a>
+                  <>
+                    <h3 className="text-2xl font-black mb-4 leading-tight">Professional Templates</h3>
+                    <p className="font-medium mb-8 opacity-80">Download high-resolution assets and execution guides for this framework.</p>
+                    <div className="space-y-4">
+                      <a
+                        href={tool.templateUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block w-full bg-black text-white text-center font-bold py-4 rounded-xl hover:bg-neutral-900 transition-all transform hover:-translate-y-1 shadow-lg"
+                      >
+                        Download PDF Template
+                      </a>
+                    </div>
+                  </>
+                )}
+
+                {tool.additionalResources && tool.additionalResources.length > 0 && (
+                  <div className={tool.templateUrl ? 'mt-8 pt-6 border-t border-black/10' : ''}>
+                    <h4 className="font-bold text-xs uppercase tracking-widest mb-4 opacity-60">References</h4>
+                    <ul className="space-y-3">
+                      {tool.additionalResources.map((res, idx) => (
+                        <li key={idx}>
+                          <a href={res.url} target="_blank" rel="noopener noreferrer" className="text-sm font-bold hover:underline flex items-center justify-between">
+                            {res.label} <span>↗</span>
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 )}
               </div>
-
-              {tool.additionalResources && tool.additionalResources.length > 0 && (
-                <div className="mt-8 pt-6 border-t border-black/10">
-                  <h4 className="font-bold text-xs uppercase tracking-widest mb-4 opacity-60">References</h4>
-                  <ul className="space-y-3">
-                    {tool.additionalResources.map((res, idx) => (
-                      <li key={idx}>
-                        <a href={res.url} target="_blank" rel="noopener noreferrer" className="text-sm font-bold hover:underline flex items-center justify-between">
-                          {res.label} <span>↗</span>
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
+            )}
           </div>
         </div>
       </div>
