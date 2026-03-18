@@ -20,10 +20,52 @@ type LeaveRequestRow = {
   leave_type: string;
   start_date: string;
   end_date: string;
+  start_time: string | null;
+  end_time: string | null;
   reason: string | null;
   status: string;
   created_at: string;
 };
+
+/** นับวันทำงาน (ไม่รวมเสาร์-อาทิตย์) ระหว่าง start–end (inclusive) */
+function countWeekdays(startIso: string, endIso: string): number {
+  const start = new Date(startIso + 'T12:00:00Z').getTime();
+  const end = new Date(endIso + 'T12:00:00Z').getTime();
+  const oneDay = 24 * 60 * 60 * 1000;
+  let count = 0;
+  for (let t = start; t <= end; t += oneDay) {
+    const d = new Date(t);
+    const day = d.getUTCDay();
+    if (day !== 0 && day !== 6) count += 1;
+  }
+  return count;
+}
+
+/** คำนวณชั่วโมงจาก HH:mm หรือ HH:mm:ss */
+function hoursBetween(startTime: string | null | undefined, endTime: string | null | undefined): number {
+  if (!startTime || !endTime) return 0;
+  const parse = (t: string) => {
+    const parts = String(t).trim().split(':');
+    const h = parseInt(parts[0], 10);
+    const m = parts[1] ? parseInt(parts[1], 10) : 0;
+    return (Number.isNaN(h) ? 0 : h) + (Number.isNaN(m) ? 0 : m) / 60;
+  };
+  const start = parse(startTime);
+  const end = parse(endTime);
+  if (end <= start) return 0;
+  return Math.round((end - start) * 100) / 100;
+}
+
+/** คืนค่า { days, hours } ที่ใช้ไปของใบลานี้ (สำหรับเอากลับเข้า balance) */
+function getLeaveDaysAndHours(row: LeaveRequestRow): { days: number; hours: number } {
+  const { start_date, end_date, start_time, end_time } = row;
+  if (start_date === end_date && start_time && end_time) {
+    const h = hoursBetween(start_time, end_time);
+    return { days: 0, hours: h };
+  }
+  const days = countWeekdays(start_date, end_date);
+  return { days, hours: 0 };
+}
 
 function formatThaiDate(dateStr: string): string {
   const d = new Date(dateStr + 'T12:00:00Z');
@@ -47,8 +89,8 @@ const AdminLeaveManagePage: React.FC = () => {
     }
     supabase
       .from('leave_requests')
-      .select('id, user_email, user_display_name, leave_type, start_date, end_date, reason, status, created_at')
-      .eq('status', 'pending')
+      .select('id, user_email, user_display_name, leave_type, start_date, end_date, start_time, end_time, reason, status, created_at')
+      .in('status', ['pending', 'cancel_requested'])
       .order('created_at', { ascending: true })
       .then(({ data, error: err }) => {
         setLoading(false);
@@ -60,18 +102,28 @@ const AdminLeaveManagePage: React.FC = () => {
       });
   }, [isAdmin, actionId]);
 
-  const handleStatus = async (id: string, status: 'approved' | 'rejected') => {
+  const handleStatus = async (
+    row: LeaveRequestRow,
+    action: 'approve' | 'reject'
+  ) => {
     setError(null);
-    setActionId(id);
-    const payload: { status: 'approved' | 'rejected'; approved_by_email?: string; approved_at?: string } = { status };
-    if (status === 'approved' && user?.email) {
+    setActionId(row.id);
+    const isCancelFlow = row.status === 'cancel_requested';
+    const nextStatus: 'approved' | 'rejected' | 'cancelled' =
+      isCancelFlow
+        ? (action === 'approve' ? 'cancelled' : 'approved')
+        : (action === 'approve' ? 'approved' : 'rejected');
+
+    const payload: { status: 'approved' | 'rejected' | 'cancelled'; approved_by_email?: string; approved_at?: string } = { status: nextStatus };
+    // บันทึกผู้อนุมัติเฉพาะตอน "อนุมัติคำขอลา" (ไม่เขียนทับตอนอนุมัติยกเลิก)
+    if (!isCancelFlow && action === 'approve' && user?.email) {
       payload.approved_by_email = user.email;
       payload.approved_at = new Date().toISOString();
     }
     const { data, error: err } = await supabase
       .from('leave_requests')
       .update(payload)
-      .eq('id', id)
+      .eq('id', row.id)
       .select('id');
     setActionId(null);
     if (err) {
@@ -82,7 +134,31 @@ const AdminLeaveManagePage: React.FC = () => {
       setError('อัปเดตไม่สำเร็จ (ไม่มีสิทธิ์หรือไม่พบแถว) — ตรวจสอบว่าเข้าสู่ระบบด้วยอีเมลผู้จัดการลา (pink/koy/tonji@minddojo.me) และรัน policy ใน Supabase แล้ว');
       return;
     }
-    setPendingList((prev) => prev.filter((r) => r.id !== id));
+
+    // อนุมัติยกเลิก: คืนวันลา/ชั่วโมงกลับเข้า admin_users (เฉพาะประเภทที่มี balance)
+    if (isCancelFlow && action === 'approve' && row.leave_type !== 'wfh') {
+      const { days, hours } = getLeaveDaysAndHours(row);
+      if (days > 0 || hours > 0) {
+        const { data: userRow, error: userErr } = await supabase
+          .from('admin_users')
+          .select('personal_remaining, sick_remaining, annual_remaining, unpaid_remaining, hours_personal_remaining, hours_sick_remaining, hours_annual_remaining, hours_unpaid_remaining')
+          .eq('email', row.user_email)
+          .maybeSingle();
+        if (!userErr && userRow) {
+          const u = userRow as Record<string, number | null | undefined>;
+          const dayKey = row.leave_type === 'personal' ? 'personal_remaining' : row.leave_type === 'sick' ? 'sick_remaining' : row.leave_type === 'vacation' ? 'annual_remaining' : 'unpaid_remaining';
+          const hourKey = row.leave_type === 'personal' ? 'hours_personal_remaining' : row.leave_type === 'sick' ? 'hours_sick_remaining' : row.leave_type === 'vacation' ? 'hours_annual_remaining' : 'hours_unpaid_remaining';
+          const newDays = (Number(u[dayKey] ?? 0) + days);
+          const newHours = (Number(u[hourKey] ?? 0) + hours);
+          await supabase
+            .from('admin_users')
+            .update({ [dayKey]: newDays, [hourKey]: newHours })
+            .eq('email', row.user_email);
+        }
+      }
+    }
+
+    setPendingList((prev) => prev.filter((r) => r.id !== row.id));
   };
 
   if (user && !ADMIN_LEAVE_MANAGER_EMAILS.includes(user.email)) {
@@ -126,7 +202,7 @@ const AdminLeaveManagePage: React.FC = () => {
           </div>
         ) : pendingList.length === 0 ? (
           <div className="min-h-[200px] rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-gray-500 text-sm">
-            ไม่มีคำขอลาที่รออนุมัติ
+            ไม่มีคำขอลาที่รออนุมัติ/รออนุมัติยกเลิก
           </div>
         ) : (
           <>
@@ -136,6 +212,7 @@ const AdminLeaveManagePage: React.FC = () => {
               <thead>
                 <tr className="border-b border-white/10 bg-white/5">
                   <th className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-400">ผู้ลา</th>
+                  <th className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-400">คำขอ</th>
                   <th className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-400">ประเภท</th>
                   <th className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-400">วันเริ่ม</th>
                   <th className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-400">วันสิ้นสุด</th>
@@ -149,6 +226,11 @@ const AdminLeaveManagePage: React.FC = () => {
                     <td className="px-3 sm:px-4 py-2 sm:py-3 text-gray-300 text-xs sm:text-sm">
                       {row.user_display_name || row.user_email}
                     </td>
+                    <td className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm">
+                      <span className={row.status === 'cancel_requested' ? 'text-amber-300' : 'text-amber-400'}>
+                        {row.status === 'cancel_requested' ? 'ขอยกเลิก' : 'ขอลา'}
+                      </span>
+                    </td>
                     <td className="px-3 sm:px-4 py-2 sm:py-3 text-gray-300 text-xs sm:text-sm">
                       {LEAVE_TYPES.find((t) => t.id === row.leave_type)?.label ?? row.leave_type}
                     </td>
@@ -161,19 +243,19 @@ const AdminLeaveManagePage: React.FC = () => {
                       <div className="flex items-center justify-end gap-2">
                         <button
                           type="button"
-                          onClick={() => handleStatus(row.id, 'approved')}
+                          onClick={() => handleStatus(row, 'approve')}
                           disabled={actionId === row.id}
                           className="min-h-[40px] min-w-[72px] px-3 py-2 rounded-lg text-xs font-medium bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 border border-emerald-500/30 disabled:opacity-50 touch-manipulation"
                         >
-                          อนุมัติ
+                          {row.status === 'cancel_requested' ? 'อนุมัติยกเลิก' : 'อนุมัติ'}
                         </button>
                         <button
                           type="button"
-                          onClick={() => handleStatus(row.id, 'rejected')}
+                          onClick={() => handleStatus(row, 'reject')}
                           disabled={actionId === row.id}
                           className="min-h-[40px] min-w-[72px] px-3 py-2 rounded-lg text-xs font-medium bg-red-500/20 text-red-300 hover:bg-red-500/30 border border-red-500/30 disabled:opacity-50 touch-manipulation"
                         >
-                          ไม่อนุมัติ
+                          {row.status === 'cancel_requested' ? 'ไม่อนุมัติยกเลิก' : 'ไม่อนุมัติ'}
                         </button>
                       </div>
                     </td>

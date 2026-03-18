@@ -33,10 +33,15 @@ function formatThaiDate(dateStr: string): string {
   return d.toLocaleDateString('th-TH', { timeZone: 'Asia/Bangkok', dateStyle: 'short' });
 }
 
+/** แสดงวัน + ชม. โดย 8 ชม. ถือเป็น 1 วัน (เช่น 8 ชม. แสดงเป็น "1 วัน") */
 function formatDaysHours(days: number, hours: number): string {
+  const d = Math.floor(Number(days ?? 0));
   const h = Number(hours ?? 0);
-  if (h > 0) return `${days} วัน ${h} ชม.`;
-  return `${days} วัน`;
+  const totalHours = d * 8 + h;
+  const displayDays = Math.floor(totalHours / 8);
+  const displayHours = Math.round((totalHours % 8) * 100) / 100;
+  if (displayHours > 0) return `${displayDays} วัน ${displayHours} ชม.`;
+  return `${displayDays} วัน`;
 }
 
 /** เวลาที่ยื่นคำขอลา (จาก created_at) แสดงเป็น 24 ชม. เช่น 13.00 */
@@ -433,21 +438,36 @@ const AdminLeavePage: React.FC = () => {
     setReason('');
   };
 
-  const handleCancelRequest = async (id: string) => {
+  const handleCancelRequest = async (row: LeaveRequestRow) => {
     setCancelError(null);
-    setCancellingId(id);
-    const { data, error } = await supabase.from('leave_requests').update({ status: 'cancelled' }).eq('id', id).select('id');
+    setCancellingId(row.id);
+    const nextStatus = row.status === 'approved' ? 'cancel_requested' : 'cancelled';
+    const { data, error } = await supabase
+      .from('leave_requests')
+      .update({ status: nextStatus })
+      .eq('id', row.id)
+      .select('id, status');
     setCancellingId(null);
     if (error) {
       setCancelError(error.message || 'ยกเลิกไม่สำเร็จ กรุณาลองใหม่');
       return;
     }
     if (!data || data.length === 0) {
-      setCancelError('ยกเลิกไม่สำเร็จ (ไม่มีสิทธิ์หรือไม่พบแถว) — ตรวจสอบว่าเป็นคำขอของตัวเองและสถานะรออนุมัติ');
+      setCancelError(
+        row.status === 'approved'
+          ? 'ส่งคำขอยกเลิกไม่สำเร็จ (ไม่มีสิทธิ์หรือไม่พบแถว) — ตรวจสอบว่าเป็นคำขอของตัวเองและสถานะอนุมัติแล้ว'
+          : 'ยกเลิกไม่สำเร็จ (ไม่มีสิทธิ์หรือไม่พบแถว) — ตรวจสอบว่าเป็นคำขอของตัวเองและสถานะรออนุมัติ'
+      );
       return;
     }
-    setMyLeaveList((prev) => prev.filter((r) => r.id !== id));
-    setLeaveList((prev) => prev.filter((r) => r.id !== id));
+    if (nextStatus === 'cancelled') {
+      setMyLeaveList((prev) => prev.filter((r) => r.id !== row.id));
+      setLeaveList((prev) => prev.filter((r) => r.id !== row.id));
+      return;
+    }
+    // cancel_requested: อัปเดตสถานะใน list เพื่อรอแอดมินอนุมัติ
+    setMyLeaveList((prev) => prev.map((r) => (r.id === row.id ? { ...r, status: 'cancel_requested' } : r)));
+    setLeaveList((prev) => prev.map((r) => (r.id === row.id ? { ...r, status: 'cancel_requested' } : r)));
   };
 
   return (
@@ -662,17 +682,17 @@ const AdminLeavePage: React.FC = () => {
               <p className="text-red-400">{cancelError}</p>
               <p className="text-gray-500">ให้เปิด Supabase → SQL Editor แล้วรันไฟล์ <code className="bg-white/10 px-1 rounded">supabase/fix_leave_cancel_policy.sql</code> หรือรันคำสั่งด้านล่าง (รวมแก้ constraint ให้รองรับสถานะ ยกเลิกแล้ว):</p>
               <pre className="text-xs bg-black/30 p-3 rounded-lg overflow-x-auto text-gray-300 whitespace-pre">
-{`-- แก้ constraint ให้มี 'cancelled'
+{`-- แก้ constraint ให้มี 'cancelled' และ 'cancel_requested'
 alter table public.leave_requests drop constraint if exists leave_requests_status_check;
 alter table public.leave_requests add constraint leave_requests_status_check
-  check (status in ('pending', 'approved', 'rejected', 'cancelled'));
+  check (status in ('pending', 'approved', 'rejected', 'cancelled', 'cancel_requested'));
 
 -- RLS ให้ผู้ใช้ยกเลิกคำขอของตัวเองได้
 drop policy if exists "Allow update own leave_requests cancel" on public.leave_requests;
 create policy "Allow update own leave_requests cancel"
   on public.leave_requests for update
-  using (auth.uid() = user_id and status = 'pending')
-  with check (auth.uid() = user_id and status = 'cancelled');`}
+  using (auth.uid() = user_id and status in ('pending','approved'))
+  with check (auth.uid() = user_id and status in ('cancelled','cancel_requested'));`}
               </pre>
             </div>
           )}
@@ -719,21 +739,37 @@ create policy "Allow update own leave_requests cancel"
                                 ? 'text-red-400'
                                 : row.status === 'cancelled'
                                   ? 'text-gray-500'
-                                  : 'text-amber-400'
+                                  : row.status === 'cancel_requested'
+                                    ? 'text-amber-300'
+                                    : 'text-amber-400'
                           }
                         >
-                          {row.status === 'approved' ? 'อนุมัติ' : row.status === 'rejected' ? 'ไม่อนุมัติ' : row.status === 'cancelled' ? 'ยกเลิกแล้ว' : 'รอตรวจ'}
+                          {row.status === 'approved'
+                            ? 'อนุมัติ'
+                            : row.status === 'rejected'
+                              ? 'ไม่อนุมัติ'
+                              : row.status === 'cancelled'
+                                ? 'ยกเลิกแล้ว'
+                                : row.status === 'cancel_requested'
+                                  ? 'ขอยกเลิก (รออนุมัติ)'
+                                  : 'รอตรวจ'}
                         </span>
                       </td>
                       <td className="px-3 py-2 text-right">
-                        {row.status === 'pending' && (
+                        {(row.status === 'pending' || row.status === 'approved' || row.status === 'cancel_requested') && (
                           <button
                             type="button"
-                            onClick={() => handleCancelRequest(row.id)}
-                            disabled={cancellingId === row.id}
+                            onClick={() => handleCancelRequest(row)}
+                            disabled={cancellingId === row.id || row.status === 'cancel_requested'}
                             className="min-h-[40px] min-w-[72px] px-3 py-2 rounded-lg text-xs font-medium bg-red-500/20 text-red-300 hover:bg-red-500/30 border border-red-500/30 disabled:opacity-50 touch-manipulation"
                           >
-                            {cancellingId === row.id ? 'กำลังยกเลิก...' : 'ยกเลิก'}
+                            {cancellingId === row.id
+                              ? 'กำลังดำเนินการ...'
+                              : row.status === 'approved'
+                                ? 'ขอยกเลิก'
+                                : row.status === 'cancel_requested'
+                                  ? 'รออนุมัติ'
+                                  : 'ยกเลิก'}
                           </button>
                         )}
                       </td>
@@ -1113,7 +1149,9 @@ alter table public.leave_requests add column if not exists approved_at timestamp
                           ? 'text-red-400'
                           : selectedLeave.status === 'cancelled'
                             ? 'text-gray-500'
-                            : 'text-amber-400'
+                            : selectedLeave.status === 'cancel_requested'
+                              ? 'text-amber-300'
+                              : 'text-amber-400'
                     }
                   >
                     {selectedLeave.status === 'approved'
@@ -1122,6 +1160,8 @@ alter table public.leave_requests add column if not exists approved_at timestamp
                         ? 'ไม่อนุมัติ'
                         : selectedLeave.status === 'cancelled'
                           ? 'ยกเลิกแล้ว'
+                          : selectedLeave.status === 'cancel_requested'
+                            ? 'ขอยกเลิก (รออนุมัติ)'
                           : 'รอตรวจ'}
                   </span>
                 </dd>

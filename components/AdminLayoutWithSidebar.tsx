@@ -56,10 +56,15 @@ const AdminLayoutWithSidebar: React.FC = () => {
     hours_remaining: 0,
   };
 
+  /** แสดงวัน + ชม. โดย 8 ชม. ถือเป็น 1 วัน (เช่น 8 ชม. แสดงเป็น "1 วัน") */
   const formatDaysHours = (days: number, hours: number): string => {
+    const d = Math.floor(Number(days ?? 0));
     const h = Number(hours ?? 0);
-    if (h > 0) return `${days} วัน ${h} ชม.`;
-    return `${days} วัน`;
+    const totalHours = d * 8 + h;
+    const displayDays = Math.floor(totalHours / 8);
+    const displayHours = Math.round((totalHours % 8) * 100) / 100;
+    if (displayHours > 0) return `${displayDays} วัน ${displayHours} ชม.`;
+    return `${displayDays} วัน`;
   };
 
   const fetchAdminUser = React.useCallback(async () => {
