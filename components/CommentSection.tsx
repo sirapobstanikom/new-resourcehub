@@ -59,26 +59,48 @@ function parseSITPostContent(content: string): SITParsedBlock[] | null {
   return result.length > 0 ? result : null;
 }
 
-/** เทมเพลตแสดงโพสต์ SIT ตามรูปแบบ worksheet (ไม่ใช้ภาพ) */
+/** เทมเพลตแสดงโพสต์ SIT ตามรูปแบบ worksheet (สร้างจากโค้ดเท่านั้น ไม่ใช้ภาพ) */
 const SITPostTemplate: React.FC<{ blocks: SITParsedBlock[] }> = ({ blocks }) => {
+  const [expanded, setExpanded] = useState(false);
   const order: string[] = ['Subtraction', 'Multiplication', 'Division', 'Task Unification', 'Attribute Dependency'];
   const displayed = order.filter((t) => blocks.some((b) => b.technique === t));
   const byTech = blocks.reduce<Record<string, SITParsedBlock>>((acc, b) => {
     acc[b.technique] = b;
     return acc;
   }, {});
+  const hasMultiple = displayed.length > 1;
+  const visibleTechs = hasMultiple && !expanded ? displayed.slice(0, 1) : displayed;
+  const remainingCount = displayed.length - 1;
 
   return (
-    <div className="bg-white rounded-2xl overflow-hidden border border-white/20 shadow-xl text-black">
-      <div className="bg-amber-400 px-4 py-3 text-center">
-        <p className="font-bold text-sm sm:text-base">คุณใช้ SIT ปรับรูปแบบหรือกระบวนการอะไร ในงานของคุณ</p>
+    <div className="bg-gradient-to-br from-amber-50 via-white to-amber-100 rounded-2xl overflow-hidden border border-amber-100 shadow-xl text-black">
+      <div className="bg-amber-400/95 px-4 py-3 sm:py-4 text-center border-b border-amber-300/80">
+        <p className="text-[11px] sm:text-xs font-semibold tracking-wide text-amber-950 uppercase">
+          Systematic Inventive Thinking (SIT)
+        </p>
+        <p className="mt-1 text-sm sm:text-lg font-bold leading-snug text-amber-950">
+          คุณใช้ SIT ปรับรูปแบบหรือกระบวนการอะไร
+          <span className="hidden sm:inline"> ในงานของคุณ</span>
+        </p>
+        <p className="mt-1 text-[11px] sm:text-xs text-amber-950/90">
+          เติมตัวอย่างจากงานจริงของคุณ เพื่อเก็บเป็นคลังกรณีศึกษาใน MindDojo
+        </p>
       </div>
-      <div className="bg-amber-300/90 px-3 py-2 flex items-center gap-2">
-        <span className="text-red-600" aria-hidden>✓</span>
-        <p className="text-xs sm:text-sm font-medium">เลือก SIT อย่างน้อย 1 ตัว ที่คุณได้นำเอาไปใช้ในการทำงานจริง</p>
+      <div className="bg-amber-200/90 px-3 sm:px-4 py-2 flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-2 border-b border-amber-300/80">
+        <div className="inline-flex items-center gap-1.5">
+          <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-white text-[10px] font-bold text-red-600 border border-red-300" aria-hidden>
+            !
+          </span>
+          <p className="text-[11px] sm:text-xs font-semibold text-amber-950">
+            STEP 1:
+          </p>
+        </div>
+        <p className="text-[11px] sm:text-xs text-amber-950">
+          เลือกเทคนิค SIT อย่างน้อย 1 ตัว ที่คุณได้นำไปใช้กับงานจริงของคุณ
+        </p>
       </div>
       <div className="p-3 sm:p-4 space-y-4">
-        {displayed.map((tech) => {
+        {visibleTechs.map((tech) => {
           const block = byTech[tech];
           const question = SIT_GUIDING_QUESTIONS[tech] || '';
           if (!block) return null;
@@ -112,6 +134,17 @@ const SITPostTemplate: React.FC<{ blocks: SITParsedBlock[] }> = ({ blocks }) => 
             </div>
           );
         })}
+        {hasMultiple && (
+          <div className="flex justify-center pt-1">
+            <button
+              type="button"
+              onClick={() => setExpanded((e) => !e)}
+              className="text-sm font-medium text-amber-700 hover:text-amber-900 py-2 px-4 rounded-lg bg-amber-100 hover:bg-amber-200 transition-colors"
+            >
+              {expanded ? 'ย่อ' : `ดูเพิ่มเติม (อีก ${remainingCount} เทคนิค)`}
+            </button>
+          </div>
+        )}
       </div>
       <div className="px-4 py-2 flex justify-end items-center gap-1 bg-amber-50/80 border-t border-amber-100">
         <span className="text-xs font-bold text-amber-800">MindDojo</span>
@@ -119,6 +152,32 @@ const SITPostTemplate: React.FC<{ blocks: SITParsedBlock[] }> = ({ blocks }) => 
     </div>
   );
 };
+
+/** สติกเกอร์ให้เลือกใส่ในคอมเมนต์ (ทุกช่องตอบ) */
+const COMMENT_STICKERS = ['👍', '❤️', '😂', '🔥', '👏', '💡', '✨', '🎯', '🙏', '⭐', '💪', '🙌', '👋', '😊', '🌟'];
+
+const StickerBar: React.FC<{
+  onSelect: (sticker: string) => void;
+  className?: string;
+}> = ({ onSelect, className = '' }) => (
+  <div className={`flex items-center gap-1 flex-wrap ${className}`}>
+    <span className="text-xs text-gray-400 mr-1">สติกเกอร์:</span>
+    <div className="flex flex-wrap gap-1">
+      {COMMENT_STICKERS.map((sticker) => (
+        <button
+          key={sticker}
+          type="button"
+          onClick={() => onSelect(sticker)}
+          className="w-8 h-8 flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 border border-white/10 text-lg transition-colors"
+          title="เพิ่มสติกเกอร์"
+          aria-label={`เพิ่มสติกเกอร์ ${sticker}`}
+        >
+          {sticker}
+        </button>
+      ))}
+    </div>
+  </div>
+);
 
 const readFileAsDataUrl = (file: File): Promise<string> =>
   new Promise((resolve, reject) => {
@@ -288,6 +347,7 @@ const PostItem: React.FC<PostItemProps> = ({ post, toolId, userAvatar, userName,
             placeholder="Type your reply..."
             className="w-full bg-neutral-800 border border-white/10 rounded-2xl p-4 text-white focus:outline-none focus:ring-2 focus:ring-yellow-400 text-sm min-h-[100px] resize-none"
           />
+          <StickerBar onSelect={(sticker) => setReplyText((prev) => prev + sticker)} />
           <div className="flex flex-wrap items-center gap-2">
             <label className="cursor-pointer bg-white/10 hover:bg-white/15 border border-white/10 rounded-xl px-4 py-2 text-xs font-bold text-gray-300 uppercase tracking-wider transition-colors">
               <input type="file" accept="image/*" className="hidden" onChange={handleReplyImageChange} />

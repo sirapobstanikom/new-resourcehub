@@ -277,7 +277,7 @@ export const JOURNEY_DATA: JourneyCategory[] = [
           { label: 'HBR: Finding Your Innovation Sweet Spot', url: 'https://hbr.org/2017/03/finding-your-innovation-sweet-spot' }
         ],
         templateUrl: '',
-        exampleImage: 'https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=800&auto=format&fit=crop'
+        exampleImage: 'https://static.wixstatic.com/media/a57aeb_eecd89ff017d407b83a3ab43331a0411~mv2.jpg'
       }
     ]
   }
