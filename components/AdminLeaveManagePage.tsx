@@ -23,6 +23,10 @@ type LeaveRequestRow = {
   start_time: string | null;
   end_time: string | null;
   reason: string | null;
+  cancel_reason?: string | null;
+  cancel_decided_by_email?: string | null;
+  cancel_decided_at?: string | null;
+  cancel_decision?: string | null;
   status: string;
   created_at: string;
 };
@@ -79,6 +83,9 @@ const AdminLeaveManagePage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [actionId, setActionId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [debugLogs, setDebugLogs] = useState<
+    Array<{ at: string; level: 'info' | 'warn' | 'error'; text: string }>
+  >([]);
 
   const isAdmin = user?.email != null && ADMIN_LEAVE_MANAGER_EMAILS.includes(user.email);
 
@@ -89,7 +96,7 @@ const AdminLeaveManagePage: React.FC = () => {
     }
     supabase
       .from('leave_requests')
-      .select('id, user_email, user_display_name, leave_type, start_date, end_date, start_time, end_time, reason, status, created_at')
+      .select('id, user_email, user_display_name, leave_type, start_date, end_date, start_time, end_time, reason, cancel_reason, cancel_decided_by_email, cancel_decided_at, cancel_decision, status, created_at')
       .in('status', ['pending', 'cancel_requested'])
       .order('created_at', { ascending: true })
       .then(({ data, error: err }) => {
@@ -101,6 +108,15 @@ const AdminLeaveManagePage: React.FC = () => {
         setPendingList((data as LeaveRequestRow[]) ?? []);
       });
   }, [isAdmin, actionId]);
+
+  const pushDebugLog = (level: 'info' | 'warn' | 'error', label: string, details: Record<string, unknown>) => {
+    const text = `${label} ${JSON.stringify(details)}`;
+    setDebugLogs((prev) => {
+      const next = [...prev, { at: new Date().toISOString(), level, text }];
+      // กัน state โตเกินไป
+      return next.length > 200 ? next.slice(next.length - 200) : next;
+    });
+  };
 
   const handleStatus = async (
     row: LeaveRequestRow,
@@ -114,11 +130,86 @@ const AdminLeaveManagePage: React.FC = () => {
         ? (action === 'approve' ? 'cancelled' : 'approved')
         : (action === 'approve' ? 'approved' : 'rejected');
 
-    const payload: { status: 'approved' | 'rejected' | 'cancelled'; approved_by_email?: string; approved_at?: string } = { status: nextStatus };
+    // Log รายละเอียดการตัดสินใจของแอดมิน
+    const requestedLeaveRefund = row.leave_type !== 'wfh' && isCancelFlow && action === 'approve';
+    const computed = requestedLeaveRefund ? getLeaveDaysAndHours(row) : { days: 0, hours: 0 };
+    console.log('[LeaveAdminDecision] action', {
+      leave_request_id: row.id,
+      user_email: row.user_email,
+      user_display_name: row.user_display_name,
+      leave_type: row.leave_type,
+      start_date: row.start_date,
+      end_date: row.end_date,
+      start_time: row.start_time,
+      end_time: row.end_time,
+      leave_reason: row.reason,
+      prev_status: row.status,
+      is_cancel_flow: isCancelFlow,
+      admin_action: action,
+      next_status: nextStatus,
+      admin_email: user?.email ?? null,
+      at: new Date().toISOString(),
+      refund_days: computed.days,
+      refund_hours: computed.hours,
+    });
+    const cancelActionDetails = isCancelFlow
+      ? {
+          leave_request_id: row.id,
+          'ผู้ที่ขอยกเลิก': row.user_email,
+          'เหตุผลที่ขอยกเลิก': row.cancel_reason,
+          'ผู้อนุมัติ': user?.email ?? null,
+          'การตัดสินใจ': action === 'approve' ? 'อนุมัติยกเลิก' : 'ไม่อนุมัติยกเลิก',
+          prev_status: row.status,
+          next_status: nextStatus,
+          leave_type: row.leave_type,
+          start_date: row.start_date,
+          end_date: row.end_date,
+          start_time: row.start_time,
+          end_time: row.end_time,
+        }
+      : {
+          leave_request_id: row.id,
+          user_email: row.user_email,
+          user_display_name: row.user_display_name,
+          leave_type: row.leave_type,
+          start_date: row.start_date,
+          end_date: row.end_date,
+          start_time: row.start_time,
+          end_time: row.end_time,
+          leave_reason: row.reason,
+          prev_status: row.status,
+          is_cancel_flow: isCancelFlow,
+          admin_action: action,
+          next_status: nextStatus,
+          admin_email: user?.email ?? null,
+          refund_days: computed.days,
+          refund_hours: computed.hours,
+        };
+
+    pushDebugLog(
+      'info',
+      isCancelFlow ? '[รายการลาที่ขอยกเลิก]' : '[LeaveAdminDecision] action',
+      cancelActionDetails
+    );
+
+    const payload: {
+      status: 'approved' | 'rejected' | 'cancelled';
+      approved_by_email?: string;
+      approved_at?: string;
+      cancel_decided_by_email?: string | null;
+      cancel_decided_at?: string | null;
+      cancel_decision?: string | null;
+    } = { status: nextStatus };
     // บันทึกผู้อนุมัติเฉพาะตอน "อนุมัติคำขอลา" (ไม่เขียนทับตอนอนุมัติยกเลิก)
     if (!isCancelFlow && action === 'approve' && user?.email) {
       payload.approved_by_email = user.email;
       payload.approved_at = new Date().toISOString();
+    }
+    // เก็บผู้อนุมัติ/ผู้ไม่อนุมัติการยกเลิกลง Supabase
+    if (isCancelFlow) {
+      payload.cancel_decided_by_email = user?.email ?? null;
+      payload.cancel_decided_at = new Date().toISOString();
+      payload.cancel_decision = action;
     }
     const { data, error: err } = await supabase
       .from('leave_requests')
@@ -127,12 +218,53 @@ const AdminLeaveManagePage: React.FC = () => {
       .select('id');
     setActionId(null);
     if (err) {
+      console.error('[LeaveAdminDecision] update failed', {
+        leave_request_id: row.id,
+        prev_status: row.status,
+        next_status: nextStatus,
+        admin_email: user?.email ?? null,
+        error: err.message,
+      });
       setError(err.message || 'ไม่สามารถอัปเดตได้ กรุณาตรวจสอบว่าเข้าสู่ระบบด้วยอีเมลผู้จัดการลา (pink/koy/tonji@minddojo.me) และมี policy อัปเดต leave_requests ใน Supabase');
       return;
     }
     if (!data || data.length === 0) {
       setError('อัปเดตไม่สำเร็จ (ไม่มีสิทธิ์หรือไม่พบแถว) — ตรวจสอบว่าเข้าสู่ระบบด้วยอีเมลผู้จัดการลา (pink/koy/tonji@minddojo.me) และรัน policy ใน Supabase แล้ว');
       return;
+    }
+
+    // อัปเดต audit row ของคำขอยกเลิกที่กำลังรออนุมัติ (เก็บประวัติทุกครั้ง)
+    if (isCancelFlow) {
+      const auditStatus = action === 'approve' ? 'cancelled' : 'rejected';
+      const auditDecision = action === 'approve' ? 'approve' : 'reject';
+
+      const { data: auditRow, error: auditFetchErr } = await supabase
+        .from('leave_cancel_audits')
+        .select('id')
+        .eq('leave_request_id', row.id)
+        .eq('status', 'cancel_requested')
+        .order('requested_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (auditFetchErr) {
+        console.warn('[LeaveCancelAudit] fetch failed', { leave_request_id: row.id, error: auditFetchErr.message });
+      }
+
+      const auditId = auditRow?.id as string | undefined;
+      if (auditId) {
+        await supabase
+          .from('leave_cancel_audits')
+          .update({
+            status: auditStatus,
+            decided_by_email: user?.email ?? null,
+            decided_at: new Date().toISOString(),
+            decision: auditDecision,
+          })
+          .eq('id', auditId);
+      } else {
+        console.warn('[LeaveCancelAudit] no audit row found to update', { leave_request_id: row.id });
+      }
     }
 
     // อนุมัติยกเลิก: คืนวันลา/ชั่วโมงกลับเข้า admin_users (เฉพาะประเภทที่มี balance)
@@ -150,13 +282,68 @@ const AdminLeaveManagePage: React.FC = () => {
           const hourKey = row.leave_type === 'personal' ? 'hours_personal_remaining' : row.leave_type === 'sick' ? 'hours_sick_remaining' : row.leave_type === 'vacation' ? 'hours_annual_remaining' : 'hours_unpaid_remaining';
           const newDays = (Number(u[dayKey] ?? 0) + days);
           const newHours = (Number(u[hourKey] ?? 0) + hours);
+
+          console.log('[LeaveAdminDecision] refund balance', {
+            leave_request_id: row.id,
+            user_email: row.user_email,
+            dayKey,
+            hourKey,
+            add_days: days,
+            add_hours: hours,
+            old_days: u[dayKey],
+            old_hours: u[hourKey],
+            new_days: newDays,
+            new_hours: newHours,
+            admin_email: user?.email ?? null,
+            at: new Date().toISOString(),
+          });
+          pushDebugLog('info', '[LeaveAdminDecision] refund balance', {
+            leave_request_id: row.id,
+            user_email: row.user_email,
+            dayKey,
+            hourKey,
+            add_days: days,
+            add_hours: hours,
+            old_days: u[dayKey],
+            old_hours: u[hourKey],
+            new_days: newDays,
+            new_hours: newHours,
+            admin_email: user?.email ?? null,
+          });
+
           await supabase
             .from('admin_users')
             .update({ [dayKey]: newDays, [hourKey]: newHours })
             .eq('email', row.user_email);
+        } else {
+          console.warn('[LeaveAdminDecision] refund skipped (no admin_users row or userErr)', {
+            leave_request_id: row.id,
+            user_email: row.user_email,
+            userErr: userErr?.message ?? null,
+            at: new Date().toISOString(),
+          });
+          pushDebugLog('warn', '[LeaveAdminDecision] refund skipped', {
+            leave_request_id: row.id,
+            user_email: row.user_email,
+            userErr: userErr?.message ?? null,
+          });
         }
       }
     }
+
+    console.log('[LeaveAdminDecision] done', {
+      leave_request_id: row.id,
+      prev_status: row.status,
+      next_status: nextStatus,
+      admin_email: user?.email ?? null,
+      at: new Date().toISOString(),
+    });
+    pushDebugLog('info', '[LeaveAdminDecision] done', {
+      leave_request_id: row.id,
+      prev_status: row.status,
+      next_status: nextStatus,
+      admin_email: user?.email ?? null,
+    });
 
     setPendingList((prev) => prev.filter((r) => r.id !== row.id));
   };
@@ -236,8 +423,11 @@ const AdminLeaveManagePage: React.FC = () => {
                     </td>
                     <td className="px-3 sm:px-4 py-2 sm:py-3 text-gray-300 text-xs sm:text-sm">{formatThaiDate(row.start_date)}</td>
                     <td className="px-3 sm:px-4 py-2 sm:py-3 text-gray-300 text-xs sm:text-sm">{formatThaiDate(row.end_date)}</td>
-                    <td className="px-3 sm:px-4 py-2 sm:py-3 text-gray-400 text-xs max-w-[160px] truncate" title={row.reason || ''}>
-                      {row.reason || '—'}
+                    <td
+                      className="px-3 sm:px-4 py-2 sm:py-3 text-gray-400 text-xs max-w-[160px] truncate"
+                      title={(row.status === 'cancel_requested' ? row.cancel_reason : row.reason) || ''}
+                    >
+                      {(row.status === 'cancel_requested' ? row.cancel_reason : row.reason) || '—'}
                     </td>
                     <td className="px-3 sm:px-4 py-2 sm:py-3 text-right">
                       <div className="flex items-center justify-end gap-2">
@@ -266,6 +456,25 @@ const AdminLeaveManagePage: React.FC = () => {
           </div>
           </>
         )}
+
+        <section className="rounded-2xl border border-white/10 bg-white/5 p-4 sm:p-6">
+          <h3 className="font-bold text-gray-300 mb-2">Leave Debug Logs</h3>
+          <p className="text-xs text-gray-500 mb-3">แสดง log เฉพาะตอนแอดมินทำการอนุมัติ/ไม่อนุมัติ (ไม่ใช่ console)</p>
+          <div className="max-h-64 overflow-auto rounded-xl bg-black/30 border border-white/10 p-3 font-mono text-[11px] text-gray-300 space-y-2">
+            {debugLogs.length === 0 ? (
+              <div className="text-gray-500">ยังไม่มี log</div>
+            ) : (
+              debugLogs.map((l, idx) => (
+                <div key={`${l.at}-${idx}`} className="break-words whitespace-pre-wrap">
+                  <span className={l.level === 'error' ? 'text-red-400' : l.level === 'warn' ? 'text-amber-300' : 'text-emerald-300'}>
+                    [{l.level.toUpperCase()}]
+                  </span>{' '}
+                  {l.at} {l.text}
+                </div>
+              ))
+            )}
+          </div>
+        </section>
       </main>
     </div>
   );

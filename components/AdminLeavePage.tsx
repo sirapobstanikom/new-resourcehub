@@ -21,10 +21,32 @@ type LeaveRequestRow = {
   start_time: string | null;
   end_time: string | null;
   reason: string | null;
+  cancel_reason?: string | null;
+  cancel_decided_by_email?: string | null;
+  cancel_decided_at?: string | null;
+  cancel_decision?: string | null;
   status: string;
   approved_by_email: string | null;
   approved_at: string | null;
   created_at: string;
+};
+
+type LeaveCancelAuditRow = {
+  id: string;
+  leave_request_id: string;
+  user_id?: string | null;
+  user_email: string;
+  leave_type: string;
+  start_date: string;
+  end_date: string;
+  start_time: string | null;
+  end_time: string | null;
+  cancel_reason: string | null;
+  status: 'cancel_requested' | 'cancelled' | 'rejected';
+  requested_at: string;
+  decided_by_email: string | null;
+  decided_at: string | null;
+  decision: string | null;
 };
 
 function formatThaiDate(dateStr: string): string {
@@ -224,9 +246,54 @@ const AdminLeavePage: React.FC = () => {
   const [wfhUsedThisMonth, setWfhUsedThisMonth] = useState<boolean>(false);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [cancelError, setCancelError] = useState<string | null>(null);
+  const [debugLogs, setDebugLogs] = useState<
+    Array<{ at: string; level: 'info' | 'warn' | 'error'; text: string }>
+  >([]);
   const ROWS_PER_PAGE = 20;
   const [myLeavePage, setMyLeavePage] = useState(1);
   const [approvedPage, setApprovedPage] = useState(1);
+
+  const [cancelAudits, setCancelAudits] = useState<LeaveCancelAuditRow[]>([]);
+  const [cancelAuditsLoading, setCancelAuditsLoading] = useState(false);
+  const [cancelAuditsError, setCancelAuditsError] = useState<string | null>(null);
+  const [cancelAuditsRefreshKey, setCancelAuditsRefreshKey] = useState(0);
+
+  const pushDebugLog = (level: 'info' | 'warn' | 'error', label: string, details: Record<string, unknown>) => {
+    const text = `${label} ${JSON.stringify(details)}`;
+    setDebugLogs((prev) => {
+      const next = [...prev, { at: new Date().toISOString(), level, text }];
+      return next.length > 200 ? next.slice(next.length - 200) : next;
+    });
+  };
+
+  // รวมยอดคงเหลือในรูป "ชั่วโมงเทียบเท่า" โดย 1 วัน = 8 ชั่วโมง
+  // เพื่อให้กรณีเดิมที่ระบบเก็บ days+hours สามารถตัดสินว่า "คงเหลือ 0" ได้ตรงกันทั้ง UI และ logic
+  const getLeaveRemainingHoursEquivalent = (leaveTypeId: string): number => {
+    if (!leaveBalance) return 0;
+    switch (leaveTypeId) {
+      case 'personal':
+        return (leaveBalance.personal_remaining ?? 0) * 8 + (leaveBalance.hours_personal_remaining ?? 0);
+      case 'sick':
+        return (leaveBalance.sick_remaining ?? 0) * 8 + (leaveBalance.hours_sick_remaining ?? 0);
+      case 'vacation':
+        return (leaveBalance.annual_remaining ?? 0) * 8 + (leaveBalance.hours_annual_remaining ?? 0);
+      case 'unpaid':
+        return (leaveBalance.unpaid_remaining ?? 0) * 8 + (leaveBalance.hours_unpaid_remaining ?? 0);
+      case 'wfh':
+        return wfhUsedThisMonth ? 0 : 8; // WFH 1 วัน/เดือน = 8 ชั่วโมง
+      default:
+        return 0;
+    }
+  };
+
+  // ถ้าประเภทที่เลือกอยู่ "คงเหลือ 0" แล้ว ให้สลับไปประเภทอื่นอัตโนมัติ
+  useEffect(() => {
+    if (!leaveBalance) return;
+    const currentRemaining = getLeaveRemainingHoursEquivalent(leaveType);
+    if (currentRemaining > 0) return;
+    const firstAvailable = LEAVE_TYPES.map((t) => t.id).find((id) => getLeaveRemainingHoursEquivalent(id) > 0);
+    if (firstAvailable) setLeaveType(firstAvailable);
+  }, [leaveBalance, wfhUsedThisMonth]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const currentYear = new Date().getFullYear();
   const now = new Date();
@@ -244,7 +311,7 @@ const AdminLeavePage: React.FC = () => {
     setLeaveListError(null);
     supabase
       .from('leave_requests')
-      .select('id, user_email, user_display_name, leave_type, start_date, end_date, start_time, end_time, reason, status, approved_by_email, approved_at, created_at')
+      .select('id, user_email, user_display_name, leave_type, start_date, end_date, start_time, end_time, reason, cancel_reason, cancel_decided_by_email, cancel_decided_at, cancel_decision, status, approved_by_email, approved_at, created_at')
       .order('created_at', { ascending: false })
       .limit(100)
       .then(({ data, error }) => {
@@ -275,7 +342,7 @@ const AdminLeavePage: React.FC = () => {
     setMyLeaveListLoading(true);
     supabase
       .from('leave_requests')
-      .select('id, user_email, user_display_name, leave_type, start_date, end_date, start_time, end_time, reason, status, approved_by_email, approved_at, created_at')
+      .select('id, user_email, user_display_name, leave_type, start_date, end_date, start_time, end_time, reason, cancel_reason, cancel_decided_by_email, cancel_decided_at, cancel_decision, status, approved_by_email, approved_at, created_at')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .then(({ data, error }) => {
@@ -284,6 +351,43 @@ const AdminLeavePage: React.FC = () => {
         setMyLeaveList((data as LeaveRequestRow[]) ?? []);
       });
   }, [user?.id, submitted]);
+
+  // โหลดประวัติคำขอยกเลิก (ทุกครั้ง/ทุกคน) จาก audit table
+  const fetchCancelAudits = async () => {
+    if (!isSupabaseConfigured) return;
+    setCancelAuditsLoading(true);
+    setCancelAuditsError(null);
+    const { data, error } = await supabase
+      .from('leave_cancel_audits')
+      .select('id, leave_request_id, user_id, user_email, leave_type, start_date, end_date, start_time, end_time, cancel_reason, status, requested_at, decided_by_email, decided_at, decision')
+      .order('requested_at', { ascending: false })
+      .limit(200);
+    setCancelAuditsLoading(false);
+    if (error) {
+      setCancelAuditsError(error.message);
+      return;
+    }
+    setCancelAudits((data as LeaveCancelAuditRow[]) ?? []);
+  };
+
+  useEffect(() => {
+    fetchCancelAudits();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isSupabaseConfigured, cancelAuditsRefreshKey]);
+
+  // รีเฟรชถ้ายังมีรายการที่รออนุมัติยกเลิก เพื่อให้ผู้อนุมัติแสดงทันที
+  useEffect(() => {
+    const hasPending = cancelAudits.some((a) => a.status === 'cancel_requested');
+    if (!hasPending) return;
+
+    const t = window.setInterval(() => {
+      fetchCancelAudits();
+    }, 8000);
+
+    return () => window.clearInterval(t);
+  }, [cancelAudits]);
+
+  // (ส่วนการรีเฟรช/แสดงรายการยกเลิกย้ายไปใช้ audit table แล้ว)
 
   useEffect(() => {
     if (!isSupabaseConfigured || !user?.email) return;
@@ -374,6 +478,10 @@ const AdminLeavePage: React.FC = () => {
       setSubmitError('ยังไม่ได้ตั้งค่า Supabase');
       return;
     }
+    if (!leaveBalance) {
+      setSubmitError('กำลังโหลดข้อมูลคงเหลือ กรุณาลองใหม่อีกครั้ง');
+      return;
+    }
     const today = new Date().toISOString().slice(0, 10);
     if (leaveType !== 'sick' && (startDate < today || endDate < today)) {
       setSubmitError('เฉพาะลาป่วยเท่านั้นที่ยื่นย้อนหลังได้');
@@ -383,6 +491,17 @@ const AdminLeavePage: React.FC = () => {
       setSubmitError('ห้ามลาวันเสาร์และอาทิตย์ (เวลาทำงาน จันทร์–ศุกร์)');
       return;
     }
+
+    // กันส่งคำขอลาของประเภทที่คงเหลือ 0 แล้ว
+    if (leaveBalance) {
+      const remaining = getLeaveRemainingHoursEquivalent(leaveType);
+      if (remaining <= 0) {
+        const label = LEAVE_TYPES.find((t) => t.id === leaveType)?.label ?? leaveType;
+        setSubmitError(`${label} คงเหลือ 0 แล้ว กรุณาเลือกประเภทอื่น`);
+        return;
+      }
+    }
+
     if (leaveType === 'wfh') {
       if (startDate !== endDate) {
         setSubmitError('ลาประเภท Work from Home ได้แค่ 1 วันต่อเดือน กรุณาเลือกวันเริ่มต้นและวันสิ้นสุดเป็นวันเดียวกัน');
@@ -442,13 +561,102 @@ const AdminLeavePage: React.FC = () => {
     setCancelError(null);
     setCancellingId(row.id);
     const nextStatus = row.status === 'approved' ? 'cancel_requested' : 'cancelled';
+
+    // ให้ผู้ใช้กรอกเหตุผลที่ขอยกเลิก เพื่อให้แอดมินเห็นและใช้ทำ log ตรวจสอบย้อนหลัง
+    const cancelReasonInput = window.prompt('เหตุผลที่ขอยกเลิก (จะแสดงให้แอดมิน)');
+    if (cancelReasonInput === null) {
+      setCancellingId(null);
+      return; // ยกเลิกการทำรายการ
+    }
+    const cancelReason = cancelReasonInput.trim();
+    if (!cancelReason) {
+      setCancelError('กรุณากรอกเหตุผลที่ขอยกเลิก');
+      setCancellingId(null);
+      return;
+    }
+
+    // Log รายละเอียดคำขอยกเลิก (สำหรับดีบัก/ตรวจสอบภายหลัง)
+    console.log('[LeaveCancel] request', {
+      leave_request_id: row.id,
+      leave_type: row.leave_type,
+      user_email: row.user_email,
+      start_date: row.start_date,
+      end_date: row.end_date,
+      start_time: row.start_time,
+      end_time: row.end_time,
+      cancel_reason: cancelReason,
+      prev_status: row.status,
+      next_status: nextStatus,
+      requested_by: user?.email ?? null,
+      at: new Date().toISOString(),
+    });
+    pushDebugLog('info', 'รายการลาที่ขอยกเลิก', {
+      leave_request_id: row.id,
+      leave_type: row.leave_type,
+      user_email: row.user_email,
+      start_date: row.start_date,
+      end_date: row.end_date,
+      start_time: row.start_time,
+      end_time: row.end_time,
+      'ผู้ที่ขอยกเลิก': row.user_email,
+      'เหตุผลที่ขอยกเลิก': cancelReason,
+      prev_status: row.status,
+      next_status: nextStatus,
+      'ผู้ทำรายการ': user?.email ?? null,
+    });
+
+    // เก็บประวัติ "ทุกครั้งที่ขอยกเลิก" ลง audit table
+    const auditPayload = {
+      leave_request_id: row.id,
+      user_id: user?.id ?? null,
+      user_email: row.user_email,
+      leave_type: row.leave_type,
+      start_date: row.start_date,
+      end_date: row.end_date,
+      start_time: row.start_time,
+      end_time: row.end_time,
+      cancel_reason: cancelReason,
+      status: nextStatus === 'cancel_requested' ? 'cancel_requested' : 'cancelled',
+      decided_by_email: nextStatus === 'cancelled' ? user?.email ?? null : null,
+      decided_at: nextStatus === 'cancelled' ? new Date().toISOString() : null,
+      decision: nextStatus === 'cancelled' ? 'self_cancel' : null,
+    };
+
+    const { error: auditErr } = await supabase.from('leave_cancel_audits').insert(auditPayload);
+    if (auditErr) {
+      setCancelError(auditErr.message || 'บันทึกคำขอยกเลิกไม่สำเร็จ กรุณาลองใหม่');
+      setCancellingId(null);
+      return;
+    }
+
+    const decidedFields =
+      nextStatus === 'cancelled'
+        ? { cancel_decided_by_email: user?.email ?? null, cancel_decided_at: new Date().toISOString(), cancel_decision: 'self_cancel' }
+        : { cancel_decided_by_email: null, cancel_decided_at: null, cancel_decision: null };
+
     const { data, error } = await supabase
       .from('leave_requests')
-      .update({ status: nextStatus })
+      .update({
+        status: nextStatus,
+        cancel_reason: cancelReason,
+        ...decidedFields,
+      })
       .eq('id', row.id)
       .select('id, status');
     setCancellingId(null);
     if (error) {
+      console.error('[LeaveCancel] request failed', {
+        leave_request_id: row.id,
+        prev_status: row.status,
+        next_status: nextStatus,
+        error: error.message,
+      });
+      pushDebugLog('error', '[LeaveCancel] request failed', {
+        leave_request_id: row.id,
+        prev_status: row.status,
+        next_status: nextStatus,
+        error: error.message,
+      });
       setCancelError(error.message || 'ยกเลิกไม่สำเร็จ กรุณาลองใหม่');
       return;
     }
@@ -458,16 +666,91 @@ const AdminLeavePage: React.FC = () => {
           ? 'ส่งคำขอยกเลิกไม่สำเร็จ (ไม่มีสิทธิ์หรือไม่พบแถว) — ตรวจสอบว่าเป็นคำขอของตัวเองและสถานะอนุมัติแล้ว'
           : 'ยกเลิกไม่สำเร็จ (ไม่มีสิทธิ์หรือไม่พบแถว) — ตรวจสอบว่าเป็นคำขอของตัวเองและสถานะรออนุมัติ'
       );
+      console.warn('[LeaveCancel] request no rows updated', {
+        leave_request_id: row.id,
+        prev_status: row.status,
+        next_status: nextStatus,
+        returned_rows: data?.length ?? 0,
+      });
+      pushDebugLog('warn', '[LeaveCancel] request no rows updated', {
+        leave_request_id: row.id,
+        prev_status: row.status,
+        next_status: nextStatus,
+        returned_rows: data?.length ?? 0,
+      });
       return;
     }
+
+    console.log('[LeaveCancel] request updated', {
+      leave_request_id: row.id,
+      prev_status: row.status,
+      next_status: nextStatus,
+      updated_rows: data.length,
+      at: new Date().toISOString(),
+    });
+    pushDebugLog('info', 'รายการลาที่ขอยกเลิก', {
+      leave_request_id: row.id,
+      prev_status: row.status,
+      next_status: nextStatus,
+      updated_rows: data.length,
+      'เหตุผลที่ขอยกเลิก': cancelReason,
+      'ผู้ที่ขอยกเลิก': row.user_email,
+    });
+
+    // รีเฟรชรายการยกเลิกจาก audit table
+    setCancelAuditsRefreshKey((k) => k + 1);
+
     if (nextStatus === 'cancelled') {
-      setMyLeaveList((prev) => prev.filter((r) => r.id !== row.id));
-      setLeaveList((prev) => prev.filter((r) => r.id !== row.id));
+      // เก็บไว้ใน state เพื่อให้กล่อง log แสดงได้ (ตารางหลักจะกรองออกเอง)
+      setMyLeaveList((prev) =>
+        prev.map((r) =>
+          r.id === row.id
+            ? {
+                ...r,
+                status: 'cancelled',
+                cancel_reason: cancelReason,
+                cancel_decided_by_email: null,
+                cancel_decided_at: null,
+                cancel_decision: null,
+              }
+            : r,
+        ),
+      );
+      setLeaveList((prev) =>
+        prev.map((r) =>
+          r.id === row.id
+            ? {
+                ...r,
+                status: 'cancelled',
+                cancel_reason: cancelReason,
+                cancel_decided_by_email: null,
+                cancel_decided_at: null,
+                cancel_decision: null,
+              }
+            : r,
+        ),
+      );
       return;
     }
+
     // cancel_requested: อัปเดตสถานะใน list เพื่อรอแอดมินอนุมัติ
-    setMyLeaveList((prev) => prev.map((r) => (r.id === row.id ? { ...r, status: 'cancel_requested' } : r)));
-    setLeaveList((prev) => prev.map((r) => (r.id === row.id ? { ...r, status: 'cancel_requested' } : r)));
+    setMyLeaveList((prev) =>
+      prev.map((r) =>
+        r.id === row.id
+          ? {
+              ...r,
+              status: 'cancel_requested',
+              cancel_reason: cancelReason,
+              cancel_decided_by_email: null,
+              cancel_decided_at: null,
+              cancel_decision: null,
+            }
+          : r,
+      ),
+    );
+    setLeaveList((prev) =>
+      prev.map((r) => (r.id === row.id ? { ...r, status: 'cancel_requested', cancel_reason: cancelReason } : r)),
+    );
   };
 
   return (
@@ -549,8 +832,14 @@ const AdminLeavePage: React.FC = () => {
               className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/20 text-white text-sm focus:outline-none focus:border-yellow-400"
             >
               {LEAVE_TYPES.map((t) => (
-                <option key={t.id} value={t.id} className="bg-neutral-900 text-white">
+                <option
+                  key={t.id}
+                  value={t.id}
+                  disabled={leaveBalance ? getLeaveRemainingHoursEquivalent(t.id) <= 0 : false}
+                  className="bg-neutral-900 text-white"
+                >
                   {t.label}
+                  {leaveBalance && getLeaveRemainingHoursEquivalent(t.id) <= 0 ? ' (คงเหลือ 0)' : ''}
                 </option>
               ))}
             </select>
@@ -1072,6 +1361,84 @@ alter table public.leave_requests add column if not exists approved_at timestamp
             </>
             );
           })()}
+        </section>
+
+        <section className="rounded-2xl border border-white/10 bg-white/5 p-3 sm:p-4">
+          <h3 className="font-bold text-gray-300 mb-2">รายการลาที่ขอยกเลิก</h3>
+          <p className="text-xs text-gray-500 mb-3">แสดงรายการขอยกเลิก (รออนุมัติ/ยกเลิกแล้ว) ของทุกคน</p>
+          <div className="rounded-xl border border-white/10 overflow-x-auto -mx-1 sm:mx-0">
+            {cancelAuditsLoading ? (
+              <div className="min-h-[70px] flex items-center justify-center text-gray-500 text-xs p-4">
+                กำลังโหลด...
+              </div>
+            ) : (
+              <table className="w-full text-left text-xs min-w-[880px]">
+                  <thead>
+                    <tr className="border-b border-white/10 bg-white/5">
+                      <th className="px-2 py-1.5 sm:px-2 sm:py-2 font-semibold text-gray-400">ประเภท</th>
+                      <th className="px-2 py-1.5 sm:px-2 sm:py-2 font-semibold text-gray-400">วันเริ่ม</th>
+                      <th className="px-2 py-1.5 sm:px-2 sm:py-2 font-semibold text-gray-400">วันสิ้นสุด</th>
+                      <th className="px-2 py-1.5 sm:px-2 sm:py-2 font-semibold text-gray-400">ช่วงเวลา</th>
+                      <th className="px-2 py-1.5 sm:px-2 sm:py-2 font-semibold text-gray-400">เหตุผลที่ขอยกเลิก</th>
+                      <th className="px-2 py-1.5 sm:px-2 sm:py-2 font-semibold text-gray-400">สถานะ</th>
+                      <th className="px-2 py-1.5 sm:px-2 sm:py-2 font-semibold text-gray-400">ผู้อนุมัติยกเลิก</th>
+                      <th className="px-2 py-1.5 sm:px-2 sm:py-2 font-semibold text-gray-400">วันที่อนุมัติ</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(cancelAudits ?? []).length === 0 ? (
+                      <tr>
+                        <td colSpan={8} className="px-2 py-3 text-center text-gray-500">
+                          ยังไม่มีรายการขอยกเลิก
+                        </td>
+                      </tr>
+                    ) : (
+                      (cancelAudits ?? []).map((row) => {
+                        const statusText =
+                          row.status === 'cancel_requested'
+                            ? 'ขอยกเลิก (รออนุมัติ)'
+                            : row.status === 'cancelled'
+                              ? 'ยกเลิกแล้ว'
+                              : 'ไม่อนุมัติยกเลิก';
+                        const statusClass =
+                          row.status === 'cancel_requested' ? 'text-amber-300' : 'text-gray-400';
+                        return (
+                          <tr key={row.id} className="border-b border-white/5 hover:bg-white/5">
+                            <td className="px-2 py-1.5 sm:px-2 sm:py-2 text-gray-300">
+                              {LEAVE_TYPES.find((t) => t.id === row.leave_type)?.label ?? row.leave_type}
+                            </td>
+                            <td className="px-2 py-1.5 sm:px-2 sm:py-2 text-gray-300">
+                              {formatThaiDate(row.start_date)}
+                            </td>
+                            <td className="px-2 py-1.5 sm:px-2 sm:py-2 text-gray-300">
+                              {formatThaiDate(row.end_date)}
+                            </td>
+                            <td className="px-2 py-1.5 sm:px-2 sm:py-2 text-gray-400">
+                              {formatLeaveTimeRangeWithHours(row.start_time, row.end_time, row.start_date, row.end_date) || '—'}
+                            </td>
+                            <td
+                              className="px-2 py-1.5 sm:px-2 sm:py-2 text-gray-400 max-w-[180px] truncate"
+                              title={row.cancel_reason || ''}
+                            >
+                              {row.cancel_reason || '—'}
+                            </td>
+                            <td className={`px-2 py-1.5 sm:px-2 sm:py-2 ${statusClass}`}>
+                              {statusText}
+                            </td>
+                            <td className="px-2 py-1.5 sm:px-2 sm:py-2 text-emerald-400/90">
+                              {row.decided_by_email || '—'}
+                            </td>
+                            <td className="px-2 py-1.5 sm:px-2 sm:py-2 text-gray-400">
+                              {row.decided_at ? formatDateTime24(row.decided_at) : '—'}
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+            )}
+          </div>
         </section>
       </main>
 
