@@ -280,7 +280,13 @@ const AdminLeavePage: React.FC = () => {
       case 'unpaid':
         return (leaveBalance.unpaid_remaining ?? 0) * 8 + (leaveBalance.hours_unpaid_remaining ?? 0);
       case 'wfh':
-        return wfhUsedThisMonth ? 0 : 8; // WFH 1 วัน/เดือน = 8 ชั่วโมง
+        // UI เดิมผูกกับ "เดือนปัจจุบัน" เท่านั้น
+        // เพื่อให้เลือก WFH ใน "เดือนใหม่" ได้ แม้เดือนปัจจุบันจะใช้ครบแล้ว
+        // (คำขอจะถูกตรวจซ้ำอีกครั้งตอน submit ด้วย)
+        if (!wfhUsedThisMonth) return 8;
+        if (!startDate) return 0;
+        // compare YYYY-MM
+        return startDate.slice(0, 7) === today.slice(0, 7) ? 0 : 8; // WFH 1 วัน/เดือน = 8 ชั่วโมง
       default:
         return 0;
     }
