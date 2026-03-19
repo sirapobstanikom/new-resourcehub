@@ -77,6 +77,18 @@ function formatThaiDate(dateStr: string): string {
   return d.toLocaleDateString('th-TH', { timeZone: 'Asia/Bangkok', dateStyle: 'short' });
 }
 
+/** แปลงจำนวนชั่วโมงเทียบเท่าด้วยระบบ (1 วัน = 8 ชม.) เพื่อแสดงผลเป็น "X วัน Y ชม." */
+function formatHoursEquivalent(totalHours: number): string {
+  const total = Math.round(Number(totalHours ?? 0) * 100) / 100;
+  const days = Math.floor(total / 8);
+  const hours = Math.round((total % 8) * 100) / 100;
+
+  if (days > 0 && hours > 0) return `${days} วัน ${hours} ชม.`;
+  if (days > 0) return `${days} วัน`;
+  if (hours > 0) return `${hours} ชม.`;
+  return '0 วัน';
+}
+
 const AdminLeaveManagePage: React.FC = () => {
   const { user } = useAuth();
   const [pendingList, setPendingList] = useState<LeaveRequestRow[]>([]);
@@ -86,6 +98,17 @@ const AdminLeaveManagePage: React.FC = () => {
   const [debugLogs, setDebugLogs] = useState<
     Array<{ at: string; level: 'info' | 'warn' | 'error'; text: string }>
   >([]);
+
+  const [approvedSummaryLoading, setApprovedSummaryLoading] = useState(false);
+  const [approvedSummaryError, setApprovedSummaryError] = useState<string | null>(null);
+  const [approvedSummaryRows, setApprovedSummaryRows] = useState<
+    Array<{
+      user_email: string;
+      user_display_name: string | null;
+      totalsByType: Record<string, number>; // hours-equivalent
+    }>
+  >([]);
+  const [approvedSummaryRefreshKey, setApprovedSummaryRefreshKey] = useState(0);
 
   const isAdmin = user?.email != null && ADMIN_LEAVE_MANAGER_EMAILS.includes(user.email);
 
@@ -108,6 +131,78 @@ const AdminLeaveManagePage: React.FC = () => {
         setPendingList((data as LeaveRequestRow[]) ?? []);
       });
   }, [isAdmin, actionId]);
+
+  // โหลดสรุปการลา (รายคน แยกตามประเภท) จากใบลา approved เท่านั้น
+  useEffect(() => {
+    const run = async () => {
+      if (!isSupabaseConfigured || !isAdmin) return;
+
+      setApprovedSummaryLoading(true);
+      setApprovedSummaryError(null);
+
+      const year = new Date().getFullYear();
+      const yearStart = `${year}-01-01`;
+      const yearEnd = `${year}-12-31`;
+
+      const { data, error: err } = await supabase
+        .from('leave_requests')
+        .select('user_email, user_display_name, leave_type, start_date, end_date, start_time, end_time, status')
+        .eq('status', 'approved')
+        // เผื่อเคสลากยาวข้ามปี: เอาแถวที่ช่วงวันชนปีนั้น
+        .lte('start_date', yearEnd)
+        .gte('end_date', yearStart)
+        .limit(5000);
+
+      setApprovedSummaryLoading(false);
+      if (err) {
+        setApprovedSummaryError(err.message);
+        return;
+      }
+
+      const rows = (data ?? []) as Array<Pick<
+        LeaveRequestRow,
+        'user_email' | 'user_display_name' | 'leave_type' | 'start_date' | 'end_date' | 'start_time' | 'end_time' | 'status'
+      >>;
+
+      const map = new Map<string, { user_email: string; user_display_name: string | null; totalsByType: Record<string, number> }>();
+
+      for (const r of rows) {
+        const key = r.user_email;
+        if (!map.has(key)) {
+          map.set(key, { user_email: r.user_email, user_display_name: r.user_display_name ?? null, totalsByType: {} });
+        }
+        const entry = map.get(key)!;
+
+        // ใช้ logic นับวันทำงาน/ชั่วโมงเดียวกับระบบเดิม
+        const daysHours = getLeaveDaysAndHours({
+          id: 'na',
+          user_email: r.user_email,
+          user_display_name: r.user_display_name ?? null,
+          leave_type: r.leave_type,
+          start_date: r.start_date,
+          end_date: r.end_date,
+          start_time: r.start_time ?? null,
+          end_time: r.end_time ?? null,
+          reason: null,
+          cancel_reason: null,
+          cancel_decided_by_email: null,
+          cancel_decided_at: null,
+          cancel_decision: null,
+          status: r.status,
+          created_at: '',
+        } as LeaveRequestRow);
+
+        const hoursEquivalent = daysHours.days * 8 + daysHours.hours;
+        entry.totalsByType[r.leave_type] = (entry.totalsByType[r.leave_type] ?? 0) + hoursEquivalent;
+      }
+
+      // จัดเรียงตามชื่อผู้ใช้ (แล้วแต่ต้องการ)
+      const out = Array.from(map.values()).sort((a, b) => (a.user_display_name ?? a.user_email).localeCompare(b.user_display_name ?? b.user_email));
+      setApprovedSummaryRows(out);
+    };
+
+    run();
+  }, [isAdmin, approvedSummaryRefreshKey]);
 
   const pushDebugLog = (level: 'info' | 'warn' | 'error', label: string, details: Record<string, unknown>) => {
     const text = `${label} ${JSON.stringify(details)}`;
@@ -346,6 +441,7 @@ const AdminLeaveManagePage: React.FC = () => {
     });
 
     setPendingList((prev) => prev.filter((r) => r.id !== row.id));
+    setApprovedSummaryRefreshKey((k) => k + 1);
   };
 
   if (user && !ADMIN_LEAVE_MANAGER_EMAILS.includes(user.email)) {
@@ -456,6 +552,56 @@ const AdminLeaveManagePage: React.FC = () => {
           </div>
           </>
         )}
+
+        <section className="rounded-2xl border border-white/10 bg-white/5 p-4 sm:p-6">
+          <h3 className="font-bold text-gray-300 mb-1">สรุปการลา (รายคน)</h3>
+          <p className="text-xs text-gray-500 mb-3">นับเฉพาะใบลาที่ `อนุมัติแล้ว` ภายในปีปัจจุบัน แยกตามประเภทการลา</p>
+
+          {approvedSummaryLoading ? (
+            <div className="min-h-[80px] rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-gray-500 text-xs">
+              กำลังโหลด...
+            </div>
+          ) : approvedSummaryError ? (
+            <div className="min-h-[80px] rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-300 text-xs p-4 text-center">
+              {approvedSummaryError}
+            </div>
+          ) : approvedSummaryRows.length === 0 ? (
+            <div className="min-h-[80px] rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-gray-500 text-xs p-4 text-center">
+              ยังไม่มีข้อมูลใบลา approved
+            </div>
+          ) : (
+            <div className="rounded-xl border border-white/10 overflow-x-auto -mx-1 sm:mx-0">
+              <table className="w-full text-left text-xs min-w-[680px]">
+                <thead>
+                  <tr className="border-b border-white/10 bg-white/5">
+                    <th className="px-2 py-2 font-semibold text-gray-400">ผู้ลา</th>
+                    {LEAVE_TYPES.map((t) => (
+                      <th key={t.id} className="px-2 py-2 font-semibold text-gray-400">
+                        {t.label}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {approvedSummaryRows.map((row) => (
+                    <tr key={row.user_email} className="border-b border-white/5 hover:bg-white/5">
+                      <td className="px-2 py-2 text-gray-300 whitespace-nowrap">
+                        {row.user_display_name || row.user_email}
+                      </td>
+                      {LEAVE_TYPES.map((t) => (
+                        <td key={`${row.user_email}-${t.id}`} className="px-2 py-2 text-gray-400">
+                          {row.totalsByType[t.id] != null && row.totalsByType[t.id] > 0
+                            ? formatHoursEquivalent(row.totalsByType[t.id])
+                            : '—'}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
 
         <section className="rounded-2xl border border-white/10 bg-white/5 p-4 sm:p-6">
           <h3 className="font-bold text-gray-300 mb-2">Leave Debug Logs</h3>

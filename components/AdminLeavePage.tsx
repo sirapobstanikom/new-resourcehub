@@ -1003,12 +1003,13 @@ create policy "Allow update own leave_requests cancel"
             <>
             <p className="sm:hidden text-xs text-gray-500 mb-2">เลื่อนซ้าย-ขวาเพื่อดูตาราง</p>
             <div className="rounded-xl border border-white/10 overflow-x-auto -mx-1 sm:mx-0">
-              <table className="w-full text-left text-sm min-w-[400px]">
+              <table className="w-full text-left text-sm min-w-[460px]">
                 <thead>
                   <tr className="border-b border-white/10 bg-white/5">
                     <th className="px-3 py-2 font-semibold text-gray-400">ประเภท</th>
                     <th className="px-3 py-2 font-semibold text-gray-400">วันเริ่ม</th>
                     <th className="px-3 py-2 font-semibold text-gray-400">วันสิ้นสุด</th>
+                    <th className="px-3 py-2 font-semibold text-gray-400">จำนวนชั่วโมงที่ลา</th>
                     <th className="px-3 py-2 font-semibold text-gray-400">สถานะ</th>
                     <th className="px-3 py-2 font-semibold text-gray-400 text-right">ดำเนินการ</th>
                   </tr>
@@ -1019,6 +1020,18 @@ create policy "Allow update own leave_requests cancel"
                       <td className="px-3 py-2 text-gray-300">{LEAVE_TYPES.find((t) => t.id === row.leave_type)?.label ?? row.leave_type}</td>
                       <td className="px-3 py-2 text-gray-300">{formatThaiDate(row.start_date)}</td>
                       <td className="px-3 py-2 text-gray-300">{formatThaiDate(row.end_date)}</td>
+                      <td className="px-3 py-2 text-gray-400 text-xs">
+                        {row.start_date === row.end_date && row.start_time && row.end_time ? (
+                          (() => {
+                            const hrs = hoursBetween(row.start_time, row.end_time) ?? 0;
+                            // 8 ชั่วโมง = 1 วันเต็มแล้ว ไม่ต้องโชว์เป็นชั่วโมง
+                            if (Math.round(hrs * 100) / 100 >= 8) return '—';
+                            return `${hrs} ชั่วโมง`;
+                          })()
+                        ) : (
+                          '—'
+                        )}
+                      </td>
                       <td className="px-3 py-2">
                         <span
                           className={
