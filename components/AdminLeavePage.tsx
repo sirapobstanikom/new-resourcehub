@@ -236,6 +236,8 @@ const AdminLeavePage: React.FC = () => {
     return d;
   });
   const [selectedLeave, setSelectedLeave] = useState<LeaveRequestRow | null>(null);
+  const [selectedDayLeaves, setSelectedDayLeaves] = useState<LeaveRequestRow[] | null>(null);
+  const [selectedDayKey, setSelectedDayKey] = useState<string | null>(null);
   const [myLeaveList, setMyLeaveList] = useState<LeaveRequestRow[]>([]);
   const [myLeaveListLoading, setMyLeaveListLoading] = useState(false);
   const [leaveBalance, setLeaveBalance] = useState<{
@@ -1203,8 +1205,17 @@ create policy "Allow update own leave_requests cancel"
                                       key={row.id}
                                       role="button"
                                       tabIndex={0}
-                                      onClick={() => setSelectedLeave(row)}
-                                      onKeyDown={(e) => e.key === 'Enter' && setSelectedLeave(row)}
+                                      onClick={() => {
+                                        setSelectedDayLeaves(null);
+                                        setSelectedDayKey(null);
+                                        setSelectedLeave(row);
+                                      }}
+                                      onKeyDown={(e) => {
+                                        if (e.key !== 'Enter') return;
+                                        setSelectedDayLeaves(null);
+                                        setSelectedDayKey(null);
+                                        setSelectedLeave(row);
+                                      }}
                                       className="text-xs truncate px-1 py-0.5 rounded bg-emerald-500/20 text-emerald-200 cursor-pointer hover:bg-emerald-500/30 transition-colors"
                                       title="คลิกดูรายละเอียด"
                                     >
@@ -1213,7 +1224,20 @@ create policy "Allow update own leave_requests cancel"
                                   );
                                 })}
                                 {dayLeaves.length > 5 && (
-                                  <li className="text-xs text-gray-500 px-1">+{dayLeaves.length - 5}</li>
+                                  <li>
+                                    <button
+                                      type="button"
+                                      className="text-xs text-gray-400 px-1 py-0.5 rounded hover:bg-white/5 transition-colors cursor-pointer"
+                                      onClick={() => {
+                                        setSelectedLeave(null);
+                                        setSelectedDayKey(dayKey);
+                                        setSelectedDayLeaves(dayLeaves);
+                                      }}
+                                      title="คลิกดูรายละเอียดทั้งหมด"
+                                    >
+                                      +{dayLeaves.length - 5}
+                                    </button>
+                                  </li>
                                 )}
                               </ul>
                             </td>
@@ -1475,6 +1499,80 @@ alter table public.leave_requests add column if not exists approved_at timestamp
           </div>
         </section>
       </main>
+
+      {/* ป๊อปอัปรายละเอียดการลารายวัน (เมื่อคนลามากกว่า 5 คน) */}
+      {selectedDayLeaves && selectedDayKey && (
+        <div
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/70 backdrop-blur-sm"
+          onClick={() => {
+            setSelectedDayLeaves(null);
+            setSelectedDayKey(null);
+          }}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="leave-day-detail-title"
+        >
+          <div
+            className="rounded-t-2xl sm:rounded-2xl border border-white/20 bg-neutral-900 shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 space-y-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-3">
+              <h3 id="leave-day-detail-title" className="text-lg font-bold text-yellow-400">
+                รายละเอียดการลารายวัน
+              </h3>
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedDayLeaves(null);
+                  setSelectedDayKey(null);
+                }}
+                className="px-3 py-1.5 rounded-lg bg-white/10 text-gray-200 hover:bg-white/15 border border-white/10"
+              >
+                ปิด
+              </button>
+            </div>
+
+            <p className="text-sm text-gray-300">
+              วันที่ {formatThaiDate(selectedDayKey)}
+              <span className="text-gray-500"> · ทั้งหมด {selectedDayLeaves.length} รายการ</span>
+            </p>
+
+            <div className="rounded-xl border border-white/10 overflow-x-auto">
+              <table className="w-full text-sm border-collapse">
+                <thead>
+                  <tr className="bg-white/5 border-b border-white/10">
+                    <th className="px-3 py-2 text-left text-gray-400 font-semibold">ผู้ลา</th>
+                    <th className="px-3 py-2 text-left text-gray-400 font-semibold">ประเภท</th>
+                    <th className="px-3 py-2 text-left text-gray-400 font-semibold">ช่วงเวลา</th>
+                    <th className="px-3 py-2 text-left text-gray-400 font-semibold">เหตุผล (ถ้ามี)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {selectedDayLeaves.map((row) => {
+                    const typeLabel = LEAVE_TYPES.find((t) => t.id === row.leave_type)?.label ?? row.leave_type;
+                    const timeRange = formatLeaveTimeRangeWithHours(
+                      row.start_time,
+                      row.end_time,
+                      row.start_date,
+                      row.end_date
+                    );
+                    return (
+                      <tr key={row.id} className="border-b border-white/5 last:border-b-0 hover:bg-white/5">
+                        <td className="px-3 py-2 text-gray-300">{row.user_display_name || row.user_email}</td>
+                        <td className="px-3 py-2 text-gray-300">{typeLabel}</td>
+                        <td className="px-3 py-2 text-gray-300">{timeRange || '—'}</td>
+                        <td className="px-3 py-2 text-gray-400 max-w-[260px] truncate" title={row.reason || ''}>
+                          {row.reason || '—'}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ป๊อปอัปรายละเอียดการลา */}
       {selectedLeave && (
