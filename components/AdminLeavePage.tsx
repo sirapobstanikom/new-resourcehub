@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
+import { logoutAdmin } from '../lib/auth';
 
 const LEAVE_TYPES = [
   { id: 'personal', label: 'ลากิจ' },
@@ -208,6 +209,11 @@ type PublicHoliday = { id: number; month: number; day: number; name: string | nu
 
 const AdminLeavePage: React.FC = () => {
   const { user } = useAuth();
+  const handleAdminLogout = async () => {
+    logoutAdmin();
+    await supabase.auth.signOut();
+    window.location.href = '/admin/login';
+  };
   const [publicHolidays, setPublicHolidays] = useState<PublicHoliday[]>([]);
   const [holidaysOpen, setHolidaysOpen] = useState(false);
   const [leaveType, setLeaveType] = useState<string>(LEAVE_TYPES[0].id);
@@ -772,12 +778,21 @@ const AdminLeavePage: React.FC = () => {
           <span className="hidden sm:inline text-gray-500">|</span>
           <span className="text-yellow-400 font-semibold text-sm sm:text-base truncate">ระบบลา MindDojo</span>
         </div>
-        <Link
-          to="/"
-          className="min-h-[44px] flex items-center justify-center px-4 py-3 rounded-xl font-medium bg-white/10 text-white hover:bg-white/20 border border-white/10 w-full sm:w-auto text-center"
-        >
-          กลับหน้าหลัก
-        </Link>
+        <div className="w-full sm:w-auto flex items-center justify-end gap-3">
+          <Link
+            to="/"
+            className="min-h-[44px] flex items-center justify-center px-4 py-3 rounded-xl font-medium bg-white/10 text-white hover:bg-white/20 border border-white/10 w-full sm:w-auto text-center"
+          >
+            กลับหน้าหลัก
+          </Link>
+          <button
+            type="button"
+            onClick={handleAdminLogout}
+            className="hidden sm:inline-flex min-h-[44px] items-center justify-center px-4 py-3 rounded-xl font-medium bg-white/10 text-white hover:bg-red-500/20 hover:text-red-400 border border-white/10 transition-colors"
+          >
+            ออกจากระบบ
+          </button>
+        </div>
       </header>
 
       <main className="flex-1 max-w-4xl mx-auto w-full px-3 sm:px-6 py-5 sm:py-8 space-y-6 sm:space-y-10">

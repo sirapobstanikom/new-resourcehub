@@ -2,13 +2,21 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import type { User, Session } from '@supabase/supabase-js';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import type { SignInResult, SignUpResult } from '../lib/auth';
-import { signIn as authSignIn, signUp as authSignUp, signOut as authSignOut, logoutAdmin } from '../lib/auth';
+import { signIn as authSignIn, signUp as authSignUp, signOut as authSignOut, logoutAdmin, isAdminAuthenticated, getAdminAuthenticatedEmail } from '../lib/auth';
 
 const DEPRECATED_ADMIN_EMAIL = 'admin@minddojo.me';
 
 function isDeprecatedSession(session: Session | null): boolean {
   const email = session?.user?.email?.toLowerCase();
   return email === DEPRECATED_ADMIN_EMAIL.toLowerCase();
+}
+
+function isAdminEmailMismatch(session: Session | null): boolean {
+  if (!isAdminAuthenticated()) return false;
+  const expected = getAdminAuthenticatedEmail();
+  const actual = session?.user?.email;
+  if (!expected || !actual) return false;
+  return actual.toLowerCase() !== expected.toLowerCase();
 }
 
 type AuthState = {
@@ -34,7 +42,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     supabase.auth.getSession().then(({ data: { session: s } }) => {
-      if (isDeprecatedSession(s)) {
+      if (isDeprecatedSession(s) || isAdminEmailMismatch(s)) {
         logoutAdmin();
         authSignOut();
         setSession(null);
@@ -47,7 +55,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => {
-      if (isDeprecatedSession(s)) {
+      if (isDeprecatedSession(s) || isAdminEmailMismatch(s)) {
         logoutAdmin();
         authSignOut();
         setSession(null);

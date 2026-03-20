@@ -71,6 +71,7 @@ export async function signOut(): Promise<void> {
 
 // --- Admin MindDojo (สำหรับดูข้อมูล Database) ---
 const ADMIN_AUTH_KEY = 'minddojo_admin_authenticated';
+const ADMIN_EMAIL_KEY = 'minddojo_admin_email';
 
 export const ADMIN_USERNAME = import.meta.env.VITE_ADMIN_USERNAME || 'admin';
 export const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD || 'minddojo';
@@ -84,8 +85,18 @@ export function setAdminAuthenticated(): void {
   if (typeof window !== 'undefined') localStorage.setItem(ADMIN_AUTH_KEY, 'true');
 }
 
+export function setAdminAuthenticatedEmail(email: string): void {
+  if (typeof window !== 'undefined') localStorage.setItem(ADMIN_EMAIL_KEY, email);
+}
+
+export function getAdminAuthenticatedEmail(): string | null {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem(ADMIN_EMAIL_KEY);
+}
+
 export function logoutAdmin(): void {
   if (typeof window !== 'undefined') localStorage.removeItem(ADMIN_AUTH_KEY);
+  if (typeof window !== 'undefined') localStorage.removeItem(ADMIN_EMAIL_KEY);
 }
 
 export function validateAdminCredentials(username: string, password: string): boolean {

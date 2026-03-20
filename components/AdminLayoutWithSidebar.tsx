@@ -20,6 +20,7 @@ const AdminLayoutWithSidebar: React.FC = () => {
   }, [user?.email, signOut, navigate]);
   const isLeave = location.pathname === '/admin/leave';
   const isLeaveManage = location.pathname === '/admin/leave/manage';
+  const isAdminLeavePage = isLeave;
   const isStickycloud = location.pathname === '/admin/rooms';
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const showLeaveManageLink = user?.email != null && ADMIN_LEAVE_MANAGER_EMAILS.includes(user.email);
@@ -289,7 +290,7 @@ const AdminLayoutWithSidebar: React.FC = () => {
           await supabase.auth.signOut();
           window.location.href = '/admin/login';
         }}
-        className="mt-auto py-2.5 px-3 rounded-lg text-sm font-medium text-gray-400 hover:bg-red-500/20 hover:text-red-400 transition-colors"
+        className={`mt-auto py-2.5 px-3 rounded-lg text-sm font-medium text-gray-400 hover:bg-red-500/20 hover:text-red-400 transition-colors ${isAdminLeavePage ? 'md:hidden' : ''}`}
       >
         ออกจากระบบ
       </button>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { isAdminAuthenticated, setAdminAuthenticated, logoutAdmin } from '../lib/auth';
+import { isAdminAuthenticated, setAdminAuthenticated, setAdminAuthenticatedEmail, logoutAdmin } from '../lib/auth';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -38,6 +38,7 @@ const AdminLoginPage: React.FC = () => {
       return;
     }
     setAdminAuthenticated();
+    setAdminAuthenticatedEmail(email.trim());
     setMessage({ type: 'success', text: 'เข้าสู่ระบบ Admin สำเร็จ' });
     setTimeout(() => navigate('/admin', { replace: true }), 400);
   };
