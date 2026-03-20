@@ -445,9 +445,21 @@ const PersuasionAssessment: React.FC = () => {
             0.001,
             PIE_CHANNEL_ORDER.reduce((sum, item) => sum + Math.max(Number(scores[item.id]) || 0, 0), 0)
           );
-          const chartData: (string | number)[][] = [
-            ['Channel', 'Score'],
-            ...PIE_CHANNEL_ORDER.map((item) => [item.label, Math.max(scores[item.id], 0.001)]),
+          // PieChart: ใส่ชื่อ + เปอร์เซ็นต์บนชิ้น
+          // บังคับให้ขึ้นด้วย newline เพื่อไม่ให้ยาวจนชน/หาย
+          const chartData: (string | number | { role: string; type: string; p?: string })[][] = [
+            ['Channel', 'Score', { role: 'tooltip', type: 'string' }],
+            ...PIE_CHANNEL_ORDER.map((item) => {
+              const score = Math.max(Number(scores[item.id]) || 0, 0.001);
+              const pct = Math.round((score / totalScore) * 100);
+              // บนมือถือบาง slice (เช่น Interest-Based) มักไม่โชว์ข้อความเพราะพื้นที่ไม่พอ
+              // เลยทำชื่อให้สั้นลงเฉพาะ slice นี้
+              const isMobile = chartHeight <= 400;
+              const shortName = item.id === 'influence' && isMobile ? 'Interest' : item.label;
+              const label = `${shortName}\n${pct}%`;
+              const tooltip = `คะแนน: ${score}\nเปอร์เซ็นต์: ${pct}%`;
+              return [label, score, tooltip];
+            }),
           ];
           const maxSliceInfo = (() => {
             const items = PIE_CHANNEL_ORDER.filter((it) => Number(scores[it.id]) === maxScore);
@@ -478,18 +490,20 @@ const PersuasionAssessment: React.FC = () => {
           const sortedByScore = ([...PIE_CHANNEL_ORDER] as { id: PersuasionChannelId; label: string }[]).sort(
             (a, b) => scores[b.id] - scores[a.id]
           );
-          const sliceFontSize = chartHeight <= 400 ? 10 : chartHeight <= 500 ? 11 : 12;
+          // ลดขนาดตัวอักษรเพื่อให้ slice เล็กๆยังแสดงข้อความได้
+          const sliceFontSize = chartHeight <= 400 ? 8 : chartHeight <= 500 ? 9 : 10;
           const chartOptions = {
             title: '6 ช่องทางโน้มน้าวจูงใจ',
             pieHole: 0.38,
             is3D: true,
-            pieSliceText: 'percentage',
-            pieSliceTextStyle: { color: '#ffffff', fontSize: sliceFontSize + 1, bold: true },
+            pieSliceText: 'label',
+            pieSliceTextStyle: { color: '#ffffff', fontSize: sliceFontSize, bold: true },
             titleTextStyle: { color: '#fbbf24', fontSize: chartHeight <= 400 ? 14 : 16 },
             legend: 'none',
             slices,
             backgroundColor: 'transparent',
-            chartArea: { left: 24, top: chartHeight <= 400 ? 44 : 56, width: '88%', height: '74%' },
+            // เพิ่มพื้นที่ให้กราฟ/ข้อความมากขึ้น
+            chartArea: { left: 16, top: chartHeight <= 400 ? 38 : 50, width: '90%', height: '78%' },
             pieSliceBorderColor: '#1f2937',
             pieSliceBorderWidth: 2,
             tooltip: { trigger: 'selection' },
@@ -537,40 +551,87 @@ const PersuasionAssessment: React.FC = () => {
                 {/* หลอดคะแนน เรียงลำดับจากสูงไปต่ำ */}
                 <div className="space-y-2 min-w-0 overflow-visible pb-2">
                   <p className="text-sm font-semibold text-gray-400 mb-3 leading-normal">
-                  คะแนนแต่ละช่องทาง (เรียงจากสูงไปต่ำ) · Score by channel (highest to lowest)
-                </p>
+                    คะแนนแต่ละช่องทาง (เรียงจากสูงไปต่ำ) · Score by channel (highest to lowest)
+                  </p>
+
                   {sortedByScore.map((item, rank) => {
                     const score = scores[item.id];
                     const isDominant = dominantChannels.includes(item.id);
-                    const pct = maxScore > 0 ? Math.round((score / maxScore) * 100) : 0;
+
+                    // ความยาวหลอด: อัดความต่างให้อ่านง่ายขึ้น (ไม่ให้บางช่องสั้นมากจนมองไม่ออก)
+                    const ratio = maxScore > 0 ? score / maxScore : 0; // 0..1
+                    const compressed = Math.pow(Math.min(1, Math.max(0, ratio)), 0.55);
+                    const barWidthPct = Math.max(25, Math.round(compressed * 100));
+
+                    // เปอร์เซ็นต์ที่แสดง: คำนวณจากผลรวม 6 ช่องทางจริง
+                    const actualPct = totalScore > 0 ? Math.round((score / totalScore) * 100) : 0;
+
                     return (
                       <div
                         key={item.id}
-                        className={`flex items-center gap-2 sm:gap-3 min-w-0 py-2.5 px-3 rounded-xl transition-colors leading-normal min-h-[2.25rem] ${
-                          isDominant ? 'bg-yellow-400/10 border border-yellow-400/30' : 'bg-white/[0.03] border border-transparent'
-                        } ${!isDominant && score < maxScore ? 'opacity-75' : ''}`}
+                        className={`rounded-xl border p-3 transition-colors min-w-0 ${
+                          isDominant
+                            ? 'bg-yellow-400/10 border-yellow-400/30'
+                            : 'bg-white/[0.03] border-white/10'
+                        }`}
                       >
-                        <span className="text-xs font-bold text-gray-500 w-5 flex-shrink-0 tabular-nums leading-normal">{rank + 1}</span>
-                        <span
-                          className={`text-sm min-w-0 leading-normal ${
-                            isDominant ? 'text-yellow-400/95 font-semibold' : 'text-gray-400'
-                          }`}
-                          style={{ maxWidth: '12rem' }}
-                        >
-                          {item.label} ({PERSUASION_CHANNEL_LABELS[item.id]})
-                        </span>
-                        <div className="flex-1 min-w-[60px] h-6 rounded-full bg-white/10 overflow-hidden">
-                          <div
-                            className="h-full rounded-full transition-all duration-500 min-w-0"
-                            style={{
-                              width: `${pct}%`,
-                              backgroundColor: isDominant ? 'rgb(250, 204, 21)' : 'rgba(250, 204, 21, 0.4)',
-                            }}
-                          />
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span
+                                className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold tabular-nums ${
+                                  isDominant ? 'bg-yellow-400/20 text-yellow-300' : 'bg-white/10 text-gray-300'
+                                }`}
+                              >
+                                {rank + 1}
+                              </span>
+                              <span
+                                className={`text-sm font-semibold truncate ${
+                                  isDominant ? 'text-yellow-400/95' : 'text-gray-300'
+                                }`}
+                                title={`${item.label} (${PERSUASION_CHANNEL_LABELS[item.id]})`}
+                                style={{ maxWidth: '18rem' }}
+                              >
+                                {item.label} ({PERSUASION_CHANNEL_LABELS[item.id]})
+                              </span>
+                              {isDominant && (
+                                <span className="text-[10px] font-bold px-2 py-1 rounded-full bg-yellow-400/15 text-yellow-300 border border-yellow-400/25">
+                                  สูงสุด
+                                </span>
+                              )}
+                            </div>
+                            <div className="mt-1 text-xs text-gray-400">
+                              {actualPct}% จากทั้งหมด 6 ช่องทาง
+                            </div>
+                          </div>
+
+                          <div className="text-right flex flex-col items-end gap-1">
+                            <span
+                              className={`text-sm tabular-nums font-bold ${
+                                isDominant ? 'text-yellow-400/95' : 'text-gray-300'
+                              }`}
+                            >
+                              {actualPct}%
+                            </span>
+                            <span className={`text-[11px] tabular-nums ${isDominant ? 'text-yellow-400/60' : 'text-gray-500'}`}>
+                              score {score}
+                            </span>
+                          </div>
                         </div>
-                        <span className={`text-sm tabular-nums w-10 text-right ${isDominant ? 'text-yellow-400/90 font-semibold' : 'text-gray-500'}`}>
-                          {score}
-                        </span>
+
+                        <div className="mt-3">
+                          <div className="h-3 sm:h-3.5 rounded-full bg-white/10 overflow-hidden">
+                            <div
+                              className={`h-full rounded-full transition-all duration-500 ${
+                                isDominant ? 'shadow-[0_0_18px_rgba(250,204,21,0.20)]' : ''
+                              }`}
+                              style={{
+                                width: `${barWidthPct}%`,
+                                backgroundColor: isDominant ? 'rgb(250, 204, 21)' : 'rgba(250, 204, 21, 0.18)',
+                              }}
+                            />
+                          </div>
+                        </div>
                       </div>
                     );
                   })}
