@@ -447,11 +447,7 @@ const PersuasionAssessment: React.FC = () => {
           );
           const chartData: (string | number)[][] = [
             ['Channel', 'Score'],
-            ...PIE_CHANNEL_ORDER.map((item) => {
-              const value = Math.max(scores[item.id], 0.001);
-              const pct = Math.round((Number(scores[item.id]) / totalScore) * 100);
-              return [`${item.label} ${pct}%`, value];
-            }),
+            ...PIE_CHANNEL_ORDER.map((item) => [item.label, Math.max(scores[item.id], 0.001)]),
           ];
           const maxSliceInfo = (() => {
             const items = PIE_CHANNEL_ORDER.filter((it) => Number(scores[it.id]) === maxScore);
@@ -487,8 +483,8 @@ const PersuasionAssessment: React.FC = () => {
             title: '6 ช่องทางโน้มน้าวจูงใจ',
             pieHole: 0.38,
             is3D: true,
-            pieSliceText: 'label',
-            pieSliceTextStyle: { color: '#ffffff', fontSize: sliceFontSize, bold: true },
+            pieSliceText: 'percentage',
+            pieSliceTextStyle: { color: '#ffffff', fontSize: sliceFontSize + 1, bold: true },
             titleTextStyle: { color: '#fbbf24', fontSize: chartHeight <= 400 ? 14 : 16 },
             legend: 'none',
             slices,
