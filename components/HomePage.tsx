@@ -186,20 +186,18 @@ const HomePage: React.FC = () => {
               กดเริ่มจับเวลา แล้วกดหยุด — (วินาที)
             </p>
           </Link>
-          <div className="rounded-2xl border border-white/10 p-6 text-left bg-white/5 opacity-80 cursor-default">
-            <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center mb-4">
-              <span className="text-2xl text-gray-500" aria-hidden>🎮</span>
+          <Link
+            to="/gamification/reaction"
+            className="block rounded-2xl border border-white/10 p-6 text-left transition-all bg-white/5 hover:bg-white/10 hover:border-amber-400/30 group"
+          >
+            <div className="w-12 h-12 rounded-xl bg-amber-400/20 flex items-center justify-center mb-4 group-hover:bg-amber-400/30 transition-colors">
+              <span className="text-2xl" aria-hidden>⚡</span>
             </div>
-            <h3 className="font-bold text-lg mb-2 flex items-center gap-2">
-              เกมอื่นๆ
-              <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-yellow-400/20 text-yellow-400">
-                เร็วๆ นี้
-              </span>
-            </h3>
+            <h3 className="font-bold text-lg mb-2 text-white">กดเมื่อสีเขียว</h3>
             <p className="text-gray-500 text-sm">
-              ระบบเกมมิฟิเคชันเพื่อส่งเสริมการเรียนรู้ออนไลน์และความผูกพันของทีม
+              เกมวัดความเร็ว — รอจอเปลี่ยนเป็นสีเขียวแล้วกดทันที วัดเวลาตอบสนอง (ms)
             </p>
-          </div>
+          </Link>
         </div>
       </section>
 

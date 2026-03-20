@@ -441,22 +441,38 @@ const PersuasionAssessment: React.FC = () => {
           const dominantChannels = savedResult?.dominantChannels ?? getDominantChannels();
           const displayUser = savedResult?.user ?? user;
           const maxScore = Math.max(...Object.values(scores).map(Number), 1);
+          const totalScore = Math.max(
+            0.001,
+            PIE_CHANNEL_ORDER.reduce((sum, item) => sum + Math.max(Number(scores[item.id]) || 0, 0), 0)
+          );
           const chartData: (string | number)[][] = [
             ['Channel', 'Score'],
-            ...PIE_CHANNEL_ORDER.map((item) => [item.label, Math.max(scores[item.id], 0.001)]),
+            ...PIE_CHANNEL_ORDER.map((item) => {
+              const value = Math.max(scores[item.id], 0.001);
+              const pct = Math.round((Number(scores[item.id]) / totalScore) * 100);
+              return [`${item.label} ${pct}%`, value];
+            }),
           ];
+          const maxSliceInfo = (() => {
+            const items = PIE_CHANNEL_ORDER.filter((it) => Number(scores[it.id]) === maxScore);
+            if (items.length === 0) return null;
+            const pct = Math.round((Number(scores[items[0].id]) / totalScore) * 100);
+            const label = items.map((it) => `${it.label} (${PERSUASION_CHANNEL_LABELS[it.id]})`).join(', ');
+            return { label, pct };
+          })();
           const slices: Record<number, { color: string; offset?: number }> = {};
           const FROSTED_GRAY = '#9ca3af';
           PIE_CHANNEL_ORDER.forEach((item, i) => {
             const isDominant = dominantChannels.includes(item.id);
-            const score = scores[item.id];
+            const score = Math.max(Number(scores[item.id]) || 0, 0);
             let color: string;
             if (isDominant) {
               color = hexToRgb(PIE_COLORS[i]);
-            } else if (score === 0) {
-              color = hexBlendWithDark(FROSTED_GRAY, 0.12);
             } else {
-              color = hexBlendWithDark(FROSTED_GRAY, 0.22);
+              // คะแนนยิ่งน้อย -> เทายิ่งจาง/ดรอป
+              const ratio = maxScore > 0 ? Math.min(1, score / maxScore) : 0;
+              const mix = 0.04 + ratio * 0.14; // 0.04..0.18
+              color = hexBlendWithDark(FROSTED_GRAY, mix);
             }
             slices[i] = {
               color,
@@ -466,7 +482,7 @@ const PersuasionAssessment: React.FC = () => {
           const sortedByScore = ([...PIE_CHANNEL_ORDER] as { id: PersuasionChannelId; label: string }[]).sort(
             (a, b) => scores[b.id] - scores[a.id]
           );
-          const sliceFontSize = chartHeight <= 400 ? 9 : chartHeight <= 500 ? 11 : 12;
+          const sliceFontSize = chartHeight <= 400 ? 10 : chartHeight <= 500 ? 11 : 12;
           const chartOptions = {
             title: '6 ช่องทางโน้มน้าวจูงใจ',
             pieHole: 0.38,
@@ -480,6 +496,7 @@ const PersuasionAssessment: React.FC = () => {
             chartArea: { left: 24, top: chartHeight <= 400 ? 44 : 56, width: '88%', height: '74%' },
             pieSliceBorderColor: '#1f2937',
             pieSliceBorderWidth: 2,
+            tooltip: { trigger: 'selection' },
           };
           return (
             <div className="space-y-10">
@@ -497,7 +514,7 @@ const PersuasionAssessment: React.FC = () => {
                 </div>
 
                 {/* Pie Chart 3D (Google Charts - ไม่มี trial) */}
-                <div className="w-full max-w-4xl mx-auto rounded-xl bg-black/20 flex items-center justify-center overflow-visible" style={{ minHeight: chartHeight }}>
+                <div className="w-full max-w-4xl mx-auto rounded-xl bg-black/20 flex flex-col items-center justify-center overflow-visible relative" style={{ minHeight: chartHeight }}>
                   <Chart
                     chartType="PieChart"
                     data={chartData}
@@ -507,11 +524,25 @@ const PersuasionAssessment: React.FC = () => {
                     style={{ maxWidth: '100%' }}
                     loader={<div className="text-gray-400 py-20">กำลังโหลดกราฟ...</div>}
                   />
+                  {/* แสดงข้อมูลชิ้นคะแนนสูงสุดตั้งแต่โหลด (เหมือนทูลทิปที่โผล่ตอนกด) */}
+                  {maxSliceInfo && (
+                    <div
+                      className="absolute bottom-3 left-1/2 -translate-x-1/2 px-4 py-2 rounded-lg bg-gray-800/95 border border-white/20 shadow-xl text-center pointer-events-none"
+                      style={{ whiteSpace: 'nowrap' }}
+                      role="status"
+                      aria-label={`คะแนนมากที่สุด: ${maxSliceInfo.label} ${maxSliceInfo.pct}%`}
+                    >
+                      <span className="text-gray-200 text-sm">{maxSliceInfo.label}</span>
+                      <span className="text-yellow-400 font-bold text-sm ml-1.5">{maxSliceInfo.pct}%</span>
+                    </div>
+                  )}
                 </div>
 
                 {/* หลอดคะแนน เรียงลำดับจากสูงไปต่ำ */}
                 <div className="space-y-2 min-w-0 overflow-visible pb-2">
-                  <p className="text-sm font-semibold text-gray-400 mb-3 leading-normal">คะแนนแต่ละช่องทาง (เรียงจากสูงไปต่ำ)</p>
+                  <p className="text-sm font-semibold text-gray-400 mb-3 leading-normal">
+                  คะแนนแต่ละช่องทาง (เรียงจากสูงไปต่ำ) · Score by channel (highest to lowest)
+                </p>
                   {sortedByScore.map((item, rank) => {
                     const score = scores[item.id];
                     const isDominant = dominantChannels.includes(item.id);
@@ -525,11 +556,12 @@ const PersuasionAssessment: React.FC = () => {
                       >
                         <span className="text-xs font-bold text-gray-500 w-5 flex-shrink-0 tabular-nums leading-normal">{rank + 1}</span>
                         <span
-                          className={`text-sm w-28 sm:w-32 flex-shrink-0 leading-normal ${
+                          className={`text-sm min-w-0 leading-normal ${
                             isDominant ? 'text-yellow-400/95 font-semibold' : 'text-gray-400'
                           }`}
+                          style={{ maxWidth: '12rem' }}
                         >
-                          {item.label}
+                          {item.label} ({PERSUASION_CHANNEL_LABELS[item.id]})
                         </span>
                         <div className="flex-1 min-w-[60px] h-6 rounded-full bg-white/10 overflow-hidden">
                           <div

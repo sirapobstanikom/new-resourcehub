@@ -22,6 +22,7 @@ import DiscAssessment from './components/DiscAssessment';
 import LeadershipAssessment from './components/LeadershipAssessment';
 import PersuasionAssessment from './components/PersuasionAssessment';
 import Game10Timeout from './components/Game10Timeout';
+import GameReaction from './components/GameReaction';
 import InnoClubEvaluationPage from './components/InnoClubEvaluationPage';
 import { useAuth } from './contexts/AuthContext';
 import { isAdminAuthenticated, isAuthenticated, logoutResourceHub } from './lib/auth';
@@ -159,6 +160,7 @@ const App: React.FC = () => {
     return (
       <Routes>
         <Route path="/gamification/10-timeout" element={<Game10Timeout />} />
+        <Route path="/gamification/reaction" element={<GameReaction />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     );
