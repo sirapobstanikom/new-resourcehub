@@ -84,6 +84,7 @@ const PersuasionAssessment: React.FC = () => {
   const [pdfLoading, setPdfLoading] = useState(false);
   const [pngLoading, setPngLoading] = useState(false);
   const [chartHeight, setChartHeight] = useState(580);
+  const [isPieChartReady, setIsPieChartReady] = useState(false);
   const resultCardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -97,6 +98,11 @@ const PersuasionAssessment: React.FC = () => {
     window.addEventListener('resize', updateChartHeight);
     return () => window.removeEventListener('resize', updateChartHeight);
   }, []);
+
+  // รีเซ็ตสถานะเมื่อเข้า/ออกผลลัพธ์ เพื่อซ่อนปุ่มดาวน์โหลดระหว่างกราฟยังโหลดไม่เสร็จ
+  useEffect(() => {
+    if (step === 'result') setIsPieChartReady(false);
+  }, [step]);
 
   useEffect(() => {
     try {
@@ -181,10 +187,27 @@ const PersuasionAssessment: React.FC = () => {
     });
   };
 
+  const hideExportUiForCapture = (): (() => void) => {
+    if (typeof document === 'undefined') return () => {};
+    const nodes = Array.from(document.querySelectorAll('[data-no-capture="true"]')) as HTMLElement[];
+    const prev = nodes.map((n) => ({ node: n, visibility: n.style.visibility, display: n.style.display }));
+    // ใช้ visibility เพื่อไม่ให้การ์ดสูงน้อยลง (ไม่ให้ html2canvas ตัดส่วนท้าย)
+    for (const { node } of prev) node.style.visibility = 'hidden';
+    return () => {
+      for (const { node, visibility, display } of prev) {
+        node.style.visibility = visibility;
+        node.style.display = display;
+      }
+    };
+  };
+
   const handleDownloadPdf = async () => {
     setPdfLoading(true);
+    let restore = () => {};
     try {
+      restore = hideExportUiForCapture();
       const canvas = await captureResultCard();
+      restore();
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF({ orientation: 'portrait', unit: 'px', format: 'a4' });
       const pageW = pdf.internal.pageSize.getWidth();
@@ -201,14 +224,18 @@ const PersuasionAssessment: React.FC = () => {
     } catch (e) {
       console.warn('Export PDF:', e);
     } finally {
+      restore();
       setPdfLoading(false);
     }
   };
 
   const handleDownloadPng = async () => {
     setPngLoading(true);
+    let restore = () => {};
     try {
+      restore = hideExportUiForCapture();
       const canvas = await captureResultCard();
+      restore();
       const link = document.createElement('a');
       link.download = 'ผลแบบทดสอบ-6-ช่องทางโน้มน้าวจูงใจ.png';
       link.href = canvas.toDataURL('image/png');
@@ -216,6 +243,7 @@ const PersuasionAssessment: React.FC = () => {
     } catch (e) {
       console.warn('Export PNG:', e);
     } finally {
+      restore();
       setPngLoading(false);
     }
   };
@@ -529,6 +557,14 @@ const PersuasionAssessment: React.FC = () => {
                     chartType="PieChart"
                     data={chartData}
                     options={chartOptions}
+                    chartEvents={[
+                      {
+                        eventName: 'ready',
+                        callback: () => {
+                          setIsPieChartReady(true);
+                        },
+                      },
+                    ]}
                     width="100%"
                     height={chartHeight}
                     style={{ maxWidth: '100%' }}
@@ -586,11 +622,10 @@ const PersuasionAssessment: React.FC = () => {
                                 {rank + 1}
                               </span>
                               <span
-                                className={`text-sm font-semibold truncate ${
+                                className={`text-sm font-semibold break-words leading-snug ${
                                   isDominant ? 'text-yellow-400/95' : 'text-gray-300'
                                 }`}
                                 title={`${item.label} (${PERSUASION_CHANNEL_LABELS[item.id]})`}
-                                style={{ maxWidth: '18rem' }}
                               >
                                 {item.label} ({PERSUASION_CHANNEL_LABELS[item.id]})
                               </span>
@@ -652,27 +687,29 @@ const PersuasionAssessment: React.FC = () => {
                   </div>
                 )}
 
-                <div className="pt-4 border-t border-white/10">
-                  <p className="text-gray-400 text-sm mb-4">ดาวน์โหลดผลลัพธ์</p>
-                  <div className="flex flex-wrap gap-3">
-                    <button
-                      type="button"
-                      onClick={handleDownloadPdf}
-                      disabled={pdfLoading}
-                      className="flex-1 min-w-[140px] py-3.5 px-6 rounded-xl font-bold bg-yellow-400 text-black hover:bg-yellow-300 text-center shadow-lg shadow-yellow-400/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {pdfLoading ? 'กำลังสร้าง...' : 'โหลดเป็น PDF'}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleDownloadPng}
-                      disabled={pngLoading}
-                      className="flex-1 min-w-[140px] py-3.5 px-6 rounded-xl font-bold border-2 border-yellow-400 text-yellow-400 hover:bg-yellow-400/10 text-center transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {pngLoading ? 'กำลังสร้าง...' : 'โหลดเป็น PNG'}
-                    </button>
+                {isPieChartReady && (
+                  <div className="pt-4 border-t border-white/10" data-no-capture="true">
+                    <p className="text-gray-400 text-sm mb-4">ดาวน์โหลดผลลัพธ์</p>
+                    <div className="flex flex-wrap gap-3">
+                      <button
+                        type="button"
+                        onClick={handleDownloadPdf}
+                        disabled={pdfLoading}
+                        className="flex-1 min-w-[140px] py-3.5 px-6 rounded-xl font-bold bg-yellow-400 text-black hover:bg-yellow-300 text-center shadow-lg shadow-yellow-400/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {pdfLoading ? 'กำลังสร้าง...' : 'โหลดเป็น PDF'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleDownloadPng}
+                        disabled={pngLoading}
+                        className="flex-1 min-w-[140px] py-3.5 px-6 rounded-xl font-bold border-2 border-yellow-400 text-yellow-400 hover:bg-yellow-400/10 text-center transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {pngLoading ? 'กำลังสร้าง...' : 'โหลดเป็น PNG'}
+                      </button>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
 
               <div className="flex flex-col sm:flex-row gap-3 justify-center flex-wrap">

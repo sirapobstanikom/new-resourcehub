@@ -850,7 +850,8 @@ const CommentSection: React.FC<{ toolId?: string }> = ({ toolId = "bmc" }) => {
                                   });
                                 }}
                                 placeholder={item.placeholderSituation}
-                                disabled={!userName.trim()}
+                                // ให้พิมพ์ได้เสมอ (ปุ่มโพสต์จะ disable เองตามเงื่อนไข)
+                                disabled={posting}
                                 className="min-h-[80px] w-full resize-y rounded-lg border border-amber-200/80 bg-white px-3 py-2.5 text-base sm:text-sm outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200/50 disabled:opacity-50 placeholder:text-black/35"
                               />
                             </div>
@@ -868,7 +869,8 @@ const CommentSection: React.FC<{ toolId?: string }> = ({ toolId = "bmc" }) => {
                                   });
                                 }}
                                 placeholder={item.placeholderSolution}
-                                disabled={!userName.trim()}
+                                // ให้พิมพ์ได้เสมอ (ปุ่มโพสต์จะ disable เองตามเงื่อนไข)
+                                disabled={posting}
                                 className="min-h-[88px] w-full resize-y rounded-lg border border-amber-200/80 bg-white px-3 py-2.5 text-base sm:text-sm outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200/50 disabled:opacity-50 placeholder:text-black/35"
                               />
                             </div>

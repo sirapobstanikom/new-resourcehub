@@ -12,6 +12,40 @@ const LEAVE_TYPES = [
   { id: 'unpaid', label: 'ลาไม่รับเงินเดือน' },
 ] as const;
 
+const EMPLOYEE_DEPT_IDS = ['it', 'trainer', 'ceo', 'sales', 'production', 'admin'] as const;
+type EmployeeDeptId = typeof EMPLOYEE_DEPT_IDS[number];
+
+const EMPLOYEE_DEPT_LABELS: Record<EmployeeDeptId, string> = {
+  it: 'IT',
+  trainer: 'วิทยากร',
+  ceo: 'CEO',
+  sales: 'Sales',
+  production: 'Production',
+  admin: 'Admin',
+};
+
+// หมายเหตุ: ยังไม่มีข้อมูลว่าแต่ละคนอยู่แผนกไหนแน่
+// ดังนั้นใส่ให้ทั้งหมดเป็นแผนก `admin` ก่อน แล้วค่อยแก้ mapping ตามที่คุณแจ้ง
+const EMPLOYEES: Array<{ name: string; phone: string; dept: EmployeeDeptId }> = [
+  { name: 'นาย สิรภพ สตานิคม', phone: '0957980871', dept: 'it' },
+  { name: 'นาย ศราวุธ ปื่นทอง', phone: '0955188408', dept: 'it' },
+  { name: 'นาย ธนโชติ มีกังวาล', phone: '0873648269', dept: 'trainer' },
+  { name: 'นายวีรวัฒน์ พากเพียรกิจ', phone: '0951959989', dept: 'trainer' },
+  { name: 'นายอุประจิตร รวมทรัพย์', phone: '0909618529', dept: 'trainer' },
+  { name: 'นายพีรวิชญ์ พูลขวัญ', phone: '0968781140', dept: 'admin' },
+  { name: 'นางสาวนิรชา ไม้งาม', phone: '0910966938', dept: 'sales' },
+  { name: 'นาวสาวมนิดา พิมกา', phone: '085-095-6965', dept: 'admin' },
+  { name: 'Mr. Songpathara Snidvongs', phone: '0832744456', dept: 'ceo' },
+  { name: 'นายบรรพต บุญธรรม', phone: '0890399444', dept: 'trainer' },
+  { name: 'นางสาวสิริมา เงินอนันต์', phone: '0889647826', dept: 'sales' },
+  { name: 'คุณนาย ชนิสรา เมฆประดับ', phone: '0971877766', dept: 'sales' },
+  { name: 'นางสาวชิษณุชา เศรษฐธัญกิจ', phone: '0955914958', dept: 'production' },
+  { name: 'นางสาวธรินทร์ญา กรแวววงศ์เจริญ', phone: '0914088708', dept: 'admin' },
+  { name: 'นางมาสเมษา สนิทวงศ์ ณ อยุธยา', phone: '0894479878', dept: 'ceo' },
+  { name: 'นางสาว พริมพิชา ธัญญเจริญ', phone: '0802357570', dept: 'it' },
+  { name: 'ว่าที่ ร.ต.จีรวัฒน์ เยาวนิช', phone: '0922720923', dept: 'trainer' },
+];
+
 type LeaveRequestRow = {
   id: string;
   user_email: string;
@@ -216,6 +250,15 @@ const AdminLeavePage: React.FC = () => {
   };
   const [publicHolidays, setPublicHolidays] = useState<PublicHoliday[]>([]);
   const [holidaysOpen, setHolidaysOpen] = useState(false);
+  const [employeesOpen, setEmployeesOpen] = useState(false);
+  const [employeeDeptOpen, setEmployeeDeptOpen] = useState<Record<EmployeeDeptId, boolean>>(() => ({
+    it: false,
+    trainer: false,
+    ceo: false,
+    sales: false,
+    production: false,
+    admin: false,
+  }));
   const [leaveType, setLeaveType] = useState<string>(LEAVE_TYPES[0].id);
   const [startDate, setStartDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [endDate, setEndDate] = useState(() => new Date().toISOString().slice(0, 10));
@@ -838,6 +881,89 @@ const AdminLeavePage: React.FC = () => {
                           <li key={h.id}>วันที่ {h.day} — {h.name || 'วันหยุด'}</li>
                         ))}
                       </ul>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="rounded-xl border border-white/10 bg-white/5 overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setEmployeesOpen((o) => !o)}
+            className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-white/10 transition-colors"
+          >
+            <div className="flex items-center gap-3 min-w-0">
+              <span className="font-semibold text-gray-200 truncate">รายชื่อพนักงาน</span>
+              <span className="text-xs text-gray-500 whitespace-nowrap">({EMPLOYEES.length} คน)</span>
+            </div>
+            <svg
+              className={`w-5 h-5 text-gray-400 transition-transform ${employeesOpen ? 'rotate-180' : ''}`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+
+          {employeesOpen && (
+            <div className="px-4 pb-4 pt-0 border-t border-white/10">
+              <p className="text-xs text-gray-500 mt-3 mb-3">อ้างอิงสำหรับยื่นคำขอลา (ชื่อ-เบอร์โทร)</p>
+
+              <div className="space-y-2">
+                {EMPLOYEE_DEPT_IDS.map((deptId) => {
+                  const deptEmployees = EMPLOYEES.filter((e) => e.dept === deptId);
+                  const isOpen = employeeDeptOpen[deptId];
+                  return (
+                    <div key={deptId} className="rounded-xl border border-white/10 bg-black/10 overflow-hidden">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setEmployeeDeptOpen((prev) => ({
+                            ...prev,
+                            [deptId]: !prev[deptId],
+                          }))
+                        }
+                        className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-white/5 transition-colors"
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <span className="text-sm font-bold text-gray-200 truncate">{EMPLOYEE_DEPT_LABELS[deptId]}</span>
+                          <span className="text-xs text-gray-500 whitespace-nowrap">({deptEmployees.length} คน)</span>
+                        </div>
+                        <svg
+                          className={`w-5 h-5 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+
+                      {isOpen && (
+                        <div className="px-3 pb-3 pt-0 max-h-44 overflow-y-auto pr-1">
+                          {deptEmployees.length === 0 ? (
+                            <div className="text-xs text-gray-500 px-2 py-2">ยังไม่มีข้อมูล</div>
+                          ) : (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                              {deptEmployees.map((e) => (
+                                <div
+                                  key={e.name}
+                                  className="flex items-start justify-between gap-3 rounded-lg bg-black/20 border border-white/10 px-3 py-2"
+                                >
+                                  <span className="text-sm text-gray-200 font-medium leading-snug">{e.name}</span>
+                                  <span className="text-xs sm:text-sm text-gray-400 font-mono break-all text-right w-[9.5rem]">
+                                    {e.phone}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   );
                 })}
