@@ -77,8 +77,8 @@ export const ADMIN_USERNAME = import.meta.env.VITE_ADMIN_USERNAME || 'admin';
 export const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD || 'minddojo';
 
 export function isAdminAuthenticated(): boolean {
-  return typeof window !== 'undefined' && localStorage.getItem(ADMIN_AUTH_KEY) 
-  === 'true';
+  if (typeof window === 'undefined') return false;
+  return localStorage.getItem(ADMIN_AUTH_KEY) === 'true' && !!localStorage.getItem(ADMIN_EMAIL_KEY);
 }
 
 export function setAdminAuthenticated(): void {

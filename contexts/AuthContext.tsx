@@ -12,7 +12,6 @@ function isDeprecatedSession(session: Session | null): boolean {
 }
 
 function isAdminEmailMismatch(session: Session | null): boolean {
-  if (!isAdminAuthenticated()) return false;
   const expected = getAdminAuthenticatedEmail();
   const actual = session?.user?.email;
   if (!expected || !actual) return false;

@@ -31,14 +31,15 @@ const AdminLoginPage: React.FC = () => {
       return;
     }
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+    const cleanEmail = email.trim().split('#')[0];
+    const { error } = await supabase.auth.signInWithPassword({ email: cleanEmail, password });
     setLoading(false);
     if (error) {
       setMessage({ type: 'error', text: error.message || 'อีเมลหรือรหัสผ่านไม่ถูกต้อง' });
       return;
     }
     setAdminAuthenticated();
-    setAdminAuthenticatedEmail(email.trim());
+    setAdminAuthenticatedEmail(cleanEmail);
     setMessage({ type: 'success', text: 'เข้าสู่ระบบ Admin สำเร็จ' });
     setTimeout(() => navigate('/admin', { replace: true }), 400);
   };
