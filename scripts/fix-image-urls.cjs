@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const p = path.join(__dirname, '..', 'constants.tsx');
+const p = path.join(__dirname, '..', 'frontend', 'constants.tsx');
 let s = fs.readFileSync(p, 'utf8');
 
 // Replace any remaining /updates/... image paths with Unsplash URLs

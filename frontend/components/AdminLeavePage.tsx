@@ -1118,7 +1118,7 @@ const AdminLeavePage: React.FC = () => {
           {cancelError && (
             <div className="text-sm mb-3 space-y-2">
               <p className="text-red-400">{cancelError}</p>
-              <p className="text-gray-500">ให้เปิด Supabase → SQL Editor แล้วรันไฟล์ <code className="bg-white/10 px-1 rounded">supabase/fix_leave_cancel_policy.sql</code> หรือรันคำสั่งด้านล่าง (รวมแก้ constraint ให้รองรับสถานะ ยกเลิกแล้ว):</p>
+              <p className="text-gray-500">ให้เปิด Supabase → SQL Editor แล้วรันไฟล์ <code className="bg-white/10 px-1 rounded">backend/supabase/fix_leave_cancel_policy.sql</code> หรือรันคำสั่งด้านล่าง (รวมแก้ constraint ให้รองรับสถานะ ยกเลิกแล้ว):</p>
               <pre className="text-xs bg-black/30 p-3 rounded-lg overflow-x-auto text-gray-300 whitespace-pre">
 {`-- แก้ constraint ให้มี 'cancelled' และ 'cancel_requested'
 alter table public.leave_requests drop constraint if exists leave_requests_status_check;

@@ -24,5 +24,5 @@
      - Delete: Admin
 
 4. **Update React Code:**
-   - Open `components/CommentSection.tsx`.
+   - Open `frontend/components/CommentSection.tsx`.
    - Update the `WIX_API_URL` constant with your site's domain.

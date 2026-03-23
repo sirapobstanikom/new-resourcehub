@@ -222,7 +222,7 @@ const AdminLayoutWithSidebar: React.FC = () => {
         {adminUserError && (
           <div className="text-xs text-amber-400/90 bg-amber-500/10 rounded-lg p-2 space-y-1">
             <p>โหลด admin_users ไม่ได้: {adminUserError}</p>
-            <p className="text-gray-500 mt-1">ให้เปิด Supabase → SQL Editor แล้วรันไฟล์ supabase/fix_admin_users_rls.sql</p>
+            <p className="text-gray-500 mt-1">ให้เปิด Supabase → SQL Editor แล้วรันไฟล์ backend/supabase/fix_admin_users_rls.sql</p>
           </div>
         )}
         {adminUserNoRow && !adminUserError && (
