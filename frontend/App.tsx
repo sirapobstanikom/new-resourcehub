@@ -1,31 +1,41 @@
-import React, { useState } from 'react';
+import React, { useState, lazy, Suspense } from 'react';
 import { Routes, Route, Link, useNavigate, useParams, Navigate, useLocation } from 'react-router-dom';
 import { JOURNEY_DATA, UPDATES_DATA, getToolById, getUpdateById } from './constants';
 import { Tool, InnovationUpdate } from './types';
 import JourneyCard from './components/JourneyCard';
 import UpdateCard from './components/UpdateCard';
-import ToolDetail from './components/ToolDetail';
-import UpdateDetail from './components/UpdateDetail';
-import AIChatModal from './components/AIChatModal';
-import LoginPage from './components/LoginPage';
-import AdminLoginPage from './components/AdminLoginPage';
-import AdminApprovePage from './components/AdminApprovePage';
-import AdminDashboard from './components/AdminDashboard';
-import AdminLayoutWithSidebar from './components/AdminLayoutWithSidebar';
-import AdminLeavePage from './components/AdminLeavePage';
-import AdminLeaveManagePage from './components/AdminLeaveManagePage';
-import AdminStickycloudPage from './components/AdminStickycloudPage';
-import JoinRoomPage from './components/JoinRoomPage';
-import RoomWorkspacePage from './components/RoomWorkspacePage';
 import HomePage from './components/HomePage';
-import DiscAssessment from './components/DiscAssessment';
-import LeadershipAssessment from './components/LeadershipAssessment';
-import PersuasionAssessment from './components/PersuasionAssessment';
-import Game10Timeout from './components/Game10Timeout';
-import GameReaction from './components/GameReaction';
-import InnoClubEvaluationPage from './components/InnoClubEvaluationPage';
 import { useAuth } from './contexts/AuthContext';
 import { isAdminAuthenticated, isAuthenticated, logoutResourceHub } from './lib/auth';
+
+/** โหลดแยก chunk — ลดขนาด bundle หลักบน Vite build / Vercel */
+const ToolDetail = lazy(() => import('./components/ToolDetail'));
+const UpdateDetail = lazy(() => import('./components/UpdateDetail'));
+const AIChatModal = lazy(() => import('./components/AIChatModal'));
+const LoginPage = lazy(() => import('./components/LoginPage'));
+const AdminLoginPage = lazy(() => import('./components/AdminLoginPage'));
+const AdminApprovePage = lazy(() => import('./components/AdminApprovePage'));
+const AdminLayoutWithSidebar = lazy(() => import('./components/AdminLayoutWithSidebar'));
+const AdminDashboard = lazy(() => import('./components/AdminDashboard'));
+const AdminLeavePage = lazy(() => import('./components/AdminLeavePage'));
+const AdminLeaveManagePage = lazy(() => import('./components/AdminLeaveManagePage'));
+const AdminStickycloudPage = lazy(() => import('./components/AdminStickycloudPage'));
+const JoinRoomPage = lazy(() => import('./components/JoinRoomPage'));
+const RoomWorkspacePage = lazy(() => import('./components/RoomWorkspacePage'));
+const DiscAssessment = lazy(() => import('./components/DiscAssessment'));
+const LeadershipAssessment = lazy(() => import('./components/LeadershipAssessment'));
+const PersuasionAssessment = lazy(() => import('./components/PersuasionAssessment'));
+const Game10Timeout = lazy(() => import('./components/Game10Timeout'));
+const GameReaction = lazy(() => import('./components/GameReaction'));
+const InnoClubEvaluationPage = lazy(() => import('./components/InnoClubEvaluationPage'));
+
+function RouteFallback() {
+  return (
+    <div className="min-h-screen bg-black text-white flex items-center justify-center">
+      <p className="text-gray-400 text-sm">กำลังโหลด...</p>
+    </div>
+  );
+}
 
 function ToolsPage() {
   const navigate = useNavigate();
@@ -72,7 +82,7 @@ function ToolDetailPage() {
   if (!tool) return <Navigate to="/resourcehub" replace />;
 
   return (
-    <>
+    <Suspense fallback={<RouteFallback />}>
       <ToolDetail
         tool={tool}
         onBack={() => navigate(-1)}
@@ -81,7 +91,7 @@ function ToolDetailPage() {
       {isAIModalOpen && (
         <AIChatModal toolName={tool.name} onClose={() => setIsAIModalOpen(false)} />
       )}
-    </>
+    </Suspense>
   );
 }
 
@@ -93,7 +103,9 @@ function UpdateDetailPage() {
   if (!update) return <Navigate to="/updates" replace />;
 
   return (
-    <UpdateDetail update={update} onBack={() => navigate(-1)} />
+    <Suspense fallback={<RouteFallback />}>
+      <UpdateDetail update={update} onBack={() => navigate(-1)} />
+    </Suspense>
   );
 }
 
@@ -125,63 +137,91 @@ const App: React.FC = () => {
   const isTools = pathname === '/resourcehub';
   const isUpdates = pathname === '/updates';
 
-  if (isLogin) return <LoginPage />;
+  if (isLogin) {
+    return (
+      <Suspense fallback={<RouteFallback />}>
+        <LoginPage />
+      </Suspense>
+    );
+  }
   if (pathname === '/register') return <Navigate to="/login" replace />;
-  if (isAdminLogin) return <AdminLoginPage />;
-  if (pathname === '/admin/approve') return <AdminApprovePage />;
+  if (isAdminLogin) {
+    return (
+      <Suspense fallback={<RouteFallback />}>
+        <AdminLoginPage />
+      </Suspense>
+    );
+  }
+  if (pathname === '/admin/approve') {
+    return (
+      <Suspense fallback={<RouteFallback />}>
+        <AdminApprovePage />
+      </Suspense>
+    );
+  }
   if (pathname.startsWith('/admin')) {
     return (
       <AdminLayout>
-        <Routes>
-          <Route path="/admin" element={<AdminLayoutWithSidebar />}>
-            <Route index element={<AdminDashboard />} />
-            <Route path="leave" element={<AdminLeavePage />} />
-            <Route path="leave/manage" element={<AdminLeaveManagePage />} />
-            <Route path="rooms" element={<AdminStickycloudPage />} />
-          </Route>
-        </Routes>
+        <Suspense fallback={<RouteFallback />}>
+          <Routes>
+            <Route path="/admin" element={<AdminLayoutWithSidebar />}>
+              <Route index element={<AdminDashboard />} />
+              <Route path="leave" element={<AdminLeavePage />} />
+              <Route path="leave/manage" element={<AdminLeaveManagePage />} />
+              <Route path="rooms" element={<AdminStickycloudPage />} />
+            </Route>
+          </Routes>
+        </Suspense>
       </AdminLayout>
     );
   }
 
   if (pathname.startsWith('/assessment')) {
     return (
-      <Routes>
-        <Route path="/assessment/disc" element={<DiscAssessment />} />
-        <Route path="/assessment/leadership" element={<LeadershipAssessment />} />
-        <Route path="/assessment/leaderships" element={<LeadershipAssessment />} />
-        <Route path="/assessment/persuasion" element={<PersuasionAssessment />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+      <Suspense fallback={<RouteFallback />}>
+        <Routes>
+          <Route path="/assessment/disc" element={<DiscAssessment />} />
+          <Route path="/assessment/leadership" element={<LeadershipAssessment />} />
+          <Route path="/assessment/leaderships" element={<LeadershipAssessment />} />
+          <Route path="/assessment/persuasion" element={<PersuasionAssessment />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Suspense>
     );
   }
 
   if (pathname.startsWith('/gamification')) {
     return (
-      <Routes>
-        <Route path="/gamification/10-timeout" element={<Game10Timeout />} />
-        <Route path="/gamification/reaction" element={<GameReaction />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+      <Suspense fallback={<RouteFallback />}>
+        <Routes>
+          <Route path="/gamification/10-timeout" element={<Game10Timeout />} />
+          <Route path="/gamification/reaction" element={<GameReaction />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Suspense>
     );
   }
 
   if (pathname.startsWith('/evaluation')) {
     return (
-      <Routes>
-        <Route path="/evaluation/innoclub" element={<InnoClubEvaluationPage />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+      <Suspense fallback={<RouteFallback />}>
+        <Routes>
+          <Route path="/evaluation/innoclub" element={<InnoClubEvaluationPage />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Suspense>
     );
   }
 
   if (pathname.startsWith('/room')) {
     return (
-      <Routes>
-        <Route path="/room" element={<JoinRoomPage />} />
-        <Route path="/room/:roomId" element={<RoomWorkspacePage />} />
-        <Route path="*" element={<Navigate to="/room" replace />} />
-      </Routes>
+      <Suspense fallback={<RouteFallback />}>
+        <Routes>
+          <Route path="/room" element={<JoinRoomPage />} />
+          <Route path="/room/:roomId" element={<RoomWorkspacePage />} />
+          <Route path="*" element={<Navigate to="/room" replace />} />
+        </Routes>
+      </Suspense>
     );
   }
 

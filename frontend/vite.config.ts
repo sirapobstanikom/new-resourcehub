@@ -15,4 +15,8 @@ export default defineConfig({
       '@': path.resolve(__dirname, '.'),
     },
   },
+  build: {
+    // jspdf / chunk หลักหลัง code-split มัก > 500 kB — ค่า default ของ Vite เตือนเกินจริงสำหรับแอปนี้
+    chunkSizeWarningLimit: 700,
+  },
 });
