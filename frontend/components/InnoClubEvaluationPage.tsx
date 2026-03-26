@@ -107,9 +107,9 @@ const InnoClubEvaluationPage: React.FC = () => {
           </Link>
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-yellow-400 rounded-lg flex items-center justify-center">
-              <span className="text-black font-bold text-sm">M</span>
+              <span className="text-black font-semibold text-sm">M</span>
             </div>
-            <span className="font-bold tracking-tight text-sm">MindDoJo</span>
+            <span className="font-semibold tracking-tight text-sm">MindDoJo</span>
           </div>
         </div>
       </header>

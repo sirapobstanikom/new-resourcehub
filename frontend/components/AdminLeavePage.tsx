@@ -32,18 +32,20 @@ const EMPLOYEES: Array<{ name: string; phone: string; dept: EmployeeDeptId }> = 
   { name: 'นาย ธนโชติ มีกังวาล', phone: '0873648269', dept: 'trainer' },
   { name: 'นายวีรวัฒน์ พากเพียรกิจ', phone: '0951959989', dept: 'trainer' },
   { name: 'นายอุประจิตร รวมทรัพย์', phone: '0909618529', dept: 'trainer' },
-  { name: 'นายพีรวิชญ์ พูลขวัญ', phone: '0968781140', dept: 'admin' },
+  { name: 'นายพีรวิชญ์ พูลขวัญ', phone: '0968781140', dept: 'production' },
   { name: 'นางสาวนิรชา ไม้งาม', phone: '0910966938', dept: 'sales' },
   { name: 'นาวสาวมนิดา พิมกา', phone: '085-095-6965', dept: 'admin' },
   { name: 'Mr. Songpathara Snidvongs', phone: '0832744456', dept: 'ceo' },
   { name: 'นายบรรพต บุญธรรม', phone: '0890399444', dept: 'trainer' },
   { name: 'นางสาวสิริมา เงินอนันต์', phone: '0889647826', dept: 'sales' },
   { name: 'คุณนาย ชนิสรา เมฆประดับ', phone: '0971877766', dept: 'sales' },
+  { name: 'Rachaphak Trainontikorn', phone: '0956496963', dept: 'sales' },
   { name: 'นางสาวชิษณุชา เศรษฐธัญกิจ', phone: '0955914958', dept: 'production' },
   { name: 'นางสาวธรินทร์ญา กรแวววงศ์เจริญ', phone: '0914088708', dept: 'admin' },
   { name: 'นางมาสเมษา สนิทวงศ์ ณ อยุธยา', phone: '0894479878', dept: 'ceo' },
   { name: 'นางสาว พริมพิชา ธัญญเจริญ', phone: '0802357570', dept: 'it' },
   { name: 'ว่าที่ ร.ต.จีรวัฒน์ เยาวนิช', phone: '0922720923', dept: 'trainer' },
+  { name: 'นางสาวอรจิรา จูงเจริญวงศ์', phone: '0944565599', dept: 'trainer' },
 ];
 
 type LeaveRequestRow = {
@@ -816,9 +818,9 @@ const AdminLeavePage: React.FC = () => {
         <div className="flex flex-wrap items-center gap-2 sm:gap-4 min-w-0">
           <Link to="/" className="flex items-center gap-2 sm:gap-3 shrink-0">
             <div className="w-9 h-9 sm:w-10 sm:h-10 bg-yellow-400 rounded-lg flex items-center justify-center glow-yellow">
-              <span className="text-black font-black text-lg sm:text-xl">M</span>
+              <span className="text-black font-semibold text-lg sm:text-xl">M</span>
             </div>
-            <span className="text-base sm:text-xl font-bold tracking-tighter">MindDoJo</span>
+            <span className="text-base sm:text-xl font-semibold tracking-tighter">MindDoJo</span>
           </Link>
           <span className="hidden sm:inline text-gray-500">|</span>
           <span className="text-yellow-400 font-semibold text-sm sm:text-base truncate">ระบบลา MindDojo</span>

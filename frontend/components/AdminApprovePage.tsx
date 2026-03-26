@@ -74,7 +74,7 @@ const AdminApprovePage: React.FC = () => {
     <div className="min-h-screen bg-transparent text-white bg-grid flex items-center justify-center p-6">
       <div className="w-full max-w-md">
         <div className="bg-neutral-900/80 border border-white/10 rounded-[32px] p-10 shadow-2xl backdrop-blur-sm">
-          <h1 className="text-xl font-bold text-center mb-2">อนุมัติเป็นแอดมิน MindDoJo</h1>
+          <h1 className="text-xl font-semibold text-center mb-2">อนุมัติเป็นแอดมิน MindDoJo</h1>
           <p className="text-gray-500 text-sm text-center mb-6">ตั้งรหัสผ่านสำหรับแอดมินคนนี้ (ใช้ล็อกอินภายหลัง)</p>
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>

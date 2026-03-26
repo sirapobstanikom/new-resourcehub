@@ -14,15 +14,15 @@ const UpdateDetail: React.FC<UpdateDetailProps> = ({ update, onBack }) => {
       <div className="flex justify-between items-center mb-12 py-8 border-b border-white/10">
         <button 
           onClick={onBack}
-          className="text-gray-400 hover:text-yellow-400 flex items-center gap-2 font-black uppercase tracking-tighter transition-colors"
+          className="text-gray-400 hover:text-yellow-400 flex items-center gap-2 font-semibold uppercase tracking-tighter transition-colors"
         >
           <span className="text-xl">←</span> Back to Updates
         </button>
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 bg-yellow-400 rounded flex items-center justify-center">
-            <span className="text-black font-bold">M</span>
+            <span className="text-black font-semibold">M</span>
           </div>
-          <span className="font-bold tracking-tighter">MindDoJo NEWS</span>
+          <span className="font-semibold tracking-tighter">MindDoJo NEWS</span>
         </div>
       </div>
 
@@ -32,7 +32,7 @@ const UpdateDetail: React.FC<UpdateDetailProps> = ({ update, onBack }) => {
              <span className="px-4 py-1 bg-yellow-400 text-black text-[10px] font-black uppercase tracking-widest rounded-full">Innovation</span>
              <span className="text-gray-500 text-sm font-bold">{update.date}</span>
           </div>
-          <h1 className="text-4xl md:text-6xl font-black text-white leading-tight tracking-tighter">
+          <h1 className="text-4xl md:text-6xl font-semibold text-white leading-tight tracking-tighter">
             {update.title}
           </h1>
         </header>

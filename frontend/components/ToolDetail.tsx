@@ -24,9 +24,9 @@ const ToolDetail: React.FC<ToolDetailProps> = ({ tool, onBack, onAskAI }) => {
         </button>
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 bg-yellow-400 rounded flex items-center justify-center">
-            <span className="text-black font-bold">M</span>
+            <span className="text-black font-semibold">M</span>
           </div>
-          <span className="font-bold">MindDoJo</span>
+          <span className="font-semibold">MindDoJo</span>
         </div>
       </div>
 

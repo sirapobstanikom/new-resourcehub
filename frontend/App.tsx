@@ -242,15 +242,15 @@ const App: React.FC = () => {
             <div className="flex justify-center mb-8">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-yellow-400 rounded-lg flex items-center justify-center glow-yellow">
-                  <span className="text-black font-black text-xl">M</span>
+                  <span className="text-black font-semibold text-xl">M</span>
                 </div>
-                <Link to="/" className="text-2xl font-bold tracking-tighter text-glow hover:opacity-90">
+                <Link to="/" className="text-2xl font-semibold tracking-tighter text-glow hover:opacity-90">
                   MindDoJo
                 </Link>
               </div>
             </div>
 
-            <h1 className="text-5xl md:text-7xl font-extrabold mb-6 tracking-tight leading-tight">
+            <h1 className="text-5xl md:text-7xl font-semibold mb-6 tracking-tight leading-tight">
               MindDoJo <span className="text-yellow-400">Resourcehub</span>
             </h1>
             <p className="text-gray-400 text-lg max-w-2xl mx-auto mb-12">

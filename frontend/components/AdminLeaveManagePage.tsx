@@ -454,9 +454,9 @@ const AdminLeaveManagePage: React.FC = () => {
         <div className="flex flex-wrap items-center gap-2 sm:gap-4 min-w-0">
           <Link to="/admin/leave" className="flex items-center gap-2 sm:gap-3 shrink-0">
             <div className="w-9 h-9 sm:w-10 sm:h-10 bg-yellow-400 rounded-lg flex items-center justify-center glow-yellow">
-              <span className="text-black font-black text-lg sm:text-xl">M</span>
+              <span className="text-black font-semibold text-lg sm:text-xl">M</span>
             </div>
-            <span className="text-base sm:text-xl font-bold tracking-tighter">MindDoJo</span>
+            <span className="text-base sm:text-xl font-semibold tracking-tighter">MindDoJo</span>
           </Link>
           <span className="hidden sm:inline text-gray-500">|</span>
           <span className="text-amber-400 font-semibold text-sm sm:text-base truncate">จัดการคำขอลา</span>

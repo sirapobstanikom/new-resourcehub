@@ -13,7 +13,7 @@ const UpdateCard: React.FC<UpdateCardProps> = ({ update, onClick }) => {
       <div className="flex-1 flex flex-col justify-between">
         <div>
           {update.date && <span className="text-yellow-400 text-xs font-bold uppercase tracking-widest mb-2 block">{update.date}</span>}
-          <h3 className="text-2xl md:text-3xl font-black text-white mb-4 underline decoration-yellow-400 decoration-4 underline-offset-8">
+          <h3 className="text-2xl md:text-3xl font-semibold text-white mb-4 underline decoration-yellow-400 decoration-4 underline-offset-8">
             {update.title}
           </h3>
           <p className="text-gray-300 text-base md:text-lg leading-relaxed mb-8">

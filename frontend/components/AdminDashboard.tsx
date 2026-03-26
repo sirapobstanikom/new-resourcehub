@@ -3,12 +3,21 @@ import { Link } from 'react-router-dom';
 import * as XLSX from 'xlsx';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
-export type CollectionId = 'leadership_entries' | 'innoclub_evaluation_responses' | 'leave_requests';
+export type CollectionId =
+  | 'leadership_entries'
+  | 'innoclub_evaluation_responses'
+  | 'leave_requests'
+  | 'persuasion_results';
 
 const COLLECTIONS: { id: CollectionId; label: string; description: string }[] = [
   { id: 'leadership_entries', label: 'Leadership Entries', description: 'ผลแบบประเมินสมรรถนะภาวะผู้นำ' },
   { id: 'innoclub_evaluation_responses', label: 'แบบประเมิน INNO Club', description: 'ความพึงพอใจ PTT GROUP INNO Club' },
   { id: 'leave_requests', label: 'คำขอลา (Leave Requests)', description: 'คำขอลาทุกประเภท รวมลากิจ ลาป่วย Work from Home ลาพักร้อน ลาไม่รับเงิน' },
+  {
+    id: 'persuasion_results',
+    label: 'Persuasion Test',
+    description: 'ผลแบบประเมิน Persuasion (คะแนนช่องทางโน้มน้าวใจ dominant_channels)',
+  },
 ];
 
 function cellValue(val: unknown): string | number {
@@ -119,9 +128,9 @@ const AdminDashboard: React.FC = () => {
           <div className="flex flex-wrap items-center gap-2 sm:gap-4 min-w-0">
             <Link to="/" className="flex items-center gap-2 sm:gap-3 shrink-0">
               <div className="w-9 h-9 sm:w-10 sm:h-10 bg-yellow-400 rounded-lg flex items-center justify-center glow-yellow">
-                <span className="text-black font-black text-lg sm:text-xl">M</span>
+                <span className="text-black font-semibold text-lg sm:text-xl">M</span>
               </div>
-              <span className="text-base sm:text-xl font-bold tracking-tighter">MindDoJo</span>
+              <span className="text-base sm:text-xl font-semibold tracking-tighter">MindDoJo</span>
             </Link>
             <span className="hidden sm:inline text-gray-500">|</span>
             <span className="text-yellow-400 font-semibold text-sm sm:text-base truncate">Admin — ดูข้อมูล Database</span>
@@ -256,6 +265,17 @@ const AdminDashboard: React.FC = () => {
 {`drop policy if exists "Allow read innoclub_evaluation" on public.innoclub_evaluation_responses;
 create policy "Allow read innoclub_evaluation"
   on public.innoclub_evaluation_responses for select using (true);`}
+                        </code>
+                      </div>
+                    )}
+                    {isPermissionError && selectedCollection === 'persuasion_results' && (
+                      <div className="bg-amber-500/10 text-amber-200 rounded-xl p-4 text-sm">
+                        <p className="font-medium mb-1">ให้เห็นข้อมูล Persuasion Test:</p>
+                        <p className="text-gray-400 mb-2">ไปที่ Supabase → SQL Editor แล้วเพิ่ม policy ให้ role ที่ใช้ดูแอดมิน (ตัวอย่างอ่านได้ทุกแถว):</p>
+                        <code className="block bg-black/30 p-3 rounded-lg text-xs overflow-x-auto whitespace-pre">
+{`drop policy if exists "Allow read persuasion_results admin" on public.persuasion_results;
+create policy "Allow read persuasion_results admin"
+  on public.persuasion_results for select using (true);`}
                         </code>
                       </div>
                     )}
