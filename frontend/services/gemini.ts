@@ -79,3 +79,60 @@ S = จุดแข็ง, ME = ดี, AFI = ควรพัฒนา, ASD = �
     return 'ไม่สามารถโหลด feedback จาก AI ได้ กรุณาตรวจสอบการเชื่อมต่อและ Supabase (openai-proxy + OPENAI_API_KEY)';
   }
 }
+
+export type DiscType = 'D' | 'I' | 'S' | 'C';
+
+export interface DiscFeedbackPayload {
+  user: { name: string; email: string; company: string };
+  scores: Record<DiscType, number>;
+  primaryType: DiscType;
+  ranking: DiscType[];
+}
+
+export async function getDiscFeedback(payload: DiscFeedbackPayload): Promise<string> {
+  const top2 = payload.ranking.slice(0, 2).join(' และ ');
+  const bottom2 = payload.ranking.slice(-2).join(' และ ');
+
+  const scoresText = Object.entries(payload.scores)
+    .map(([t, s]) => `${t}: ${s}`)
+    .join(', ');
+
+  const systemPrompt = `You are a professional DISC coach.
+Write feedback in Thai for an individual user based on their DISC assessment results.
+
+Rules:
+- Tone: friendly, clear, professional, encouraging
+- Avoid hallucinating specific facts about the user; only use provided inputs
+- Output format (plain text, use newlines):
+  1) สรุปภาพรวม (2-3 ประโยค)
+  2) จุดแข็งที่ควรใช้ (2-3 bullet)
+  3) สิ่งที่ควรพัฒนา (2-3 bullet)
+  4) คำแนะนำการทำงาน/สื่อสาร (3 bullet)
+  5) ปิดท้าย: กำลังใจ + next step 1-2 ประโยค
+`;
+
+  const userContent = `ผู้ประเมิน: ${payload.user.name}
+อีเมล: ${payload.user.email}
+บริษัท: ${payload.user.company}
+
+ผล DISC:
+- บุคลิกภาพหลัก: ${payload.primaryType}
+- อันดับคะแนนสูงสุด: ${top2}
+- ด้านที่ควรพัฒนา (ต่ำสุด): ${bottom2}
+- คะแนนรวมต่อประเภท: ${scoresText}
+
+ช่วยเขียน feedback ให้ตรงกับผลด้านบนโดยเน้นการนำไปใช้ได้จริง`;
+
+  try {
+    const content = await callOpenAIProxy(
+      [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userContent },
+      ],
+      0.55,
+    );
+    return content || 'ไม่สามารถสร้าง feedback ได้ในขณะนี้';
+  } catch (error) {
+    return 'ไม่สามารถโหลด feedback จาก AI ได้ กรุณาตรวจสอบการเชื่อมต่อและ Supabase (openai-proxy + OPENAI_API_KEY)';
+  }
+}
