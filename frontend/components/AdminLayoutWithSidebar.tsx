@@ -298,7 +298,7 @@ const AdminLayoutWithSidebar: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-black text-white bg-grid flex selection:bg-yellow-400 selection:text-black">
+    <div className="min-h-screen bg-transparent text-white bg-grid flex selection:bg-yellow-400 selection:text-black">
       {/* Mobile: hamburger (touch-friendly 44px) + overlay */}
       <button
         type="button"

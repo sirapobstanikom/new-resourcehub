@@ -28,7 +28,7 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white bg-grid flex items-center justify-center p-6">
+    <div className="min-h-screen bg-transparent text-white bg-grid flex items-center justify-center p-6">
       <div className="w-full max-w-md">
         <div className="bg-neutral-900/80 border border-white/10 rounded-[32px] p-10 shadow-2xl backdrop-blur-sm">
           <div className="flex flex-col items-center mb-10">

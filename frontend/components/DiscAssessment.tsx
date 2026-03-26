@@ -58,7 +58,7 @@ const DiscAssessment: React.FC = () => {
   const canNext = step === 'questions' && selectedOption != null;
 
   return (
-    <div className="min-h-screen bg-black text-white bg-grid flex flex-col selection:bg-yellow-400 selection:text-black">
+    <div className="min-h-screen bg-transparent text-white bg-grid flex flex-col selection:bg-yellow-400 selection:text-black">
       {/* Header */}
       <header className="flex justify-between items-center px-6 py-6 max-w-4xl mx-auto w-full">
         <Link to="/" className="flex items-center gap-3">

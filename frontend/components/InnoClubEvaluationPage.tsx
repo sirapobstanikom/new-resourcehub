@@ -78,7 +78,7 @@ const InnoClubEvaluationPage: React.FC = () => {
 
   if (submitted) {
     return (
-      <div className="min-h-screen bg-black text-white bg-grid flex flex-col selection:bg-yellow-400 selection:text-black">
+      <div className="min-h-screen bg-transparent text-white bg-grid flex flex-col selection:bg-yellow-400 selection:text-black">
         <div className="flex flex-col items-center justify-center flex-1 px-6 py-16">
           <div className="max-w-md w-full rounded-2xl border border-white/10 bg-white/5 p-8 text-center">
             <h2 className="text-xl font-bold text-yellow-400 mb-2">ส่งแบบประเมินแล้ว</h2>
@@ -96,7 +96,7 @@ const InnoClubEvaluationPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white bg-grid flex flex-col selection:bg-yellow-400 selection:text-black">
+    <div className="min-h-screen bg-transparent text-white bg-grid flex flex-col selection:bg-yellow-400 selection:text-black">
       <header className="border-b border-white/10 px-4 py-4 sm:px-6">
         <div className="max-w-3xl mx-auto flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2 text-gray-400 hover:text-white text-sm font-medium">

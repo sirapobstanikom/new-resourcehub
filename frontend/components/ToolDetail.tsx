@@ -13,7 +13,7 @@ interface ToolDetailProps {
 
 const ToolDetail: React.FC<ToolDetailProps> = ({ tool, onBack, onAskAI }) => {
   return (
-    <div className="bg-black text-white min-h-screen">
+    <div className="bg-transparent text-white min-h-screen">
       {/* Navigation */}
       <div className="flex justify-between items-center mb-12 py-4">
         <button 

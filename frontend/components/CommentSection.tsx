@@ -100,7 +100,7 @@ const SITPostTemplate: React.FC<{ blocks: SITParsedBlock[] }> = ({ blocks }) => 
               <div className="flex h-11 w-11 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-full bg-[#FFEB00] border-2 border-[#1a1a1a]/90 shadow-sm">
                 <Lightbulb className="h-5 w-5 sm:h-7 sm:w-7 text-[#1a1a1a]" />
               </div>
-              <h2 className="text-base sm:text-xl font-semibold text-black/90" style={{ fontFamily: "'Caveat', cursive" }}>
+              <h2 className="text-base sm:text-xl font-semibold text-black/90">
                 Systematic Inventive Thinking Template
               </h2>
             </div>
@@ -152,7 +152,7 @@ const SITPostTemplate: React.FC<{ blocks: SITParsedBlock[] }> = ({ blocks }) => 
                 {/* มือถือ: การ์ดแนวตั้ง */}
                 <div className="md:hidden flex flex-col gap-0 p-4">
                   <div className="flex items-center justify-center gap-2 py-3 bg-[#fafafa] rounded-t-lg border border-black/5 border-b-0">
-                    <span className="text-base font-semibold text-black/90" style={{ fontFamily: "'Caveat', cursive" }}>
+                    <span className="text-base font-semibold text-black/90">
                       {item.label}
                     </span>
                     <Icon className="h-5 w-5 text-black/50 shrink-0" />
@@ -189,7 +189,7 @@ const SITPostTemplate: React.FC<{ blocks: SITParsedBlock[] }> = ({ blocks }) => 
                 {/* เดสก์: แถวตาราง 3 คอลัมน์ */}
                 <div className="hidden md:grid md:grid-cols-[1fr_1fr_1fr] gap-0 min-w-[320px]">
                   <div className="flex items-center justify-center gap-2 px-3 py-4 sm:px-4 sm:py-5 bg-[#fafafa] border-r border-black/6 min-h-[88px]">
-                    <span className="text-sm sm:text-base font-semibold text-black/90 text-center break-words" style={{ fontFamily: "'Caveat', cursive" }}>
+                    <span className="text-sm sm:text-base font-semibold text-black/90 text-center break-words">
                       {item.label}
                     </span>
                     <div className="flex items-center gap-1.5 shrink-0">
@@ -762,7 +762,7 @@ const CommentSection: React.FC<{ toolId?: string }> = ({ toolId = "bmc" }) => {
                       <div className="flex h-11 w-11 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-full bg-[#FFEB00] border-2 border-[#1a1a1a]/90 shadow-sm">
                         <Lightbulb className="h-5 w-5 sm:h-7 sm:w-7 text-[#1a1a1a]" />
                       </div>
-                      <h2 className="text-base sm:text-xl font-semibold text-black/90" style={{ fontFamily: "'Caveat', cursive" }}>
+                      <h2 className="text-base sm:text-xl font-semibold text-black/90">
                         Systematic Inventive Thinking Template
                       </h2>
                     </div>

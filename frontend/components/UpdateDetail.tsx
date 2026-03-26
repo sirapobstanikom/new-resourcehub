@@ -9,7 +9,7 @@ interface UpdateDetailProps {
 
 const UpdateDetail: React.FC<UpdateDetailProps> = ({ update, onBack }) => {
   return (
-    <div className="bg-black text-white min-h-screen max-w-4xl mx-auto px-6">
+    <div className="bg-transparent text-white min-h-screen max-w-4xl mx-auto px-6">
       {/* Navigation */}
       <div className="flex justify-between items-center mb-12 py-8 border-b border-white/10">
         <button 

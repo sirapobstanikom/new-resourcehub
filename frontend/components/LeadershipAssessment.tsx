@@ -309,7 +309,7 @@ const LeadershipAssessment: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white bg-grid flex flex-col selection:bg-yellow-400 selection:text-black">
+    <div className="min-h-screen bg-transparent text-white bg-grid flex flex-col selection:bg-yellow-400 selection:text-black">
       {/* ป๊อปอัพแนะนำก่อนเริ่มแบบประเมิน */}
       {showIntroModal && (
         <div

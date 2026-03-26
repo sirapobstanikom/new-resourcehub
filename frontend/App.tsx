@@ -31,8 +31,8 @@ const InnoClubEvaluationPage = lazy(() => import('./components/InnoClubEvaluatio
 
 function RouteFallback() {
   return (
-    <div className="min-h-screen bg-black text-white flex items-center justify-center">
-      <p className="text-gray-400 text-sm">กำลังโหลด...</p>
+    <div className="min-h-screen bg-transparent text-white flex items-center justify-center">
+      <p className="text-zinc-400 text-sm font-medium tracking-wide">กำลังโหลด...</p>
     </div>
   );
 }
@@ -235,7 +235,7 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white bg-grid flex flex-col selection:bg-yellow-400 selection:text-black">
+    <div className="min-h-screen bg-transparent text-white bg-grid flex flex-col selection:bg-yellow-400 selection:text-black">
       {!isDetailView && (
         <header className="pt-24 pb-16 px-6 relative">
           <div className="max-w-7xl mx-auto text-center relative z-10">

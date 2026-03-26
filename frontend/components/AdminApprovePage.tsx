@@ -44,7 +44,7 @@ const AdminApprovePage: React.FC = () => {
 
   if (!token) {
     return (
-      <div className="min-h-screen bg-black text-white bg-grid flex items-center justify-center p-6">
+      <div className="min-h-screen bg-transparent text-white bg-grid flex items-center justify-center p-6">
         <div className="w-full max-w-md text-center">
           <p className="text-red-400">ลิงก์ไม่ถูกต้อง หรือไม่มี token</p>
           <Link to="/" className="mt-4 inline-block text-yellow-400 hover:underline">← กลับหน้าหลัก</Link>
@@ -55,7 +55,7 @@ const AdminApprovePage: React.FC = () => {
 
   if (done) {
     return (
-      <div className="min-h-screen bg-black text-white bg-grid flex items-center justify-center p-6">
+      <div className="min-h-screen bg-transparent text-white bg-grid flex items-center justify-center p-6">
         <div className="w-full max-w-md text-center">
           <p className="text-green-400 text-lg font-medium">อนุมัติแล้ว</p>
           <p className="text-gray-400 mt-2">แอดมินคนนี้สามารถเข้าสู่ระบบได้ที่หน้า Login Admin MindDojo</p>
@@ -71,7 +71,7 @@ const AdminApprovePage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white bg-grid flex items-center justify-center p-6">
+    <div className="min-h-screen bg-transparent text-white bg-grid flex items-center justify-center p-6">
       <div className="w-full max-w-md">
         <div className="bg-neutral-900/80 border border-white/10 rounded-[32px] p-10 shadow-2xl backdrop-blur-sm">
           <h1 className="text-xl font-bold text-center mb-2">อนุมัติเป็นแอดมิน MindDoJo</h1>

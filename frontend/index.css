@@ -7,11 +7,22 @@
   html {
     -webkit-text-size-adjust: 100%;
     -webkit-tap-highlight-color: transparent;
+    color-scheme: dark;
   }
   body {
-    font-family: 'Inter', sans-serif !important;
-    background-color: #000 !important;
-    color: #fff !important;
+    font-family: "Sukhumvit Set", "Sukhumvit", "Kanit", ui-sans-serif, system-ui, sans-serif !important;
+    font-feature-settings: "kern" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    background-color: #050506 !important;
+    background-image:
+      radial-gradient(ellipse 100% 70% at 50% -15%, rgba(250, 204, 21, 0.07), transparent 55%),
+      radial-gradient(ellipse 50% 40% at 100% 0%, rgba(255, 255, 255, 0.04), transparent),
+      radial-gradient(ellipse 40% 35% at 0% 100%, rgba(250, 204, 21, 0.04), transparent),
+      linear-gradient(180deg, #0c0c10 0%, #050506 45%, #020203 100%) !important;
+    background-attachment: fixed;
+    color: #f4f4f5 !important;
     margin: 0 !important;
     overflow-x: hidden !important;
     min-height: 100vh;
@@ -20,11 +31,24 @@
 }
 
 /* คลาสเพิ่มเติมของโปรเจกต์ */
+/* ตารางอยู่ที่ ::before เท่านั้น — อย่า mask ทั้งคอนเทนเนอร์ ไม่งั้นข้อความ/ปุ่มจะถูกจางหาย */
 .bg-grid {
-  background-size: 50px 50px;
+  position: relative;
+  isolation: isolate;
+}
+
+.bg-grid::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-size: 56px 56px;
   background-image:
-    linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    linear-gradient(to right, rgba(255, 255, 255, 0.045) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.045) 1px, transparent 1px);
+  mask-image: radial-gradient(ellipse 85% 70% at 50% 30%, black 25%, transparent 78%);
+  -webkit-mask-image: radial-gradient(ellipse 85% 70% at 50% 30%, black 25%, transparent 78%);
 }
 
 .glow-yellow {

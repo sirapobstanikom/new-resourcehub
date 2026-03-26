@@ -10,7 +10,18 @@ export default {
     "./services/**/*.{ts,tsx,js,jsx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        sans: [
+          '"Sukhumvit Set"',
+          '"Sukhumvit"',
+          "Kanit",
+          "ui-sans-serif",
+          "system-ui",
+          "sans-serif",
+        ],
+      },
+    },
   },
   plugins: [],
 };

@@ -449,7 +449,7 @@ const AdminLeaveManagePage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col">
+    <div className="min-h-screen bg-transparent text-white flex flex-col">
       <header className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 px-4 sm:px-6 py-4 sm:py-6 border-b border-white/10">
         <div className="flex flex-wrap items-center gap-2 sm:gap-4 min-w-0">
           <Link to="/admin/leave" className="flex items-center gap-2 sm:gap-3 shrink-0">

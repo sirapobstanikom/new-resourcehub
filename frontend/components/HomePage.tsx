@@ -47,7 +47,7 @@ const HomePage: React.FC = () => {
   const loggedIn = isAuthenticated() || !!user;
 
   return (
-    <div className="min-h-screen bg-black text-white bg-grid flex flex-col selection:bg-yellow-400 selection:text-black">
+    <div className="min-h-screen bg-transparent text-white bg-grid flex flex-col selection:bg-yellow-400 selection:text-black">
       {/* Header */}
       <header className="flex justify-between items-center px-6 py-6 max-w-6xl mx-auto w-full">
         <Link to="/" className="flex items-center gap-3">
@@ -80,14 +80,14 @@ const HomePage: React.FC = () => {
         <h1 className="text-4xl md:text-7xl font-black tracking-tighter leading-tight mb-4">
           Welcome to <span className="text-yellow-400">MindDoJo</span>
         </h1>
-        <p className="text-gray-400 text-lg md:text-xl max-w-xl mb-14">
+        <p className="text-zinc-400 text-lg md:text-xl max-w-xl mb-14 leading-relaxed tracking-wide">
           แพลตฟอร์มสำหรับการประเมิน เครื่องมือ และความรู้เพื่อพัฒนาองค์กร
         </p>
       </section>
 
       {/* ResourceHub CTA */}
       <section className="px-6 pb-20 max-w-4xl mx-auto w-full">
-        <div className="rounded-[32px] border border-white/10 bg-white/5 p-8 md:p-10 text-center">
+        <div className="rounded-[32px] border border-white/10 bg-white/[0.06] backdrop-blur-xl shadow-2xl shadow-black/30 p-8 md:p-10 text-center">
           <h2 className="text-2xl md:text-3xl font-bold mb-2">
             MindDoJo <span className="text-yellow-400">ResourceHub</span>
           </h2>

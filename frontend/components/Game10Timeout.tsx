@@ -30,7 +30,7 @@ const Game10Timeout: React.FC = () => {
   const isPerfect = phase === 'stopped' && Math.abs(elapsedSeconds - TARGET_SECONDS) < 0.005;
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col selection:bg-yellow-400 selection:text-black">
+    <div className="min-h-screen bg-transparent text-white flex flex-col selection:bg-yellow-400 selection:text-black">
       {/* ปุ่มกลับ — อยู่ด้านบนเมื่อไม่ใช่ fullscreen ปุ่ม */}
       {phase !== 'running' && (
         <div className="fixed top-4 left-4 right-4 z-20 flex justify-between items-center">
@@ -92,7 +92,7 @@ const Game10Timeout: React.FC = () => {
       )}
 
       {phase === 'stopped' && (
-        <div className="min-h-screen w-full flex flex-col items-center justify-center px-6 py-24 bg-black">
+        <div className="min-h-screen w-full flex flex-col items-center justify-center px-6 py-24 bg-transparent">
           <div className="w-full max-w-md rounded-[32px] border border-white/10 bg-gradient-to-b from-white/10 to-white/5 p-8 md:p-12 text-center shadow-2xl shadow-yellow-400/5">
             <p className="text-gray-500 text-sm font-medium uppercase tracking-widest mb-1">
               เป้าหมาย {TARGET_SECONDS} วินาที

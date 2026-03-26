@@ -249,7 +249,7 @@ const PersuasionAssessment: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white bg-grid flex flex-col selection:bg-yellow-400 selection:text-black">
+    <div className="min-h-screen bg-transparent text-white bg-grid flex flex-col selection:bg-yellow-400 selection:text-black">
       {showIntroModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" aria-modal="true" role="dialog">
           <div
