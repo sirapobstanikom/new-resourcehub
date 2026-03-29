@@ -1,0 +1,7 @@
+# Supabase CLI — รัน `supabase link` จากโฟลเดอร์นี้แล้ว deploy functions
+# minddojo-assessment-auth รับ Bearer anon key จากเบราว์เซอร์ จึงปิด JWT verify ระดับ gateway
+# (แอดมิน route ยังเช็ค JWT ในโค้ดฟังก์ชัน)
+project_id = "new-resourcehub"
+
+[functions.minddojo-assessment-auth]
+verify_jwt = false

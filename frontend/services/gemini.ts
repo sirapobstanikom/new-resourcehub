@@ -1,5 +1,6 @@
 
 import { supabaseFunctionsUrl, supabaseAnonKey } from '../lib/supabase';
+import type { MindDojoDimensionKey } from '../data/mindDojoDimensions';
 
 async function callOpenAIProxy(messages: Array<{ role: string; content: string }>, temperature = 0.7) {
   if (!supabaseFunctionsUrl || !supabaseAnonKey) {
@@ -19,6 +20,202 @@ async function callOpenAIProxy(messages: Array<{ role: string; content: string }
   }
   const data = await response.json();
   return data.choices?.[0]?.message?.content ?? '';
+}
+
+/** เรียก OpenAI ผ่าน Supabase Edge Function — ใช้กับแชท/เวิร์กโฟลว์ที่ต้องการข้อความดิบ */
+export async function openaiChat(
+  messages: Array<{ role: string; content: string }>,
+  temperature = 0.7,
+): Promise<string> {
+  return callOpenAIProxy(messages, temperature);
+}
+
+export type MindDojoProfile = {
+  name: string;
+  position: string;
+  industry: string;
+  experienceLevel: string;
+};
+
+export type MindDojoScenario = {
+  userRole: string;
+  counterpart: string;
+  context: string;
+  situationSummary: string;
+};
+
+export type MindDojoDimensionScore = {
+  score: number;
+  brief: string;
+};
+
+export type MindDojoStructuredReport = {
+  overall: number;
+  dimensions: Record<MindDojoDimensionKey, MindDojoDimensionScore>;
+  strengths: string[];
+  improvements: string[];
+  narrative: string;
+};
+
+/** เก็บใน sessionStorage สำหรับหน้า /assessment/minddojo/result */
+export type MindDojoStoredReportPayload = {
+  savedAt: number;
+  profile: MindDojoProfile;
+  scenario: MindDojoScenario;
+  report: MindDojoStructuredReport;
+};
+
+const MINDDOJO_JSON_OPEN = '[[MINDDOJO_JSON]]';
+const MINDDOJO_JSON_CLOSE = '[[/MINDDOJO_JSON]]';
+
+function clampScore(n: unknown): number {
+  const x = typeof n === 'number' ? n : Number(n);
+  if (Number.isNaN(x)) return 0;
+  return Math.max(0, Math.min(100, Math.round(x)));
+}
+
+function normalizeDimension(
+  raw: unknown,
+): { score: number; brief: string } {
+  if (raw && typeof raw === 'object' && 'score' in raw) {
+    const o = raw as { score?: unknown; brief?: unknown };
+    return {
+      score: clampScore(o.score),
+      brief: typeof o.brief === 'string' ? o.brief : '',
+    };
+  }
+  return { score: 0, brief: '' };
+}
+
+function reportFromParsedObject(o: Record<string, unknown>): MindDojoStructuredReport | null {
+  if (!o || typeof o !== 'object') return null;
+  const dims = (o.dimensions || {}) as Record<string, unknown>;
+  const keys: MindDojoDimensionKey[] = [
+    'clarity',
+    'structure',
+    'empathy',
+    'activeListening',
+    'persuasion',
+    'professionalTone',
+  ];
+  const dimensions = {} as Record<MindDojoDimensionKey, MindDojoDimensionScore>;
+  for (const k of keys) {
+    dimensions[k] = normalizeDimension(dims[k]);
+  }
+  const strengths = Array.isArray(o.strengths)
+    ? o.strengths.filter((x): x is string => typeof x === 'string')
+    : [];
+  const improvements = Array.isArray(o.improvements)
+    ? o.improvements.filter((x): x is string => typeof x === 'string')
+    : [];
+  return {
+    overall: clampScore(o.overall),
+    dimensions,
+    strengths,
+    improvements,
+    narrative: typeof o.narrative === 'string' ? o.narrative : '',
+  };
+}
+
+function tryParseReportJsonString(inner: string): MindDojoStructuredReport | null {
+  try {
+    const o = JSON.parse(inner) as Record<string, unknown>;
+    return reportFromParsedObject(o);
+  } catch {
+    return null;
+  }
+}
+
+function parseMindDojoReportJson(raw: string): MindDojoStructuredReport | null {
+  const start = raw.indexOf(MINDDOJO_JSON_OPEN);
+  const end =
+    start === -1 ? -1 : raw.indexOf(MINDDOJO_JSON_CLOSE, start + MINDDOJO_JSON_OPEN.length);
+  if (start !== -1 && end !== -1) {
+    const inner = raw.slice(start + MINDDOJO_JSON_OPEN.length, end).trim();
+    const r = tryParseReportJsonString(inner);
+    if (r) return r;
+  }
+  const trimmed = raw.trim();
+  const fenced = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (fenced) {
+    const r = tryParseReportJsonString(fenced[1].trim());
+    if (r) return r;
+  }
+  if (trimmed.startsWith('{')) {
+    const r = tryParseReportJsonString(trimmed);
+    if (r) return r;
+  }
+  return null;
+}
+
+/** รายงานโครงสร้างสำหรับ Dashboard — 6 มิติตาม MindDoJo Communication rubric */
+export async function getMindDojoStructuredReport(input: {
+  profile: MindDojoProfile;
+  scenario: MindDojoScenario;
+  simulationTranscript: string;
+}): Promise<MindDojoStructuredReport | null> {
+  const systemPrompt = `คุณเป็นผู้ประเมินด้านการสื่อสารในองค์กร (MindDoJo AI Assessment)
+คุณได้รับเฉพาะ transcript การจำลองสถานการณ์ของผู้ใช้ — ห้ามสมมติข้อเท็จจริงนอก transcript / โปรไฟล์ / สถานการณ์ที่ให้
+
+**เกณฑ์ให้คะแนน (0–100 ต่อมิติ)** ต้องอิงพฤติกรรมที่เห็นใน transcript เท่านั้น:
+1) clarity — ความชัดเจนในการสื่อสาร (ประเด็นหลัก ภาษาเข้าใจง่าย ไม่คลุมเครือ)
+2) structure — โครงสร้างการพูด/การเรียบเรียง (ลำดับความคิด เหตุผล ข้อเสนอ)
+3) empathy — ความเข้าใจและใส่ใจความรู้สึกอีกฝ่าย
+4) activeListening — การฟังและตอบสนองอย่างตั้งใจ (ถามต่อ สะท้อน อ้างอิงสิ่งที่อีกฝ่ายพูด)
+5) persuasion — ความสามารถในการโน้มน้าว (เหตุผล ประโยชน์ร่วม ความเกี่ยวข้อง)
+6) professionalTone — น้ำเสียงความเป็นมืออาชีพ (สุภาพ ควบคุมอารมณ์ เหมาะบริบทงาน)
+
+คำนวณ overall เป็น 0–100 โดยสะท้อนภาพรวมทั้ง 6 มิติ (ไม่จำเป็นต้องเป็นเฉลี่ยเลขตรงๆ แต่ต้องสอดคล้อง)
+
+ตอบ **เฉพาะ** บล็อก JSON เดียวตามรูปแบบนี้ (ไม่มี markdown code fence ภายนอก ไม่มีข้อความอื่นนอกบล็อก):
+
+${MINDDOJO_JSON_OPEN}
+{
+  "overall": 0,
+  "dimensions": {
+    "clarity": { "score": 0, "brief": "ภาษาไทย 1 ประโยค" },
+    "structure": { "score": 0, "brief": "..." },
+    "empathy": { "score": 0, "brief": "..." },
+    "activeListening": { "score": 0, "brief": "..." },
+    "persuasion": { "score": 0, "brief": "..." },
+    "professionalTone": { "score": 0, "brief": "..." }
+  },
+  "strengths": ["ข้อความไทย 3–5 ข้อ"],
+  "improvements": ["ข้อความไทย 3–5 ข้อ"],
+  "narrative": "ข้อความยาวเป็นภาษาไทย: วิเคราะห์เป็นช่วงตามบทสนทนา ยกตัวอย่างจาก transcript แนวทางฝึกและ framework สั้นๆ ปิดท้ายย้ำว่าใช้เพื่อพัฒนา ไม่ใช่การตัดสิน และไม่ครอบคลุมทุกทักษะ — น้ำเสียงมืออาชีพ อบอุ่น"
+}
+${MINDDOJO_JSON_CLOSE}
+
+กฎ: brief แต่ละมิติต้องอ้างอิงสิ่งที่ผู้ใช้พูดหรือทำใน transcript ได้จริง ถ้าไม่มีหลักฐานให้คะแนนต่ำและบอกชัดว่าขาดข้อมูลใน transcript`;
+
+  const userContent = `ข้อมูลผู้ใช้ (จากการสนทนา profiling):
+- ชื่อ: ${input.profile.name}
+- ตำแหน่ง/เป้าหมาย: ${input.profile.position}
+- อุตสาหกรรม/บริบท: ${input.profile.industry}
+- ระดับประสบการณ์: ${input.profile.experienceLevel}
+
+สถานการณ์ที่จำลอง:
+- บทบาทผู้ใช้: ${input.scenario.userRole}
+- คู่สนทนา: ${input.scenario.counterpart}
+- บริบท: ${input.scenario.context}
+- สรุปสถานการณ์: ${input.scenario.situationSummary}
+
+Transcript การจำลอง (ลำดับเวลา):
+${input.simulationTranscript}`;
+
+  try {
+    const content = await callOpenAIProxy(
+      [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userContent },
+      ],
+      0.35,
+    );
+    if (!content) return null;
+    return parseMindDojoReportJson(content);
+  } catch {
+    return null;
+  }
 }
 
 export async function getToolInsights(toolName: string, userContext: string = "") {

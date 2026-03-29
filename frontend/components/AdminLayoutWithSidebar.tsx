@@ -22,6 +22,7 @@ const AdminLayoutWithSidebar: React.FC = () => {
   const isLeaveManage = location.pathname === '/admin/leave/manage';
   const isAdminLeavePage = isLeave;
   const isStickycloud = location.pathname === '/admin/rooms';
+  const isMinddojoUsers = location.pathname === '/admin/minddojo-users';
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const showLeaveManageLink = user?.email != null && ADMIN_LEAVE_MANAGER_EMAILS.includes(user.email);
   type AdminUserRow = {
@@ -249,9 +250,15 @@ const AdminLayoutWithSidebar: React.FC = () => {
       <nav className="flex-1 pt-4 space-y-1">
         <Link
           to="/admin"
-          className={`block py-2.5 px-3 rounded-lg text-sm font-medium transition-colors ${!isLeave && !isStickycloud ? 'bg-yellow-400/20 text-yellow-400' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
+          className={`block py-2.5 px-3 rounded-lg text-sm font-medium transition-colors ${!isLeave && !isStickycloud && !isMinddojoUsers ? 'bg-yellow-400/20 text-yellow-400' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
         >
           ดูข้อมูล Database
+        </Link>
+        <Link
+          to="/admin/minddojo-users"
+          className={`block py-2.5 px-3 rounded-lg text-sm font-medium transition-colors ${isMinddojoUsers ? 'bg-yellow-400/20 text-yellow-400' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
+        >
+          อนุมัติผู้ใช้ Assessment
         </Link>
         <Link
           to="/admin/rooms"

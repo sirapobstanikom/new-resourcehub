@@ -5,6 +5,14 @@ import { isAuthenticated } from '../lib/auth';
 
 const ASSESSMENTS = [
   {
+    id: 'minddojo-ai',
+    title: 'MindDoJo AI Assessment',
+    description:
+      'ผู้ช่วยอัจฉริยะ — ประเมินทักษะการสื่อสาร การตัดสินใจ และการรับมือกับสถานการณ์ผ่านการสนทนาและจำลองบทบาท (login ก่อนเริ่ม)',
+    href: '/assessment/minddojo',
+    comingSoon: false,
+  },
+  {
     id: 'leadership',
     title: 'แบบประเมินสมรรถนะภาวะผู้นำ',
     description: 'Dynamic Leadership Capability Wheel — ประเมินสมรรถนะด้าน Be AWARE, ADAPT, ACT',
