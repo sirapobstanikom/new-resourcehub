@@ -549,9 +549,10 @@ const CommentSection: React.FC<{ toolId?: string }> = ({ toolId = "bmc" }) => {
     loadPosts();
   }, [loadPosts]);
 
-  const handleGenderChange = (gender: string) => {
-    setUserGender(gender);
-    randomizeAvatar(gender);
+  const handleSwapGenderAndRandomizeAvatar = () => {
+    const nextGender = userGender === 'female' ? 'male' : 'female';
+    setUserGender(nextGender);
+    randomizeAvatar(nextGender);
   };
 
   const handleMainImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -714,31 +715,26 @@ const CommentSection: React.FC<{ toolId?: string }> = ({ toolId = "bmc" }) => {
         <div className="flex flex-col md:flex-row gap-8 items-start mb-8">
           <div className="flex flex-col items-center gap-4">
             <div
-              className="w-24 h-24 rounded-3xl overflow-hidden bg-yellow-400 border-4 border-yellow-400/20 shadow-xl group relative cursor-pointer"
-              onClick={() => randomizeAvatar(userGender)}
+              className="w-24 h-24 rounded-3xl overflow-hidden bg-yellow-400 border-4 border-yellow-400/20 shadow-xl group relative"
             >
               {userAvatar ? (
                 <img src={userAvatar} alt="My Avatar" className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-2xl font-bold text-black/50" aria-hidden>?</div>
               )}
-              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                <span className="text-[10px] font-bold text-white uppercase tracking-tighter">สุ่มใหม่</span>
+              <div className="absolute bottom-2 left-2 right-2 bg-black/40 rounded-lg px-2 py-1 flex items-center justify-center">
+                <span className="text-[10px] font-bold text-white uppercase tracking-tighter">
+                  {userGender === 'female' ? 'หญิง' : 'ชาย'}
+                </span>
               </div>
             </div>
-            <div className="flex gap-2 p-1 bg-white/5 rounded-lg border border-white/10">
-              {GENDER_OPTIONS.map(g => (
-                <button
-                  key={g.value}
-                  onClick={() => handleGenderChange(g.value)}
-                  className={`px-3 py-1 rounded text-[10px] font-bold uppercase tracking-widest transition-all ${
-                    userGender === g.value ? 'bg-yellow-400 text-black' : 'text-gray-500 hover:text-white'
-                  }`}
-                >
-                  {g.label}
-                </button>
-              ))}
-            </div>
+            <button
+              type="button"
+              onClick={handleSwapGenderAndRandomizeAvatar}
+              className="w-full md:w-auto px-5 py-2.5 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-colors text-[11px] font-bold uppercase tracking-widest text-white touch-manipulation"
+            >
+              สลับเพศ + สุ่ม avatar
+            </button>
           </div>
 
           <div className="flex-1 w-full space-y-4">
