@@ -22,12 +22,92 @@ async function callOpenAIProxy(messages: Array<{ role: string; content: string }
   return data.choices?.[0]?.message?.content ?? '';
 }
 
+async function callOpenAIProxyStream(
+  messages: Array<{ role: string; content: string }>,
+  temperature = 0.7,
+  onDelta: (delta: string) => void,
+): Promise<string> {
+  if (!supabaseFunctionsUrl || !supabaseAnonKey) {
+    throw new Error('Supabase not configured. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.');
+  }
+
+  const response = await fetch(`${supabaseFunctionsUrl}/functions/v1/openai-proxy`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${supabaseAnonKey}`,
+    },
+    body: JSON.stringify({ model: 'gpt-4o', messages, temperature, stream: true }),
+  });
+
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err?.error || response.statusText);
+  }
+
+  if (!response.body) {
+    throw new Error('OpenAI stream body missing');
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder('utf-8');
+
+  let full = '';
+  let buffer = '';
+  let finished = false;
+
+  while (!finished) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    if (!value) continue;
+
+    buffer += decoder.decode(value, { stream: true });
+
+    // SSE is line-based: data: <json> \n
+    const lines = buffer.split('\n');
+    buffer = lines.pop() ?? '';
+
+    for (const rawLine of lines) {
+      const line = rawLine.trim().replace(/\r$/, '');
+      if (!line.startsWith('data:')) continue;
+
+      const payload = line.slice('data:'.length).trim();
+      if (payload === '[DONE]') {
+        finished = true;
+        break;
+      }
+
+      try {
+        const json = JSON.parse(payload) as any;
+        const delta = json?.choices?.[0]?.delta?.content;
+        if (typeof delta === 'string' && delta.length > 0) {
+          full += delta;
+          onDelta(delta);
+        }
+      } catch {
+        // ignore malformed partial JSON
+      }
+    }
+  }
+
+  return full;
+}
+
 /** เรียก OpenAI ผ่าน Supabase Edge Function — ใช้กับแชท/เวิร์กโฟลว์ที่ต้องการข้อความดิบ */
 export async function openaiChat(
   messages: Array<{ role: string; content: string }>,
   temperature = 0.7,
 ): Promise<string> {
   return callOpenAIProxy(messages, temperature);
+}
+
+/** เรียก OpenAI แบบ stream (SSE) แล้วส่ง token delta ให้ UI ค่อยๆ เติม */
+export async function openaiChatStream(
+  messages: Array<{ role: string; content: string }>,
+  temperature = 0.7,
+  onDelta: (delta: string) => void,
+): Promise<string> {
+  return callOpenAIProxyStream(messages, temperature, onDelta);
 }
 
 export type MindDojoProfile = {

@@ -7,6 +7,9 @@ interface AIChatModalProps {
   onClose: () => void;
 }
 
+const MINDDOJO_CHATBOT_AVATAR_URL =
+  'https://static.wixstatic.com/media/8f9517_2b5ddf78e35a4604a6eb0b28dde240af~mv2.jpg';
+
 const AIChatModal: React.FC<AIChatModalProps> = ({ toolName, onClose }) => {
   const [insight, setInsight] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
@@ -33,9 +36,18 @@ const AIChatModal: React.FC<AIChatModalProps> = ({ toolName, onClose }) => {
       <div className="bg-neutral-900 border border-yellow-400/30 rounded-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh] shadow-2xl">
         {/* Header */}
         <div className="p-6 bg-yellow-400 flex justify-between items-center text-black">
-          <div>
-            <h2 className="text-2xl font-black uppercase tracking-tight">AI Innovation Assistant</h2>
-            <p className="text-sm font-semibold opacity-80">Guiding you through {toolName}</p>
+          <div className="flex items-center gap-4 min-w-0">
+            <img
+              src={MINDDOJO_CHATBOT_AVATAR_URL}
+              alt="AI"
+              className="w-12 h-12 rounded-full object-cover ring-2 ring-black/20 shadow-sm shrink-0"
+              loading="lazy"
+              decoding="async"
+            />
+            <div className="min-w-0">
+              <h2 className="text-2xl font-black uppercase tracking-tight truncate">AI Innovation Assistant</h2>
+              <p className="text-sm font-semibold opacity-80 truncate">Guiding you through {toolName}</p>
+            </div>
           </div>
           <button 
             onClick={onClose}
@@ -54,7 +66,7 @@ const AIChatModal: React.FC<AIChatModalProps> = ({ toolName, onClose }) => {
             </div>
           ) : (
             <div className="prose prose-invert prose-yellow max-w-none">
-              <div className="whitespace-pre-wrap leading-relaxed text-gray-300">
+              <div className="whitespace-pre-wrap break-words leading-relaxed text-gray-300">
                 {insight}
               </div>
             </div>

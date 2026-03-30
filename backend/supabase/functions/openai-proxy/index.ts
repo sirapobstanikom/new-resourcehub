@@ -34,10 +34,11 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
   try {
     const body = await req.json();
-    const { model = 'gpt-4o', messages, temperature } = body as {
+    const { model = 'gpt-4o', messages, temperature, stream } = body as {
       model?: string;
       messages: Array<{ role: string; content: string }>;
       temperature?: number;
+      stream?: boolean;
     };
 
     if (!Array.isArray(messages) || messages.length === 0) {
@@ -45,6 +46,48 @@ Deno.serve(async (req: Request): Promise<Response> => {
         JSON.stringify({ error: 'messages array required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
+    }
+
+    if (stream) {
+      const openaiRes = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${OPENAI_API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: model || 'gpt-4o',
+          messages,
+          temperature: temperature ?? 0.7,
+          stream: true,
+        }),
+      });
+
+      if (!openaiRes.ok) {
+        const data = await openaiRes.json().catch(() => ({}));
+        return new Response(JSON.stringify(data || { error: openaiRes.statusText }), {
+          status: openaiRes.status,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      if (!openaiRes.body) {
+        return new Response(JSON.stringify({ error: 'OpenAI stream body missing' }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      // Forward OpenAI SSE stream directly to the client.
+      return new Response(openaiRes.body, {
+        status: 200,
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'text/event-stream; charset=utf-8',
+          'Cache-Control': 'no-cache, no-transform',
+          Connection: 'keep-alive',
+        },
+      });
     }
 
     const openaiRes = await fetch('https://api.openai.com/v1/chat/completions', {

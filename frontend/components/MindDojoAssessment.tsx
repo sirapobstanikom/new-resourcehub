@@ -12,6 +12,7 @@ import {
 } from '../lib/minddojoAssessmentAuth';
 import {
   openaiChat,
+  openaiChatStream,
   getMindDojoStructuredReport,
   type MindDojoProfile,
   type MindDojoScenario,
@@ -82,13 +83,19 @@ function toGraphemes(text: string): string[] {
 const TYPEWRITER_MS = 9;
 
 /** แสดงข้อความทีละตัวอักษร — ใช้กับข้อความจาก AI */
-const TypewriterText = React.memo(function TypewriterText({ text }: { text: string }) {
+const TypewriterText = React.memo(function TypewriterText({
+  text,
+  resetOnTextChange = true,
+}: {
+  text: string;
+  resetOnTextChange?: boolean;
+}) {
   const glyphs = useMemo(() => toGraphemes(text), [text]);
   const [count, setCount] = useState(0);
 
   useEffect(() => {
-    setCount(0);
-  }, [text]);
+    if (resetOnTextChange) setCount(0);
+  }, [text, resetOnTextChange]);
 
   useEffect(() => {
     if (count >= glyphs.length) return;
@@ -132,6 +139,8 @@ const MindDojoAssessment: React.FC = () => {
   const [simMessages, setSimMessages] = useState<ChatMsg[]>([]);
   const [input, setInput] = useState('');
   const [busy, setBusy] = useState(false);
+  const [mainStreamingId, setMainStreamingId] = useState<string | null>(null);
+  const [simStreamingId, setSimStreamingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const [profile, setProfile] = useState<MindDojoProfile | null>(null);
@@ -216,26 +225,68 @@ const MindDojoAssessment: React.FC = () => {
   };
 
   const runProfilingReply = useCallback(async (history: ChatMsg[]) => {
+    const assistantId = uid();
+    setMainStreamingId(assistantId);
+    setMainMessages([...history, { id: assistantId, role: 'assistant', content: '' }]);
+
     const historyForApi = history.map((m) => ({ role: m.role, content: m.content }));
-    const raw = await openaiChat([{ role: 'system', content: PROFILING_SYSTEM }, ...historyForApi], 0.65);
-    const jsonRaw = extractBlock(raw, '[[PROFILE_READY]]', '[[/PROFILE_READY]]');
-    const visible = stripBlock(raw, '\\[\\[PROFILE_READY\\]\\]', '\\[\\[/PROFILE_READY\\]\\]');
-    if (jsonRaw) {
-      const p = parseJsonSafe<MindDojoProfile>(jsonRaw);
-      if (p?.name && p?.position && p?.industry && p?.experienceLevel) {
-        setProfile(p);
-        setPhase('scenario_choice');
+
+    try {
+      const raw = await openaiChatStream(
+        [{ role: 'system', content: PROFILING_SYSTEM }, ...historyForApi],
+        0.65,
+        (delta) => {
+          setMainMessages((prev) =>
+            prev.map((m) => (m.id === assistantId ? { ...m, content: m.content + delta } : m)),
+          );
+        },
+      );
+
+      const jsonRaw = extractBlock(raw, '[[PROFILE_READY]]', '[[/PROFILE_READY]]');
+      const visible = stripBlock(raw, '\\[\\[PROFILE_READY\\]\\]', '\\[\\[/PROFILE_READY\\]\\]');
+
+      if (jsonRaw) {
+        const p = parseJsonSafe<MindDojoProfile>(jsonRaw);
+        if (p?.name && p?.position && p?.industry && p?.experienceLevel) {
+          setProfile(p);
+          setPhase('scenario_choice');
+        }
       }
+
+      setMainMessages((prev) =>
+        prev.map((m) => (m.id === assistantId ? { ...m, content: visible || raw } : m)),
+      );
+    } catch (e) {
+      // Revert to user history if streaming fails.
+      setMainMessages(history);
+      throw e;
+    } finally {
+      setMainStreamingId(null);
     }
-    setMainMessages([...history, { id: uid(), role: 'assistant', content: visible || raw }]);
   }, []);
 
   const runCustomScenarioReply = useCallback(async (history: ChatMsg[], summary: string) => {
+    const assistantId = uid();
+    setMainStreamingId(assistantId);
+    setMainMessages([...history, { id: assistantId, role: 'assistant', content: '' }]);
+
     const sys = `${CUSTOM_SCENARIO_SYSTEM}\n\nข้อมูลโปรไฟล์: ${summary}`;
     const historyForApi = history.map((m) => ({ role: m.role, content: m.content }));
-    const raw = await openaiChat([{ role: 'system', content: sys }, ...historyForApi], 0.65);
+
+    try {
+      const raw = await openaiChatStream(
+        [{ role: 'system', content: sys }, ...historyForApi],
+        0.65,
+        (delta) => {
+          setMainMessages((prev) =>
+            prev.map((m) => (m.id === assistantId ? { ...m, content: m.content + delta } : m)),
+          );
+        },
+      );
+
       const jsonRaw = extractBlock(raw, '[[CUSTOM_SCENARIO_READY]]', '[[/CUSTOM_SCENARIO_READY]]');
       const visible = stripBlock(raw, '\\[\\[CUSTOM_SCENARIO_READY\\]\\]', '\\[\\[/CUSTOM_SCENARIO_READY\\]\\]');
+
       if (jsonRaw) {
         const s = parseJsonSafe<MindDojoScenario>(jsonRaw);
         if (s?.userRole && s?.counterpart && s?.context && s?.situationSummary) {
@@ -243,7 +294,16 @@ const MindDojoAssessment: React.FC = () => {
           setPhase('confirm');
         }
       }
-    setMainMessages([...history, { id: uid(), role: 'assistant', content: visible || raw }]);
+
+      setMainMessages((prev) =>
+        prev.map((m) => (m.id === assistantId ? { ...m, content: visible || raw } : m)),
+      );
+    } catch (e) {
+      setMainMessages(history);
+      throw e;
+    } finally {
+      setMainStreamingId(null);
+    }
   }, []);
 
   const fetchRandomScenarios = useCallback(async () => {
@@ -301,6 +361,7 @@ const MindDojoAssessment: React.FC = () => {
     setBusy(true);
     setError(null);
     try {
+      const assistantId = uid();
       const sys = simulationSystem({
         userRole: scenario.userRole,
         counterpart: scenario.counterpart,
@@ -308,7 +369,11 @@ const MindDojoAssessment: React.FC = () => {
         situationSummary: scenario.situationSummary,
         profileSummary,
       });
-      const raw = await openaiChat(
+
+      setSimStreamingId(assistantId);
+      setSimMessages([{ id: assistantId, role: 'assistant', content: '' }]);
+
+      const raw = await openaiChatStream(
         [
           { role: 'system', content: sys },
           {
@@ -318,22 +383,31 @@ const MindDojoAssessment: React.FC = () => {
           },
         ],
         0.7,
+        (delta) => {
+          setSimMessages((prev) =>
+            prev.map((m) => (m.id === assistantId ? { ...m, content: m.content + delta } : m)),
+          );
+        },
       );
+
       const ended = raw.includes('[[SIM_END]]');
       const visible = raw.replace(/\[\[SIM_END\]\]/g, '').trim();
-      const first: ChatMsg = { id: uid(), role: 'assistant', content: visible };
+      const first: ChatMsg = { id: assistantId, role: 'assistant', content: visible };
       const doneMsg: ChatMsg = {
         id: uid(),
         role: 'assistant',
         content:
           'การประเมินเสร็จสิ้นแล้ว พิมพ์คำว่า **result** เพื่อเปิดหน้า Dashboard ผลการประเมิน (คะแนน 6 ด้านการสื่อสาร)',
       };
+
       setSimMessages(ended ? [first, doneMsg] : [first]);
       if (ended) setPhase('awaiting_result');
     } catch {
       setError('เริ่มจำลองไม่สำเร็จ');
       setPhase('confirm');
+      setSimMessages([]);
     } finally {
+      setSimStreamingId(null);
       setBusy(false);
     }
   }, [profile, scenario, profileSummary]);
@@ -341,6 +415,11 @@ const MindDojoAssessment: React.FC = () => {
   const runSimulationReply = useCallback(
     async (history: ChatMsg[]) => {
       if (!profile || !scenario) return;
+
+      const assistantId = uid();
+      setSimStreamingId(assistantId);
+      setSimMessages([...history, { id: assistantId, role: 'assistant', content: '' }]);
+
       const sys = simulationSystem({
         userRole: scenario.userRole,
         counterpart: scenario.counterpart,
@@ -349,18 +428,37 @@ const MindDojoAssessment: React.FC = () => {
         profileSummary,
       });
       const historyForApi = history.map((m) => ({ role: m.role, content: m.content }));
-      const raw = await openaiChat([{ role: 'system', content: sys }, ...historyForApi], 0.7);
-      const ended = raw.includes('[[SIM_END]]');
-      const visible = raw.replace(/\[\[SIM_END\]\]/g, '').trim();
-      const assistantMsg: ChatMsg = { id: uid(), role: 'assistant', content: visible || raw };
-      const doneMsg: ChatMsg = {
-        id: uid(),
-        role: 'assistant',
-        content:
-          'การประเมินเสร็จสิ้นแล้ว พิมพ์คำว่า **result** เพื่อเปิดหน้า Dashboard ผลการประเมิน (คะแนน 6 ด้านการสื่อสาร)',
-      };
-      setSimMessages(ended ? [...history, assistantMsg, doneMsg] : [...history, assistantMsg]);
-      if (ended) setPhase('awaiting_result');
+
+      try {
+        const raw = await openaiChatStream(
+          [{ role: 'system', content: sys }, ...historyForApi],
+          0.7,
+          (delta) => {
+            setSimMessages((prev) =>
+              prev.map((m) => (m.id === assistantId ? { ...m, content: m.content + delta } : m)),
+            );
+          },
+        );
+
+        const ended = raw.includes('[[SIM_END]]');
+        const visible = raw.replace(/\[\[SIM_END\]\]/g, '').trim();
+        const assistantMsg: ChatMsg = { id: assistantId, role: 'assistant', content: visible || raw };
+        const doneMsg: ChatMsg = {
+          id: uid(),
+          role: 'assistant',
+          content:
+            'การประเมินเสร็จสิ้นแล้ว พิมพ์คำว่า **result** เพื่อเปิดหน้า Dashboard ผลการประเมิน (คะแนน 6 ด้านการสื่อสาร)',
+        };
+
+        setSimMessages(ended ? [...history, assistantMsg, doneMsg] : [...history, assistantMsg]);
+        if (ended) setPhase('awaiting_result');
+      } catch (e) {
+        // revert to user history (remove empty assistant placeholder)
+        setSimMessages(history);
+        throw e;
+      } finally {
+        setSimStreamingId(null);
+      }
     },
     [profile, scenario, profileSummary],
   );
@@ -687,7 +785,7 @@ const MindDojoAssessment: React.FC = () => {
                               MindDoJo
                             </span>
                             {m.id === lastMainMessageId ? (
-                              <TypewriterText text={m.content} />
+                              <TypewriterText text={m.content} resetOnTextChange={m.id !== mainStreamingId} />
                             ) : (
                               <div className="whitespace-pre-wrap break-words">{m.content}</div>
                             )}
@@ -833,7 +931,7 @@ const MindDojoAssessment: React.FC = () => {
                               สถานการณ์
                             </span>
                             {m.id === lastSimMessageId ? (
-                              <TypewriterText text={m.content} />
+                              <TypewriterText text={m.content} resetOnTextChange={m.id !== simStreamingId} />
                             ) : (
                               <div className="whitespace-pre-wrap break-words">{m.content}</div>
                             )}

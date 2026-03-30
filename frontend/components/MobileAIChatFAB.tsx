@@ -1,29 +1,12 @@
-import React, { useState, createElement } from 'react';
+import React, { useState } from 'react';
 import AIChatSidebar from './AIChatSidebar';
 
 interface MobileAIChatFABProps {
   toolName: string;
 }
 
-/** ไอคอนการ์ตูนผู้ช่วยแชท - ใบหน้ามิตร เห็นชัดบนปุ่มเหลือง */
-const ChatAssistantIcon: React.FC<{ className?: string }> = ({ className = 'w-10 h-10' }) => (
-  <svg
-    viewBox="0 0 64 64"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-    className={className}
-    aria-hidden
-  >
-    {createElement('circle', { cx: 32, cy: 32, r: 26, stroke: 'currentColor', strokeWidth: 2.5, fill: 'none' })}
-    {createElement('circle', { cx: 24, cy: 28, r: 4, fill: 'currentColor' })}
-    {createElement('circle', { cx: 25, cy: 27, r: 1, fill: 'white', opacity: 0.9 })}
-    {createElement('circle', { cx: 40, cy: 28, r: 4, fill: 'currentColor' })}
-    {createElement('circle', { cx: 41, cy: 27, r: 1, fill: 'white', opacity: 0.9 })}
-    {createElement('path', { d: 'M24 38 Q32 44 40 38', stroke: 'currentColor', strokeWidth: 2.5, strokeLinecap: 'round', fill: 'none' })}
-    {createElement('path', { d: 'M22 22 Q24 20 26 22', stroke: 'currentColor', strokeWidth: 1.5, strokeLinecap: 'round', fill: 'none' })}
-    {createElement('path', { d: 'M38 22 Q40 20 42 22', stroke: 'currentColor', strokeWidth: 1.5, strokeLinecap: 'round', fill: 'none' })}
-  </svg>
-);
+const MINDDOJO_CHATBOT_AVATAR_URL =
+  'https://static.wixstatic.com/media/8f9517_2b5ddf78e35a4604a6eb0b28dde240af~mv2.jpg';
 
 const MobileAIChatFAB: React.FC<MobileAIChatFABProps> = ({ toolName }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -37,7 +20,13 @@ const MobileAIChatFAB: React.FC<MobileAIChatFABProps> = ({ toolName }) => {
         className="lg:hidden fixed bottom-6 right-6 z-40 w-16 h-16 rounded-full bg-yellow-400 text-black shadow-lg shadow-yellow-400/30 border-2 border-yellow-500 flex items-center justify-center hover:scale-105 active:scale-95 transition-transform focus:outline-none focus:ring-4 focus:ring-yellow-400/50"
         aria-label="เปิด AI Chat"
       >
-        <ChatAssistantIcon className="w-10 h-10" />
+        <img
+          src={MINDDOJO_CHATBOT_AVATAR_URL}
+          alt="AI"
+          className="w-10 h-10 rounded-full object-cover ring-2 ring-black/20"
+          loading="lazy"
+          decoding="async"
+        />
       </button>
 
       {/* แผงแชทเต็มจอเมื่อเปิด - เฉพาะมือถือ */}
@@ -46,9 +35,13 @@ const MobileAIChatFAB: React.FC<MobileAIChatFABProps> = ({ toolName }) => {
           {/* Header พร้อมปุ่มปิด */}
           <div className="flex-shrink-0 flex items-center justify-between px-4 py-3 bg-yellow-400 text-black border-b border-yellow-500">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-black text-yellow-400 flex items-center justify-center">
-                <ChatAssistantIcon className="w-5 h-5" />
-              </div>
+              <img
+                src={MINDDOJO_CHATBOT_AVATAR_URL}
+                alt="AI"
+                className="w-8 h-8 rounded-full object-cover ring-2 ring-black/20"
+                loading="lazy"
+                decoding="async"
+              />
               <span className="font-black text-sm uppercase tracking-tight">AI Assistant</span>
             </div>
             <button
