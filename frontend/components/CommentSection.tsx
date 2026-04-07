@@ -722,11 +722,6 @@ const CommentSection: React.FC<{ toolId?: string }> = ({ toolId = "bmc" }) => {
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-2xl font-bold text-black/50" aria-hidden>?</div>
               )}
-              <div className="absolute bottom-2 left-2 right-2 bg-black/40 rounded-lg px-2 py-1 flex items-center justify-center">
-                <span className="text-[10px] font-bold text-white uppercase tracking-tighter">
-                  {userGender === 'female' ? 'หญิง' : 'ชาย'}
-                </span>
-              </div>
             </div>
             <button
               type="button"
