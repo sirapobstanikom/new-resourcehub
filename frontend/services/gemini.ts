@@ -357,6 +357,70 @@ S = จุดแข็ง, ME = ดี, AFI = ควรพัฒนา, ASD = �
   }
 }
 
+export interface DigitalLeadershipDimensionScore {
+  title: string;
+  score: number;
+}
+
+export interface DigitalLeadershipResultPayload {
+  user: { name: string; email: string; company: string };
+  rawSum: number;
+  overallIndex: number;
+  bandLevelEn: string;
+  bandLine1Th: string;
+  bandFocusTh: string;
+  dimensions: DigitalLeadershipDimensionScore[];
+}
+
+export async function getDigitalLeadershipFeedback(
+  payload: DigitalLeadershipResultPayload,
+): Promise<string> {
+  const dimLines = payload.dimensions
+    .map((d) => `- ${d.title}: ${d.score} / 25 (ยิ่งสูงยิ่งสะท้อนความพร้อมในด้านนั้น)`)
+    .join('\n');
+
+  const systemPrompt = `You are an expert coach in digital leadership and responsible AI use in organizations.
+The user completed "Digital Leadership Competency Assessment" (20 items, Likert 1–5 per item).
+Overall index is on scale 5–25 (sum of all 20 responses divided by 4). Each of 4 dimensions also scores 5–25 (5 items × 1–5).
+Bands: Beginner (index < 11), Developing (11–17), Advanced (18–21), AI Leader (≥22).
+
+Write feedback in Thai for this one person. Rules:
+- Tone: friendly, clear, professional, encouraging; address them by first name if natural from the given name
+- Base everything only on the numeric results and dimension titles provided; do not invent past events or job facts
+- Structure (plain text, use newlines; optional short bullets):
+  1) สรุปภาพรวมระดับและความหมายสั้น ๆ (2–4 ประโยค)
+  2) จุดแข็ง: อ้างอิงมิติที่คะแนนสูงกว่ามิติอื่นอย่างชัดเจน
+  3) ช่องว่างที่ควรพัฒนา: มิติที่คะแนนต่ำกว่า หรือใกล้เคียงกันแต่ยังมีโอกาสเติบโต
+  4) คำแนะนำเชิงปฏิบัติ 3–5 ข้อ (เช่น การเรียนรู้, การลองใช้ AI, การนำทีม, governance) ให้สอดคล้องกับระดับปัจจุบัน
+  5) ปิดท้าย: กำลังใจ + next step ที่ทำได้ภายใน 1–2 สัปดาห์
+- Do not repeat the raw numbers in a table; weave them into sentences naturally.`;
+
+  const userContent = `ผู้ประเมิน: ${payload.user.name}
+อีเมล: ${payload.user.email}
+บริษัท: ${payload.user.company}
+
+ดัชนีรวม (5–25): ${payload.overallIndex.toFixed(1)} | คะแนนดิบรวม (20–100): ${payload.rawSum}
+ระดับสรุป: ${payload.bandLevelEn}
+คำอธิบายระดับ: ${payload.bandLine1Th}
+โฟกัสพัฒนาตามเกณฑ์: ${payload.bandFocusTh}
+
+คะแนนแต่ละมิติ (5–25):
+${dimLines}`;
+
+  try {
+    const content = await callOpenAIProxy(
+      [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userContent },
+      ],
+      0.55,
+    );
+    return content || 'ไม่สามารถสร้าง feedback ได้ในขณะนี้';
+  } catch {
+    return 'ไม่สามารถโหลด feedback จาก AI ได้ กรุณาตรวจสอบการเชื่อมต่อและ Supabase (openai-proxy + OPENAI_API_KEY)';
+  }
+}
+
 export type DiscType = 'D' | 'I' | 'S' | 'C';
 
 export interface DiscFeedbackPayload {

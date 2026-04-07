@@ -27,6 +27,14 @@ const ASSESSMENTS = [
     comingSoon: false,
   },
   {
+    id: 'digital-leadership',
+    title: 'Digital Leadership Competency Assessment',
+    description:
+      '20 ข้อ · 4 มิติ (AI Mindset, Literacy, Application, Leadership & Governance) · Scale 1–5 · ประมาณ 5–8 นาที',
+    href: '/assessment/digital-leadership',
+    comingSoon: false,
+  },
+  {
     id: 'DISC',
     title: 'DISC Assessment',
     description: 'แบบทดสอบประเมินบุคลิกภาพของคุณ',
