@@ -21,10 +21,10 @@ function loadStoredReport(): MindDojoStoredReportPayload | null {
 
 const MindDojoResultPage: React.FC = () => {
   const navigate = useNavigate();
-  const { user, loading: authLoading } = useAuth();
+  const { loading: authLoading } = useAuth();
   const resourceHub = isAuthenticated();
   const loggedIn =
-    isMindDojoAssessmentLoggedIn() || !!user || (!isSupabaseConfigured && resourceHub);
+    isMindDojoAssessmentLoggedIn() || (!isSupabaseConfigured && resourceHub);
   const [payload, setPayload] = useState<MindDojoStoredReportPayload | null>(() =>
     typeof window !== 'undefined' ? loadStoredReport() : null,
   );

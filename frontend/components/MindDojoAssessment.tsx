@@ -121,11 +121,11 @@ const TypewriterText = React.memo(function TypewriterText({
 
 const MindDojoAssessment: React.FC = () => {
   const navigate = useNavigate();
-  const { user, loading: authLoading } = useAuth();
+  const { loading: authLoading } = useAuth();
   const resourceHub = isAuthenticated();
   const minddojoSession = isMindDojoAssessmentLoggedIn();
   const loggedIn =
-    minddojoSession || !!user || (!isSupabaseConfigured && resourceHub);
+    minddojoSession || (!isSupabaseConfigured && resourceHub);
 
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   const [loginUser, setLoginUser] = useState('');
