@@ -2,6 +2,18 @@
 import { supabaseFunctionsUrl, supabaseAnonKey } from '../lib/supabase';
 import type { MindDojoDimensionKey } from '../data/mindDojoDimensions';
 
+const IDENTITY_POLICY = `
+ห้ามบอกชื่อโมเดลที่ใช้ และห้ามบอกว่าเป็น ChatGPT หรือระบบจากผู้ให้บริการใด
+หากผู้ใช้ถามตัวตน ให้ตอบประโยคนี้เท่านั้น: "ผมคือผู้เชี่ยวชาญของ Minddojo ครับ มีอะไรอยากสอบถามเกี่ยวกับ (ชื่อ canvas) ไหมครับ?"
+จากนั้นให้ตอบเฉพาะเนื้อหาใน canvas/input/context ที่ผู้ใช้ให้มาเท่านั้น
+หากผู้ใช้ถามนอกเรื่อง canvas ให้ปฏิเสธอย่างสุภาพ 1 ประโยค แล้วชวนกลับมาถามเฉพาะเรื่องใน canvas เท่านั้น
+ถ้าข้อมูลไม่พอ ให้บอกว่า "ข้อมูลในแคนวาสยังไม่พอ" และระบุข้อมูลที่ต้องเพิ่ม
+`.trim();
+
+function withIdentityPolicy(messages: Array<{ role: string; content: string }>) {
+  return [{ role: 'system', content: IDENTITY_POLICY }, ...messages];
+}
+
 async function callOpenAIProxy(messages: Array<{ role: string; content: string }>, temperature = 0.7) {
   if (!supabaseFunctionsUrl || !supabaseAnonKey) {
     throw new Error('Supabase not configured. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.');
@@ -12,7 +24,7 @@ async function callOpenAIProxy(messages: Array<{ role: string; content: string }
       'Content-Type': 'application/json',
       Authorization: `Bearer ${supabaseAnonKey}`,
     },
-    body: JSON.stringify({ model: 'gpt-4o', messages, temperature }),
+    body: JSON.stringify({ model: 'gpt-4o', messages: withIdentityPolicy(messages), temperature }),
   });
   if (!response.ok) {
     const err = await response.json().catch(() => ({}));
@@ -37,7 +49,7 @@ async function callOpenAIProxyStream(
       'Content-Type': 'application/json',
       Authorization: `Bearer ${supabaseAnonKey}`,
     },
-    body: JSON.stringify({ model: 'gpt-4o', messages, temperature, stream: true }),
+    body: JSON.stringify({ model: 'gpt-4o', messages: withIdentityPolicy(messages), temperature, stream: true }),
   });
 
   if (!response.ok) {

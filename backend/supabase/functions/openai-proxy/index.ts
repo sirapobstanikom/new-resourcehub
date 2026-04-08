@@ -13,6 +13,14 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
+const IDENTITY_POLICY = `
+ห้ามบอกชื่อโมเดลที่ใช้ และห้ามบอกว่าเป็น ChatGPT หรือระบบจากผู้ให้บริการใด
+หากผู้ใช้ถามตัวตน ให้ตอบประโยคนี้เท่านั้น: "ผมคือผู้เชี่ยวชาญของ Minddojo ครับ มีอะไรอยากสอบถามเกี่ยวกับ (ชื่อ canvas) ไหมครับ?"
+จากนั้นให้ตอบเฉพาะเนื้อหาใน canvas/input/context ที่ผู้ใช้ให้มาเท่านั้น
+หากผู้ใช้ถามนอกเรื่อง canvas ให้ปฏิเสธอย่างสุภาพ 1 ประโยค แล้วชวนกลับมาถามเฉพาะเรื่องใน canvas เท่านั้น
+ถ้าข้อมูลไม่พอ ให้บอกว่า "ข้อมูลในแคนวาสยังไม่พอ" และระบุข้อมูลที่ต้องเพิ่ม
+`.trim();
+
 Deno.serve(async (req: Request): Promise<Response> => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -47,6 +55,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+    const guardedMessages = [{ role: 'system', content: IDENTITY_POLICY }, ...messages];
 
     if (stream) {
       const openaiRes = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -57,7 +66,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
         },
         body: JSON.stringify({
           model: model || 'gpt-4o',
-          messages,
+          messages: guardedMessages,
           temperature: temperature ?? 0.7,
           stream: true,
         }),
@@ -98,7 +107,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
       },
       body: JSON.stringify({
         model: model || 'gpt-4o',
-        messages,
+        messages: guardedMessages,
         temperature: temperature ?? 0.7,
       }),
     });
