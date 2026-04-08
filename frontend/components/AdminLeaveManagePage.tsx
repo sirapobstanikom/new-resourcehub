@@ -60,7 +60,12 @@ function getLeaveDaysAndHours(row: LeaveRequestRow): { days: number; hours: numb
 function formatThaiDate(dateStr: string): string {
   const d = new Date(dateStr + 'T12:00:00Z');
   if (Number.isNaN(d.getTime())) return dateStr;
-  return d.toLocaleDateString('th-TH', { timeZone: 'Asia/Bangkok', dateStyle: 'short' });
+  return d.toLocaleDateString('th-TH', {
+    timeZone: 'Asia/Bangkok',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  });
 }
 
 const AdminLeaveManagePage: React.FC = () => {

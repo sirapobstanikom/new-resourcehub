@@ -98,7 +98,7 @@ const InnoClubEvaluationPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-transparent text-white bg-grid flex flex-col selection:bg-yellow-400 selection:text-black">
       <header className="border-b border-white/10 px-4 py-4 sm:px-6">
-        <div className="max-w-3xl mx-auto flex items-center justify-between">
+        <div className="max-w-3xl mx-auto flex items-center justify-between gap-3">
           <Link to="/" className="flex items-center gap-2 text-gray-400 hover:text-white text-sm font-medium">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -114,8 +114,8 @@ const InnoClubEvaluationPage: React.FC = () => {
         </div>
       </header>
 
-      <main className="flex-1 max-w-3xl mx-auto w-full px-4 sm:px-6 py-10 sm:py-14">
-        <h1 className="text-2xl sm:text-3xl font-bold text-center mb-3 leading-relaxed">
+      <main className="flex-1 max-w-3xl mx-auto w-full px-4 sm:px-6 py-8 sm:py-14">
+        <h1 className="text-xl sm:text-3xl font-bold text-center mb-3 leading-relaxed">
           แบบประเมินความพึงพอใจในการร่วมกิจกรรม
         </h1>
         <p className="text-center text-white text-sm sm:text-base mb-5 leading-relaxed">
@@ -127,7 +127,7 @@ const InnoClubEvaluationPage: React.FC = () => {
           ระดับความพึงพอใจ: 5 = มากที่สุด 4 = มาก 3 = ปานกลาง 2 = น้อย 1 = น้อยที่สุด
         </p>
 
-        <form onSubmit={handleSubmit} className="space-y-12">
+        <form onSubmit={handleSubmit} className="space-y-8 sm:space-y-12">
           {error && (
             <div className="rounded-xl bg-red-500/20 border border-red-500/40 text-red-400 px-4 py-3 text-sm">
               {error}
@@ -135,21 +135,21 @@ const InnoClubEvaluationPage: React.FC = () => {
           )}
 
           {/* Facilitator */}
-          <section className="rounded-2xl border border-white/10 bg-white/5 p-6 sm:p-8">
+          <section className="rounded-2xl border border-white/10 bg-white/5 p-4 sm:p-8">
             <h2 className="text-lg font-bold text-yellow-400 mb-7">Facilitator</h2>
             <div className="space-y-5">
               <p className="text-white font-medium leading-relaxed">1. ความพึงพอใจโดยรวมต่อ Facilitator *</p>
-              <div className="flex flex-wrap gap-x-4 gap-y-3">
+              <div className="grid grid-cols-5 gap-2 sm:flex sm:flex-wrap sm:gap-x-4 sm:gap-y-3">
                 {[1, 2, 3, 4, 5].map((n) => (
-                  <label key={n} className="flex items-center gap-2 cursor-pointer">
+                  <label key={n} className="flex items-center justify-center gap-2 cursor-pointer rounded-lg border border-white/15 bg-white/5 px-2 py-2 min-h-[44px]">
                     <input
                       type="radio"
                       name="facilitator_score"
                       checked={form.facilitator_score === n}
                       onChange={() => setScore('facilitator_score', n)}
-                      className="w-4 h-4 text-yellow-400 border-white/30 focus:ring-yellow-400"
+                      className="w-5 h-5 text-yellow-400 border-white/30 focus:ring-yellow-400"
                     />
-                    <span className="text-sm">{n}</span>
+                    <span className="text-sm sm:text-base">{n}</span>
                   </label>
                 ))}
               </div>
@@ -159,27 +159,27 @@ const InnoClubEvaluationPage: React.FC = () => {
                 onChange={(e) => setText('facilitator_comment', e.target.value)}
                 rows={3}
                 placeholder="ระบุข้อเสนอแนะ (ถ้ามี)..."
-                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/20 text-white placeholder-gray-500 text-sm focus:outline-none focus:border-yellow-400 resize-none"
+                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/20 text-white placeholder-gray-500 text-base focus:outline-none focus:border-yellow-400 resize-none"
               />
             </div>
           </section>
 
           {/* เนื้อหาของ PTT GROUP INNO Club */}
-          <section className="rounded-2xl border border-white/10 bg-white/5 p-6 sm:p-8">
+          <section className="rounded-2xl border border-white/10 bg-white/5 p-4 sm:p-8">
             <h2 className="text-lg font-bold text-yellow-400 mb-7">เนื้อหาของ PTT GROUP INNO Club</h2>
             <div className="space-y-5">
               <p className="text-white font-medium leading-relaxed">1. ความพึงพอใจโดยรวมต่อเนื้อหาของกิจกรรม *</p>
-              <div className="flex flex-wrap gap-x-4 gap-y-3">
+              <div className="grid grid-cols-5 gap-2 sm:flex sm:flex-wrap sm:gap-x-4 sm:gap-y-3">
                 {[1, 2, 3, 4, 5].map((n) => (
-                  <label key={n} className="flex items-center gap-2 cursor-pointer">
+                  <label key={n} className="flex items-center justify-center gap-2 cursor-pointer rounded-lg border border-white/15 bg-white/5 px-2 py-2 min-h-[44px]">
                     <input
                       type="radio"
                       name="content_score"
                       checked={form.content_score === n}
                       onChange={() => setScore('content_score', n)}
-                      className="w-4 h-4 text-yellow-400 border-white/30 focus:ring-yellow-400"
+                      className="w-5 h-5 text-yellow-400 border-white/30 focus:ring-yellow-400"
                     />
-                    <span className="text-sm">{n}</span>
+                    <span className="text-sm sm:text-base">{n}</span>
                   </label>
                 ))}
               </div>
@@ -189,79 +189,79 @@ const InnoClubEvaluationPage: React.FC = () => {
                 onChange={(e) => setText('content_comment', e.target.value)}
                 rows={3}
                 placeholder="ระบุข้อเสนอแนะ (ถ้ามี)..."
-                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/20 text-white placeholder-gray-500 text-sm focus:outline-none focus:border-yellow-400 resize-none"
+                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/20 text-white placeholder-gray-500 text-base focus:outline-none focus:border-yellow-400 resize-none"
               />
             </div>
           </section>
 
           {/* ความพึงพอใจโดยรวมและความคิดเห็น */}
-          <section className="rounded-2xl border border-white/10 bg-white/5 p-6 sm:p-8">
+          <section className="rounded-2xl border border-white/10 bg-white/5 p-4 sm:p-8">
             <h2 className="text-lg font-bold text-yellow-400 mb-7 leading-relaxed">ความพึงพอใจโดยรวมและความคิดเห็นต่อ PTT GROUP INNO Club</h2>
             <div className="space-y-7">
               <div>
                 <p className="text-white font-medium leading-relaxed mb-3">1. ความพึงพอใจโดยรวมต่อ PTT GROUP INNO Club *</p>
-                <div className="flex flex-wrap gap-x-4 gap-y-3">
+                <div className="grid grid-cols-5 gap-2 sm:flex sm:flex-wrap sm:gap-x-4 sm:gap-y-3">
                   {[1, 2, 3, 4, 5].map((n) => (
-                    <label key={n} className="flex items-center gap-2 cursor-pointer">
+                    <label key={n} className="flex items-center justify-center gap-2 cursor-pointer rounded-lg border border-white/15 bg-white/5 px-2 py-2 min-h-[44px]">
                       <input
                         type="radio"
                         name="overall_score"
                         checked={form.overall_score === n}
                         onChange={() => setScore('overall_score', n)}
-                        className="w-4 h-4 text-yellow-400 border-white/30 focus:ring-yellow-400"
+                        className="w-5 h-5 text-yellow-400 border-white/30 focus:ring-yellow-400"
                       />
-                      <span className="text-sm">{n}</span>
+                      <span className="text-sm sm:text-base">{n}</span>
                     </label>
                   ))}
                 </div>
               </div>
               <div>
                 <p className="text-white font-medium leading-relaxed mb-3">2. ท่านเห็นบรรยากาศ PTT GROUP INNO Club ครั้งนี้ ส่งเสริมให้ทุกคนกล้าแสดงความคิดเห็น และสร้างการมีส่วนร่วมมากน้อยเพียงใด *</p>
-                <div className="flex flex-wrap gap-x-4 gap-y-3">
+                <div className="grid grid-cols-5 gap-2 sm:flex sm:flex-wrap sm:gap-x-4 sm:gap-y-3">
                   {[1, 2, 3, 4, 5].map((n) => (
-                    <label key={n} className="flex items-center gap-2 cursor-pointer">
+                    <label key={n} className="flex items-center justify-center gap-2 cursor-pointer rounded-lg border border-white/15 bg-white/5 px-2 py-2 min-h-[44px]">
                       <input
                         type="radio"
                         name="atmosphere_score"
                         checked={form.atmosphere_score === n}
                         onChange={() => setScore('atmosphere_score', n)}
-                        className="w-4 h-4 text-yellow-400 border-white/30 focus:ring-yellow-400"
+                        className="w-5 h-5 text-yellow-400 border-white/30 focus:ring-yellow-400"
                       />
-                      <span className="text-sm">{n}</span>
+                      <span className="text-sm sm:text-base">{n}</span>
                     </label>
                   ))}
                 </div>
               </div>
               <div>
                 <p className="text-white font-medium leading-relaxed mb-3">3. PTT GROUP INNO Club ครั้งนี้ มีการแบ่งปัน แลกเปลี่ยนข้อมูลระหว่างกันมากน้อยเพียงใด *</p>
-                <div className="flex flex-wrap gap-x-4 gap-y-3">
+                <div className="grid grid-cols-5 gap-2 sm:flex sm:flex-wrap sm:gap-x-4 sm:gap-y-3">
                   {[1, 2, 3, 4, 5].map((n) => (
-                    <label key={n} className="flex items-center gap-2 cursor-pointer">
+                    <label key={n} className="flex items-center justify-center gap-2 cursor-pointer rounded-lg border border-white/15 bg-white/5 px-2 py-2 min-h-[44px]">
                       <input
                         type="radio"
                         name="sharing_score"
                         checked={form.sharing_score === n}
                         onChange={() => setScore('sharing_score', n)}
-                        className="w-4 h-4 text-yellow-400 border-white/30 focus:ring-yellow-400"
+                        className="w-5 h-5 text-yellow-400 border-white/30 focus:ring-yellow-400"
                       />
-                      <span className="text-sm">{n}</span>
+                      <span className="text-sm sm:text-base">{n}</span>
                     </label>
                   ))}
                 </div>
               </div>
               <div>
                 <p className="text-white font-medium leading-relaxed mb-3">4. PTT GROUP INNO Club ครั้งนี้มีการรับมือกับสถานการณ์ต่าง ๆ หรือมีการตัดสินใจได้อย่างรวดเร็ว มากน้อยเพียงใด *</p>
-                <div className="flex flex-wrap gap-x-4 gap-y-3">
+                <div className="grid grid-cols-5 gap-2 sm:flex sm:flex-wrap sm:gap-x-4 sm:gap-y-3">
                   {[1, 2, 3, 4, 5].map((n) => (
-                    <label key={n} className="flex items-center gap-2 cursor-pointer">
+                    <label key={n} className="flex items-center justify-center gap-2 cursor-pointer rounded-lg border border-white/15 bg-white/5 px-2 py-2 min-h-[44px]">
                       <input
                         type="radio"
                         name="decision_score"
                         checked={form.decision_score === n}
                         onChange={() => setScore('decision_score', n)}
-                        className="w-4 h-4 text-yellow-400 border-white/30 focus:ring-yellow-400"
+                        className="w-5 h-5 text-yellow-400 border-white/30 focus:ring-yellow-400"
                       />
-                      <span className="text-sm">{n}</span>
+                      <span className="text-sm sm:text-base">{n}</span>
                     </label>
                   ))}
                 </div>
@@ -273,14 +273,14 @@ const InnoClubEvaluationPage: React.FC = () => {
                   onChange={(e) => setText('overall_comment', e.target.value)}
                   rows={3}
                   placeholder="ระบุข้อเสนอแนะ (ถ้ามี)..."
-                  className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/20 text-white placeholder-gray-500 text-sm focus:outline-none focus:border-yellow-400 resize-none"
+                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/20 text-white placeholder-gray-500 text-base focus:outline-none focus:border-yellow-400 resize-none"
                 />
               </div>
             </div>
           </section>
 
           {/* ข้อเสนอแนะและคำถามเปิด */}
-          <section className="rounded-2xl border border-white/10 bg-white/5 p-6 sm:p-8">
+          <section className="rounded-2xl border border-white/10 bg-white/5 p-4 sm:p-8">
             <h2 className="text-lg font-bold text-yellow-400 mb-7">ข้อเสนอแนะและแนวทางการนำไปใช้</h2>
             <div className="space-y-7">
               <div>
@@ -290,7 +290,7 @@ const InnoClubEvaluationPage: React.FC = () => {
                   onChange={(e) => setText('learn_apply', e.target.value)}
                   rows={4}
                   placeholder="กรุณาตอบคำถาม..."
-                  className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/20 text-white placeholder-gray-500 text-sm focus:outline-none focus:border-yellow-400 resize-none"
+                  className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/20 text-white placeholder-gray-500 text-base focus:outline-none focus:border-yellow-400 resize-none"
                 />
               </div>
               <div>
@@ -300,7 +300,7 @@ const InnoClubEvaluationPage: React.FC = () => {
                   onChange={(e) => setText('ai_plan_6months', e.target.value)}
                   rows={4}
                   placeholder="กรุณาตอบคำถาม..."
-                  className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/20 text-white placeholder-gray-500 text-sm focus:outline-none focus:border-yellow-400 resize-none"
+                  className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/20 text-white placeholder-gray-500 text-base focus:outline-none focus:border-yellow-400 resize-none"
                 />
               </div>
               <div>
@@ -310,7 +310,7 @@ const InnoClubEvaluationPage: React.FC = () => {
                   onChange={(e) => setText('networking_collaboration', e.target.value)}
                   rows={4}
                   placeholder="กรุณาตอบคำถาม..."
-                  className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/20 text-white placeholder-gray-500 text-sm focus:outline-none focus:border-yellow-400 resize-none"
+                  className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/20 text-white placeholder-gray-500 text-base focus:outline-none focus:border-yellow-400 resize-none"
                 />
               </div>
               <div>
@@ -320,23 +320,23 @@ const InnoClubEvaluationPage: React.FC = () => {
                   onChange={(e) => setText('improvement_suggestions', e.target.value)}
                   rows={4}
                   placeholder="กรุณาตอบคำถาม..."
-                  className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/20 text-white placeholder-gray-500 text-sm focus:outline-none focus:border-yellow-400 resize-none"
+                  className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/20 text-white placeholder-gray-500 text-base focus:outline-none focus:border-yellow-400 resize-none"
                 />
               </div>
             </div>
           </section>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center pt-2 sm:pt-4">
             <button
               type="submit"
               disabled={loading || !allRequiredFilled}
-              className="px-8 py-4 rounded-xl font-bold bg-yellow-400 text-black hover:bg-yellow-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="w-full sm:w-auto px-8 py-4 rounded-xl font-bold bg-yellow-400 text-black hover:bg-yellow-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {loading ? 'กำลังส่ง...' : 'ส่ง'}
             </button>
             <Link
               to="/"
-              className="px-8 py-4 rounded-xl font-medium bg-white/10 text-white hover:bg-white/20 border border-white/10 text-center transition-colors"
+              className="w-full sm:w-auto px-8 py-4 rounded-xl font-medium bg-white/10 text-white hover:bg-white/20 border border-white/10 text-center transition-colors"
             >
               ยกเลิก
             </Link>

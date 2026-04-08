@@ -72,7 +72,12 @@ type LeaveCancelAuditRow = {
 function formatThaiDate(dateStr: string): string {
   const d = new Date(dateStr + 'T12:00:00Z');
   if (Number.isNaN(d.getTime())) return dateStr;
-  return d.toLocaleDateString('th-TH', { timeZone: 'Asia/Bangkok', dateStyle: 'short' });
+  return d.toLocaleDateString('th-TH', {
+    timeZone: 'Asia/Bangkok',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  });
 }
 
 /** เวลาที่ยื่นคำขอลา (จาก created_at) แสดงเป็น 24 ชม. เช่น 13.00 */

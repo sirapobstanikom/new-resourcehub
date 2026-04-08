@@ -45,7 +45,7 @@ const ASSESSMENTS = [
     id: 'MBTI',
     title: 'MBTI Assessment',
     description: 'วิเคราะห์บุคลิกภาพของคุณ',
-    href: '#',
+    href: 'https://www.minddojo.co.th/mbti-register',
     comingSoon: false,
   },
   {
