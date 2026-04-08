@@ -129,6 +129,26 @@ async function uploadLeaveAttachmentFile(userId: string, file: File): Promise<st
   return data.publicUrl;
 }
 
+async function notifyLeaveLine(payload: {
+  event_type: 'leave_created' | 'leave_cancel_requested' | 'leave_cancelled';
+  leave_id?: string | null;
+  user_display_name?: string | null;
+  user_email?: string | null;
+  leave_type?: string | null;
+  slot_label?: string | null;
+  start_date?: string | null;
+  end_date?: string | null;
+  reason?: string | null;
+  cancel_reason?: string | null;
+}): Promise<void> {
+  try {
+    const { error } = await supabase.functions.invoke('notify-leave-line', { body: payload });
+    if (error) console.warn('[LeaveLineNotify] invoke error:', error.message);
+  } catch (e) {
+    console.warn('[LeaveLineNotify] unexpected error:', e);
+  }
+}
+
 /** วันในสัปดาห์ (อาทิตย์–เสาร์) สำหรับหัวตาราง */
 const WEEKDAY_LABELS = ['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'];
 
@@ -595,12 +615,27 @@ const AdminLeavePage: React.FC = () => {
       payload.start_time = fromTime.length === 5 ? `${fromTime}:00` : fromTime;
       payload.end_time = toTime.length === 5 ? `${toTime}:00` : toTime;
     }
-    const { error } = await supabase.from('leave_requests').insert(payload);
+    const { data: insertedRows, error } = await supabase
+      .from('leave_requests')
+      .insert(payload)
+      .select('id')
+      .limit(1);
     setLoading(false);
     if (error) {
       setSubmitError(error.message);
       return;
     }
+    void notifyLeaveLine({
+      event_type: 'leave_created',
+      leave_id: insertedRows?.[0]?.id ?? null,
+      user_display_name: displayName,
+      user_email: user.email,
+      leave_type: leaveType,
+      slot_label: formatLeaveSlotLabel(startDate, endDate, isOneDay ? startTime : null, isOneDay ? endTime : null),
+      start_date: startDate,
+      end_date: endDate,
+      reason: reason.trim() || null,
+    });
     setSubmitted(true);
     setStartDate('');
     setEndDate('');
@@ -754,6 +789,17 @@ const AdminLeavePage: React.FC = () => {
 
     // รีเฟรชรายการยกเลิกจาก audit table
     setCancelAuditsRefreshKey((k) => k + 1);
+    void notifyLeaveLine({
+      event_type: nextStatus === 'cancelled' ? 'leave_cancelled' : 'leave_cancel_requested',
+      leave_id: row.id,
+      user_display_name: row.user_display_name,
+      user_email: row.user_email,
+      leave_type: row.leave_type,
+      slot_label: formatLeaveSlotLabel(row.start_date, row.end_date, row.start_time, row.end_time),
+      start_date: row.start_date,
+      end_date: row.end_date,
+      cancel_reason: cancelReason,
+    });
 
     if (nextStatus === 'cancelled') {
       // เก็บไว้ใน state เพื่อให้กล่อง log แสดงได้ (ตารางหลักจะกรองออกเอง)
