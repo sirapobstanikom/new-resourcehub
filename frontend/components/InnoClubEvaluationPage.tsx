@@ -114,20 +114,20 @@ const InnoClubEvaluationPage: React.FC = () => {
         </div>
       </header>
 
-      <main className="flex-1 max-w-3xl mx-auto w-full px-4 sm:px-6 py-8 sm:py-12">
-        <h1 className="text-2xl sm:text-3xl font-bold text-center mb-2">
+      <main className="flex-1 max-w-3xl mx-auto w-full px-4 sm:px-6 py-10 sm:py-14">
+        <h1 className="text-2xl sm:text-3xl font-bold text-center mb-3 leading-relaxed">
           แบบประเมินความพึงพอใจในการร่วมกิจกรรม
         </h1>
-        <p className="text-center text-gray-400 text-sm sm:text-base mb-8">
+        <p className="text-center text-white text-sm sm:text-base mb-5 leading-relaxed">
           PTT GROUP INNO Club #1 — วันที่ 23 เมษายน 2569 เวลา 09.00-12.00 น.
           <br />
-          สถานที่ Synergy Hall, EnCo C ชั้น 6
+          ห้อง The Enterprise ชั้น 8 ตึก ENTER
         </p>
-        <p className="text-gray-500 text-sm mb-8 text-center">
+        <p className="text-white text-sm sm:text-base mb-10 text-center leading-relaxed">
           ระดับความพึงพอใจ: 5 = มากที่สุด 4 = มาก 3 = ปานกลาง 2 = น้อย 1 = น้อยที่สุด
         </p>
 
-        <form onSubmit={handleSubmit} className="space-y-10">
+        <form onSubmit={handleSubmit} className="space-y-12">
           {error && (
             <div className="rounded-xl bg-red-500/20 border border-red-500/40 text-red-400 px-4 py-3 text-sm">
               {error}
@@ -136,10 +136,10 @@ const InnoClubEvaluationPage: React.FC = () => {
 
           {/* Facilitator */}
           <section className="rounded-2xl border border-white/10 bg-white/5 p-6 sm:p-8">
-            <h2 className="text-lg font-bold text-yellow-400 mb-6">Facilitator</h2>
-            <div className="space-y-4">
-              <p className="text-white font-medium">1. ความพึงพอใจโดยรวมต่อ Facilitator *</p>
-              <div className="flex flex-wrap gap-2">
+            <h2 className="text-lg font-bold text-yellow-400 mb-7">Facilitator</h2>
+            <div className="space-y-5">
+              <p className="text-white font-medium leading-relaxed">1. ความพึงพอใจโดยรวมต่อ Facilitator *</p>
+              <div className="flex flex-wrap gap-x-4 gap-y-3">
                 {[1, 2, 3, 4, 5].map((n) => (
                   <label key={n} className="flex items-center gap-2 cursor-pointer">
                     <input
@@ -153,7 +153,7 @@ const InnoClubEvaluationPage: React.FC = () => {
                   </label>
                 ))}
               </div>
-              <p className="text-gray-500 text-sm mt-2">2. ข้อเสนอแนะ</p>
+              <p className="text-gray-500 text-sm mt-3">2. ข้อเสนอแนะ</p>
               <textarea
                 value={form.facilitator_comment}
                 onChange={(e) => setText('facilitator_comment', e.target.value)}
@@ -166,10 +166,10 @@ const InnoClubEvaluationPage: React.FC = () => {
 
           {/* เนื้อหาของ PTT GROUP INNO Club */}
           <section className="rounded-2xl border border-white/10 bg-white/5 p-6 sm:p-8">
-            <h2 className="text-lg font-bold text-yellow-400 mb-6">เนื้อหาของ PTT GROUP INNO Club</h2>
-            <div className="space-y-4">
-              <p className="text-white font-medium">1. ความพึงพอใจโดยรวมต่อเนื้อหาของกิจกรรม *</p>
-              <div className="flex flex-wrap gap-2">
+            <h2 className="text-lg font-bold text-yellow-400 mb-7">เนื้อหาของ PTT GROUP INNO Club</h2>
+            <div className="space-y-5">
+              <p className="text-white font-medium leading-relaxed">1. ความพึงพอใจโดยรวมต่อเนื้อหาของกิจกรรม *</p>
+              <div className="flex flex-wrap gap-x-4 gap-y-3">
                 {[1, 2, 3, 4, 5].map((n) => (
                   <label key={n} className="flex items-center gap-2 cursor-pointer">
                     <input
@@ -183,7 +183,7 @@ const InnoClubEvaluationPage: React.FC = () => {
                   </label>
                 ))}
               </div>
-              <p className="text-gray-500 text-sm mt-2">2. ข้อเสนอแนะ</p>
+              <p className="text-gray-500 text-sm mt-3">2. ข้อเสนอแนะ</p>
               <textarea
                 value={form.content_comment}
                 onChange={(e) => setText('content_comment', e.target.value)}
@@ -196,11 +196,11 @@ const InnoClubEvaluationPage: React.FC = () => {
 
           {/* ความพึงพอใจโดยรวมและความคิดเห็น */}
           <section className="rounded-2xl border border-white/10 bg-white/5 p-6 sm:p-8">
-            <h2 className="text-lg font-bold text-yellow-400 mb-6">ความพึงพอใจโดยรวมและความคิดเห็นต่อ PTT GROUP INNO Club</h2>
-            <div className="space-y-6">
+            <h2 className="text-lg font-bold text-yellow-400 mb-7 leading-relaxed">ความพึงพอใจโดยรวมและความคิดเห็นต่อ PTT GROUP INNO Club</h2>
+            <div className="space-y-7">
               <div>
-                <p className="text-white font-medium mb-2">1. ความพึงพอใจโดยรวมต่อ PTT GROUP INNO Club *</p>
-                <div className="flex flex-wrap gap-2">
+                <p className="text-white font-medium leading-relaxed mb-3">1. ความพึงพอใจโดยรวมต่อ PTT GROUP INNO Club *</p>
+                <div className="flex flex-wrap gap-x-4 gap-y-3">
                   {[1, 2, 3, 4, 5].map((n) => (
                     <label key={n} className="flex items-center gap-2 cursor-pointer">
                       <input
@@ -216,8 +216,8 @@ const InnoClubEvaluationPage: React.FC = () => {
                 </div>
               </div>
               <div>
-                <p className="text-white font-medium mb-2">2. ท่านเห็นบรรยากาศ PTT GROUP INNO Club ครั้งนี้ ส่งเสริมให้ทุกคนกล้าแสดงความคิดเห็น และสร้างการมีส่วนร่วมมากน้อยเพียงใด *</p>
-                <div className="flex flex-wrap gap-2">
+                <p className="text-white font-medium leading-relaxed mb-3">2. ท่านเห็นบรรยากาศ PTT GROUP INNO Club ครั้งนี้ ส่งเสริมให้ทุกคนกล้าแสดงความคิดเห็น และสร้างการมีส่วนร่วมมากน้อยเพียงใด *</p>
+                <div className="flex flex-wrap gap-x-4 gap-y-3">
                   {[1, 2, 3, 4, 5].map((n) => (
                     <label key={n} className="flex items-center gap-2 cursor-pointer">
                       <input
@@ -233,8 +233,8 @@ const InnoClubEvaluationPage: React.FC = () => {
                 </div>
               </div>
               <div>
-                <p className="text-white font-medium mb-2">3. PTT GROUP INNO Club ครั้งนี้ มีการแบ่งปัน แลกเปลี่ยนข้อมูลระหว่างกันมากน้อยเพียงใด *</p>
-                <div className="flex flex-wrap gap-2">
+                <p className="text-white font-medium leading-relaxed mb-3">3. PTT GROUP INNO Club ครั้งนี้ มีการแบ่งปัน แลกเปลี่ยนข้อมูลระหว่างกันมากน้อยเพียงใด *</p>
+                <div className="flex flex-wrap gap-x-4 gap-y-3">
                   {[1, 2, 3, 4, 5].map((n) => (
                     <label key={n} className="flex items-center gap-2 cursor-pointer">
                       <input
@@ -250,8 +250,8 @@ const InnoClubEvaluationPage: React.FC = () => {
                 </div>
               </div>
               <div>
-                <p className="text-white font-medium mb-2">4. PTT GROUP INNO Club ครั้งนี้มีการรับมือกับสถานการณ์ต่าง ๆ หรือมีการตัดสินใจได้อย่างรวดเร็ว มากน้อยเพียงใด *</p>
-                <div className="flex flex-wrap gap-2">
+                <p className="text-white font-medium leading-relaxed mb-3">4. PTT GROUP INNO Club ครั้งนี้มีการรับมือกับสถานการณ์ต่าง ๆ หรือมีการตัดสินใจได้อย่างรวดเร็ว มากน้อยเพียงใด *</p>
+                <div className="flex flex-wrap gap-x-4 gap-y-3">
                   {[1, 2, 3, 4, 5].map((n) => (
                     <label key={n} className="flex items-center gap-2 cursor-pointer">
                       <input
@@ -267,7 +267,7 @@ const InnoClubEvaluationPage: React.FC = () => {
                 </div>
               </div>
               <div>
-                <p className="text-gray-500 text-sm mb-2">5. ข้อเสนอแนะเพิ่มเติม</p>
+                <p className="text-gray-500 text-sm mb-3">5. ข้อเสนอแนะเพิ่มเติม</p>
                 <textarea
                   value={form.overall_comment}
                   onChange={(e) => setText('overall_comment', e.target.value)}
@@ -281,10 +281,10 @@ const InnoClubEvaluationPage: React.FC = () => {
 
           {/* ข้อเสนอแนะและคำถามเปิด */}
           <section className="rounded-2xl border border-white/10 bg-white/5 p-6 sm:p-8">
-            <h2 className="text-lg font-bold text-yellow-400 mb-6">ข้อเสนอแนะและแนวทางการนำไปใช้</h2>
-            <div className="space-y-6">
+            <h2 className="text-lg font-bold text-yellow-400 mb-7">ข้อเสนอแนะและแนวทางการนำไปใช้</h2>
+            <div className="space-y-7">
               <div>
-                <p className="text-white font-medium mb-2">1. จากกิจกรรม Innoclub ในครั้งนี้ท่านเข้าใจแนวคิด SIT (Systematic Innovation Thinking) ชัดเจนขึ้นเพียงใด?</p>
+                <p className="text-white font-medium leading-relaxed mb-3">1. จากกิจกรรม Innoclub ในครั้งนี้ท่านเข้าใจแนวคิด SIT (Systematic Innovation Thinking) ชัดเจนขึ้นเพียงใด?</p>
                 <textarea
                   value={form.learn_apply}
                   onChange={(e) => setText('learn_apply', e.target.value)}
@@ -294,7 +294,7 @@ const InnoClubEvaluationPage: React.FC = () => {
                 />
               </div>
               <div>
-                <p className="text-white font-medium mb-2">2. ท่านคิดว่าท่านสามารถนำ SIT ไปลองใช้กับงานของท่านได้มากน้อยเพียงใด?</p>
+                <p className="text-white font-medium leading-relaxed mb-3">2. ท่านคิดว่าท่านสามารถนำไปประยุกต์ใช้กับงานของท่านได้มากน้อยเพียงใด?</p>
                 <textarea
                   value={form.ai_plan_6months}
                   onChange={(e) => setText('ai_plan_6months', e.target.value)}
@@ -304,17 +304,7 @@ const InnoClubEvaluationPage: React.FC = () => {
                 />
               </div>
               <div>
-                <p className="text-white font-medium mb-2">3. หลังจบกิจกรรมนี้ ท่านรู้สึกมั่นใจเพียงใดในการเลือกใช้เครื่องมือ SIT ให้เหมาะกับสถานการณ์ (เช่นลบ/เพิ่ม/แบ่ง/ควบรวม/ปรับตามเงื่อนไข)?</p>
-                <textarea
-                  value={form.activity_learning_satisfaction}
-                  onChange={(e) => setText('activity_learning_satisfaction', e.target.value)}
-                  rows={4}
-                  placeholder="กรุณาตอบคำถาม..."
-                  className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/20 text-white placeholder-gray-500 text-sm focus:outline-none focus:border-yellow-400 resize-none"
-                />
-              </div>
-              <div>
-                <p className="text-white font-medium mb-2">4. ท่านพึงพอใจต่อรูปแบบการเรียนรู้ผ่านกิจกรรม (Activity Based Learning) ในครั้งนี้เพียงใด?</p>
+                <p className="text-white font-medium leading-relaxed mb-3">3. ท่านพึงพอใจต่อรูปแบบการเรียนรู้ผ่านกิจกรรม (Activity Based Learning) ในครั้งนี้เพียงใด?</p>
                 <textarea
                   value={form.networking_collaboration}
                   onChange={(e) => setText('networking_collaboration', e.target.value)}
@@ -324,7 +314,7 @@ const InnoClubEvaluationPage: React.FC = () => {
                 />
               </div>
               <div>
-                <p className="text-white font-medium mb-2">5.กิจกรรมนี้ช่วยให้คุณได้เเลกเปลี่ยนไอเดีย และรู้จัก/เชื่อมต่อกับผู้อื่นเพื่อทำงานร่วมกันด้านนวัตกรรมได้มากน้อยเพียงใด?</p>
+                <p className="text-white font-medium leading-relaxed mb-3">4. กิจกรรมนี้ช่วยให้ท่าน ได้เเลกเปลี่ยนไอเดีย และรู้จัก/เชื่อมต่อกับผู้อื่นเพื่อทำงานร่วมกันด้านนวัตกรรมได้มากน้อยเพียงใด?</p>
                 <textarea
                   value={form.improvement_suggestions}
                   onChange={(e) => setText('improvement_suggestions', e.target.value)}
