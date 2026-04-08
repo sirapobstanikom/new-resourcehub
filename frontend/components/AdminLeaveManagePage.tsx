@@ -193,6 +193,22 @@ const AdminLeaveManagePage: React.FC = () => {
     });
   };
 
+  const updateAdminUserBalance = async (
+    email: string,
+    payload: Record<string, number>
+  ): Promise<void> => {
+    const normalizedEmail = email.trim().toLowerCase();
+    const { data, error } = await supabase
+      .from('admin_users')
+      .update(payload)
+      .ilike('email', normalizedEmail)
+      .select('email')
+      .maybeSingle();
+    if (error || !data) {
+      throw new Error(error?.message || `ไม่พบข้อมูล admin_users ของ ${normalizedEmail}`);
+    }
+  };
+
   const handleStatus = async (
     row: LeaveRequestRow,
     action: 'approve' | 'reject'
@@ -300,7 +316,7 @@ const AdminLeaveManagePage: React.FC = () => {
         admin_email: user?.email ?? null,
         error: err.message,
       });
-      setError(err.message || 'ไม่สามารถอัปเดตได้ กรุณาตรวจสอบว่าเข้าสู่ระบบด้วยอีเมลผู้จัดการลา (pink/koy/tonji@minddojo.me) และมี policy อัปเดต leave_requests ใน Supabase');
+      setError(err.message || 'ไม่สามารถอัปเดตได้ กรุณาตรวจสอบว่าเข้าสู่ระบบด้วยอีเมลผู้จัดการลา (pink/koy/tonji@minddojo.me) และรัน SQL ไฟล์ backend/supabase/fix_leave_requests_manager_policy.sql');
       return;
     }
     if (!data || data.length === 0) {
@@ -342,117 +358,88 @@ const AdminLeaveManagePage: React.FC = () => {
       }
     }
 
-    // อนุมัติยกเลิก: คืนวันลา/ชั่วโมงกลับเข้า admin_users (เฉพาะประเภทที่มี balance)
+    // อนุมัติคำขอลา: ตัดวันลาจากคอลัมน์แบบ "วัน" (รองรับครึ่งวัน = 0.5)
+    if (!isCancelFlow && action === 'approve' && row.leave_type !== 'wfh' && row.leave_type !== 'other') {
+      const { days, hours } = getLeaveDaysAndHours(row);
+      if (days > 0 || hours > 0) {
+        const { data: userRow, error: userErr } = await supabase
+          .from('admin_users')
+          .select('leave_days_remaining, personal_remaining, sick_remaining, annual_remaining, unpaid_remaining')
+          .ilike('email', row.user_email.trim().toLowerCase())
+          .maybeSingle();
+        if (!userErr && userRow) {
+          const u = userRow as Record<string, number | null | undefined>;
+          const usedDays = (days * 8 + hours) / 8;
+          const dayKey =
+            row.leave_type === 'personal_vacation'
+              ? 'leave_days_remaining'
+              : row.leave_type === 'sick'
+                ? 'sick_remaining'
+                : row.leave_type === 'unpaid'
+                  ? 'unpaid_remaining'
+                  : row.leave_type === 'vacation'
+                    ? 'annual_remaining'
+                    : 'personal_remaining';
+          const currentDays = Number(u[dayKey] ?? (dayKey === 'leave_days_remaining' ? 10 : 0));
+          const newDays = Math.max(0, Math.round((currentDays - usedDays) * 10) / 10);
+          await updateAdminUserBalance(row.user_email, { [dayKey]: newDays } as Record<string, number>);
+          pushDebugLog('info', '[LeaveAdminDecision] deduct day balance', {
+            leave_request_id: row.id,
+            user_email: row.user_email,
+            dayKey,
+            usedDays,
+            currentDays,
+            newDays,
+          });
+        } else {
+          console.warn('[LeaveAdminDecision] deduct skipped (no admin_users row or userErr)', {
+            leave_request_id: row.id,
+            user_email: row.user_email,
+            userErr: userErr?.message ?? null,
+            at: new Date().toISOString(),
+          });
+          pushDebugLog('warn', '[LeaveAdminDecision] deduct skipped', {
+            leave_request_id: row.id,
+            user_email: row.user_email,
+            userErr: userErr?.message ?? null,
+          });
+        }
+      }
+    }
+
+    // อนุมัติยกเลิก: คืนวันลาตามจำนวนที่เคยใช้ (รองรับครึ่งวัน = 0.5)
     if (isCancelFlow && action === 'approve' && row.leave_type !== 'wfh' && row.leave_type !== 'other') {
       const { days, hours } = getLeaveDaysAndHours(row);
       if (days > 0 || hours > 0) {
         const { data: userRow, error: userErr } = await supabase
           .from('admin_users')
-          .select('personal_remaining, sick_remaining, annual_remaining, unpaid_remaining, hours_personal_remaining, hours_sick_remaining, hours_annual_remaining, hours_unpaid_remaining')
-          .eq('email', row.user_email)
+          .select('leave_days_remaining, personal_remaining, sick_remaining, annual_remaining, unpaid_remaining')
+          .ilike('email', row.user_email.trim().toLowerCase())
           .maybeSingle();
         if (!userErr && userRow) {
           const u = userRow as Record<string, number | null | undefined>;
-          const totalRefundHours = days * 8 + hours;
-
-          if (row.leave_type === 'personal_vacation') {
-            const h1 = Math.floor(totalRefundHours / 2);
-            const h2 = totalRefundHours - h1;
-            const d1 = Math.floor(h1 / 8);
-            const hr1 = h1 % 8;
-            const d2 = Math.floor(h2 / 8);
-            const hr2 = h2 % 8;
-            let pd = Number(u.personal_remaining ?? 0) + d1;
-            let ph = Number(u.hours_personal_remaining ?? 0) + hr1;
-            pd += Math.floor(ph / 8);
-            ph = ph % 8;
-            let ad = Number(u.annual_remaining ?? 0) + d2;
-            let ah = Number(u.hours_annual_remaining ?? 0) + hr2;
-            ad += Math.floor(ah / 8);
-            ah = ah % 8;
-            await supabase
-              .from('admin_users')
-              .update({
-                personal_remaining: pd,
-                hours_personal_remaining: ph,
-                annual_remaining: ad,
-                hours_annual_remaining: ah,
-              })
-              .eq('email', row.user_email);
-            pushDebugLog('info', '[LeaveAdminDecision] refund balance (personal_vacation split)', {
-              leave_request_id: row.id,
-              user_email: row.user_email,
-              totalRefundHours,
-            });
-          } else if (row.leave_type === 'personal') {
-            let pd = Number(u.personal_remaining ?? 0) + days;
-            let ph = Number(u.hours_personal_remaining ?? 0) + hours;
-            pd += Math.floor(ph / 8);
-            ph = ph % 8;
-            await supabase
-              .from('admin_users')
-              .update({ personal_remaining: pd, hours_personal_remaining: ph })
-              .eq('email', row.user_email);
-          } else if (row.leave_type === 'vacation') {
-            let ad = Number(u.annual_remaining ?? 0) + days;
-            let ah = Number(u.hours_annual_remaining ?? 0) + hours;
-            ad += Math.floor(ah / 8);
-            ah = ah % 8;
-            await supabase
-              .from('admin_users')
-              .update({ annual_remaining: ad, hours_annual_remaining: ah })
-              .eq('email', row.user_email);
-          } else {
-            const dayKey =
-              row.leave_type === 'sick'
+          const refundDays = (days * 8 + hours) / 8;
+          const dayKey =
+            row.leave_type === 'personal_vacation'
+              ? 'leave_days_remaining'
+              : row.leave_type === 'sick'
                 ? 'sick_remaining'
                 : row.leave_type === 'unpaid'
                   ? 'unpaid_remaining'
-                  : 'personal_remaining';
-            const hourKey =
-              row.leave_type === 'sick'
-                ? 'hours_sick_remaining'
-                : row.leave_type === 'unpaid'
-                  ? 'hours_unpaid_remaining'
-                  : 'hours_personal_remaining';
-            let newDays = Number(u[dayKey] ?? 0) + days;
-            let newHours = Number(u[hourKey] ?? 0) + hours;
-            newDays += Math.floor(newHours / 8);
-            newHours = newHours % 8;
-
-            console.log('[LeaveAdminDecision] refund balance', {
-              leave_request_id: row.id,
-              user_email: row.user_email,
-              dayKey,
-              hourKey,
-              add_days: days,
-              add_hours: hours,
-              old_days: u[dayKey],
-              old_hours: u[hourKey],
-              new_days: newDays,
-              new_hours: newHours,
-              admin_email: user?.email ?? null,
-              at: new Date().toISOString(),
-            });
-            pushDebugLog('info', '[LeaveAdminDecision] refund balance', {
-              leave_request_id: row.id,
-              user_email: row.user_email,
-              dayKey,
-              hourKey,
-              add_days: days,
-              add_hours: hours,
-              old_days: u[dayKey],
-              old_hours: u[hourKey],
-              new_days: newDays,
-              new_hours: newHours,
-              admin_email: user?.email ?? null,
-            });
-
-            await supabase
-              .from('admin_users')
-              .update({ [dayKey]: newDays, [hourKey]: newHours })
-              .eq('email', row.user_email);
-          }
+                  : row.leave_type === 'vacation'
+                    ? 'annual_remaining'
+                    : 'personal_remaining';
+          const currentDays = Number(u[dayKey] ?? (dayKey === 'leave_days_remaining' ? 10 : 0));
+          const newDays = Math.round((currentDays + refundDays) * 10) / 10;
+          await updateAdminUserBalance(row.user_email, { [dayKey]: newDays } as Record<string, number>);
+          pushDebugLog('info', '[LeaveAdminDecision] refund day balance', {
+            leave_request_id: row.id,
+            user_email: row.user_email,
+            dayKey,
+            refundDays,
+            currentDays,
+            newDays,
+          });
         } else {
           console.warn('[LeaveAdminDecision] refund skipped (no admin_users row or userErr)', {
             leave_request_id: row.id,

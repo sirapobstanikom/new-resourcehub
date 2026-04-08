@@ -7,7 +7,6 @@ import {
   LEAVE_DAY_PART_TIMES,
   type LeaveDayPart,
   countWeekdaysInRange,
-  formatBalanceDaysHalves,
   formatLeaveSlotLabel,
   requestedLeaveHoursEquivalent,
 } from '../lib/leaveUnits';
@@ -68,6 +67,12 @@ type LeaveCancelAuditRow = {
   decided_at: string | null;
   decision: string | null;
 };
+
+function formatDayValue(days: number | null | undefined): string {
+  const v = Number(days ?? 0);
+  if (Number.isNaN(v)) return '0 วัน';
+  return `${Number.isInteger(v) ? v : v.toFixed(1)} วัน`;
+}
 
 function formatThaiDate(dateStr: string): string {
   const d = new Date(dateStr + 'T12:00:00Z');
@@ -197,6 +202,19 @@ const THAI_MONTHS = ['มกราคม', 'กุมภาพันธ์', '�
 
 type PublicHoliday = { id: number; month: number; day: number; name: string | null };
 
+function buildCompactPageItems(totalPages: number, currentPage: number): Array<number | '...'> {
+  if (totalPages <= 7) return Array.from({ length: totalPages }, (_, i) => i + 1);
+  const pages = new Set<number>([1, 2, totalPages - 1, totalPages, currentPage - 1, currentPage, currentPage + 1]);
+  const sorted = Array.from(pages).filter((p) => p >= 1 && p <= totalPages).sort((a, b) => a - b);
+  const out: Array<number | '...'> = [];
+  for (let i = 0; i < sorted.length; i++) {
+    const p = sorted[i];
+    if (i > 0 && p - sorted[i - 1] > 1) out.push('...');
+    out.push(p);
+  }
+  return out;
+}
+
 const AdminLeavePage: React.FC = () => {
   const { user } = useAuth();
   const handleAdminLogout = async () => {
@@ -234,15 +252,11 @@ const AdminLeavePage: React.FC = () => {
   const [myLeaveList, setMyLeaveList] = useState<LeaveRequestRow[]>([]);
   const [myLeaveListLoading, setMyLeaveListLoading] = useState(false);
   const [leaveBalance, setLeaveBalance] = useState<{
+    leave_days_remaining: number;
     personal_remaining: number;
     sick_remaining: number;
     annual_remaining: number;
     unpaid_remaining: number;
-    hours_remaining?: number;
-    hours_personal_remaining?: number;
-    hours_sick_remaining?: number;
-    hours_annual_remaining?: number;
-    hours_unpaid_remaining?: number;
   } | null>(null);
   const [wfhUsedThisMonth, setWfhUsedThisMonth] = useState<boolean>(false);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
@@ -251,8 +265,16 @@ const AdminLeavePage: React.FC = () => {
     Array<{ at: string; level: 'info' | 'warn' | 'error'; text: string }>
   >([]);
   const ROWS_PER_PAGE = 20;
+  const APPROVED_ROWS_PER_PAGE = 5;
+  const CANCEL_ROWS_PER_PAGE = 5;
   const [myLeavePage, setMyLeavePage] = useState(1);
   const [approvedPage, setApprovedPage] = useState(1);
+  const [approvedRows, setApprovedRows] = useState<LeaveRequestRow[]>([]);
+  const [approvedTotal, setApprovedTotal] = useState(0);
+  const [approvedLoading, setApprovedLoading] = useState(false);
+  const [approvedError, setApprovedError] = useState<string | null>(null);
+  const [cancelAuditsPage, setCancelAuditsPage] = useState(1);
+  const [cancelAuditsTotal, setCancelAuditsTotal] = useState(0);
 
   const [cancelAudits, setCancelAudits] = useState<LeaveCancelAuditRow[]>([]);
   const [cancelAuditsLoading, setCancelAuditsLoading] = useState(false);
@@ -273,22 +295,17 @@ const AdminLeavePage: React.FC = () => {
     if (!leaveBalance) return 0;
     switch (leaveTypeId) {
       case 'personal_vacation':
-        return (
-          (leaveBalance.personal_remaining ?? 0) * 8 +
-          (leaveBalance.hours_personal_remaining ?? 0) +
-          (leaveBalance.annual_remaining ?? 0) * 8 +
-          (leaveBalance.hours_annual_remaining ?? 0)
-        );
+        return (leaveBalance.leave_days_remaining ?? 0) * 8;
       case 'other':
         return 999999;
       case 'personal':
-        return (leaveBalance.personal_remaining ?? 0) * 8 + (leaveBalance.hours_personal_remaining ?? 0);
+        return (leaveBalance.personal_remaining ?? 0) * 8;
       case 'sick':
-        return (leaveBalance.sick_remaining ?? 0) * 8 + (leaveBalance.hours_sick_remaining ?? 0);
+        return (leaveBalance.sick_remaining ?? 0) * 8;
       case 'vacation':
-        return (leaveBalance.annual_remaining ?? 0) * 8 + (leaveBalance.hours_annual_remaining ?? 0);
+        return (leaveBalance.annual_remaining ?? 0) * 8;
       case 'unpaid':
-        return (leaveBalance.unpaid_remaining ?? 0) * 8 + (leaveBalance.hours_unpaid_remaining ?? 0);
+        return (leaveBalance.unpaid_remaining ?? 0) * 8;
       case 'wfh':
         // UI เดิมผูกกับ "เดือนปัจจุบัน" เท่านั้น
         // เพื่อให้เลือก WFH ใน "เดือนใหม่" ได้ แม้เดือนปัจจุบันจะใช้ครบแล้ว
@@ -369,27 +386,30 @@ const AdminLeavePage: React.FC = () => {
   }, [user?.id, submitted]);
 
   // โหลดประวัติคำขอยกเลิก (ทุกครั้ง/ทุกคน) จาก audit table
-  const fetchCancelAudits = async () => {
+  const fetchCancelAudits = async (page: number = cancelAuditsPage) => {
     if (!isSupabaseConfigured) return;
     setCancelAuditsLoading(true);
     setCancelAuditsError(null);
-    const { data, error } = await supabase
+    const from = (page - 1) * CANCEL_ROWS_PER_PAGE;
+    const to = from + CANCEL_ROWS_PER_PAGE - 1;
+    const { data, error, count } = await supabase
       .from('leave_cancel_audits')
-      .select('id, leave_request_id, user_id, user_email, leave_type, start_date, end_date, start_time, end_time, cancel_reason, status, requested_at, decided_by_email, decided_at, decision')
+      .select('id, leave_request_id, user_id, user_email, leave_type, start_date, end_date, start_time, end_time, cancel_reason, status, requested_at, decided_by_email, decided_at, decision', { count: 'exact' })
       .order('requested_at', { ascending: false })
-      .limit(200);
+      .range(from, to);
     setCancelAuditsLoading(false);
     if (error) {
       setCancelAuditsError(error.message);
       return;
     }
     setCancelAudits((data as LeaveCancelAuditRow[]) ?? []);
+    setCancelAuditsTotal(count ?? 0);
   };
 
   useEffect(() => {
-    fetchCancelAudits();
+    fetchCancelAudits(cancelAuditsPage);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isSupabaseConfigured, cancelAuditsRefreshKey]);
+  }, [isSupabaseConfigured, cancelAuditsRefreshKey, cancelAuditsPage]);
 
   // รีเฟรชถ้ายังมีรายการที่รออนุมัติยกเลิก เพื่อให้ผู้อนุมัติแสดงทันที
   useEffect(() => {
@@ -397,11 +417,38 @@ const AdminLeavePage: React.FC = () => {
     if (!hasPending) return;
 
     const t = window.setInterval(() => {
-      fetchCancelAudits();
+      fetchCancelAudits(cancelAuditsPage);
     }, 8000);
 
     return () => window.clearInterval(t);
-  }, [cancelAudits]);
+  }, [cancelAudits, cancelAuditsPage]);
+
+  useEffect(() => {
+    if (!isSupabaseConfigured) return;
+    const from = (approvedPage - 1) * APPROVED_ROWS_PER_PAGE;
+    const to = from + APPROVED_ROWS_PER_PAGE - 1;
+    setApprovedLoading(true);
+    setApprovedError(null);
+    supabase
+      .from('leave_requests')
+      .select('id, user_email, user_display_name, leave_type, start_date, end_date, start_time, end_time, reason, attachment_url, other_leave_purpose, status, approved_by_email, approved_at, created_at', { count: 'exact' })
+      .eq('status', 'approved')
+      .order('created_at', { ascending: false })
+      .range(from, to)
+      .then(({ data, error, count }) => {
+        setApprovedLoading(false);
+        if (error) {
+          setApprovedError(error.message);
+          return;
+        }
+        setApprovedRows((data as LeaveRequestRow[]) ?? []);
+        setApprovedTotal(count ?? 0);
+      });
+  }, [isSupabaseConfigured, approvedPage, submitted, leaveList.length]);
+
+  useEffect(() => {
+    setCancelAuditsPage(1);
+  }, [cancelAuditsRefreshKey]);
 
   // (ส่วนการรีเฟรช/แสดงรายการยกเลิกย้ายไปใช้ audit table แล้ว)
 
@@ -409,35 +456,27 @@ const AdminLeavePage: React.FC = () => {
     if (!isSupabaseConfigured || !user?.email) return;
     supabase
       .from('admin_users')
-      .select('personal_remaining, sick_remaining, annual_remaining, unpaid_remaining, hours_remaining, hours_personal_remaining, hours_sick_remaining, hours_annual_remaining, hours_unpaid_remaining')
+      .select('leave_days_remaining, personal_remaining, sick_remaining, annual_remaining, unpaid_remaining')
       .eq('email', user.email)
       .maybeSingle()
       .then(({ data }) => {
         if (data) {
           const d = data as {
+            leave_days_remaining?: number;
             personal_remaining?: number;
             sick_remaining?: number;
             annual_remaining?: number;
             unpaid_remaining?: number;
-            hours_remaining?: number;
-            hours_personal_remaining?: number;
-            hours_sick_remaining?: number;
-            hours_annual_remaining?: number;
-            hours_unpaid_remaining?: number;
           };
           setLeaveBalance({
+            leave_days_remaining: d.leave_days_remaining ?? 10,
             personal_remaining: d.personal_remaining ?? 15,
             sick_remaining: d.sick_remaining ?? 30,
             annual_remaining: d.annual_remaining ?? 6,
             unpaid_remaining: d.unpaid_remaining ?? 0,
-            hours_remaining: d.hours_remaining != null ? Number(d.hours_remaining) : 0,
-            hours_personal_remaining: d.hours_personal_remaining,
-            hours_sick_remaining: d.hours_sick_remaining,
-            hours_annual_remaining: d.hours_annual_remaining,
-            hours_unpaid_remaining: d.hours_unpaid_remaining,
           });
         } else {
-          setLeaveBalance({ personal_remaining: 15, sick_remaining: 30, annual_remaining: 6, unpaid_remaining: 0, hours_remaining: 0 });
+          setLeaveBalance({ leave_days_remaining: 10, personal_remaining: 15, sick_remaining: 30, annual_remaining: 6, unpaid_remaining: 0 });
         }
       });
   }, [user?.email]);
@@ -453,6 +492,13 @@ const AdminLeavePage: React.FC = () => {
       setEndTime(end);
     }
   }, [leaveDayPart, startDate, endDate]);
+
+  useEffect(() => {
+    if (leaveType !== 'wfh') return;
+    setLeaveDayPart('full');
+    setStartTime(LEAVE_DAY_PART_TIMES.full.start);
+    setEndTime(LEAVE_DAY_PART_TIMES.full.end);
+  }, [leaveType]);
 
   useEffect(() => {
     if (!isSupabaseConfigured || !user?.id) return;
@@ -517,6 +563,24 @@ const AdminLeavePage: React.FC = () => {
     }
     if (dateRangeIncludesWeekend(startDate, endDate)) {
       setSubmitError('ห้ามลาวันเสาร์และอาทิตย์ (เวลาทำงาน จันทร์–ศุกร์)');
+      return;
+    }
+
+    // กันส่งคำขอลาซ้ำช่วงวันเดิม: ถ้ามีใบลาที่ยังไม่ยกเลิกอยู่แล้ว ต้องยกเลิกรายการเดิมก่อน
+    const { data: overlapRows, error: overlapErr } = await supabase
+      .from('leave_requests')
+      .select('id')
+      .eq('user_id', user.id)
+      .in('status', ['pending', 'approved', 'cancel_requested'])
+      .lte('start_date', endDate)
+      .gte('end_date', startDate)
+      .limit(1);
+    if (overlapErr) {
+      setSubmitError(overlapErr.message);
+      return;
+    }
+    if ((overlapRows?.length ?? 0) > 0) {
+      setSubmitError('คุณมีรายการลาในช่วงวันที่นี้อยู่แล้ว กรุณายกเลิกรายการเดิมก่อน');
       return;
     }
 
@@ -615,8 +679,8 @@ const AdminLeavePage: React.FC = () => {
     if (attachmentUrl) payload.attachment_url = attachmentUrl;
     if (leaveType === 'other') payload.other_leave_purpose = otherLeavePurpose.trim();
     if (isOneDay) {
-      const fromTime = startTime || '09:00';
-      const toTime = endTime || '17:00';
+      const fromTime = leaveType === 'wfh' ? LEAVE_DAY_PART_TIMES.full.start : (startTime || '09:00');
+      const toTime = leaveType === 'wfh' ? LEAVE_DAY_PART_TIMES.full.end : (endTime || '17:00');
       payload.start_time = fromTime.length === 5 ? `${fromTime}:00` : fromTime;
       payload.end_time = toTime.length === 5 ? `${toTime}:00` : toTime;
     }
@@ -898,14 +962,10 @@ const AdminLeavePage: React.FC = () => {
         {leaveBalance !== null && (
           <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-gray-300">
             <span className="font-medium text-gray-400">ลาคงเหลือ (ปี {currentYear}):</span>{' '}
-            ลากิจ / พักร้อน (รวม){' '}
-            {formatBalanceDaysHalves(
-              (leaveBalance.personal_remaining ?? 0) + (leaveBalance.annual_remaining ?? 0),
-              (leaveBalance.hours_personal_remaining ?? 0) + (leaveBalance.hours_annual_remaining ?? 0),
-            )}{' '}
-            · ลาป่วย {formatBalanceDaysHalves(leaveBalance.sick_remaining, leaveBalance.hours_sick_remaining ?? 0)} ·{' '}
+            ลากิจ / พักร้อน (รวม) {formatDayValue(leaveBalance.leave_days_remaining)} · ลาป่วย{' '}
+            {formatDayValue(leaveBalance.sick_remaining)} ·{' '}
             WFH 1 วัน/เดือน (เดือนนี้{wfhUsedThisMonth ? 'ใช้แล้ว — ลาอีกได้เดือนถัดไป' : 'ยังใช้ได้'}) · ลาไม่รับเงิน{' '}
-            {formatBalanceDaysHalves(leaveBalance.unpaid_remaining, leaveBalance.hours_unpaid_remaining ?? 0)}
+            {formatDayValue(leaveBalance.unpaid_remaining)}
             <span className="block mt-2 text-gray-500 text-xs">
               ยื่นลากิจหรือลาพักร้อนเลือกประเภทเดียวกัน &quot;ลากิจ / ลาพักร้อน&quot; — ระบบหักจากโควตาทั้งสองกลุ่มรวมกัน
             </span>
@@ -1026,21 +1086,27 @@ const AdminLeavePage: React.FC = () => {
           {startDate && endDate && startDate === endDate && !dateRangeIncludesWeekend(startDate, endDate) && (
             <div>
               <label className="block text-sm font-medium text-gray-400 mb-2">ลา 1 วัน — เต็มวันหรือครึ่งวัน</label>
-              <select
-                value={leaveDayPart}
-                onChange={(e) => setLeaveDayPart(e.target.value as LeaveDayPart)}
-                className="block w-full min-w-0 max-w-full px-4 py-3 rounded-xl bg-white/5 border border-white/20 text-white text-sm focus:outline-none focus:border-yellow-400"
-              >
-                <option value="full" className="bg-neutral-900 text-white">
-                  เต็มวัน (09.00–17.00 น.)
-                </option>
-                <option value="morning" className="bg-neutral-900 text-white">
-                  ครึ่งวันเช้า (09.00–13.00 น.)
-                </option>
-                <option value="afternoon" className="bg-neutral-900 text-white">
-                  ครึ่งวันบ่าย (13.00–17.00 น.)
-                </option>
-              </select>
+              {leaveType === 'wfh' ? (
+                <div className="block w-full min-w-0 max-w-full px-4 py-3 rounded-xl bg-white/5 border border-white/20 text-white text-sm">
+                  เต็มวัน (09.00–17.00 น.) — Work from Home เลือกได้เฉพาะเต็มวัน
+                </div>
+              ) : (
+                <select
+                  value={leaveDayPart}
+                  onChange={(e) => setLeaveDayPart(e.target.value as LeaveDayPart)}
+                  className="block w-full min-w-0 max-w-full px-4 py-3 rounded-xl bg-white/5 border border-white/20 text-white text-sm focus:outline-none focus:border-yellow-400"
+                >
+                  <option value="full" className="bg-neutral-900 text-white">
+                    เต็มวัน (09.00–17.00 น.)
+                  </option>
+                  <option value="morning" className="bg-neutral-900 text-white">
+                    ครึ่งวันเช้า (09.00–13.00 น.)
+                  </option>
+                  <option value="afternoon" className="bg-neutral-900 text-white">
+                    ครึ่งวันบ่าย (13.00–17.00 น.)
+                  </option>
+                </select>
+              )}
               <p className="text-xs text-gray-500 mt-1.5">
                 ระบบจะบันทึกช่วงเวลาตามตัวเลือกนี้ — โควตาหักเป็นเต็มวัน (8 ชม.) หรือครึ่งวัน (4 ชม.)
               </p>
@@ -1460,16 +1526,19 @@ alter table public.leave_requests add column if not exists approved_at timestamp
           <p className="text-sm text-gray-500 mb-4">
             แสดงคำขอลาที่อนุมัติแล้ว ตอนยื่นคำขอลาตอนเวลาเท่าไร และเมลผู้อนุมัติ
           </p>
-          {leaveListLoading ? (
+          {approvedLoading ? (
             <div className="min-h-[100px] rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-gray-500 text-sm">
               กำลังโหลด...
             </div>
+          ) : approvedError ? (
+            <div className="min-h-[100px] rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-300 text-sm p-4 text-center">
+              {approvedError}
+            </div>
           ) : (() => {
-            const apprList = leaveList.filter((r) => r.status === 'approved');
-            const apprTotal = apprList.length;
-            const apprTotalPages = Math.max(1, Math.ceil(apprTotal / ROWS_PER_PAGE));
+            const apprTotal = approvedTotal;
+            const apprTotalPages = Math.max(1, Math.ceil(apprTotal / APPROVED_ROWS_PER_PAGE));
             const apprPage = Math.min(approvedPage, apprTotalPages);
-            const apprRows = apprList.slice((apprPage - 1) * ROWS_PER_PAGE, apprPage * ROWS_PER_PAGE);
+            const pageItems = buildCompactPageItems(apprTotalPages, apprPage);
             return apprTotal === 0 ? (
               <div className="min-h-[100px] rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-gray-500 text-sm">
                 ยังไม่มีรายการที่อนุมัติแล้ว
@@ -1492,7 +1561,7 @@ alter table public.leave_requests add column if not exists approved_at timestamp
                   </tr>
                 </thead>
                 <tbody>
-                  {apprRows.map((row) => (
+                  {approvedRows.map((row) => (
                       <tr key={row.id} className="border-b border-white/5 hover:bg-white/5">
                         <td className="px-3 sm:px-4 py-2 sm:py-3 text-gray-300 text-xs sm:text-sm">
                           {row.user_display_name || row.user_email}
@@ -1521,16 +1590,20 @@ alter table public.leave_requests add column if not exists approved_at timestamp
             </div>
             {apprTotalPages > 1 && (
               <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-white/10 pt-3">
-                <span className="text-xs text-gray-500">แถว {(apprPage - 1) * ROWS_PER_PAGE + 1}–{Math.min(apprPage * ROWS_PER_PAGE, apprTotal)} จาก {apprTotal} · หน้าแรก = ข้อมูลล่าสุด</span>
+                <span className="text-xs text-gray-500">แถว {(apprPage - 1) * APPROVED_ROWS_PER_PAGE + 1}–{Math.min(apprPage * APPROVED_ROWS_PER_PAGE, apprTotal)} จาก {apprTotal} · หน้าแรก = ข้อมูลล่าสุด</span>
                 <div className="flex flex-wrap items-center gap-1.5">
                   <button type="button" onClick={() => setApprovedPage((p) => Math.max(1, p - 1))} disabled={apprPage <= 1}
                     className="px-2 py-1 rounded text-sm bg-white/10 text-white hover:bg-white/20 disabled:opacity-40 disabled:cursor-not-allowed">← ก่อนหน้า</button>
-                  {Array.from({ length: apprTotalPages }, (_, i) => i + 1).map((p) => (
-                    <button key={p} type="button" onClick={() => setApprovedPage(p)}
-                      className={`px-2 py-1 rounded text-sm min-w-[1.75rem] ${apprPage === p ? 'bg-yellow-400/20 text-yellow-400' : 'bg-white/10 text-white hover:bg-white/20'}`}>
-                      {p}
-                    </button>
-                  ))}
+                  {pageItems.map((item, idx) =>
+                    item === '...' ? (
+                      <span key={`approved-ellipsis-${idx}`} className="px-2 py-1 text-sm text-gray-500">...</span>
+                    ) : (
+                      <button key={item} type="button" onClick={() => setApprovedPage(item)}
+                        className={`px-2 py-1 rounded text-sm min-w-[1.75rem] ${apprPage === item ? 'bg-yellow-400/20 text-yellow-400' : 'bg-white/10 text-white hover:bg-white/20'}`}>
+                        {item}
+                      </button>
+                    )
+                  )}
                   <button type="button" onClick={() => setApprovedPage((p) => Math.min(apprTotalPages, p + 1))} disabled={apprPage >= apprTotalPages}
                     className="px-2 py-1 rounded text-sm bg-white/10 text-white hover:bg-white/20 disabled:opacity-40 disabled:cursor-not-allowed">ถัดไป →</button>
                 </div>
@@ -1544,6 +1617,13 @@ alter table public.leave_requests add column if not exists approved_at timestamp
         <section className="rounded-2xl border border-white/10 bg-white/5 p-3 sm:p-4">
           <h3 className="font-bold text-gray-300 mb-2">รายการลาที่ขอยกเลิก</h3>
           <p className="text-xs text-gray-500 mb-3">แสดงรายการขอยกเลิก (รออนุมัติ/ยกเลิกแล้ว) ของทุกคน</p>
+          {(() => {
+            const cancelTotal = cancelAuditsTotal;
+            const cancelTotalPages = Math.max(1, Math.ceil(cancelTotal / CANCEL_ROWS_PER_PAGE));
+            const cancelPage = Math.min(cancelAuditsPage, cancelTotalPages);
+            const pageItems = buildCompactPageItems(cancelTotalPages, cancelPage);
+            return (
+              <>
           <div className="rounded-xl border border-white/10 overflow-x-auto mx-0">
             {cancelAuditsLoading ? (
               <div className="min-h-[70px] flex items-center justify-center text-gray-500 text-xs p-4">
@@ -1564,14 +1644,14 @@ alter table public.leave_requests add column if not exists approved_at timestamp
                     </tr>
                   </thead>
                   <tbody>
-                    {(cancelAudits ?? []).length === 0 ? (
+                    {cancelAudits.length === 0 ? (
                       <tr>
                         <td colSpan={8} className="px-2 py-3 text-center text-gray-500">
                           ยังไม่มีรายการขอยกเลิก
                         </td>
                       </tr>
                     ) : (
-                      (cancelAudits ?? []).map((row) => {
+                      cancelAudits.map((row) => {
                         const statusText =
                           row.status === 'cancel_requested'
                             ? 'ขอยกเลิก (รออนุมัติ)'
@@ -1617,6 +1697,30 @@ alter table public.leave_requests add column if not exists approved_at timestamp
                 </table>
             )}
           </div>
+          {!cancelAuditsLoading && cancelTotalPages > 1 && (
+            <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-white/10 pt-3">
+              <span className="text-xs text-gray-500">แถว {(cancelPage - 1) * CANCEL_ROWS_PER_PAGE + 1}–{Math.min(cancelPage * CANCEL_ROWS_PER_PAGE, cancelTotal)} จาก {cancelTotal} · หน้าแรก = ข้อมูลล่าสุด</span>
+              <div className="flex flex-wrap items-center gap-1.5">
+                <button type="button" onClick={() => setCancelAuditsPage((p) => Math.max(1, p - 1))} disabled={cancelPage <= 1}
+                  className="px-2 py-1 rounded text-sm bg-white/10 text-white hover:bg-white/20 disabled:opacity-40 disabled:cursor-not-allowed">← ก่อนหน้า</button>
+                {pageItems.map((item, idx) =>
+                  item === '...' ? (
+                    <span key={`cancel-ellipsis-${idx}`} className="px-2 py-1 text-sm text-gray-500">...</span>
+                  ) : (
+                    <button key={item} type="button" onClick={() => setCancelAuditsPage(item)}
+                      className={`px-2 py-1 rounded text-sm min-w-[1.75rem] ${cancelPage === item ? 'bg-yellow-400/20 text-yellow-400' : 'bg-white/10 text-white hover:bg-white/20'}`}>
+                      {item}
+                    </button>
+                  )
+                )}
+                <button type="button" onClick={() => setCancelAuditsPage((p) => Math.min(cancelTotalPages, p + 1))} disabled={cancelPage >= cancelTotalPages}
+                  className="px-2 py-1 rounded text-sm bg-white/10 text-white hover:bg-white/20 disabled:opacity-40 disabled:cursor-not-allowed">ถัดไป →</button>
+              </div>
+            </div>
+          )}
+              </>
+            );
+          })()}
         </section>
       </main>
 

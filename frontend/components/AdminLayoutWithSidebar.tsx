@@ -3,7 +3,6 @@ import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { logoutAdmin } from '../lib/auth';
 import { useAuth } from '../contexts/AuthContext';
-import { formatBalanceDaysHalves } from '../lib/leaveUnits';
 import {
   EMPLOYEE_DEPT_IDS,
   EMPLOYEE_DEPT_LABELS,
@@ -13,6 +12,12 @@ import {
 
 const ADMIN_LEAVE_MANAGER_EMAILS = ['pink@minddojo.me', 'koy@minddojo.me', 'tonji@minddojo.me'];
 const DEPRECATED_ADMIN_EMAIL = 'admin@minddojo.me';
+
+function formatDayValue(days: number | null | undefined): string {
+  const v = Number(days ?? 0);
+  if (Number.isNaN(v)) return '0 วัน';
+  return `${Number.isInteger(v) ? v : v.toFixed(1)} วัน`;
+}
 
 const AdminLayoutWithSidebar: React.FC = () => {
   const { user, signOut } = useAuth();
@@ -36,15 +41,11 @@ const AdminLayoutWithSidebar: React.FC = () => {
     full_name: string | null;
     phone: string | null;
     department: string | null;
+    leave_days_remaining: number;
     personal_remaining: number;
     sick_remaining: number;
     annual_remaining: number;
     unpaid_remaining: number;
-    hours_remaining?: number;
-    hours_personal_remaining?: number;
-    hours_sick_remaining?: number;
-    hours_annual_remaining?: number;
-    hours_unpaid_remaining?: number;
   };
   const [adminUser, setAdminUser] = useState<AdminUserRow | null>(null);
   const [adminUserError, setAdminUserError] = useState<string | null>(null);
@@ -67,11 +68,11 @@ const AdminLayoutWithSidebar: React.FC = () => {
     full_name: null,
     phone: null,
     department: null,
+    leave_days_remaining: 10,
     personal_remaining: 15,
     sick_remaining: 30,
     annual_remaining: 6,
     unpaid_remaining: 0,
-    hours_remaining: 0,
   };
 
   const fetchAdminUser = React.useCallback(async () => {
@@ -92,7 +93,7 @@ const AdminLayoutWithSidebar: React.FC = () => {
     log('querying admin_users for email', user.email);
     const { data, error } = await supabase
       .from('admin_users')
-      .select('full_name, phone, department, personal_remaining, sick_remaining, annual_remaining, unpaid_remaining, hours_remaining, hours_personal_remaining, hours_sick_remaining, hours_annual_remaining, hours_unpaid_remaining')
+      .select('full_name, phone, department, leave_days_remaining, personal_remaining, sick_remaining, annual_remaining, unpaid_remaining')
       .eq('email', user.email)
       .maybeSingle();
 
@@ -112,15 +113,11 @@ const AdminLayoutWithSidebar: React.FC = () => {
         full_name: d.full_name ?? null,
         phone: d.phone ?? null,
         department: d.department ?? null,
+        leave_days_remaining: d.leave_days_remaining ?? 10,
         personal_remaining: d.personal_remaining ?? 15,
         sick_remaining: d.sick_remaining ?? 30,
         annual_remaining: d.annual_remaining ?? 6,
         unpaid_remaining: d.unpaid_remaining ?? 0,
-        hours_remaining: d.hours_remaining != null ? Number(d.hours_remaining) : 0,
-        hours_personal_remaining: d.hours_personal_remaining,
-        hours_sick_remaining: d.hours_sick_remaining,
-        hours_annual_remaining: d.hours_annual_remaining,
-        hours_unpaid_remaining: d.hours_unpaid_remaining,
       };
       log('admin_users OK, setting state', payload);
       setAdminUserNoRow(false);
@@ -218,14 +215,11 @@ const AdminLayoutWithSidebar: React.FC = () => {
           <p>
             <span className="text-gray-500">ลากิจ / พักร้อน (รวม)</span>{' '}
             <span className="text-yellow-400 font-medium">
-              {formatBalanceDaysHalves(
-                (adminUser?.personal_remaining ?? 15) + (adminUser?.annual_remaining ?? 6),
-                (adminUser?.hours_personal_remaining ?? 0) + (adminUser?.hours_annual_remaining ?? 0),
-              )}
+              {adminUser?.leave_days_remaining ?? 10} วัน
             </span>
           </p>
-          <p><span className="text-gray-500">ลาคงเหลือ (ลาป่วย)</span> <span className="text-yellow-400 font-medium">{formatBalanceDaysHalves(adminUser?.sick_remaining ?? 30, adminUser?.hours_sick_remaining ?? 0)}</span></p>
-          <p><span className="text-gray-500">ลาคงเหลือ (ลาไม่รับเงิน)</span> <span className="text-yellow-400 font-medium">{formatBalanceDaysHalves(adminUser?.unpaid_remaining ?? 0, adminUser?.hours_unpaid_remaining ?? 0)}</span></p>
+          <p><span className="text-gray-500">ลาคงเหลือ (ลาป่วย)</span> <span className="text-yellow-400 font-medium">{formatDayValue(adminUser?.sick_remaining ?? 30)}</span></p>
+          <p><span className="text-gray-500">ลาคงเหลือ (ลาไม่รับเงิน)</span> <span className="text-yellow-400 font-medium">{formatDayValue(adminUser?.unpaid_remaining ?? 0)}</span></p>
           <p><span className="text-gray-500">Work from Home เดือนนี้</span>{' '}
             <span className={wfhUsedThisMonth ? 'text-amber-400' : 'text-emerald-400'}>
               {wfhUsedThisMonth ? 'ใช้แล้ว (ลาอีกได้เดือนถัดไป)' : 'ยังใช้ได้'}
