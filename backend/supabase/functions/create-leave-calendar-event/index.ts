@@ -12,10 +12,13 @@ const corsHeaders = {
 };
 
 const LEAVE_TYPE_LABELS: Record<string, string> = {
+  personal_vacation: 'ลากิจ / ลาพักร้อน',
   personal: 'ลากิจ',
+  vacation: 'ลาพักร้อน',
   sick: 'ลาป่วย',
   wfh: 'Work from Home',
   unpaid: 'ลาไม่รับเงินเดือน',
+  other: 'ลาอื่นๆ',
 };
 
 async function getServiceAccountAccessToken(jsonStr: string): Promise<string> {

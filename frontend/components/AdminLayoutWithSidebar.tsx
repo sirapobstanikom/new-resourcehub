@@ -3,6 +3,13 @@ import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { logoutAdmin } from '../lib/auth';
 import { useAuth } from '../contexts/AuthContext';
+import { formatBalanceDaysHalves } from '../lib/leaveUnits';
+import {
+  EMPLOYEE_DEPT_IDS,
+  EMPLOYEE_DEPT_LABELS,
+  EMPLOYEES,
+  type EmployeeDeptId,
+} from '../lib/employeeDirectory';
 
 const ADMIN_LEAVE_MANAGER_EMAILS = ['pink@minddojo.me', 'koy@minddojo.me', 'tonji@minddojo.me'];
 const DEPRECATED_ADMIN_EMAIL = 'admin@minddojo.me';
@@ -44,6 +51,15 @@ const AdminLayoutWithSidebar: React.FC = () => {
   const [adminUserNoRow, setAdminUserNoRow] = useState(false);
   const [adminUserLoaded, setAdminUserLoaded] = useState(false);
   const [wfhUsedThisMonth, setWfhUsedThisMonth] = useState<boolean>(false);
+  const [employeesOpen, setEmployeesOpen] = useState(false);
+  const [employeeDeptOpen, setEmployeeDeptOpen] = useState<Record<EmployeeDeptId, boolean>>(() => ({
+    it: false,
+    trainer: false,
+    ceo: false,
+    sales: false,
+    production: false,
+    admin: false,
+  }));
 
   const displayName = adminUser?.full_name?.trim() || user?.user_metadata?.full_name || user?.email?.split('@')[0] || user?.email || 'Admin';
 
@@ -56,17 +72,6 @@ const AdminLayoutWithSidebar: React.FC = () => {
     annual_remaining: 6,
     unpaid_remaining: 0,
     hours_remaining: 0,
-  };
-
-  /** แสดงวัน + ชม. โดย 8 ชม. ถือเป็น 1 วัน (เช่น 8 ชม. แสดงเป็น "1 วัน") */
-  const formatDaysHours = (days: number, hours: number): string => {
-    const d = Math.floor(Number(days ?? 0));
-    const h = Number(hours ?? 0);
-    const totalHours = d * 8 + h;
-    const displayDays = Math.floor(totalHours / 8);
-    const displayHours = Math.round((totalHours % 8) * 100) / 100;
-    if (displayHours > 0) return `${displayDays} วัน ${displayHours} ชม.`;
-    return `${displayDays} วัน`;
   };
 
   const fetchAdminUser = React.useCallback(async () => {
@@ -210,15 +215,93 @@ const AdminLayoutWithSidebar: React.FC = () => {
           {adminUser?.department != null && adminUser.department !== '' && (
             <p><span className="text-gray-500">แผนก</span> <span className="text-white/90">{adminUser.department}</span></p>
           )}
-          <p><span className="text-gray-500">ลาคงเหลือ (ลากิจ)</span> <span className="text-yellow-400 font-medium">{formatDaysHours(adminUser?.personal_remaining ?? 15, adminUser?.hours_personal_remaining ?? 0)}</span></p>
-          <p><span className="text-gray-500">ลาคงเหลือ (ลาป่วย)</span> <span className="text-yellow-400 font-medium">{formatDaysHours(adminUser?.sick_remaining ?? 30, adminUser?.hours_sick_remaining ?? 0)}</span></p>
-          <p><span className="text-gray-500">ลาคงเหลือ (ลาพักร้อน)</span> <span className="text-yellow-400 font-medium">{formatDaysHours(adminUser?.annual_remaining ?? 6, adminUser?.hours_annual_remaining ?? 0)}</span></p>
-          <p><span className="text-gray-500">ลาคงเหลือ (ลาไม่รับเงิน)</span> <span className="text-yellow-400 font-medium">{formatDaysHours(adminUser?.unpaid_remaining ?? 0, adminUser?.hours_unpaid_remaining ?? 0)}</span></p>
+          <p>
+            <span className="text-gray-500">ลากิจ / พักร้อน (รวม)</span>{' '}
+            <span className="text-yellow-400 font-medium">
+              {formatBalanceDaysHalves(
+                (adminUser?.personal_remaining ?? 15) + (adminUser?.annual_remaining ?? 6),
+                (adminUser?.hours_personal_remaining ?? 0) + (adminUser?.hours_annual_remaining ?? 0),
+              )}
+            </span>
+          </p>
+          <p><span className="text-gray-500">ลาคงเหลือ (ลาป่วย)</span> <span className="text-yellow-400 font-medium">{formatBalanceDaysHalves(adminUser?.sick_remaining ?? 30, adminUser?.hours_sick_remaining ?? 0)}</span></p>
+          <p><span className="text-gray-500">ลาคงเหลือ (ลาไม่รับเงิน)</span> <span className="text-yellow-400 font-medium">{formatBalanceDaysHalves(adminUser?.unpaid_remaining ?? 0, adminUser?.hours_unpaid_remaining ?? 0)}</span></p>
           <p><span className="text-gray-500">Work from Home เดือนนี้</span>{' '}
             <span className={wfhUsedThisMonth ? 'text-amber-400' : 'text-emerald-400'}>
               {wfhUsedThisMonth ? 'ใช้แล้ว (ลาอีกได้เดือนถัดไป)' : 'ยังใช้ได้'}
             </span>
           </p>
+
+          <div className="rounded-lg border border-white/10 bg-black/25 overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setEmployeesOpen((o) => !o)}
+              className="w-full flex items-center justify-between px-2.5 py-2 text-left hover:bg-white/5 transition-colors"
+            >
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="font-semibold text-gray-200 truncate text-xs">รายชื่อพนักงาน</span>
+                <span className="text-[11px] text-gray-500 whitespace-nowrap">({EMPLOYEES.length} คน)</span>
+              </div>
+              <svg
+                className={`w-4 h-4 text-gray-400 shrink-0 transition-transform ${employeesOpen ? 'rotate-180' : ''}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+
+            {employeesOpen && (
+              <div className="px-2 pb-2 pt-0 border-t border-white/10 max-h-[min(50vh,20rem)] overflow-y-auto">
+                <p className="text-[11px] text-gray-500 mt-2 mb-2">อ้างอิงสำหรับยื่นคำขอลา (ชื่อ-เบอร์โทร)</p>
+                <div className="space-y-1.5">
+                  {EMPLOYEE_DEPT_IDS.map((deptId) => {
+                    const deptEmployees = EMPLOYEES.filter((e) => e.dept === deptId);
+                    const isOpen = employeeDeptOpen[deptId];
+                    return (
+                      <div key={deptId} className="rounded-md border border-white/10 bg-black/20 overflow-hidden">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setEmployeeDeptOpen((prev) => ({
+                              ...prev,
+                              [deptId]: !prev[deptId],
+                            }))
+                          }
+                          className="w-full flex items-center justify-between px-2 py-1.5 text-left hover:bg-white/5 transition-colors"
+                        >
+                          <span className="text-[11px] font-bold text-gray-200 truncate">
+                            {EMPLOYEE_DEPT_LABELS[deptId]}
+                          </span>
+                          <span className="text-[10px] text-gray-500">({deptEmployees.length})</span>
+                        </button>
+                        {isOpen && (
+                          <div className="px-1.5 pb-1.5 max-h-36 overflow-y-auto">
+                            {deptEmployees.length === 0 ? (
+                              <div className="text-[11px] text-gray-500 px-1 py-1">ยังไม่มีข้อมูล</div>
+                            ) : (
+                              <div className="space-y-1">
+                                {deptEmployees.map((e) => (
+                                  <div
+                                    key={e.name}
+                                    className="flex flex-col gap-0.5 rounded bg-black/30 border border-white/5 px-2 py-1"
+                                  >
+                                    <span className="text-[11px] text-gray-200 font-medium leading-snug">{e.name}</span>
+                                    <span className="text-[10px] text-gray-400 font-mono break-all">{e.phone}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
         {adminUserError && (
           <div className="text-xs text-amber-400/90 bg-amber-500/10 rounded-lg p-2 space-y-1">

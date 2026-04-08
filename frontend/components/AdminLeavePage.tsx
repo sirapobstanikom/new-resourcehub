@@ -3,50 +3,31 @@ import { Link } from 'react-router-dom';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { logoutAdmin } from '../lib/auth';
-
+import {
+  LEAVE_DAY_PART_TIMES,
+  type LeaveDayPart,
+  countWeekdaysInRange,
+  formatBalanceDaysHalves,
+  formatLeaveSlotLabel,
+  requestedLeaveHoursEquivalent,
+} from '../lib/leaveUnits';
+/** ตัวเลือกในฟอร์ม — ลากิจ+พักร้อนรวมเป็นกลุ่มเดียว */
 const LEAVE_TYPES = [
-  { id: 'personal', label: 'ลากิจ' },
+  { id: 'personal_vacation', label: 'ลากิจ / ลาพักร้อน' },
   { id: 'sick', label: 'ลาป่วย' },
   { id: 'wfh', label: 'Work from Home' },
-  { id: 'vacation', label: 'ลาพักร้อน' },
   { id: 'unpaid', label: 'ลาไม่รับเงินเดือน' },
+  { id: 'other', label: 'ลาอื่นๆ' },
 ] as const;
 
-const EMPLOYEE_DEPT_IDS = ['it', 'trainer', 'ceo', 'sales', 'production', 'admin'] as const;
-type EmployeeDeptId = typeof EMPLOYEE_DEPT_IDS[number];
-
-const EMPLOYEE_DEPT_LABELS: Record<EmployeeDeptId, string> = {
-  it: 'IT',
-  trainer: 'วิทยากร',
-  ceo: 'CEO',
-  sales: 'Sales',
-  production: 'Production',
-  admin: 'Admin',
+const LEGACY_LEAVE_TYPE_LABELS: Record<string, string> = {
+  personal: 'ลากิจ (ข้อมูลเก่า)',
+  vacation: 'ลาพักร้อน (ข้อมูลเก่า)',
 };
 
-// หมายเหตุ: ยังไม่มีข้อมูลว่าแต่ละคนอยู่แผนกไหนแน่
-// ดังนั้นใส่ให้ทั้งหมดเป็นแผนก `admin` ก่อน แล้วค่อยแก้ mapping ตามที่คุณแจ้ง
-const EMPLOYEES: Array<{ name: string; phone: string; dept: EmployeeDeptId }> = [
-  { name: 'นาย สิรภพ สตานิคม', phone: '0957980871', dept: 'it' },
-  { name: 'นาย ศราวุธ ปื่นทอง', phone: '0955188408', dept: 'it' },
-  { name: 'นาย ธนโชติ มีกังวาล', phone: '0873648269', dept: 'trainer' },
-  { name: 'นายวีรวัฒน์ พากเพียรกิจ', phone: '0951959989', dept: 'trainer' },
-  { name: 'นายอุประจิตร รวมทรัพย์', phone: '0909618529', dept: 'trainer' },
-  { name: 'นายพีรวิชญ์ พูลขวัญ', phone: '0968781140', dept: 'production' },
-  { name: 'นางสาวนิรชา ไม้งาม', phone: '0910966938', dept: 'sales' },
-  { name: 'นาวสาวมนิดา พิมกา', phone: '085-095-6965', dept: 'admin' },
-  { name: 'Mr. Songpathara Snidvongs', phone: '0832744456', dept: 'ceo' },
-  { name: 'นายบรรพต บุญธรรม', phone: '0890399444', dept: 'trainer' },
-  { name: 'นางสาวสิริมา เงินอนันต์', phone: '0889647826', dept: 'sales' },
-  { name: 'คุณนาย ชนิสรา เมฆประดับ', phone: '0971877766', dept: 'sales' },
-  { name: 'Rachaphak Trainontikorn', phone: '0956496963', dept: 'sales' },
-  { name: 'นางสาวชิษณุชา เศรษฐธัญกิจ', phone: '0955914958', dept: 'production' },
-  { name: 'นางสาวธรินทร์ญา กรแวววงศ์เจริญ', phone: '0914088708', dept: 'admin' },
-  { name: 'นางมาสเมษา สนิทวงศ์ ณ อยุธยา', phone: '0894479878', dept: 'ceo' },
-  { name: 'นางสาว พริมพิชา ธัญญเจริญ', phone: '0802357570', dept: 'it' },
-  { name: 'ว่าที่ ร.ต.จีรวัฒน์ เยาวนิช', phone: '0922720923', dept: 'trainer' },
-  { name: 'นางสาวอรจิรา จูงเจริญวงศ์', phone: '0944565599', dept: 'trainer' },
-];
+function resolveLeaveTypeLabel(id: string): string {
+  return LEAVE_TYPES.find((t) => t.id === id)?.label ?? LEGACY_LEAVE_TYPE_LABELS[id] ?? id;
+}
 
 type LeaveRequestRow = {
   id: string;
@@ -58,6 +39,8 @@ type LeaveRequestRow = {
   start_time: string | null;
   end_time: string | null;
   reason: string | null;
+  attachment_url?: string | null;
+  other_leave_purpose?: string | null;
   cancel_reason?: string | null;
   cancel_decided_by_email?: string | null;
   cancel_decided_at?: string | null;
@@ -92,17 +75,6 @@ function formatThaiDate(dateStr: string): string {
   return d.toLocaleDateString('th-TH', { timeZone: 'Asia/Bangkok', dateStyle: 'short' });
 }
 
-/** แสดงวัน + ชม. โดย 8 ชม. ถือเป็น 1 วัน (เช่น 8 ชม. แสดงเป็น "1 วัน") */
-function formatDaysHours(days: number, hours: number): string {
-  const d = Math.floor(Number(days ?? 0));
-  const h = Number(hours ?? 0);
-  const totalHours = d * 8 + h;
-  const displayDays = Math.floor(totalHours / 8);
-  const displayHours = Math.round((totalHours % 8) * 100) / 100;
-  if (displayHours > 0) return `${displayDays} วัน ${displayHours} ชม.`;
-  return `${displayDays} วัน`;
-}
-
 /** เวลาที่ยื่นคำขอลา (จาก created_at) แสดงเป็น 24 ชม. เช่น 13.00 */
 function formatSubmittedAt(createdAt: string | null | undefined): string {
   if (!createdAt) return '—';
@@ -119,54 +91,6 @@ function formatDateTime24(iso: string | null | undefined): string {
   const date = d.toLocaleDateString('th-TH', { timeZone: 'Asia/Bangkok', day: '2-digit', month: '2-digit', year: 'numeric' });
   const time = d.toLocaleTimeString('th-TH', { timeZone: 'Asia/Bangkok', hour: '2-digit', minute: '2-digit', hour12: false });
   return `${date} ${time}`;
-}
-
-/** เวลาแบบไทย 24 ชม. (เช่น 13.00 หลังเที่ยง) */
-function formatTime24(th: string | null | undefined): string {
-  if (!th) return '—';
-  const s = String(th).trim().slice(0, 5); // HH:mm
-  if (!s) return '—';
-  const [h, m] = s.split(':').map(Number);
-  if (Number.isNaN(h)) return s;
-  const mm = Number.isNaN(m) ? 0 : m;
-  return `${h}.${String(mm).padStart(2, '0')}`;
-}
-
-/** แสดงช่วงเวลาลา (ลา 1 วัน) เป็น 9.00–17.00 (เวลาไทย 24 ชม.) */
-function formatLeaveTimeRange(startTime: string | null | undefined, endTime: string | null | undefined): string {
-  if (!startTime && !endTime) return '';
-  return `${formatTime24(startTime)}–${formatTime24(endTime)}`;
-}
-
-/** แสดงช่วงเวลา + จำนวนชั่วโมงเมื่อลาไม่ถึง 1 วัน (รายชั่วโมง) */
-function formatLeaveTimeRangeWithHours(
-  startTime: string | null | undefined,
-  endTime: string | null | undefined,
-  startDate?: string,
-  endDate?: string
-): string {
-  const range = formatLeaveTimeRange(startTime, endTime);
-  if (!range) return '';
-  if (startDate && endDate && startDate === endDate) {
-    const hrs = hoursBetween(startTime, endTime);
-    if (hrs != null) return `${range} (${hrs} ชั่วโมง)`;
-  }
-  return range;
-}
-
-/** คำนวณจำนวนชั่วโมงระหว่างเวลา (รับ HH:mm หรือ HH:mm:ss) */
-function hoursBetween(startTime: string | null | undefined, endTime: string | null | undefined): number | null {
-  if (!startTime || !endTime) return null;
-  const parse = (t: string) => {
-    const parts = String(t).trim().split(':');
-    const h = parseInt(parts[0], 10);
-    const m = parts[1] ? parseInt(parts[1], 10) : 0;
-    return (Number.isNaN(h) ? 0 : h) + (Number.isNaN(m) ? 0 : m) / 60;
-  };
-  const start = parse(startTime);
-  const end = parse(endTime);
-  if (end < start) return null; // ข้ามวันไม่นับ
-  return Math.round((end - start) * 100) / 100;
 }
 
 /** ตรวจว่าวันนี้เป็นเสาร์หรืออาทิตย์ (ISO date YYYY-MM-DD) */
@@ -188,17 +112,22 @@ function dateRangeIncludesWeekend(startIso: string, endIso: string): boolean {
   return false;
 }
 
-/** ช่วงเวลา 9.00–17.00 น. ทุก 30 นาที สำหรับ dropdown (ค่าเป็น HH:mm, แสดงเป็น 24 ชม.) */
-const WORK_TIME_OPTIONS: string[] = (() => {
-  const opts: string[] = [];
-  for (let h = 9; h <= 17; h++) {
-    for (const m of [0, 30]) {
-      if (h === 17 && m === 30) break;
-      opts.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
-    }
-  }
-  return opts;
-})();
+const MAX_LEAVE_ATTACHMENT_BYTES = 5 * 1024 * 1024;
+const LEAVE_ATTACHMENT_ACCEPT = 'image/jpeg,image/png,image/webp,image/gif,application/pdf';
+
+async function uploadLeaveAttachmentFile(userId: string, file: File): Promise<string> {
+  const ext = file.name.split('.').pop()?.replace(/[^a-zA-Z0-9]/g, '') || 'bin';
+  const safe = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}.${ext}`;
+  const path = `${userId}/${safe}`;
+  const { error } = await supabase.storage.from('leave-attachments').upload(path, file, {
+    cacheControl: '3600',
+    upsert: false,
+    contentType: file.type || undefined,
+  });
+  if (error) throw error;
+  const { data } = supabase.storage.from('leave-attachments').getPublicUrl(path);
+  return data.publicUrl;
+}
 
 /** วันในสัปดาห์ (อาทิตย์–เสาร์) สำหรับหัวตาราง */
 const WEEKDAY_LABELS = ['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'];
@@ -252,21 +181,15 @@ const AdminLeavePage: React.FC = () => {
   };
   const [publicHolidays, setPublicHolidays] = useState<PublicHoliday[]>([]);
   const [holidaysOpen, setHolidaysOpen] = useState(false);
-  const [employeesOpen, setEmployeesOpen] = useState(false);
-  const [employeeDeptOpen, setEmployeeDeptOpen] = useState<Record<EmployeeDeptId, boolean>>(() => ({
-    it: false,
-    trainer: false,
-    ceo: false,
-    sales: false,
-    production: false,
-    admin: false,
-  }));
   const [leaveType, setLeaveType] = useState<string>(LEAVE_TYPES[0].id);
   const [startDate, setStartDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [endDate, setEndDate] = useState(() => new Date().toISOString().slice(0, 10));
-  const [startTime, setStartTime] = useState('');
-  const [endTime, setEndTime] = useState('');
+  const [leaveDayPart, setLeaveDayPart] = useState<LeaveDayPart>('full');
+  const [startTime, setStartTime] = useState(LEAVE_DAY_PART_TIMES.full.start);
+  const [endTime, setEndTime] = useState(LEAVE_DAY_PART_TIMES.full.end);
   const [reason, setReason] = useState('');
+  const [otherLeavePurpose, setOtherLeavePurpose] = useState('');
+  const [sickAttachment, setSickAttachment] = useState<File | null>(null);
   const [weekendError, setWeekendError] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -324,6 +247,15 @@ const AdminLeavePage: React.FC = () => {
   const getLeaveRemainingHoursEquivalent = (leaveTypeId: string): number => {
     if (!leaveBalance) return 0;
     switch (leaveTypeId) {
+      case 'personal_vacation':
+        return (
+          (leaveBalance.personal_remaining ?? 0) * 8 +
+          (leaveBalance.hours_personal_remaining ?? 0) +
+          (leaveBalance.annual_remaining ?? 0) * 8 +
+          (leaveBalance.hours_annual_remaining ?? 0)
+        );
+      case 'other':
+        return 999999;
       case 'personal':
         return (leaveBalance.personal_remaining ?? 0) * 8 + (leaveBalance.hours_personal_remaining ?? 0);
       case 'sick':
@@ -370,7 +302,7 @@ const AdminLeavePage: React.FC = () => {
     setLeaveListError(null);
     supabase
       .from('leave_requests')
-      .select('id, user_email, user_display_name, leave_type, start_date, end_date, start_time, end_time, reason, cancel_reason, cancel_decided_by_email, cancel_decided_at, cancel_decision, status, approved_by_email, approved_at, created_at')
+      .select('id, user_email, user_display_name, leave_type, start_date, end_date, start_time, end_time, reason, attachment_url, other_leave_purpose, cancel_reason, cancel_decided_by_email, cancel_decided_at, cancel_decision, status, approved_by_email, approved_at, created_at')
       .order('created_at', { ascending: false })
       .limit(100)
       .then(({ data, error }) => {
@@ -401,7 +333,7 @@ const AdminLeavePage: React.FC = () => {
     setMyLeaveListLoading(true);
     supabase
       .from('leave_requests')
-      .select('id, user_email, user_display_name, leave_type, start_date, end_date, start_time, end_time, reason, cancel_reason, cancel_decided_by_email, cancel_decided_at, cancel_decision, status, approved_by_email, approved_at, created_at')
+      .select('id, user_email, user_display_name, leave_type, start_date, end_date, start_time, end_time, reason, attachment_url, other_leave_purpose, cancel_reason, cancel_decided_by_email, cancel_decided_at, cancel_decision, status, approved_by_email, approved_at, created_at')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .then(({ data, error }) => {
@@ -486,6 +418,18 @@ const AdminLeavePage: React.FC = () => {
   }, [user?.email]);
 
   useEffect(() => {
+    if (leaveType !== 'sick') setSickAttachment(null);
+  }, [leaveType]);
+
+  useEffect(() => {
+    if (startDate && endDate && startDate === endDate) {
+      const { start, end } = LEAVE_DAY_PART_TIMES[leaveDayPart];
+      setStartTime(start);
+      setEndTime(end);
+    }
+  }, [leaveDayPart, startDate, endDate]);
+
+  useEffect(() => {
     if (!isSupabaseConfigured || !user?.id) return;
     supabase
       .from('leave_requests')
@@ -515,7 +459,7 @@ const AdminLeavePage: React.FC = () => {
     if (!isSupabaseConfigured) return;
     supabase
       .from('leave_requests')
-      .select('id, user_email, user_display_name, leave_type, start_date, end_date, start_time, end_time, reason, status, approved_by_email, approved_at, created_at')
+      .select('id, user_email, user_display_name, leave_type, start_date, end_date, start_time, end_time, reason, attachment_url, other_leave_purpose, status, approved_by_email, approved_at, created_at')
       .eq('status', 'approved')
       .lte('start_date', monthEnd)
       .gte('end_date', monthStart)
@@ -551,12 +495,45 @@ const AdminLeavePage: React.FC = () => {
       return;
     }
 
-    // กันส่งคำขอลาของประเภทที่คงเหลือ 0 แล้ว
-    if (leaveBalance) {
+    // กันส่งคำขอลาของประเภทที่คงเหลือ 0 แล้ว (ลาอื่นๆ ไม่หักโควตา)
+    if (leaveBalance && leaveType !== 'other') {
       const remaining = getLeaveRemainingHoursEquivalent(leaveType);
       if (remaining <= 0) {
-        const label = LEAVE_TYPES.find((t) => t.id === leaveType)?.label ?? leaveType;
+        const label = resolveLeaveTypeLabel(leaveType);
         setSubmitError(`${label} คงเหลือ 0 แล้ว กรุณาเลือกประเภทอื่น`);
+        return;
+      }
+      const requestHours = requestedLeaveHoursEquivalent(
+        startDate,
+        endDate,
+        startDate === endDate ? startTime : null,
+        startDate === endDate ? endTime : null,
+      );
+      if (requestHours > remaining) {
+        setSubmitError('จำนวนลาที่ขอเกินโควตาคงเหลือ (คิดเป็นเต็มวัน/ครึ่งวัน)');
+        return;
+      }
+    }
+
+    if (leaveType === 'other' && !otherLeavePurpose.trim()) {
+      setSubmitError('กรุณาระบุประเภทลา / ลาไปทำอะไร (เช่น ลาบวช ลาคลอด)');
+      return;
+    }
+
+    const sickWeekdays =
+      leaveType === 'sick' && startDate && endDate ? countWeekdaysInRange(startDate, endDate) : 0;
+    if (leaveType === 'sick' && sickWeekdays >= 3) {
+      if (!sickAttachment) {
+        setSubmitError('ลาป่วยติดต่อกันตั้งแต่ 3 วันทำงานขึ้นไป (ไม่นับเสาร์–อาทิตย์) ต้องแนบรูปหรือ PDF (ใบรับรองแพทย์หรือเอกสารประกอบ)');
+        return;
+      }
+      if (sickAttachment.size > MAX_LEAVE_ATTACHMENT_BYTES) {
+        setSubmitError('ไฟล์แนบต้องไม่เกิน 5 MB');
+        return;
+      }
+      const allowMime = new Set(['application/pdf', 'image/jpeg', 'image/png', 'image/webp', 'image/gif']);
+      if (sickAttachment.type && !allowMime.has(sickAttachment.type)) {
+        setSubmitError('รองรับเฉพาะไฟล์ PDF หรือรูปภาพ (JPEG, PNG, WebP, GIF)');
         return;
       }
     }
@@ -584,6 +561,20 @@ const AdminLeavePage: React.FC = () => {
       }
     }
     setLoading(true);
+    let attachmentUrl: string | null = null;
+    if (leaveType === 'sick' && sickWeekdays >= 3 && sickAttachment) {
+      try {
+        attachmentUrl = await uploadLeaveAttachmentFile(user.id, sickAttachment);
+      } catch (err) {
+        setLoading(false);
+        const msg = err instanceof Error ? err.message : String(err);
+        setSubmitError(
+          `อัปโหลดไฟล์ไม่สำเร็จ: ${msg} — ตรวจสอบว่าสร้าง bucket ชื่อ leave-attachments ใน Supabase Storage และรัน SQL เพิ่มคอลัมน์แล้ว`,
+        );
+        return;
+      }
+    }
+
     const displayName = user.user_metadata?.full_name ?? user.email.split('@')[0];
     const isOneDay = startDate === endDate;
     const payload: Record<string, unknown> = {
@@ -596,6 +587,8 @@ const AdminLeavePage: React.FC = () => {
       reason: reason.trim() || null,
       status: 'pending',
     };
+    if (attachmentUrl) payload.attachment_url = attachmentUrl;
+    if (leaveType === 'other') payload.other_leave_purpose = otherLeavePurpose.trim();
     if (isOneDay) {
       const fromTime = startTime || '09:00';
       const toTime = endTime || '17:00';
@@ -611,9 +604,12 @@ const AdminLeavePage: React.FC = () => {
     setSubmitted(true);
     setStartDate('');
     setEndDate('');
-    setStartTime('');
-    setEndTime('');
+    setLeaveDayPart('full');
+    setStartTime(LEAVE_DAY_PART_TIMES.full.start);
+    setEndTime(LEAVE_DAY_PART_TIMES.full.end);
     setReason('');
+    setOtherLeavePurpose('');
+    setSickAttachment(null);
   };
 
   const handleCancelRequest = async (row: LeaveRequestRow) => {
@@ -812,6 +808,9 @@ const AdminLeavePage: React.FC = () => {
     );
   };
 
+  const sickWeekdayCountForForm =
+    leaveType === 'sick' && startDate && endDate ? countWeekdaysInRange(startDate, endDate) : 0;
+
   return (
     <div className="min-h-screen bg-transparent text-white flex flex-col">
       <header className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 px-4 sm:px-6 py-4 sm:py-6 border-b border-white/10">
@@ -848,8 +847,17 @@ const AdminLeavePage: React.FC = () => {
         {leaveBalance !== null && (
           <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-gray-300">
             <span className="font-medium text-gray-400">ลาคงเหลือ (ปี {currentYear}):</span>{' '}
-            ลากิจ {formatDaysHours(leaveBalance.personal_remaining, leaveBalance.hours_personal_remaining ?? 0)} · ลาป่วย {formatDaysHours(leaveBalance.sick_remaining, leaveBalance.hours_sick_remaining ?? 0)} · ลาพักร้อน {formatDaysHours(leaveBalance.annual_remaining, leaveBalance.hours_annual_remaining ?? 0)} ·{' '}
-            WFH 1 วัน/เดือน (เดือนนี้{wfhUsedThisMonth ? 'ใช้แล้ว — ลาอีกได้เดือนถัดไป' : 'ยังใช้ได้'}) · ลาไม่รับเงิน {formatDaysHours(leaveBalance.unpaid_remaining, leaveBalance.hours_unpaid_remaining ?? 0)}
+            ลากิจ / พักร้อน (รวม){' '}
+            {formatBalanceDaysHalves(
+              (leaveBalance.personal_remaining ?? 0) + (leaveBalance.annual_remaining ?? 0),
+              (leaveBalance.hours_personal_remaining ?? 0) + (leaveBalance.hours_annual_remaining ?? 0),
+            )}{' '}
+            · ลาป่วย {formatBalanceDaysHalves(leaveBalance.sick_remaining, leaveBalance.hours_sick_remaining ?? 0)} ·{' '}
+            WFH 1 วัน/เดือน (เดือนนี้{wfhUsedThisMonth ? 'ใช้แล้ว — ลาอีกได้เดือนถัดไป' : 'ยังใช้ได้'}) · ลาไม่รับเงิน{' '}
+            {formatBalanceDaysHalves(leaveBalance.unpaid_remaining, leaveBalance.hours_unpaid_remaining ?? 0)}
+            <span className="block mt-2 text-gray-500 text-xs">
+              ยื่นลากิจหรือลาพักร้อนเลือกประเภทเดียวกัน &quot;ลากิจ / ลาพักร้อน&quot; — ระบบหักจากโควตาทั้งสองกลุ่มรวมกัน
+            </span>
           </div>
         )}
 
@@ -891,89 +899,6 @@ const AdminLeavePage: React.FC = () => {
           )}
         </div>
 
-        <div className="rounded-xl border border-white/10 bg-white/5 overflow-hidden">
-          <button
-            type="button"
-            onClick={() => setEmployeesOpen((o) => !o)}
-            className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-white/10 transition-colors"
-          >
-            <div className="flex items-center gap-3 min-w-0">
-              <span className="font-semibold text-gray-200 truncate">รายชื่อพนักงาน</span>
-              <span className="text-xs text-gray-500 whitespace-nowrap">({EMPLOYEES.length} คน)</span>
-            </div>
-            <svg
-              className={`w-5 h-5 text-gray-400 transition-transform ${employeesOpen ? 'rotate-180' : ''}`}
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
-
-          {employeesOpen && (
-            <div className="px-4 pb-4 pt-0 border-t border-white/10">
-              <p className="text-xs text-gray-500 mt-3 mb-3">อ้างอิงสำหรับยื่นคำขอลา (ชื่อ-เบอร์โทร)</p>
-
-              <div className="space-y-2">
-                {EMPLOYEE_DEPT_IDS.map((deptId) => {
-                  const deptEmployees = EMPLOYEES.filter((e) => e.dept === deptId);
-                  const isOpen = employeeDeptOpen[deptId];
-                  return (
-                    <div key={deptId} className="rounded-xl border border-white/10 bg-black/10 overflow-hidden">
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setEmployeeDeptOpen((prev) => ({
-                            ...prev,
-                            [deptId]: !prev[deptId],
-                          }))
-                        }
-                        className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-white/5 transition-colors"
-                      >
-                        <div className="flex items-center gap-3 min-w-0">
-                          <span className="text-sm font-bold text-gray-200 truncate">{EMPLOYEE_DEPT_LABELS[deptId]}</span>
-                          <span className="text-xs text-gray-500 whitespace-nowrap">({deptEmployees.length} คน)</span>
-                        </div>
-                        <svg
-                          className={`w-5 h-5 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
-                      </button>
-
-                      {isOpen && (
-                        <div className="px-3 pb-3 pt-0 max-h-44 overflow-y-auto pr-1">
-                          {deptEmployees.length === 0 ? (
-                            <div className="text-xs text-gray-500 px-2 py-2">ยังไม่มีข้อมูล</div>
-                          ) : (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                              {deptEmployees.map((e) => (
-                                <div
-                                  key={e.name}
-                                  className="flex items-start justify-between gap-3 rounded-lg bg-black/20 border border-white/10 px-3 py-2"
-                                >
-                                  <span className="text-sm text-gray-200 font-medium leading-snug">{e.name}</span>
-                                  <span className="text-xs sm:text-sm text-gray-400 font-mono break-all text-right w-[9.5rem]">
-                                    {e.phone}
-                                  </span>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-        </div>
-
         <form onSubmit={handleSubmit} className="rounded-2xl border border-white/10 bg-white/5 p-4 sm:p-6 space-y-5">
           <div>
             <label className="block text-sm font-medium text-gray-400 mb-2">ประเภทการลา</label>
@@ -996,7 +921,9 @@ const AdminLeavePage: React.FC = () => {
             </select>
             <p className="text-xs text-gray-500 mt-1">เฉพาะลาป่วยเท่านั้นที่ยื่นย้อนหลังได้</p>
           </div>
-          <p className="text-xs text-gray-500">เวลาทำงาน จันทร์–ศุกร์ 9.00–17.00 น. หยุดเสาร์–อาทิตย์ (ห้ามเลือกวันเสาร์และอาทิตย์)</p>
+          <p className="text-xs text-gray-500">
+            เวลาทำงาน จันทร์–ศุกร์ 9.00–17.00 น. หยุดเสาร์–อาทิตย์ (ห้ามเลือกวันเสาร์และอาทิตย์) — ลาได้เฉพาะเต็มวันหรือครึ่งวันเช้า/บ่าย (ไม่แบ่งเป็นชั่วโมง)
+          </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-400 mb-2">วันเริ่มต้น</label>
@@ -1016,13 +943,6 @@ const AdminLeavePage: React.FC = () => {
                   setStartDate(v);
                   if (v && endDate && v > endDate) {
                     setEndDate(v);
-                    if (!startTime && !endTime) {
-                      setStartTime('09:00');
-                      setEndTime('17:00');
-                    }
-                  } else if (v && endDate && v === endDate && !startTime && !endTime) {
-                    setStartTime('09:00');
-                    setEndTime('17:00');
                   }
                 }}
                 required
@@ -1045,10 +965,6 @@ const AdminLeavePage: React.FC = () => {
                   setWeekendError(null);
                   setSubmitError(null);
                   setEndDate(v);
-                  if (v && startDate && v === startDate && !startTime && !endTime) {
-                    setStartTime('09:00');
-                    setEndTime('17:00');
-                  }
                 }}
                 required
                 className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/20 text-white text-sm focus:outline-none focus:border-yellow-400"
@@ -1057,36 +973,70 @@ const AdminLeavePage: React.FC = () => {
           </div>
           {weekendError && <p className="text-sm text-amber-400">{weekendError}</p>}
           {startDate && endDate && startDate === endDate && !dateRangeIncludesWeekend(startDate, endDate) && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-400 mb-2">ลา 1 วัน — เต็มวันหรือครึ่งวัน</label>
+              <select
+                value={leaveDayPart}
+                onChange={(e) => setLeaveDayPart(e.target.value as LeaveDayPart)}
+                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/20 text-white text-sm focus:outline-none focus:border-yellow-400"
+              >
+                <option value="full" className="bg-neutral-900 text-white">
+                  เต็มวัน (09.00–17.00 น.)
+                </option>
+                <option value="morning" className="bg-neutral-900 text-white">
+                  ครึ่งวันเช้า (09.00–13.00 น.)
+                </option>
+                <option value="afternoon" className="bg-neutral-900 text-white">
+                  ครึ่งวันบ่าย (13.00–17.00 น.)
+                </option>
+              </select>
+              <p className="text-xs text-gray-500 mt-1.5">
+                ระบบจะบันทึกช่วงเวลาตามตัวเลือกนี้ — โควตาหักเป็นเต็มวัน (8 ชม.) หรือครึ่งวัน (4 ชม.)
+              </p>
+            </div>
+          )}
+          {leaveType === 'sick' && startDate && endDate && sickWeekdayCountForForm >= 3 && (
+            <div className="rounded-xl border border-amber-400/40 bg-amber-400/10 p-4 space-y-2">
+              <p className="text-sm text-amber-100">
+                ลาป่วยในช่วงนี้นับได้ <strong>{sickWeekdayCountForForm}</strong> วันทำงานในช่วงวันที่ (ไม่นับเสาร์–อาทิตย์)
+                — ต้องแนบรูปหรือ PDF (เช่น ใบรับรองแพทย์) ขนาดไม่เกิน 5 MB
+              </p>
+              <input
+                type="file"
+                accept={LEAVE_ATTACHMENT_ACCEPT}
+                onChange={(e) => setSickAttachment(e.target.files?.[0] ?? null)}
+                className="block w-full text-sm text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-yellow-400/20 file:text-yellow-200"
+              />
+              {sickAttachment ? (
+                <p className="text-xs text-gray-400">เลือกแล้ว: {sickAttachment.name}</p>
+              ) : null}
+            </div>
+          )}
+          {leaveType === 'other' && (
+            <div className="rounded-xl border border-cyan-500/30 bg-cyan-500/5 p-4 space-y-3">
               <div>
-                <label className="block text-sm font-medium text-gray-400 mb-2">ลา 1 วัน — จากเวลา (เลือกได้ 9.00–17.00 น.)</label>
-                <select
-                  value={startTime || '09:00'}
-                  onChange={(e) => setStartTime(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/20 text-white text-sm focus:outline-none focus:border-yellow-400"
-                >
-                  {WORK_TIME_OPTIONS.map((t) => (
-                    <option key={t} value={t} className="bg-neutral-900 text-white">
-                      {t.replace(':', '.')} น.
-                    </option>
-                  ))}
-                </select>
+                <label className="block text-sm font-medium text-cyan-200 mb-2">
+                  ลาอะไร / ไปทำอะไร <span className="text-red-400">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={otherLeavePurpose}
+                  onChange={(e) => setOtherLeavePurpose(e.target.value)}
+                  placeholder="เช่น ลาบวช, ลาคลอด, ลารับราชการทหาร"
+                  className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/20 text-white placeholder-gray-500 text-sm focus:outline-none focus:border-cyan-400/50"
+                />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-400 mb-2">ถึงเวลา (เลือกได้ 9.00–17.00 น.)</label>
-                <select
-                  value={endTime || '17:00'}
-                  onChange={(e) => setEndTime(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/20 text-white text-sm focus:outline-none focus:border-yellow-400"
-                >
-                  {WORK_TIME_OPTIONS.map((t) => (
-                    <option key={t} value={t} className="bg-neutral-900 text-white">
-                      {t.replace(':', '.')} น.
-                    </option>
-                  ))}
-                </select>
+              <div className="text-xs text-gray-400 space-y-1 border-t border-white/10 pt-3">
+                <p className="font-semibold text-gray-300">รายละเอียดประเภทลาอื่นๆ (อ้างอิงทั่วไป — ตามนโยบายบริษัทฉบับจริง):</p>
+                <ul className="list-disc list-inside space-y-0.5 text-gray-400">
+                  <li>ลาบวช — โดยทั่วไปได้ไม่เกิน 15 วันทำการ</li>
+                  <li>ลาคลอด — สิทธิ์โดยประมาณ 60 วัน (แยกช่วงตามกฎหมาย/สัญญา); ระบุจำนวนวันที่ต้องการในช่วงวันที่ด้านบน</li>
+                  <li>ลาอื่นตามกฎหมายแรงงาน — ระบุในช่องนี้และใส่รายละเอียดเพิ่มในช่อง &quot;เหตุผล&quot;</li>
+                </ul>
+                <p className="text-cyan-200/90 mt-2">
+                  ประเภทนี้ไม่หักวันลากิจ/พักร้อนในระบบอัตโนมัติ — แอดมินพิจารณาตามเอกสาร
+                </p>
               </div>
-              <p className="text-xs text-gray-500 col-span-full">รูปแบบเวลา 24 ชม. (09.00–17.00 น.) ค่าเริ่มต้น 9.00–17.00 น. ลาไม่ถึง 1 วันจะนับเป็นรายชั่วโมง</p>
             </div>
           )}
           <div>
@@ -1160,7 +1110,7 @@ create policy "Allow update own leave_requests cancel"
                     <th className="px-3 py-2 font-semibold text-gray-400">ประเภท</th>
                     <th className="px-3 py-2 font-semibold text-gray-400">วันเริ่ม</th>
                     <th className="px-3 py-2 font-semibold text-gray-400">วันสิ้นสุด</th>
-                    <th className="px-3 py-2 font-semibold text-gray-400">จำนวนชั่วโมงที่ลา</th>
+                    <th className="px-3 py-2 font-semibold text-gray-400">จำนวน (เต็มวัน/ครึ่งวัน)</th>
                     <th className="px-3 py-2 font-semibold text-gray-400">สถานะ</th>
                     <th className="px-3 py-2 font-semibold text-gray-400 text-right">ดำเนินการ</th>
                   </tr>
@@ -1168,20 +1118,11 @@ create policy "Allow update own leave_requests cancel"
                 <tbody>
                   {myRows.map((row) => (
                     <tr key={row.id} className="border-b border-white/5 hover:bg-white/5">
-                      <td className="px-3 py-2 text-gray-300">{LEAVE_TYPES.find((t) => t.id === row.leave_type)?.label ?? row.leave_type}</td>
+                      <td className="px-3 py-2 text-gray-300">{resolveLeaveTypeLabel(row.leave_type)}</td>
                       <td className="px-3 py-2 text-gray-300">{formatThaiDate(row.start_date)}</td>
                       <td className="px-3 py-2 text-gray-300">{formatThaiDate(row.end_date)}</td>
                       <td className="px-3 py-2 text-gray-400 text-xs">
-                        {row.start_date === row.end_date && row.start_time && row.end_time ? (
-                          (() => {
-                            const hrs = hoursBetween(row.start_time, row.end_time) ?? 0;
-                            // 8 ชั่วโมง = 1 วันเต็มแล้ว ไม่ต้องโชว์เป็นชั่วโมง
-                            if (Math.round(hrs * 100) / 100 >= 8) return '—';
-                            return `${hrs} ชั่วโมง`;
-                          })()
-                        ) : (
-                          '—'
-                        )}
+                        {formatLeaveSlotLabel(row.start_date, row.end_date, row.start_time, row.end_time)}
                       </td>
                       <td className="px-3 py-2">
                         <span
@@ -1323,8 +1264,8 @@ create policy "Allow update own leave_requests cancel"
                               </span>
                               <ul className="space-y-0.5 mt-0.5">
                                 {dayLeaves.slice(0, 5).map((row) => {
-                                  const label = LEAVE_TYPES.find((t) => t.id === row.leave_type)?.label ?? row.leave_type;
-                                  const timeRange = formatLeaveTimeRangeWithHours(row.start_time, row.end_time, row.start_date, row.end_date);
+                                  const label = resolveLeaveTypeLabel(row.leave_type);
+                                  const timeRange = formatLeaveSlotLabel(row.start_date, row.end_date, row.start_time, row.end_time);
                                   const displayText = timeRange
                                     ? `${row.user_display_name || row.user_email} — ${label} ${timeRange}`
                                     : `${row.user_display_name || row.user_email} — ${label}`;
@@ -1447,7 +1388,7 @@ alter table public.leave_requests add column if not exists approved_at timestamp
                         {row.user_display_name || row.user_email}
                       </td>
                       <td className="px-3 sm:px-4 py-2 sm:py-3 text-gray-300 text-xs sm:text-sm">
-                        {LEAVE_TYPES.find((t) => t.id === row.leave_type)?.label ?? row.leave_type}
+                        {resolveLeaveTypeLabel(row.leave_type)}
                       </td>
                       <td className="px-3 sm:px-4 py-2 sm:py-3 text-gray-300 text-xs sm:text-sm">{formatThaiDate(row.start_date)}</td>
                       <td className="px-3 sm:px-4 py-2 sm:py-3 text-gray-300 text-xs sm:text-sm">{formatThaiDate(row.end_date)}</td>
@@ -1493,7 +1434,7 @@ alter table public.leave_requests add column if not exists approved_at timestamp
                     <th className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-400">ประเภท</th>
                     <th className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-400">วันเริ่ม</th>
                     <th className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-400">วันสิ้นสุด</th>
-                    <th className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-400">ช่วงเวลา (ลา 1 วัน)</th>
+                    <th className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-400">ช่วงลา (เต็มวัน/ครึ่งวัน)</th>
                     <th className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-400">ยื่นคำขอลาตอน</th>
                     <th className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-400">อนุมัติโดย</th>
                     <th className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-400">วันที่อนุมัติ</th>
@@ -1506,12 +1447,12 @@ alter table public.leave_requests add column if not exists approved_at timestamp
                           {row.user_display_name || row.user_email}
                         </td>
                         <td className="px-3 sm:px-4 py-2 sm:py-3 text-gray-300 text-xs sm:text-sm">
-                          {LEAVE_TYPES.find((t) => t.id === row.leave_type)?.label ?? row.leave_type}
+                          {resolveLeaveTypeLabel(row.leave_type)}
                         </td>
                         <td className="px-3 sm:px-4 py-2 sm:py-3 text-gray-300 text-xs sm:text-sm">{formatThaiDate(row.start_date)}</td>
                         <td className="px-3 sm:px-4 py-2 sm:py-3 text-gray-300 text-xs sm:text-sm">{formatThaiDate(row.end_date)}</td>
                         <td className="px-3 sm:px-4 py-2 sm:py-3 text-gray-400 text-xs sm:text-sm">
-                          {formatLeaveTimeRangeWithHours(row.start_time, row.end_time, row.start_date, row.end_date) || '—'}
+                          {formatLeaveSlotLabel(row.start_date, row.end_date, row.start_time, row.end_time) || '—'}
                         </td>
                         <td className="px-3 sm:px-4 py-2 sm:py-3 text-gray-400 text-xs sm:text-sm">
                           {formatSubmittedAt(row.created_at)}
@@ -1591,7 +1532,7 @@ alter table public.leave_requests add column if not exists approved_at timestamp
                         return (
                           <tr key={row.id} className="border-b border-white/5 hover:bg-white/5">
                             <td className="px-2 py-1.5 sm:px-2 sm:py-2 text-gray-300">
-                              {LEAVE_TYPES.find((t) => t.id === row.leave_type)?.label ?? row.leave_type}
+                              {resolveLeaveTypeLabel(row.leave_type)}
                             </td>
                             <td className="px-2 py-1.5 sm:px-2 sm:py-2 text-gray-300">
                               {formatThaiDate(row.start_date)}
@@ -1600,7 +1541,7 @@ alter table public.leave_requests add column if not exists approved_at timestamp
                               {formatThaiDate(row.end_date)}
                             </td>
                             <td className="px-2 py-1.5 sm:px-2 sm:py-2 text-gray-400">
-                              {formatLeaveTimeRangeWithHours(row.start_time, row.end_time, row.start_date, row.end_date) || '—'}
+                              {formatLeaveSlotLabel(row.start_date, row.end_date, row.start_time, row.end_time) || '—'}
                             </td>
                             <td
                               className="px-2 py-1.5 sm:px-2 sm:py-2 text-gray-400 max-w-[180px] truncate"
@@ -1677,13 +1618,8 @@ alter table public.leave_requests add column if not exists approved_at timestamp
                 </thead>
                 <tbody>
                   {selectedDayLeaves.map((row) => {
-                    const typeLabel = LEAVE_TYPES.find((t) => t.id === row.leave_type)?.label ?? row.leave_type;
-                    const timeRange = formatLeaveTimeRangeWithHours(
-                      row.start_time,
-                      row.end_time,
-                      row.start_date,
-                      row.end_date
-                    );
+                    const typeLabel = resolveLeaveTypeLabel(row.leave_type);
+                    const timeRange = formatLeaveSlotLabel(row.start_date, row.end_date, row.start_time, row.end_time);
                     return (
                       <tr key={row.id} className="border-b border-white/5 last:border-b-0 hover:bg-white/5">
                         <td className="px-3 py-2 text-gray-300">{row.user_display_name || row.user_email}</td>
@@ -1731,7 +1667,7 @@ alter table public.leave_requests add column if not exists approved_at timestamp
               <div>
                 <dt className="text-gray-500">ประเภทการลา</dt>
                 <dd className="text-gray-300">
-                  {LEAVE_TYPES.find((t) => t.id === selectedLeave.leave_type)?.label ?? selectedLeave.leave_type}
+                  {resolveLeaveTypeLabel(selectedLeave.leave_type)}
                 </dd>
               </div>
               <div>
@@ -1742,19 +1678,17 @@ alter table public.leave_requests add column if not exists approved_at timestamp
                 <dt className="text-gray-500">วันที่สิ้นสุด</dt>
                 <dd className="text-gray-300">{formatThaiDate(selectedLeave.end_date)}</dd>
               </div>
-              {(selectedLeave.start_time || selectedLeave.end_time) && (
-                <div>
-                  <dt className="text-gray-500">ช่วงเวลา (ลา 1 วัน) · เวลาไทย 24 ชม. · นับรายชั่วโมงถ้าไม่ถึง 1 วัน</dt>
-                  <dd className="text-gray-300">
-                    {formatLeaveTimeRangeWithHours(
-                      selectedLeave.start_time,
-                      selectedLeave.end_time,
-                      selectedLeave.start_date,
-                      selectedLeave.end_date
-                    )}
-                  </dd>
-                </div>
-              )}
+              <div>
+                <dt className="text-gray-500">ช่วงลา (เต็มวัน / ครึ่งวัน)</dt>
+                <dd className="text-gray-300">
+                  {formatLeaveSlotLabel(
+                    selectedLeave.start_date,
+                    selectedLeave.end_date,
+                    selectedLeave.start_time,
+                    selectedLeave.end_time,
+                  )}
+                </dd>
+              </div>
               <div>
                 <dt className="text-gray-500">ยื่นคำขอลาตอน</dt>
                 <dd className="text-gray-300">{formatSubmittedAt(selectedLeave.created_at)}</dd>

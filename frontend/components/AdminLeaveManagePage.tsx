@@ -2,16 +2,34 @@ import React, { useState, useEffect } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
+import { formatTotalHoursAsDaysHalves, requestedLeaveHoursEquivalent } from '../lib/leaveUnits';
 
 const ADMIN_LEAVE_MANAGER_EMAILS = ['pink@minddojo.me', 'koy@minddojo.me', 'tonji@minddojo.me'];
 
 const LEAVE_TYPES = [
-  { id: 'personal', label: 'ลากิจ' },
+  { id: 'personal_vacation', label: 'ลากิจ / ลาพักร้อน' },
   { id: 'sick', label: 'ลาป่วย' },
   { id: 'wfh', label: 'Work from Home' },
-  { id: 'vacation', label: 'ลาพักร้อน' },
   { id: 'unpaid', label: 'ลาไม่รับเงินเดือน' },
+  { id: 'other', label: 'ลาอื่นๆ' },
 ] as const;
+
+const LEGACY_LEAVE_LABELS: Record<string, string> = {
+  personal: 'ลากิจ (เก่า)',
+  vacation: 'ลาพักร้อน (เก่า)',
+};
+
+function resolveLeaveTypeLabel(id: string): string {
+  return LEAVE_TYPES.find((t) => t.id === id)?.label ?? LEGACY_LEAVE_LABELS[id] ?? id;
+}
+
+/** รวม personal + vacation + personal_vacation เป็นคอลัมน์เดียวในสรุป */
+function normalizeLeaveTypeForSummary(leaveType: string): string {
+  if (leaveType === 'personal' || leaveType === 'vacation' || leaveType === 'personal_vacation') {
+    return 'personal_vacation';
+  }
+  return leaveType;
+}
 
 type LeaveRequestRow = {
   id: string;
@@ -23,6 +41,8 @@ type LeaveRequestRow = {
   start_time: string | null;
   end_time: string | null;
   reason: string | null;
+  attachment_url?: string | null;
+  other_leave_purpose?: string | null;
   cancel_reason?: string | null;
   cancel_decided_by_email?: string | null;
   cancel_decided_at?: string | null;
@@ -31,62 +51,16 @@ type LeaveRequestRow = {
   created_at: string;
 };
 
-/** นับวันทำงาน (ไม่รวมเสาร์-อาทิตย์) ระหว่าง start–end (inclusive) */
-function countWeekdays(startIso: string, endIso: string): number {
-  const start = new Date(startIso + 'T12:00:00Z').getTime();
-  const end = new Date(endIso + 'T12:00:00Z').getTime();
-  const oneDay = 24 * 60 * 60 * 1000;
-  let count = 0;
-  for (let t = start; t <= end; t += oneDay) {
-    const d = new Date(t);
-    const day = d.getUTCDay();
-    if (day !== 0 && day !== 6) count += 1;
-  }
-  return count;
-}
-
-/** คำนวณชั่วโมงจาก HH:mm หรือ HH:mm:ss */
-function hoursBetween(startTime: string | null | undefined, endTime: string | null | undefined): number {
-  if (!startTime || !endTime) return 0;
-  const parse = (t: string) => {
-    const parts = String(t).trim().split(':');
-    const h = parseInt(parts[0], 10);
-    const m = parts[1] ? parseInt(parts[1], 10) : 0;
-    return (Number.isNaN(h) ? 0 : h) + (Number.isNaN(m) ? 0 : m) / 60;
-  };
-  const start = parse(startTime);
-  const end = parse(endTime);
-  if (end <= start) return 0;
-  return Math.round((end - start) * 100) / 100;
-}
-
-/** คืนค่า { days, hours } ที่ใช้ไปของใบลานี้ (สำหรับเอากลับเข้า balance) */
+/** คืนค่า { days, hours } ที่ใช้ไปของใบลานี้ (สำหรับเอากลับเข้า balance) — สอดคล้องเต็มวัน/ครึ่งวัน */
 function getLeaveDaysAndHours(row: LeaveRequestRow): { days: number; hours: number } {
-  const { start_date, end_date, start_time, end_time } = row;
-  if (start_date === end_date && start_time && end_time) {
-    const h = hoursBetween(start_time, end_time);
-    return { days: 0, hours: h };
-  }
-  const days = countWeekdays(start_date, end_date);
-  return { days, hours: 0 };
+  const totalH = requestedLeaveHoursEquivalent(row.start_date, row.end_date, row.start_time, row.end_time);
+  return { days: Math.floor(totalH / 8), hours: totalH % 8 };
 }
 
 function formatThaiDate(dateStr: string): string {
   const d = new Date(dateStr + 'T12:00:00Z');
   if (Number.isNaN(d.getTime())) return dateStr;
   return d.toLocaleDateString('th-TH', { timeZone: 'Asia/Bangkok', dateStyle: 'short' });
-}
-
-/** แปลงจำนวนชั่วโมงเทียบเท่าด้วยระบบ (1 วัน = 8 ชม.) เพื่อแสดงผลเป็น "X วัน Y ชม." */
-function formatHoursEquivalent(totalHours: number): string {
-  const total = Math.round(Number(totalHours ?? 0) * 100) / 100;
-  const days = Math.floor(total / 8);
-  const hours = Math.round((total % 8) * 100) / 100;
-
-  if (days > 0 && hours > 0) return `${days} วัน ${hours} ชม.`;
-  if (days > 0) return `${days} วัน`;
-  if (hours > 0) return `${hours} ชม.`;
-  return '0 วัน';
 }
 
 const AdminLeaveManagePage: React.FC = () => {
@@ -119,7 +93,7 @@ const AdminLeaveManagePage: React.FC = () => {
     }
     supabase
       .from('leave_requests')
-      .select('id, user_email, user_display_name, leave_type, start_date, end_date, start_time, end_time, reason, cancel_reason, cancel_decided_by_email, cancel_decided_at, cancel_decision, status, created_at')
+      .select('id, user_email, user_display_name, leave_type, start_date, end_date, start_time, end_time, reason, attachment_url, other_leave_purpose, cancel_reason, cancel_decided_by_email, cancel_decided_at, cancel_decision, status, created_at')
       .in('status', ['pending', 'cancel_requested'])
       .order('created_at', { ascending: true })
       .then(({ data, error: err }) => {
@@ -193,7 +167,8 @@ const AdminLeaveManagePage: React.FC = () => {
         } as LeaveRequestRow);
 
         const hoursEquivalent = daysHours.days * 8 + daysHours.hours;
-        entry.totalsByType[r.leave_type] = (entry.totalsByType[r.leave_type] ?? 0) + hoursEquivalent;
+        const sumKey = normalizeLeaveTypeForSummary(r.leave_type);
+        entry.totalsByType[sumKey] = (entry.totalsByType[sumKey] ?? 0) + hoursEquivalent;
       }
 
       // จัดเรียงตามชื่อผู้ใช้ (แล้วแต่ต้องการ)
@@ -363,7 +338,7 @@ const AdminLeaveManagePage: React.FC = () => {
     }
 
     // อนุมัติยกเลิก: คืนวันลา/ชั่วโมงกลับเข้า admin_users (เฉพาะประเภทที่มี balance)
-    if (isCancelFlow && action === 'approve' && row.leave_type !== 'wfh') {
+    if (isCancelFlow && action === 'approve' && row.leave_type !== 'wfh' && row.leave_type !== 'other') {
       const { days, hours } = getLeaveDaysAndHours(row);
       if (days > 0 || hours > 0) {
         const { data: userRow, error: userErr } = await supabase
@@ -373,43 +348,106 @@ const AdminLeaveManagePage: React.FC = () => {
           .maybeSingle();
         if (!userErr && userRow) {
           const u = userRow as Record<string, number | null | undefined>;
-          const dayKey = row.leave_type === 'personal' ? 'personal_remaining' : row.leave_type === 'sick' ? 'sick_remaining' : row.leave_type === 'vacation' ? 'annual_remaining' : 'unpaid_remaining';
-          const hourKey = row.leave_type === 'personal' ? 'hours_personal_remaining' : row.leave_type === 'sick' ? 'hours_sick_remaining' : row.leave_type === 'vacation' ? 'hours_annual_remaining' : 'hours_unpaid_remaining';
-          const newDays = (Number(u[dayKey] ?? 0) + days);
-          const newHours = (Number(u[hourKey] ?? 0) + hours);
+          const totalRefundHours = days * 8 + hours;
 
-          console.log('[LeaveAdminDecision] refund balance', {
-            leave_request_id: row.id,
-            user_email: row.user_email,
-            dayKey,
-            hourKey,
-            add_days: days,
-            add_hours: hours,
-            old_days: u[dayKey],
-            old_hours: u[hourKey],
-            new_days: newDays,
-            new_hours: newHours,
-            admin_email: user?.email ?? null,
-            at: new Date().toISOString(),
-          });
-          pushDebugLog('info', '[LeaveAdminDecision] refund balance', {
-            leave_request_id: row.id,
-            user_email: row.user_email,
-            dayKey,
-            hourKey,
-            add_days: days,
-            add_hours: hours,
-            old_days: u[dayKey],
-            old_hours: u[hourKey],
-            new_days: newDays,
-            new_hours: newHours,
-            admin_email: user?.email ?? null,
-          });
+          if (row.leave_type === 'personal_vacation') {
+            const h1 = Math.floor(totalRefundHours / 2);
+            const h2 = totalRefundHours - h1;
+            const d1 = Math.floor(h1 / 8);
+            const hr1 = h1 % 8;
+            const d2 = Math.floor(h2 / 8);
+            const hr2 = h2 % 8;
+            let pd = Number(u.personal_remaining ?? 0) + d1;
+            let ph = Number(u.hours_personal_remaining ?? 0) + hr1;
+            pd += Math.floor(ph / 8);
+            ph = ph % 8;
+            let ad = Number(u.annual_remaining ?? 0) + d2;
+            let ah = Number(u.hours_annual_remaining ?? 0) + hr2;
+            ad += Math.floor(ah / 8);
+            ah = ah % 8;
+            await supabase
+              .from('admin_users')
+              .update({
+                personal_remaining: pd,
+                hours_personal_remaining: ph,
+                annual_remaining: ad,
+                hours_annual_remaining: ah,
+              })
+              .eq('email', row.user_email);
+            pushDebugLog('info', '[LeaveAdminDecision] refund balance (personal_vacation split)', {
+              leave_request_id: row.id,
+              user_email: row.user_email,
+              totalRefundHours,
+            });
+          } else if (row.leave_type === 'personal') {
+            let pd = Number(u.personal_remaining ?? 0) + days;
+            let ph = Number(u.hours_personal_remaining ?? 0) + hours;
+            pd += Math.floor(ph / 8);
+            ph = ph % 8;
+            await supabase
+              .from('admin_users')
+              .update({ personal_remaining: pd, hours_personal_remaining: ph })
+              .eq('email', row.user_email);
+          } else if (row.leave_type === 'vacation') {
+            let ad = Number(u.annual_remaining ?? 0) + days;
+            let ah = Number(u.hours_annual_remaining ?? 0) + hours;
+            ad += Math.floor(ah / 8);
+            ah = ah % 8;
+            await supabase
+              .from('admin_users')
+              .update({ annual_remaining: ad, hours_annual_remaining: ah })
+              .eq('email', row.user_email);
+          } else {
+            const dayKey =
+              row.leave_type === 'sick'
+                ? 'sick_remaining'
+                : row.leave_type === 'unpaid'
+                  ? 'unpaid_remaining'
+                  : 'personal_remaining';
+            const hourKey =
+              row.leave_type === 'sick'
+                ? 'hours_sick_remaining'
+                : row.leave_type === 'unpaid'
+                  ? 'hours_unpaid_remaining'
+                  : 'hours_personal_remaining';
+            let newDays = Number(u[dayKey] ?? 0) + days;
+            let newHours = Number(u[hourKey] ?? 0) + hours;
+            newDays += Math.floor(newHours / 8);
+            newHours = newHours % 8;
 
-          await supabase
-            .from('admin_users')
-            .update({ [dayKey]: newDays, [hourKey]: newHours })
-            .eq('email', row.user_email);
+            console.log('[LeaveAdminDecision] refund balance', {
+              leave_request_id: row.id,
+              user_email: row.user_email,
+              dayKey,
+              hourKey,
+              add_days: days,
+              add_hours: hours,
+              old_days: u[dayKey],
+              old_hours: u[hourKey],
+              new_days: newDays,
+              new_hours: newHours,
+              admin_email: user?.email ?? null,
+              at: new Date().toISOString(),
+            });
+            pushDebugLog('info', '[LeaveAdminDecision] refund balance', {
+              leave_request_id: row.id,
+              user_email: row.user_email,
+              dayKey,
+              hourKey,
+              add_days: days,
+              add_hours: hours,
+              old_days: u[dayKey],
+              old_hours: u[hourKey],
+              new_days: newDays,
+              new_hours: newHours,
+              admin_email: user?.email ?? null,
+            });
+
+            await supabase
+              .from('admin_users')
+              .update({ [dayKey]: newDays, [hourKey]: newHours })
+              .eq('email', row.user_email);
+          }
         } else {
           console.warn('[LeaveAdminDecision] refund skipped (no admin_users row or userErr)', {
             leave_request_id: row.id,
@@ -491,7 +529,7 @@ const AdminLeaveManagePage: React.FC = () => {
           <>
           <p className="sm:hidden text-xs text-gray-500 mb-2">เลื่อนซ้าย-ขวาเพื่อดูตาราง</p>
           <div className="rounded-xl border border-white/10 overflow-x-auto -mx-1 sm:mx-0">
-            <table className="w-full text-left text-sm min-w-[520px]">
+            <table className="w-full text-left text-sm min-w-[680px]">
               <thead>
                 <tr className="border-b border-white/10 bg-white/5">
                   <th className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-400">ผู้ลา</th>
@@ -499,7 +537,8 @@ const AdminLeaveManagePage: React.FC = () => {
                   <th className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-400">ประเภท</th>
                   <th className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-400">วันเริ่ม</th>
                   <th className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-400">วันสิ้นสุด</th>
-                  <th className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-400">เหตุผล</th>
+                  <th className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-400">เหตุผล / ลาอื่น</th>
+                  <th className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-400">แนบ</th>
                   <th className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-400 text-right">ดำเนินการ</th>
                 </tr>
               </thead>
@@ -515,15 +554,34 @@ const AdminLeaveManagePage: React.FC = () => {
                       </span>
                     </td>
                     <td className="px-3 sm:px-4 py-2 sm:py-3 text-gray-300 text-xs sm:text-sm">
-                      {LEAVE_TYPES.find((t) => t.id === row.leave_type)?.label ?? row.leave_type}
+                      {resolveLeaveTypeLabel(row.leave_type)}
                     </td>
                     <td className="px-3 sm:px-4 py-2 sm:py-3 text-gray-300 text-xs sm:text-sm">{formatThaiDate(row.start_date)}</td>
                     <td className="px-3 sm:px-4 py-2 sm:py-3 text-gray-300 text-xs sm:text-sm">{formatThaiDate(row.end_date)}</td>
                     <td
-                      className="px-3 sm:px-4 py-2 sm:py-3 text-gray-400 text-xs max-w-[160px] truncate"
+                      className="px-3 sm:px-4 py-2 sm:py-3 text-gray-400 text-xs max-w-[200px]"
                       title={(row.status === 'cancel_requested' ? row.cancel_reason : row.reason) || ''}
                     >
-                      {(row.status === 'cancel_requested' ? row.cancel_reason : row.reason) || '—'}
+                      {row.other_leave_purpose ? (
+                        <span className="block text-cyan-300/90 text-[11px] mb-0.5">ลาอื่น: {row.other_leave_purpose}</span>
+                      ) : null}
+                      <span className="truncate block">
+                        {(row.status === 'cancel_requested' ? row.cancel_reason : row.reason) || '—'}
+                      </span>
+                    </td>
+                    <td className="px-3 sm:px-4 py-2 sm:py-3 text-xs">
+                      {row.attachment_url ? (
+                        <a
+                          href={row.attachment_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-yellow-400 hover:underline"
+                        >
+                          เปิดไฟล์
+                        </a>
+                      ) : (
+                        '—'
+                      )}
                     </td>
                     <td className="px-3 sm:px-4 py-2 sm:py-3 text-right">
                       <div className="flex items-center justify-end gap-2">
@@ -591,7 +649,7 @@ const AdminLeaveManagePage: React.FC = () => {
                       {LEAVE_TYPES.map((t) => (
                         <td key={`${row.user_email}-${t.id}`} className="px-2 py-2 text-gray-400">
                           {row.totalsByType[t.id] != null && row.totalsByType[t.id] > 0
-                            ? formatHoursEquivalent(row.totalsByType[t.id])
+                            ? formatTotalHoursAsDaysHalves(row.totalsByType[t.id])
                             : '—'}
                         </td>
                       ))}
