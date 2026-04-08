@@ -88,14 +88,24 @@ const AdminLayoutWithSidebar: React.FC = () => {
       return;
     }
     setAdminUserError(null);
+    const normalizedEmail = user.email.trim().toLowerCase();
     const { data: sessionData } = await supabase.auth.getSession();
     log('current Supabase session', { hasSession: !!sessionData?.session, email: sessionData?.session?.user?.email });
-    log('querying admin_users for email', user.email);
-    const { data, error } = await supabase
-      .from('admin_users')
-      .select('full_name, phone, department, leave_days_remaining, personal_remaining, sick_remaining, annual_remaining, unpaid_remaining')
-      .eq('email', user.email)
-      .maybeSingle();
+    log('querying admin_users for email', normalizedEmail);
+    const queryAdminUser = async () =>
+      await supabase
+        .from('admin_users')
+        .select('full_name, phone, department, leave_days_remaining, personal_remaining, sick_remaining, annual_remaining, unpaid_remaining')
+        .ilike('email', normalizedEmail)
+        .maybeSingle();
+    let { data, error } = await queryAdminUser();
+    if (error && /jwt|token|session|auth/i.test(error.message || '')) {
+      log('retry after refreshSession due auth-ish error', error.message);
+      await supabase.auth.refreshSession();
+      const retry = await queryAdminUser();
+      data = retry.data;
+      error = retry.error;
+    }
 
     log('admin_users response', { rawData: data, rawError: error, errorMessage: error?.message });
 
@@ -300,13 +310,13 @@ const AdminLayoutWithSidebar: React.FC = () => {
         {adminUserError && (
           <div className="text-xs text-amber-400/90 bg-amber-500/10 rounded-lg p-2 space-y-1">
             <p>โหลด admin_users ไม่ได้: {adminUserError}</p>
-            <p className="text-gray-500 mt-1">ให้เปิด Supabase → SQL Editor แล้วรันไฟล์ backend/supabase/fix_admin_users_rls.sql</p>
+            <p className="text-gray-500 mt-1">ให้เปิด Supabase → SQL Editor แล้วรันไฟล์ `backend/supabase/fix_admin_users_leave_manager_policy.sql`</p>
           </div>
         )}
         {adminUserNoRow && !adminUserError && (
           <div className="text-xs text-amber-400/90 bg-amber-500/10 rounded-lg p-2 space-y-1">
             <p>ไม่พบแถวใน admin_users สำหรับอีเมลนี้ (แสดงค่าเริ่มต้น)</p>
-            <p className="text-gray-500 mt-1">1) รัน Supabase → SQL Editor ไฟล์ fix_admin_users_rls.sql</p>
+            <p className="text-gray-500 mt-1">1) รัน Supabase → SQL Editor ไฟล์ `backend/supabase/fix_admin_users_leave_manager_policy.sql`</p>
             <p className="text-gray-500">2) หรือเพิ่มแถวในตาราง admin_users ให้ email ตรงกับที่ล็อกอิน</p>
           </div>
         )}
