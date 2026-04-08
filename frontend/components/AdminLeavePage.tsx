@@ -863,7 +863,7 @@ const AdminLeavePage: React.FC = () => {
     leaveType === 'sick' && startDate && endDate ? countWeekdaysInRange(startDate, endDate) : 0;
 
   return (
-    <div className="min-h-screen bg-transparent text-white flex flex-col">
+    <div className="min-h-screen bg-transparent text-white flex flex-col overflow-x-hidden">
       <header className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 px-4 sm:px-6 py-4 sm:py-6 border-b border-white/10">
         <div className="flex flex-wrap items-center gap-2 sm:gap-4 min-w-0">
           <Link to="/" className="flex items-center gap-2 sm:gap-3 shrink-0">
@@ -1154,7 +1154,7 @@ create policy "Allow update own leave_requests cancel"
             ) : (
             <>
             <p className="sm:hidden text-xs text-gray-500 mb-2">เลื่อนซ้าย-ขวาเพื่อดูตาราง</p>
-            <div className="rounded-xl border border-white/10 overflow-x-auto -mx-1 sm:mx-0">
+            <div className="rounded-xl border border-white/10 overflow-x-auto mx-0">
               <table className="w-full text-left text-sm min-w-[460px]">
                 <thead>
                   <tr className="border-b border-white/10 bg-white/5">
@@ -1280,7 +1280,7 @@ create policy "Allow update own leave_requests cancel"
                 เดือนถัดไป ›
               </button>
             </div>
-            <div className="rounded-xl border border-white/10 overflow-x-auto -mx-2 sm:mx-0">
+            <div className="rounded-xl border border-white/10 overflow-x-auto mx-0">
               <table className="w-full text-sm border-collapse min-w-[320px]">
                 <thead>
                   <tr className="bg-white/5 border-b border-white/10">
@@ -1421,7 +1421,7 @@ alter table public.leave_requests add column if not exists approved_at timestamp
           ) : (
             <>
             <p className="sm:hidden text-xs text-gray-500 mb-2">เลื่อนซ้าย-ขวาเพื่อดูตาราง</p>
-            <div className="rounded-xl border border-white/10 overflow-x-auto -mx-1 sm:mx-0">
+            <div className="rounded-xl border border-white/10 overflow-x-auto mx-0">
               <table className="w-full text-left text-sm min-w-[480px]">
                 <thead>
                   <tr className="border-b border-white/10 bg-white/5">
@@ -1477,7 +1477,7 @@ alter table public.leave_requests add column if not exists approved_at timestamp
             ) : (
             <>
             <p className="sm:hidden text-xs text-gray-500 mb-2">เลื่อนซ้าย-ขวาเพื่อดูตาราง</p>
-            <div className="rounded-xl border border-white/10 overflow-x-auto -mx-1 sm:mx-0">
+            <div className="rounded-xl border border-white/10 overflow-x-auto mx-0">
               <table className="w-full text-left text-sm min-w-[720px]">
                 <thead>
                   <tr className="border-b border-white/10 bg-white/5">
@@ -1544,7 +1544,7 @@ alter table public.leave_requests add column if not exists approved_at timestamp
         <section className="rounded-2xl border border-white/10 bg-white/5 p-3 sm:p-4">
           <h3 className="font-bold text-gray-300 mb-2">รายการลาที่ขอยกเลิก</h3>
           <p className="text-xs text-gray-500 mb-3">แสดงรายการขอยกเลิก (รออนุมัติ/ยกเลิกแล้ว) ของทุกคน</p>
-          <div className="rounded-xl border border-white/10 overflow-x-auto -mx-1 sm:mx-0">
+          <div className="rounded-xl border border-white/10 overflow-x-auto mx-0">
             {cancelAuditsLoading ? (
               <div className="min-h-[70px] flex items-center justify-center text-gray-500 text-xs p-4">
                 กำลังโหลด...
