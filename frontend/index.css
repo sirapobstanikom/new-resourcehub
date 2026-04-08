@@ -124,3 +124,20 @@
 .leave-form .grid > * {
   min-width: 0;
 }
+
+.leave-form {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+/* Extra iOS/Safari guard: stop controls from painting past rounded borders */
+@supports (-webkit-touch-callout: none) {
+  .leave-form input,
+  .leave-form select,
+  .leave-form textarea {
+    -webkit-appearance: none;
+    appearance: none;
+    background-clip: padding-box;
+  }
+}
