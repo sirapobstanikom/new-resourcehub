@@ -90,3 +90,23 @@
 .disc-rating-pop {
   animation: discRatingPop 260ms ease-out both;
 }
+
+/* iOS Safari: prevent date input from overflowing rounded containers */
+.ios-date-input-fix {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  display: block;
+  overflow: hidden;
+}
+
+@supports (-webkit-touch-callout: none) {
+  .ios-date-input-fix {
+    font-size: 16px;
+    line-height: 1.25rem;
+  }
+
+  .ios-date-input-fix::-webkit-date-and-time-value {
+    text-align: left;
+  }
+}
