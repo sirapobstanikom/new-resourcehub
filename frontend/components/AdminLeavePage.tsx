@@ -976,7 +976,7 @@ const AdminLeavePage: React.FC = () => {
             เวลาทำงาน จันทร์–ศุกร์ 9.00–17.00 น. หยุดเสาร์–อาทิตย์ (ห้ามเลือกวันเสาร์และอาทิตย์) — ลาได้เฉพาะเต็มวันหรือครึ่งวันเช้า/บ่าย (ไม่แบ่งเป็นชั่วโมง)
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
+            <div className="min-w-0">
               <label className="block text-sm font-medium text-gray-400 mb-2">วันเริ่มต้น</label>
               <input
                 type="date"
@@ -997,10 +997,10 @@ const AdminLeavePage: React.FC = () => {
                   }
                 }}
                 required
-                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/20 text-white text-sm focus:outline-none focus:border-yellow-400"
+                className="block w-full min-w-0 max-w-full px-4 py-3 rounded-xl bg-white/5 border border-white/20 text-white text-base focus:outline-none focus:border-yellow-400"
               />
             </div>
-            <div>
+            <div className="min-w-0">
               <label className="block text-sm font-medium text-gray-400 mb-2">วันสิ้นสุด</label>
               <input
                 type="date"
@@ -1018,7 +1018,7 @@ const AdminLeavePage: React.FC = () => {
                   setEndDate(v);
                 }}
                 required
-                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/20 text-white text-sm focus:outline-none focus:border-yellow-400"
+                className="block w-full min-w-0 max-w-full px-4 py-3 rounded-xl bg-white/5 border border-white/20 text-white text-base focus:outline-none focus:border-yellow-400"
               />
             </div>
           </div>
