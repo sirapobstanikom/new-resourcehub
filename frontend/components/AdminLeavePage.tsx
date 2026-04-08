@@ -892,7 +892,7 @@ const AdminLeavePage: React.FC = () => {
         </div>
       </header>
 
-      <main className="flex-1 max-w-4xl mx-auto w-full px-3 sm:px-6 py-5 sm:py-8 space-y-6 sm:space-y-10">
+      <main className="flex-1 max-w-4xl mx-auto w-full px-3 sm:px-6 py-5 sm:py-8 space-y-6 sm:space-y-10 overflow-x-hidden">
         <h2 className="text-xl font-bold text-gray-300">ยื่นคำขอลา</h2>
 
         {leaveBalance !== null && (
@@ -950,13 +950,13 @@ const AdminLeavePage: React.FC = () => {
           )}
         </div>
 
-        <form onSubmit={handleSubmit} className="rounded-2xl border border-white/10 bg-white/5 p-4 sm:p-6 space-y-5">
+        <form onSubmit={handleSubmit} className="rounded-2xl border border-white/10 bg-white/5 p-4 sm:p-6 space-y-5 min-w-0 overflow-hidden">
           <div>
             <label className="block text-sm font-medium text-gray-400 mb-2">ประเภทการลา</label>
             <select
               value={leaveType}
               onChange={(e) => setLeaveType(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/20 text-white text-sm focus:outline-none focus:border-yellow-400"
+              className="block w-full min-w-0 max-w-full px-4 py-3 rounded-xl bg-white/5 border border-white/20 text-white text-sm focus:outline-none focus:border-yellow-400"
             >
               {LEAVE_TYPES.map((t) => (
                 <option
@@ -972,7 +972,7 @@ const AdminLeavePage: React.FC = () => {
             </select>
             <p className="text-xs text-gray-500 mt-1">เฉพาะลาป่วยเท่านั้นที่ยื่นย้อนหลังได้</p>
           </div>
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-gray-500 break-words">
             เวลาทำงาน จันทร์–ศุกร์ 9.00–17.00 น. หยุดเสาร์–อาทิตย์ (ห้ามเลือกวันเสาร์และอาทิตย์) — ลาได้เฉพาะเต็มวันหรือครึ่งวันเช้า/บ่าย (ไม่แบ่งเป็นชั่วโมง)
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1029,7 +1029,7 @@ const AdminLeavePage: React.FC = () => {
               <select
                 value={leaveDayPart}
                 onChange={(e) => setLeaveDayPart(e.target.value as LeaveDayPart)}
-                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/20 text-white text-sm focus:outline-none focus:border-yellow-400"
+                className="block w-full min-w-0 max-w-full px-4 py-3 rounded-xl bg-white/5 border border-white/20 text-white text-sm focus:outline-none focus:border-yellow-400"
               >
                 <option value="full" className="bg-neutral-900 text-white">
                   เต็มวัน (09.00–17.00 น.)
@@ -1074,7 +1074,7 @@ const AdminLeavePage: React.FC = () => {
                   value={otherLeavePurpose}
                   onChange={(e) => setOtherLeavePurpose(e.target.value)}
                   placeholder="เช่น ลาบวช, ลาคลอด, ลารับราชการทหาร"
-                  className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/20 text-white placeholder-gray-500 text-sm focus:outline-none focus:border-cyan-400/50"
+                  className="block w-full min-w-0 max-w-full px-4 py-3 rounded-xl bg-white/5 border border-white/20 text-white placeholder-gray-500 text-sm focus:outline-none focus:border-cyan-400/50"
                 />
               </div>
               <div className="text-xs text-gray-400 space-y-1 border-t border-white/10 pt-3">
@@ -1097,7 +1097,7 @@ const AdminLeavePage: React.FC = () => {
               onChange={(e) => setReason(e.target.value)}
               rows={3}
               placeholder="ระบุเหตุผลการลา..."
-              className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/20 text-white placeholder-gray-500 text-sm focus:outline-none focus:border-yellow-400 resize-none"
+              className="block w-full min-w-0 max-w-full px-4 py-3 rounded-xl bg-white/5 border border-white/20 text-white placeholder-gray-500 text-sm focus:outline-none focus:border-yellow-400 resize-none"
             />
           </div>
           {submitError && (
