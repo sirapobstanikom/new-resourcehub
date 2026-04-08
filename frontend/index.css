@@ -110,3 +110,17 @@
     text-align: left;
   }
 }
+
+/* Leave form: harden against iOS width overflow clipping */
+.leave-form input,
+.leave-form select,
+.leave-form textarea {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.leave-form .grid > * {
+  min-width: 0;
+}

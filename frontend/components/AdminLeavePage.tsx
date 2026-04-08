@@ -950,7 +950,7 @@ const AdminLeavePage: React.FC = () => {
           )}
         </div>
 
-        <form onSubmit={handleSubmit} className="rounded-2xl border border-white/10 bg-white/5 p-4 sm:p-6 space-y-5 min-w-0 overflow-hidden">
+        <form onSubmit={handleSubmit} className="leave-form rounded-2xl border border-white/10 bg-white/5 p-4 sm:p-6 space-y-5 min-w-0">
           <div>
             <label className="block text-sm font-medium text-gray-400 mb-2">ประเภทการลา</label>
             <select
