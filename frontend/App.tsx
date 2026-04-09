@@ -1,4 +1,4 @@
-import React, { useState, lazy, Suspense } from 'react';
+import React, { useState, lazy, Suspense, useEffect } from 'react';
 import { Routes, Route, Link, useNavigate, useParams, Navigate, useLocation } from 'react-router-dom';
 import { JOURNEY_DATA, UPDATES_DATA, getToolById, getUpdateById } from './constants';
 import { Tool, InnovationUpdate } from './types';
@@ -6,7 +6,7 @@ import JourneyCard from './components/JourneyCard';
 import UpdateCard from './components/UpdateCard';
 import HomePage from './components/HomePage';
 import { useAuth } from './contexts/AuthContext';
-import { isAdminAuthenticated, isAuthenticated, logoutResourceHub } from './lib/auth';
+import { isAdminAuthenticated, isAuthenticated, logoutAdmin, logoutResourceHub } from './lib/auth';
 
 /** โหลดแยก chunk — ลดขนาด bundle หลักบน Vite build / Vercel */
 const ToolDetail = lazy(() => import('./components/ToolDetail'));
@@ -122,9 +122,17 @@ function ProtectedLayout({ children }: { children: React.ReactNode }) {
 }
 
 function AdminLayout({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth();
+
+  useEffect(() => {
+    if (!loading && !user) logoutAdmin();
+  }, [loading, user]);
+
   if (!isAdminAuthenticated()) {
     return <Navigate to="/admin/login" replace />;
   }
+  if (loading) return null;
+  if (!user) return <Navigate to="/admin/login" replace />;
   return <>{children}</>;
 }
 

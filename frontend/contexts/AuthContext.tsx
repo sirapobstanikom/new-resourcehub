@@ -65,7 +65,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     });
 
-    return () => subscription.unsubscribe();
+    const syncSession = async () => {
+      const { data: { session: current } } = await supabase.auth.getSession();
+      // ถ้า token ใกล้หมดอายุ/หมดอายุ ให้ลอง refresh เพื่อคงสถานะล็อกอิน
+      if (!current) {
+        await supabase.auth.refreshSession();
+      }
+    };
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') void syncSession();
+    };
+    const onOnline = () => {
+      void syncSession();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    window.addEventListener('online', onOnline);
+
+    return () => {
+      subscription.unsubscribe();
+      document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('online', onOnline);
+    };
   }, []);
 
   const value: AuthState = {
