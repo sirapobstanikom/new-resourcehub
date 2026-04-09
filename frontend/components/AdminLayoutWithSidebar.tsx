@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
-import { logoutAdmin } from '../lib/auth';
+import { logoutAdmin, getAdminAuthenticatedEmail } from '../lib/auth';
 import { useAuth } from '../contexts/AuthContext';
 import {
   EMPLOYEE_DEPT_IDS,
@@ -38,6 +38,7 @@ const AdminLayoutWithSidebar: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const showLeaveManageLink = user?.email != null && ADMIN_LEAVE_MANAGER_EMAILS.includes(user.email);
   type AdminUserRow = {
+    username?: string | null;
     full_name: string | null;
     phone: string | null;
     department: string | null;
@@ -62,9 +63,18 @@ const AdminLayoutWithSidebar: React.FC = () => {
     admin: false,
   }));
 
-  const displayName = adminUser?.full_name?.trim() || user?.user_metadata?.full_name || user?.email?.split('@')[0] || user?.email || 'Admin';
+  const persistedAdminEmail = getAdminAuthenticatedEmail();
+  const displayName =
+    adminUser?.full_name?.trim() ||
+    adminUser?.username?.trim() ||
+    user?.user_metadata?.full_name ||
+    user?.email?.split('@')[0] ||
+    persistedAdminEmail?.split('@')[0] ||
+    persistedAdminEmail ||
+    'Admin';
 
   const defaultAdminUser: AdminUserRow = {
+    username: null,
     full_name: null,
     phone: null,
     department: null,
@@ -95,7 +105,7 @@ const AdminLayoutWithSidebar: React.FC = () => {
     const queryAdminUser = async () =>
       await supabase
         .from('admin_users')
-        .select('full_name, phone, department, leave_days_remaining, personal_remaining, sick_remaining, annual_remaining, unpaid_remaining')
+        .select('username, full_name, phone, department, leave_days_remaining, personal_remaining, sick_remaining, annual_remaining, unpaid_remaining')
         .ilike('email', normalizedEmail)
         .maybeSingle();
     let { data, error } = await queryAdminUser();
@@ -121,6 +131,7 @@ const AdminLayoutWithSidebar: React.FC = () => {
       const d = data as AdminUserRow;
       const payload = {
         full_name: d.full_name ?? null,
+        username: d.username ?? null,
         phone: d.phone ?? null,
         department: d.department ?? null,
         leave_days_remaining: d.leave_days_remaining ?? 10,
