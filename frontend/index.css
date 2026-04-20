@@ -10,8 +10,9 @@
     color-scheme: dark;
   }
   body {
-    font-family: "Sukhumvit Set", "Sukhumvit", "Kanit", ui-sans-serif, system-ui, sans-serif !important;
+    font-family: "Anuphan", ui-sans-serif, system-ui, sans-serif !important;
     font-feature-settings: "kern" 1;
+    letter-spacing: 0.01em;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
@@ -28,6 +29,11 @@
     min-height: 100vh;
     min-height: 100dvh;
   }
+}
+
+/* Typography override (เฉพาะหน้า evaluation/innoclub เท่านั้น) */
+.innoclub-angsana {
+  font-family: "Sarabun", ui-sans-serif, system-ui, sans-serif !important;
 }
 
 /* คลาสเพิ่มเติมของโปรเจกต์ */
