@@ -679,9 +679,9 @@ const PostItem: React.FC<PostItemProps> = ({
   };
 
   return (
-    <div className="bg-white/5 border border-white/10 rounded-3xl p-6 md:p-8 space-y-6 animate-in fade-in slide-in-from-bottom-4">
-      <div className="flex gap-4">
-        <div className="w-14 h-14 rounded-2xl flex-shrink-0 overflow-hidden bg-yellow-400 border-2 border-yellow-400/20">
+    <div className="bg-white/5 border border-white/10 rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 space-y-5 sm:space-y-6 animate-in fade-in slide-in-from-bottom-4">
+      <div className="flex gap-3 sm:gap-4">
+        <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl flex-shrink-0 overflow-hidden bg-yellow-400 border-2 border-yellow-400/20">
           {post.authorAvatar ? (
             <img src={post.authorAvatar} alt="Avatar" className="w-full h-full object-cover" />
           ) : (
@@ -689,9 +689,9 @@ const PostItem: React.FC<PostItemProps> = ({
           )}
         </div>
         <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between mb-2">
-            <h4 className="font-bold text-white">{post.authorName || 'Anonymous'}</h4>
-            <span className="text-xs text-gray-500">
+          <div className="flex items-start justify-between gap-2 mb-2">
+            <h4 className="font-bold text-white break-words">{post.authorName || 'Anonymous'}</h4>
+            <span className="text-[11px] sm:text-xs text-gray-500 whitespace-nowrap">
               {new Date(post.createdAt).toLocaleDateString()}
             </span>
           </div>
@@ -855,12 +855,12 @@ const PostItem: React.FC<PostItemProps> = ({
             </>
           )}
           {!editing && (
-            <div className="flex items-center gap-4 flex-wrap">
+            <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
               {onLike && (
                 <button
                   type="button"
                   onClick={() => onLike(post.id)}
-                  className="flex items-center gap-1.5 text-gray-400 hover:text-yellow-400 transition-colors"
+                  className="flex items-center gap-1.5 text-gray-400 hover:text-yellow-400 transition-colors min-h-[36px] px-1"
                   title="ไลค์"
                 >
                   <span className="text-lg" aria-hidden>♥</span>
@@ -871,7 +871,7 @@ const PostItem: React.FC<PostItemProps> = ({
                 <button
                   type="button"
                   onClick={beginEdit}
-                  className="inline-flex items-center gap-1.5 text-xs font-bold text-white/80 hover:text-yellow-400 transition-colors uppercase tracking-widest"
+                  className="inline-flex items-center gap-1.5 text-[11px] sm:text-xs font-bold text-white/80 hover:text-yellow-400 transition-colors uppercase tracking-widest min-h-[36px] px-1"
                 >
                   <Pencil className="h-3.5 w-3.5" strokeWidth={2.5} />
                   แก้ไข
@@ -881,7 +881,7 @@ const PostItem: React.FC<PostItemProps> = ({
                 <button
                   type="button"
                   onClick={handleDeletePost}
-                  className="inline-flex items-center gap-1.5 text-xs font-bold text-red-300 hover:text-red-200 transition-colors uppercase tracking-widest"
+                  className="inline-flex items-center gap-1.5 text-[11px] sm:text-xs font-bold text-red-300 hover:text-red-200 transition-colors uppercase tracking-widest min-h-[36px] px-1"
                 >
                   <Trash2 className="h-3.5 w-3.5" strokeWidth={2.5} />
                   ลบโพสต์
@@ -890,7 +890,7 @@ const PostItem: React.FC<PostItemProps> = ({
               <button
                 type="button"
                 onClick={() => setIsReplying(!isReplying)}
-                className="text-xs font-bold text-yellow-400 hover:text-yellow-300 transition-colors uppercase tracking-widest"
+                className="text-[11px] sm:text-xs font-bold text-yellow-400 hover:text-yellow-300 transition-colors uppercase tracking-widest min-h-[36px] px-1"
               >
                 {isReplying ? 'Cancel' : 'Reply'}
               </button>
@@ -900,17 +900,17 @@ const PostItem: React.FC<PostItemProps> = ({
       </div>
 
       {post.comments && post.comments.length > 0 && (
-        <div className="ml-12 space-y-4 border-l border-white/10 pl-6">
+        <div className="ml-0 sm:ml-12 space-y-3 sm:space-y-4 border-l border-white/10 pl-3 sm:pl-6">
           {post.comments.map(comment => (
-            <div key={comment.id} className="flex gap-4 animate-in fade-in slide-in-from-left-2">
-              <div className="w-10 h-10 rounded-lg flex-shrink-0 overflow-hidden bg-white/10 border border-white/10">
+            <div key={comment.id} className="flex gap-2 sm:gap-4 animate-in fade-in slide-in-from-left-2">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex-shrink-0 overflow-hidden bg-white/10 border border-white/10">
                 {comment.authorAvatar ? (
                   <img src={comment.authorAvatar} alt="Commenter" className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-sm font-bold text-white/50" aria-hidden>?</div>
                 )}
               </div>
-              <div className="flex-1 min-w-0 bg-white/5 rounded-2xl p-4">
+              <div className="flex-1 min-w-0 bg-white/5 rounded-xl sm:rounded-2xl p-3 sm:p-4">
                 <span className="text-xs font-bold text-white block mb-1">{comment.authorName}</span>
                 {editingCommentId === comment.id ? (
                   <div className="space-y-2">
@@ -926,7 +926,7 @@ const PostItem: React.FC<PostItemProps> = ({
                       placeholder="หรือวางลิงก์รูป"
                       className="w-full bg-neutral-800 border border-white/10 rounded-xl px-3 py-2 text-white text-sm"
                     />
-                    <div className="flex justify-end gap-2">
+                    <div className="flex flex-wrap justify-end gap-2">
                       <button
                         type="button"
                         onClick={cancelEditComment}
@@ -949,7 +949,7 @@ const PostItem: React.FC<PostItemProps> = ({
                   <>
                     <p className="text-gray-400 text-sm">{comment.commentText}</p>
                     {namesMatch(userName, comment.authorName) && (
-                      <div className="mt-2 flex items-center gap-3">
+                      <div className="mt-2 flex items-center gap-2 sm:gap-3 flex-wrap">
                         <button
                           type="button"
                           onClick={() => beginEditComment(comment)}
@@ -988,7 +988,7 @@ const PostItem: React.FC<PostItemProps> = ({
       )}
 
       {isReplying && (
-        <div className="ml-12 space-y-3 animate-in fade-in slide-in-from-top-2">
+        <div className="ml-0 sm:ml-12 space-y-3 animate-in fade-in slide-in-from-top-2">
           <textarea 
             value={replyText}
             onChange={(e) => setReplyText(e.target.value)}
