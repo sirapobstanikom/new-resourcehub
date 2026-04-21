@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Check, MinusCircle, GitBranch, Link2, CopyPlus, SlidersHorizontal, Lightbulb, Pencil } from 'lucide-react';
+import { Check, MinusCircle, GitBranch, Link2, CopyPlus, SlidersHorizontal, Lightbulb, Pencil, Trash2 } from 'lucide-react';
 import { Post, Comment } from '../types';
 import { isSupabaseConfigured } from '../lib/supabase';
-import { getPosts, createPost, addComment, incrementPostLike, updatePost } from '../services/strategyExchange';
+import { getPosts, createPost, addComment, incrementPostLike, updatePost, updateComment, deletePost, deleteComment } from '../services/strategyExchange';
 
 // ปรับปรุงชุดข้อมูล Seeds ให้มีความชัดเจนของเพศชายและหญิงมากขึ้นสำหรับสไตล์ adventurer
 const GENDER_OPTIONS = [
@@ -477,6 +477,9 @@ interface PostItemProps {
   onImageClick?: (url: string) => void;
   onLike?: (postId: string) => void;
   onUpdatePost: (postId: string, payload: { content: string; imageUrl: string | null }) => Promise<boolean>;
+  onDeletePost: (postId: string) => Promise<boolean>;
+  onUpdateComment: (postId: string, commentId: string, payload: { commentText: string; imageUrl: string | null }) => Promise<boolean>;
+  onDeleteComment: (postId: string, commentId: string) => Promise<boolean>;
 }
 
 const PostItem: React.FC<PostItemProps> = ({
@@ -488,6 +491,9 @@ const PostItem: React.FC<PostItemProps> = ({
   onImageClick,
   onLike,
   onUpdatePost,
+  onDeletePost,
+  onUpdateComment,
+  onDeleteComment,
 }) => {
   const sitParsed = toolId === 'systematic-inventive-thinking' ? parseSITPostContent(post.content) : null;
   const [isReplying, setIsReplying] = useState(false);
@@ -503,6 +509,10 @@ const PostItem: React.FC<PostItemProps> = ({
   const [editImageUrl, setEditImageUrl] = useState('');
   const [editImageFile, setEditImageFile] = useState<File | null>(null);
   const [editImagePreview, setEditImagePreview] = useState('');
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+  const [editCommentText, setEditCommentText] = useState('');
+  const [editCommentImageUrl, setEditCommentImageUrl] = useState('');
+  const [savingComment, setSavingComment] = useState(false);
   const canEditPost = namesMatch(userName, post.authorName);
 
   const handleReplyImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -628,6 +638,45 @@ const PostItem: React.FC<PostItemProps> = ({
   const canSaveEdit = sitEditUsesTemplate
     ? editSitSlots.some((slot) => slot.situation.trim() && slot.solution.trim())
     : Boolean(editContent.trim());
+
+  const beginEditComment = (comment: Comment) => {
+    if (!namesMatch(userName, comment.authorName)) return;
+    setEditingCommentId(comment.id);
+    setEditCommentText(comment.commentText);
+    setEditCommentImageUrl(comment.imageUrl ?? '');
+  };
+
+  const cancelEditComment = () => {
+    setEditingCommentId(null);
+    setEditCommentText('');
+    setEditCommentImageUrl('');
+  };
+
+  const saveEditComment = async () => {
+    if (!editingCommentId || !editCommentText.trim()) return;
+    setSavingComment(true);
+    try {
+      const ok = await onUpdateComment(post.id, editingCommentId, {
+        commentText: editCommentText.trim(),
+        imageUrl: editCommentImageUrl.trim() || null,
+      });
+      if (ok) cancelEditComment();
+    } finally {
+      setSavingComment(false);
+    }
+  };
+
+  const handleDeletePost = async () => {
+    if (!canEditPost) return;
+    if (!window.confirm('ยืนยันการลบโพสต์นี้?')) return;
+    await onDeletePost(post.id);
+  };
+
+  const handleDeleteComment = async (comment: Comment) => {
+    if (!namesMatch(userName, comment.authorName)) return;
+    if (!window.confirm('ยืนยันการลบคอมเมนต์นี้?')) return;
+    await onDeleteComment(post.id, comment.id);
+  };
 
   return (
     <div className="bg-white/5 border border-white/10 rounded-3xl p-6 md:p-8 space-y-6 animate-in fade-in slide-in-from-bottom-4">
@@ -828,6 +877,16 @@ const PostItem: React.FC<PostItemProps> = ({
                   แก้ไข
                 </button>
               )}
+              {canEditPost && (
+                <button
+                  type="button"
+                  onClick={handleDeletePost}
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-red-300 hover:text-red-200 transition-colors uppercase tracking-widest"
+                >
+                  <Trash2 className="h-3.5 w-3.5" strokeWidth={2.5} />
+                  ลบโพสต์
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => setIsReplying(!isReplying)}
@@ -853,8 +912,65 @@ const PostItem: React.FC<PostItemProps> = ({
               </div>
               <div className="flex-1 min-w-0 bg-white/5 rounded-2xl p-4">
                 <span className="text-xs font-bold text-white block mb-1">{comment.authorName}</span>
-                <p className="text-gray-400 text-sm">{comment.commentText}</p>
-                {comment.imageUrl && (
+                {editingCommentId === comment.id ? (
+                  <div className="space-y-2">
+                    <textarea
+                      value={editCommentText}
+                      onChange={(e) => setEditCommentText(e.target.value)}
+                      className="w-full bg-neutral-800 border border-white/10 rounded-xl p-3 text-white text-sm min-h-[90px] resize-y"
+                    />
+                    <input
+                      type="url"
+                      value={editCommentImageUrl}
+                      onChange={(e) => setEditCommentImageUrl(e.target.value)}
+                      placeholder="หรือวางลิงก์รูป"
+                      className="w-full bg-neutral-800 border border-white/10 rounded-xl px-3 py-2 text-white text-sm"
+                    />
+                    <div className="flex justify-end gap-2">
+                      <button
+                        type="button"
+                        onClick={cancelEditComment}
+                        disabled={savingComment}
+                        className="px-4 py-1.5 rounded-lg border border-white/15 text-xs font-bold text-gray-300"
+                      >
+                        ยกเลิก
+                      </button>
+                      <button
+                        type="button"
+                        onClick={saveEditComment}
+                        disabled={savingComment || !editCommentText.trim()}
+                        className="px-4 py-1.5 rounded-lg bg-yellow-400 text-black text-xs font-bold disabled:opacity-50"
+                      >
+                        {savingComment ? 'กำลังบันทึก...' : 'บันทึก'}
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-gray-400 text-sm">{comment.commentText}</p>
+                    {namesMatch(userName, comment.authorName) && (
+                      <div className="mt-2 flex items-center gap-3">
+                        <button
+                          type="button"
+                          onClick={() => beginEditComment(comment)}
+                          className="inline-flex items-center gap-1 text-[11px] font-bold text-yellow-300 hover:text-yellow-200 uppercase tracking-widest"
+                        >
+                          <Pencil className="h-3 w-3" />
+                          แก้ไข
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteComment(comment)}
+                          className="inline-flex items-center gap-1 text-[11px] font-bold text-red-300 hover:text-red-200 uppercase tracking-widest"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                          ลบ
+                        </button>
+                      </div>
+                    )}
+                  </>
+                )}
+                {editingCommentId !== comment.id && comment.imageUrl && (
                   <div
                     className={`mt-2 rounded-xl overflow-hidden border border-white/10 max-w-full w-full sm:max-w-[280px] ${onImageClick ? 'cursor-pointer hover:opacity-90 transition-opacity' : ''}`}
                     onClick={onImageClick ? () => onImageClick(comment.imageUrl!) : undefined}
@@ -1157,6 +1273,71 @@ const CommentSection: React.FC<{ toolId?: string }> = ({ toolId = "bmc" }) => {
     []
   );
 
+  const handleDeletePost = useCallback(async (postId: string) => {
+    if (isSupabaseConfigured) {
+      const ok = await deletePost(postId);
+      if (!ok) return false;
+    }
+    setPosts((prev) => prev.filter((p) => p.id !== postId));
+    return true;
+  }, []);
+
+  const handleUpdateComment = useCallback(
+    async (postId: string, commentId: string, payload: { commentText: string; imageUrl: string | null }) => {
+      if (!payload.commentText.trim()) return false;
+      if (isSupabaseConfigured) {
+        const updated = await updateComment(commentId, payload);
+        if (!updated) return false;
+        setPosts((prev) =>
+          prev.map((p) =>
+            p.id === postId
+              ? {
+                  ...p,
+                  comments: p.comments.map((c) =>
+                    c.id === commentId
+                      ? { ...c, commentText: updated.commentText, imageUrl: updated.imageUrl }
+                      : c
+                  ),
+                }
+              : p
+          )
+        );
+        return true;
+      }
+      setPosts((prev) =>
+        prev.map((p) =>
+          p.id === postId
+            ? {
+                ...p,
+                comments: p.comments.map((c) =>
+                  c.id === commentId
+                    ? { ...c, commentText: payload.commentText, imageUrl: payload.imageUrl ?? undefined }
+                    : c
+                ),
+              }
+            : p
+        )
+      );
+      return true;
+    },
+    []
+  );
+
+  const handleDeleteComment = useCallback(async (postId: string, commentId: string) => {
+    if (isSupabaseConfigured) {
+      const ok = await deleteComment(commentId);
+      if (!ok) return false;
+    }
+    setPosts((prev) =>
+      prev.map((p) =>
+        p.id === postId
+          ? { ...p, comments: p.comments.filter((c) => c.id !== commentId) }
+          : p
+      )
+    );
+    return true;
+  }, []);
+
   return (
     <section className="mt-24 border-t border-white/10 pt-16">
       <div className="mb-12">
@@ -1318,6 +1499,9 @@ const CommentSection: React.FC<{ toolId?: string }> = ({ toolId = "bmc" }) => {
               onImageClick={handleImageClick}
               onLike={handleLike}
               onUpdatePost={handleUpdatePost}
+              onDeletePost={handleDeletePost}
+              onUpdateComment={handleUpdateComment}
+              onDeleteComment={handleDeleteComment}
             />
           ))
         ) : (

@@ -10,3 +10,28 @@ create policy "strategy_posts_allow_update"
   to anon, authenticated
   using (true)
   with check (true);
+
+drop policy if exists "strategy_posts_allow_delete" on public.strategy_posts;
+
+create policy "strategy_posts_allow_delete"
+  on public.strategy_posts
+  for delete
+  to anon, authenticated
+  using (true);
+
+drop policy if exists "strategy_comments_allow_update" on public.strategy_comments;
+
+create policy "strategy_comments_allow_update"
+  on public.strategy_comments
+  for update
+  to anon, authenticated
+  using (true)
+  with check (true);
+
+drop policy if exists "strategy_comments_allow_delete" on public.strategy_comments;
+
+create policy "strategy_comments_allow_delete"
+  on public.strategy_comments
+  for delete
+  to anon, authenticated
+  using (true);

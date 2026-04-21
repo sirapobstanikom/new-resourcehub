@@ -162,6 +162,47 @@ export async function updatePost(
   };
 }
 
+/** แก้ไขคอมเมนต์ */
+export async function updateComment(
+  commentId: string,
+  payload: { commentText: string; imageUrl: string | null }
+): Promise<{ commentText: string; imageUrl?: string } | null> {
+  const { data, error } = await supabase
+    .from('strategy_comments')
+    .update({
+      comment_text: payload.commentText,
+      image_url: payload.imageUrl,
+    })
+    .eq('id', commentId)
+    .select()
+    .maybeSingle();
+
+  if (error || !data) return null;
+  const row = data as DbComment;
+  return {
+    commentText: row.comment_text,
+    imageUrl: row.image_url ?? undefined,
+  };
+}
+
+/** ลบโพสต์ */
+export async function deletePost(postId: string): Promise<boolean> {
+  const { error } = await supabase
+    .from('strategy_posts')
+    .delete()
+    .eq('id', postId);
+  return !error;
+}
+
+/** ลบคอมเมนต์ */
+export async function deleteComment(commentId: string): Promise<boolean> {
+  const { error } = await supabase
+    .from('strategy_comments')
+    .delete()
+    .eq('id', commentId);
+  return !error;
+}
+
 /** กดไลค์โพสต์ (เพิ่ม like_count 1) */
 export async function incrementPostLike(postId: string): Promise<number | null> {
   const { data: row, error: fetchError } = await supabase
