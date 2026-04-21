@@ -134,6 +134,34 @@ export async function addComment(
   return mapComment(data as DbComment);
 }
 
+/** แก้ไขเนื้อหาโพสต์ (ต้องอนุญาตที่ฝั่ง RLS ของ Supabase) */
+export async function updatePost(
+  postId: string,
+  payload: { content: string; imageUrl: string | null }
+): Promise<{ content: string; imageUrl?: string } | null> {
+  const row = {
+    content: payload.content,
+    image_url: payload.imageUrl,
+  };
+  /** ใช้ maybeSingle: ถ้า RLS บล็อกจะได้ 0 แถว — single() ทำให้ PostgREST ตอบ 406 */
+  const { data, error } = await supabase
+    .from('strategy_posts')
+    .update(row)
+    .eq('id', postId)
+    .select()
+    .maybeSingle();
+
+  if (error || !data) {
+    return null;
+  }
+
+  const r = data as DbPost;
+  return {
+    content: r.content,
+    imageUrl: r.image_url ?? undefined,
+  };
+}
+
 /** กดไลค์โพสต์ (เพิ่ม like_count 1) */
 export async function incrementPostLike(postId: string): Promise<number | null> {
   const { data: row, error: fetchError } = await supabase

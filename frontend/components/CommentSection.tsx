@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Check, MinusCircle, GitBranch, Link2, CopyPlus, SlidersHorizontal, Lightbulb } from 'lucide-react';
+import { Check, MinusCircle, GitBranch, Link2, CopyPlus, SlidersHorizontal, Lightbulb, Pencil } from 'lucide-react';
 import { Post, Comment } from '../types';
 import { isSupabaseConfigured } from '../lib/supabase';
-import { getPosts, createPost, addComment, incrementPostLike } from '../services/strategyExchange';
+import { getPosts, createPost, addComment, incrementPostLike, updatePost } from '../services/strategyExchange';
 
 // ปรับปรุงชุดข้อมูล Seeds ให้มีความชัดเจนของเพศชายและหญิงมากขึ้นสำหรับสไตล์ adventurer
 const GENDER_OPTIONS = [
@@ -249,6 +249,156 @@ const SITPostTemplate: React.FC<{ blocks: SITParsedBlock[] }> = ({ blocks }) => 
   );
 };
 
+type SITSlotRow = { technique: SITTechnique; situation: string; solution: string };
+
+/** ฟอร์ม SIT แบบเดียวกับตอนโพสต์ — ใช้ทั้งช่อง compose และโหมดแก้ไขโพสต์ */
+const SITInteractiveTemplate: React.FC<{
+  sitSlots: SITSlotRow[];
+  setSitSlots: React.Dispatch<React.SetStateAction<SITSlotRow[]>>;
+  disabled?: boolean;
+  /** แสดงด้านบนเมื่ออยู่โหมดแก้ไข */
+  subheading?: string;
+}> = ({ sitSlots, setSitSlots, disabled = false, subheading }) => {
+  const handleSITTechniqueToggle = (tech: SITTechnique) => {
+    setSitSlots((prev) => {
+      const idx = prev.findIndex((s) => s.technique === tech);
+      if (idx >= 0) return prev.filter((_, i) => i !== idx);
+      return [...prev, { technique: tech, situation: '', solution: '' }];
+    });
+  };
+
+  return (
+    <>
+      {subheading ? (
+        <p className="text-sm font-medium text-amber-900/90 bg-amber-50 border border-amber-200/80 rounded-lg px-3 py-2.5 mb-4 leading-snug">
+          {subheading}
+        </p>
+      ) : null}
+      <div className="flex flex-col items-center text-center sm:items-start sm:text-left gap-3 sm:gap-4 mb-4">
+        <div className="flex items-center gap-3">
+          <div className="flex h-11 w-11 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-full bg-[#FFEB00] border-2 border-[#1a1a1a]/90 shadow-sm">
+            <Lightbulb className="h-5 w-5 sm:h-7 sm:w-7 text-[#1a1a1a]" />
+          </div>
+          <h2 className="text-base sm:text-xl font-semibold text-black/90">Systematic Inventive Thinking Template</h2>
+        </div>
+        <div className="flex items-center gap-2 w-full sm:w-auto justify-center sm:justify-start">
+          <span
+            className={`flex h-5 w-5 shrink-0 items-center justify-center rounded border bg-white ${
+              sitSlots.length > 0 ? 'border-amber-500 text-amber-600' : 'border-black/20 text-black/40'
+            }`}
+          >
+            {sitSlots.length > 0 ? <Check className="h-3 w-3" strokeWidth={2.5} /> : null}
+          </span>
+          <span className="text-xs sm:text-sm font-medium text-black/70">
+            เลือก SIT อย่างน้อย 1 ตัว ที่คุณได้นำเอาไปใช้ในการทำงานจริง
+          </span>
+        </div>
+        <div className="rounded-xl bg-[#FFEB00] border border-amber-400/60 px-3 py-3 sm:px-5 sm:py-4 w-full text-center">
+          <h3 className="text-sm sm:text-lg font-bold text-black/95 leading-snug">
+            คุณใช้ SIT ปรับรูปแบบหรือกระบวนการอะไร ในงานของคุณ
+          </h3>
+        </div>
+      </div>
+
+      <div className="mb-4">
+        <p className="text-xs font-semibold text-black/60 uppercase tracking-wider mb-2">
+          เลือกเทคนิคที่ต้องการ (กดแล้วเปลี่ยนสี = เลือกแล้ว)
+        </p>
+        <div className="flex flex-wrap gap-2">
+          {SIT_ITEMS.map((item) => {
+            const Icon = item.icon;
+            const active = sitSlots.some((s) => s.technique === item.label);
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => handleSITTechniqueToggle(item.label)}
+                disabled={disabled}
+                className={`inline-flex items-center justify-center gap-2 rounded-xl border px-4 py-3.5 min-h-[44px] text-sm font-semibold transition-all touch-manipulation active:scale-[0.98] ${
+                  active
+                    ? 'border-amber-400 bg-amber-50 text-amber-900 shadow-sm ring-1 ring-amber-200/60'
+                    : 'border-black/15 bg-white text-black/70 hover:border-black/25 hover:bg-gray-50/80'
+                } disabled:opacity-50`}
+              >
+                <Icon className="h-4 w-4 shrink-0" />
+                {item.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {sitSlots.length > 0 && (
+        <div className="space-y-4">
+          {sitSlots.map((slot, index) => {
+            const item = SIT_ITEMS.find((i) => i.label === slot.technique);
+            if (!item) return null;
+            return (
+              <div key={`${slot.technique}-${index}`} className="rounded-xl border border-black/10 bg-white p-4 sm:p-5 space-y-3">
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <h4 className="text-sm font-bold text-amber-800 uppercase tracking-wider flex items-center gap-2">
+                    <span className="flex h-7 w-7 items-center justify-center rounded-lg border-2 border-amber-500 bg-amber-50 text-amber-700">
+                      <Check className="h-4 w-4" strokeWidth={2.5} />
+                    </span>
+                    {slot.technique}
+                  </h4>
+                  <button
+                    type="button"
+                    disabled={disabled}
+                    onClick={() => handleSITTechniqueToggle(slot.technique)}
+                    className="min-h-[44px] min-w-[44px] py-2 px-3 -my-2 -mx-1 text-xs font-medium text-black/50 hover:text-red-600 underline touch-manipulation disabled:opacity-50"
+                  >
+                    ยกเลิกเลือก
+                  </button>
+                </div>
+                <p className="text-xs sm:text-sm text-black/75 leading-relaxed bg-[#fafafa] rounded-lg px-3 py-2 border border-black/5">
+                  {item.prompt}
+                </p>
+                <div>
+                  <label className="text-xs font-semibold text-black/60 uppercase tracking-wider mb-1 block">สถานการณ์</label>
+                  <textarea
+                    value={slot.situation}
+                    onChange={(e) => {
+                      const i = sitSlots.findIndex((s) => s.technique === slot.technique);
+                      if (i < 0) return;
+                      setSitSlots((prev) => {
+                        const next = [...prev];
+                        next[i] = { ...next[i], situation: e.target.value };
+                        return next;
+                      });
+                    }}
+                    placeholder={item.placeholderSituation}
+                    disabled={disabled}
+                    className="min-h-[80px] w-full resize-y rounded-lg border border-amber-200/80 bg-white px-3 py-2.5 text-base sm:text-sm outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200/50 disabled:opacity-50 placeholder:text-black/35"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-black/60 uppercase tracking-wider mb-1 block">วิธีการแก้ไข</label>
+                  <textarea
+                    value={slot.solution}
+                    onChange={(e) => {
+                      const i = sitSlots.findIndex((s) => s.technique === slot.technique);
+                      if (i < 0) return;
+                      setSitSlots((prev) => {
+                        const next = [...prev];
+                        next[i] = { ...next[i], solution: e.target.value };
+                        return next;
+                      });
+                    }}
+                    placeholder={item.placeholderSolution}
+                    disabled={disabled}
+                    className="min-h-[88px] w-full resize-y rounded-lg border border-amber-200/80 bg-white px-3 py-2.5 text-base sm:text-sm outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200/50 disabled:opacity-50 placeholder:text-black/35"
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </>
+  );
+};
+
 /** สติกเกอร์ให้เลือกใส่ในคอมเมนต์ (ทุกช่องตอบ) */
 const COMMENT_STICKERS = ['👍', '❤️', '😂', '🔥', '👏', '💡', '✨', '🎯', '🙏', '⭐', '💪', '🙌', '👋', '😊', '🌟'];
 
@@ -282,6 +432,11 @@ const readFileAsDataUrl = (file: File): Promise<string> =>
     reader.onerror = reject;
     reader.readAsDataURL(file);
   });
+
+/** ชื่อในช่อง "ระบุชื่อของคุณ" ต้องตรงกับชื่อผู้โพสต์ (หลัง trim) จึงจะแก้ไขโพสต์ได้ */
+function namesMatch(inputName: string, authorName: string): boolean {
+  return inputName.trim() === authorName.trim();
+}
 
 /** Lightbox แสดงรูปเต็มหน้าจอ คลิกปิด */
 const ImageLightbox: React.FC<{ src: string | null; onClose: () => void }> = ({ src, onClose }) => {
@@ -321,15 +476,34 @@ interface PostItemProps {
   onAddComment: (postId: string, commentText: string, imageUrl?: string) => void;
   onImageClick?: (url: string) => void;
   onLike?: (postId: string) => void;
+  onUpdatePost: (postId: string, payload: { content: string; imageUrl: string | null }) => Promise<boolean>;
 }
 
-const PostItem: React.FC<PostItemProps> = ({ post, toolId, userAvatar, userName, onAddComment, onImageClick, onLike }) => {
+const PostItem: React.FC<PostItemProps> = ({
+  post,
+  toolId,
+  userAvatar,
+  userName,
+  onAddComment,
+  onImageClick,
+  onLike,
+  onUpdatePost,
+}) => {
   const sitParsed = toolId === 'systematic-inventive-thinking' ? parseSITPostContent(post.content) : null;
   const [isReplying, setIsReplying] = useState(false);
   const [replyText, setReplyText] = useState('');
   const [replyImageUrl, setReplyImageUrl] = useState('');
   const [replyImageFile, setReplyImageFile] = useState<File | null>(null);
   const [replyImagePreview, setReplyImagePreview] = useState('');
+  const [editing, setEditing] = useState(false);
+  const [savingEdit, setSavingEdit] = useState(false);
+  const [editContent, setEditContent] = useState('');
+  const [editSitSlots, setEditSitSlots] = useState<SITSlotRow[]>([]);
+  const [sitEditUsesTemplate, setSitEditUsesTemplate] = useState(false);
+  const [editImageUrl, setEditImageUrl] = useState('');
+  const [editImageFile, setEditImageFile] = useState<File | null>(null);
+  const [editImagePreview, setEditImagePreview] = useState('');
+  const canEditPost = namesMatch(userName, post.authorName);
 
   const handleReplyImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -355,6 +529,106 @@ const PostItem: React.FC<PostItemProps> = ({ post, toolId, userAvatar, userName,
     setIsReplying(false);
   };
 
+  useEffect(() => {
+    if (editing && !namesMatch(userName, post.authorName)) {
+      setEditing(false);
+      setSitEditUsesTemplate(false);
+      setEditSitSlots([]);
+      setEditImageFile(null);
+      setEditImagePreview('');
+    }
+  }, [userName, post.authorName, editing]);
+
+  const beginEdit = () => {
+    if (!namesMatch(userName, post.authorName)) return;
+    const parsed =
+      toolId === 'systematic-inventive-thinking' ? parseSITPostContent(post.content) : null;
+    const slotsFromParsed =
+      parsed && parsed.length > 0
+        ? parsed
+            .filter((b) => (SIT_TECHNIQUES as readonly string[]).includes(b.technique))
+            .map((b) => ({
+              technique: b.technique as SITTechnique,
+              situation: b.situation,
+              solution: b.solution,
+            }))
+        : [];
+    if (slotsFromParsed.length > 0) {
+      setSitEditUsesTemplate(true);
+      setEditSitSlots(slotsFromParsed);
+      setEditContent('');
+    } else {
+      setSitEditUsesTemplate(false);
+      setEditSitSlots([]);
+      setEditContent(post.content);
+    }
+    setEditImageUrl(post.imageUrl?.trim() || '');
+    setEditImageFile(null);
+    setEditImagePreview('');
+    setEditing(true);
+    setIsReplying(false);
+  };
+
+  const handleEditImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && file.type.startsWith('image/')) {
+      setEditImageFile(file);
+      readFileAsDataUrl(file).then(setEditImagePreview);
+      setEditImageUrl('');
+    }
+    e.target.value = '';
+  };
+
+  const handleCancelEdit = () => {
+    setEditing(false);
+    setSitEditUsesTemplate(false);
+    setEditSitSlots([]);
+    setEditImageFile(null);
+    setEditImagePreview('');
+  };
+
+  const handleSaveEdit = async () => {
+    if (!namesMatch(userName.trim(), post.authorName.trim())) return;
+    let text: string;
+    if (sitEditUsesTemplate) {
+      const parts = editSitSlots
+        .filter((slot) => slot.situation.trim() && slot.solution.trim())
+        .map(
+          (slot) =>
+            `【${slot.technique}】\n\nสถานการณ์:\n${slot.situation.trim()}\n\nวิธีการแก้ไข:\n${slot.solution.trim()}`
+        );
+      text = parts.join('\n\n---\n\n');
+    } else {
+      text = editContent.trim();
+    }
+    if (!text) return;
+    let finalImage: string | null;
+    if (editImageFile) {
+      finalImage = await readFileAsDataUrl(editImageFile);
+    } else if (editImageUrl.trim()) {
+      finalImage = editImageUrl.trim();
+    } else {
+      finalImage = null;
+    }
+    setSavingEdit(true);
+    try {
+      const ok = await onUpdatePost(post.id, { content: text, imageUrl: finalImage });
+      if (ok) {
+        setEditing(false);
+        setSitEditUsesTemplate(false);
+        setEditSitSlots([]);
+        setEditImageFile(null);
+        setEditImagePreview('');
+      }
+    } finally {
+      setSavingEdit(false);
+    }
+  };
+
+  const canSaveEdit = sitEditUsesTemplate
+    ? editSitSlots.some((slot) => slot.situation.trim() && slot.solution.trim())
+    : Boolean(editContent.trim());
+
   return (
     <div className="bg-white/5 border border-white/10 rounded-3xl p-6 md:p-8 space-y-6 animate-in fade-in slide-in-from-bottom-4">
       <div className="flex gap-4">
@@ -372,43 +646,197 @@ const PostItem: React.FC<PostItemProps> = ({ post, toolId, userAvatar, userName,
               {new Date(post.createdAt).toLocaleDateString()}
             </span>
           </div>
-          {sitParsed ? (
-            <div className="mb-4">
-              <SITPostTemplate blocks={sitParsed} />
-            </div>
+          {editing ? (
+            sitEditUsesTemplate ? (
+              <div className="mb-4">
+                <div className="rounded-2xl overflow-hidden border border-white/10 bg-[#f5f5f5] text-[#1a1a1a] shadow-lg">
+                  <div className="p-4 sm:p-5">
+                    <SITInteractiveTemplate
+                      sitSlots={editSitSlots}
+                      setSitSlots={setEditSitSlots}
+                      disabled={savingEdit}
+                      subheading="แก้ไขโพสต์ — เลือกเทคนิค SIT และกรอกสถานการณ์ / วิธีแก้ไขเหมือนตอนโพสต์ใหม่"
+                    />
+                    <div className="mt-4 flex flex-col gap-3 border-t border-black/10 pt-4">
+                      <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2">
+                        <label className="cursor-pointer rounded-lg border border-black/10 bg-white px-4 py-3 min-h-[44px] flex items-center justify-center text-xs font-semibold text-black/70 uppercase tracking-wider active:bg-black/5 transition-colors disabled:opacity-50 touch-manipulation">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={handleEditImageChange}
+                            disabled={savingEdit}
+                          />
+                          เพิ่มรูป
+                        </label>
+                        <input
+                          type="url"
+                          value={editImageUrl}
+                          onChange={(e) => {
+                            setEditImageUrl(e.target.value);
+                            setEditImageFile(null);
+                            setEditImagePreview('');
+                          }}
+                          placeholder="หรือวางลิงก์รูป"
+                          disabled={savingEdit}
+                          className="flex-1 min-w-0 rounded-lg border border-black/10 bg-white px-3 py-3 text-base sm:text-sm text-black placeholder:text-black/40 focus:outline-none focus:ring-2 focus:ring-amber-300/50 disabled:opacity-50 min-h-[44px]"
+                        />
+                        {editImagePreview && (
+                          <div className="relative max-w-full w-full sm:max-w-[180px] overflow-hidden rounded-lg border border-black/10">
+                            <img
+                              src={editImagePreview}
+                              alt="ตัวอย่างรูป"
+                              className="max-h-28 w-full object-contain bg-black/5"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditImageFile(null);
+                                setEditImagePreview('');
+                              }}
+                              className="absolute top-1 right-1 h-8 w-8 rounded-full bg-black/70 text-white text-sm font-bold hover:bg-black flex items-center justify-center touch-manipulation"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex flex-wrap justify-end gap-2">
+                        <button
+                          type="button"
+                          onClick={handleCancelEdit}
+                          disabled={savingEdit}
+                          className="px-5 py-2.5 rounded-xl border border-black/15 bg-white text-sm font-bold text-black/70 hover:bg-black/[0.04] disabled:opacity-50"
+                        >
+                          ยกเลิก
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleSaveEdit}
+                          disabled={savingEdit || !canSaveEdit}
+                          className="px-6 py-2.5 rounded-xl bg-[#FFEB00] text-black text-sm font-bold uppercase tracking-wider shadow-md hover:bg-[#f5e000] disabled:opacity-50"
+                        >
+                          {savingEdit ? 'กำลังบันทึก...' : 'บันทึก'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="mb-4 space-y-3">
+                <textarea
+                  value={editContent}
+                  onChange={(e) => setEditContent(e.target.value)}
+                  className="w-full bg-neutral-800 border border-white/10 rounded-2xl p-4 text-white focus:outline-none focus:ring-2 focus:ring-yellow-400 text-sm min-h-[140px] resize-y"
+                  aria-label="แก้ไขเนื้อหาโพสต์"
+                />
+                <div className="flex flex-wrap items-center gap-2">
+                  <label className="cursor-pointer bg-white/10 hover:bg-white/15 border border-white/10 rounded-xl px-4 py-2 text-xs font-bold text-gray-300 uppercase tracking-wider transition-colors">
+                    <input type="file" accept="image/*" className="hidden" onChange={handleEditImageChange} />
+                    เพิ่มรูป
+                  </label>
+                  <input
+                    type="url"
+                    value={editImageUrl}
+                    onChange={(e) => {
+                      setEditImageUrl(e.target.value);
+                      setEditImageFile(null);
+                      setEditImagePreview('');
+                    }}
+                    placeholder="หรือวางลิงก์รูป"
+                    className="flex-1 min-w-[160px] bg-neutral-800 border border-white/10 rounded-xl px-4 py-2 text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                  />
+                </div>
+                {editImagePreview && (
+                  <div className="relative rounded-xl overflow-hidden border border-white/10 max-w-[220px] w-full">
+                    <img src={editImagePreview} alt="ตัวอย่างรูป" className="w-full h-auto max-h-36 object-contain bg-white/5" />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditImageFile(null);
+                        setEditImagePreview('');
+                      }}
+                      className="absolute top-1 right-1 w-7 h-7 rounded-full bg-black/70 text-white text-sm font-bold hover:bg-black"
+                    >
+                      ×
+                    </button>
+                  </div>
+                )}
+                <div className="flex flex-wrap justify-end gap-2">
+                  <button
+                    type="button"
+                    onClick={handleCancelEdit}
+                    disabled={savingEdit}
+                    className="px-5 py-2 rounded-xl border border-white/15 bg-white/5 text-sm font-bold text-gray-300 hover:bg-white/10 disabled:opacity-50"
+                  >
+                    ยกเลิก
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSaveEdit}
+                    disabled={savingEdit || !canSaveEdit}
+                    className="px-5 py-2 rounded-xl bg-yellow-400 text-black text-sm font-bold hover:bg-yellow-300 disabled:opacity-50"
+                  >
+                    {savingEdit ? 'กำลังบันทึก...' : 'บันทึก'}
+                  </button>
+                </div>
+              </div>
+            )
           ) : (
-            <p className="text-gray-300 leading-relaxed mb-2 whitespace-pre-wrap break-words">{post.content}</p>
+            <>
+              {sitParsed ? (
+                <div className="mb-4">
+                  <SITPostTemplate blocks={sitParsed} />
+                </div>
+              ) : (
+                <p className="text-gray-300 leading-relaxed mb-2 whitespace-pre-wrap break-words">{post.content}</p>
+              )}
+              {post.imageUrl && (
+                <div
+                  className="rounded-2xl overflow-hidden border border-white/10 mb-3 max-w-full w-full sm:max-w-md cursor-pointer hover:opacity-90 transition-opacity"
+                  onClick={() => onImageClick?.(post.imageUrl!)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => e.key === 'Enter' && onImageClick?.(post.imageUrl!)}
+                >
+                  <img src={post.imageUrl} alt="Post attachment คลิกดูเต็ม" className="w-full h-auto max-h-64 sm:max-h-72 object-contain bg-white/5" />
+                </div>
+              )}
+            </>
           )}
-          {post.imageUrl && (
-            <div
-              className="rounded-2xl overflow-hidden border border-white/10 mb-3 max-w-full w-full sm:max-w-md cursor-pointer hover:opacity-90 transition-opacity"
-              onClick={() => onImageClick?.(post.imageUrl!)}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => e.key === 'Enter' && onImageClick?.(post.imageUrl!)}
-            >
-              <img src={post.imageUrl} alt="Post attachment คลิกดูเต็ม" className="w-full h-auto max-h-64 sm:max-h-72 object-contain bg-white/5" />
-            </div>
-          )}
-          <div className="flex items-center gap-4 flex-wrap">
-            {onLike && (
+          {!editing && (
+            <div className="flex items-center gap-4 flex-wrap">
+              {onLike && (
+                <button
+                  type="button"
+                  onClick={() => onLike(post.id)}
+                  className="flex items-center gap-1.5 text-gray-400 hover:text-yellow-400 transition-colors"
+                  title="ไลค์"
+                >
+                  <span className="text-lg" aria-hidden>♥</span>
+                  <span className="text-sm font-medium">{post.likeCount ?? 0}</span>
+                </button>
+              )}
+              {canEditPost && (
+                <button
+                  type="button"
+                  onClick={beginEdit}
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-white/80 hover:text-yellow-400 transition-colors uppercase tracking-widest"
+                >
+                  <Pencil className="h-3.5 w-3.5" strokeWidth={2.5} />
+                  แก้ไข
+                </button>
+              )}
               <button
                 type="button"
-                onClick={() => onLike(post.id)}
-                className="flex items-center gap-1.5 text-gray-400 hover:text-yellow-400 transition-colors"
-                title="ไลค์"
+                onClick={() => setIsReplying(!isReplying)}
+                className="text-xs font-bold text-yellow-400 hover:text-yellow-300 transition-colors uppercase tracking-widest"
               >
-                <span className="text-lg" aria-hidden>♥</span>
-                <span className="text-sm font-medium">{post.likeCount ?? 0}</span>
+                {isReplying ? 'Cancel' : 'Reply'}
               </button>
-            )}
-            <button 
-              onClick={() => setIsReplying(!isReplying)}
-              className="text-xs font-bold text-yellow-400 hover:text-yellow-300 transition-colors uppercase tracking-widest"
-            >
-              {isReplying ? 'Cancel' : 'Reply'}
-            </button>
-          </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -565,16 +993,6 @@ const CommentSection: React.FC<{ toolId?: string }> = ({ toolId = "bmc" }) => {
     e.target.value = '';
   };
 
-  const handleSITTechniqueToggle = (tech: SITTechnique) => {
-    setSitSlots((prev) => {
-      const idx = prev.findIndex((s) => s.technique === tech);
-      if (idx >= 0) {
-        return prev.filter((_, i) => i !== idx);
-      }
-      return [...prev, { technique: tech, situation: '', solution: '' }];
-    });
-  };
-
   const handleCreatePost = async (e: React.FormEvent) => {
     e.preventDefault();
     let contentToPost: string;
@@ -704,6 +1122,41 @@ const CommentSection: React.FC<{ toolId?: string }> = ({ toolId = "bmc" }) => {
     );
   };
 
+  const handleUpdatePost = useCallback(
+    async (postId: string, payload: { content: string; imageUrl: string | null }) => {
+      if (!payload.content.trim()) return false;
+      if (isSupabaseConfigured) {
+        const updated = await updatePost(postId, payload);
+        if (!updated) return false;
+        setPosts((prev) =>
+          prev.map((p) =>
+            p.id === postId
+              ? {
+                  ...p,
+                  content: updated.content,
+                  imageUrl: updated.imageUrl,
+                }
+              : p
+          )
+        );
+        return true;
+      }
+      setPosts((prev) =>
+        prev.map((p) =>
+          p.id === postId
+            ? {
+                ...p,
+                content: payload.content,
+                imageUrl: payload.imageUrl ?? undefined,
+              }
+            : p
+        )
+      );
+      return true;
+    },
+    []
+  );
+
   return (
     <section className="mt-24 border-t border-white/10 pt-16">
       <div className="mb-12">
@@ -747,129 +1200,7 @@ const CommentSection: React.FC<{ toolId?: string }> = ({ toolId = "bmc" }) => {
             {isSIT ? (
               <div className="rounded-2xl overflow-hidden border border-white/10 bg-[#f5f5f5] text-[#1a1a1a] shadow-lg -mx-1 sm:mx-0 px-1 sm:px-0">
                 <div className="p-4 sm:p-6">
-                  {/* Header — มือถือ: stack จัดกลาง */}
-                  <div className="flex flex-col items-center text-center sm:items-start sm:text-left gap-3 sm:gap-4 mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-11 w-11 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-full bg-[#FFEB00] border-2 border-[#1a1a1a]/90 shadow-sm">
-                        <Lightbulb className="h-5 w-5 sm:h-7 sm:w-7 text-[#1a1a1a]" />
-                      </div>
-                      <h2 className="text-base sm:text-xl font-semibold text-black/90">
-                        Systematic Inventive Thinking Template
-                      </h2>
-                    </div>
-                    <div className="flex items-center gap-2 w-full sm:w-auto justify-center sm:justify-start">
-                      <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded border bg-white ${sitSlots.length > 0 ? 'border-amber-500 text-amber-600' : 'border-black/20 text-black/40'}`}>
-                        {sitSlots.length > 0 ? <Check className="h-3 w-3" strokeWidth={2.5} /> : null}
-                      </span>
-                      <span className="text-xs sm:text-sm font-medium text-black/70">
-                        เลือก SIT อย่างน้อย 1 ตัว ที่คุณได้นำเอาไปใช้ในการทำงานจริง
-                      </span>
-                    </div>
-                    <div className="rounded-xl bg-[#FFEB00] border border-amber-400/60 px-3 py-3 sm:px-5 sm:py-4 w-full text-center">
-                      <h3 className="text-sm sm:text-lg font-bold text-black/95 leading-snug">
-                        คุณใช้ SIT ปรับรูปแบบหรือกระบวนการอะไร ในงานของคุณ
-                      </h3>
-                    </div>
-                  </div>
-
-                  {/* ปุ่มเลือกเทคนิค — มือถือ: ปุ่มใหญ่กดง่าย min-h-[44px] */}
-                  <div className="mb-4">
-                    <p className="text-xs font-semibold text-black/60 uppercase tracking-wider mb-2">เลือกเทคนิคที่ต้องการ (กดแล้วเปลี่ยนสี = เลือกแล้ว)</p>
-                    <div className="flex flex-wrap gap-2">
-                      {SIT_ITEMS.map((item) => {
-                        const Icon = item.icon;
-                        const active = sitSlots.some((s) => s.technique === item.label);
-                        return (
-                          <button
-                            key={item.id}
-                            type="button"
-                            onClick={() => handleSITTechniqueToggle(item.label)}
-                            className={`inline-flex items-center justify-center gap-2 rounded-xl border px-4 py-3.5 min-h-[44px] text-sm font-semibold transition-all touch-manipulation active:scale-[0.98] ${
-                              active
-                                ? 'border-amber-400 bg-amber-50 text-amber-900 shadow-sm ring-1 ring-amber-200/60'
-                                : 'border-black/15 bg-white text-black/70 hover:border-black/25 hover:bg-gray-50/80'
-                            }`}
-                          >
-                            <Icon className="h-4 w-4 shrink-0" />
-                            {item.label}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* แสดงช่องกรอกเฉพาะเทคนิคที่เลือกแล้ว */}
-                  {sitSlots.length > 0 && (
-                    <div className="space-y-4">
-                      {sitSlots.map((slot, index) => {
-                        const item = SIT_ITEMS.find((i) => i.label === slot.technique);
-                        if (!item) return null;
-                        return (
-                          <div
-                            key={`${slot.technique}-${index}`}
-                            className="rounded-xl border border-black/10 bg-white p-4 sm:p-5 space-y-3"
-                          >
-                            <div className="flex items-center justify-between gap-2 flex-wrap">
-                              <h4 className="text-sm font-bold text-amber-800 uppercase tracking-wider flex items-center gap-2">
-                                <span className="flex h-7 w-7 items-center justify-center rounded-lg border-2 border-amber-500 bg-amber-50 text-amber-700">
-                                  <Check className="h-4 w-4" strokeWidth={2.5} />
-                                </span>
-                                {slot.technique}
-                              </h4>
-                              <button
-                                type="button"
-                                onClick={() => handleSITTechniqueToggle(slot.technique)}
-                                className="min-h-[44px] min-w-[44px] py-2 px-3 -my-2 -mx-1 text-xs font-medium text-black/50 hover:text-red-600 underline touch-manipulation"
-                              >
-                                ยกเลิกเลือก
-                              </button>
-                            </div>
-                            <p className="text-xs sm:text-sm text-black/75 leading-relaxed bg-[#fafafa] rounded-lg px-3 py-2 border border-black/5">
-                              {item.prompt}
-                            </p>
-                            <div>
-                              <label className="text-xs font-semibold text-black/60 uppercase tracking-wider mb-1 block">สถานการณ์</label>
-                              <textarea
-                                value={slot.situation}
-                                onChange={(e) => {
-                                  const i = sitSlots.findIndex((s) => s.technique === slot.technique);
-                                  if (i < 0) return;
-                                  setSitSlots((prev) => {
-                                    const next = [...prev];
-                                    next[i] = { ...next[i], situation: e.target.value };
-                                    return next;
-                                  });
-                                }}
-                                placeholder={item.placeholderSituation}
-                                // ให้พิมพ์ได้เสมอ (ปุ่มโพสต์จะ disable เองตามเงื่อนไข)
-                                disabled={posting}
-                                className="min-h-[80px] w-full resize-y rounded-lg border border-amber-200/80 bg-white px-3 py-2.5 text-base sm:text-sm outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200/50 disabled:opacity-50 placeholder:text-black/35"
-                              />
-                            </div>
-                            <div>
-                              <label className="text-xs font-semibold text-black/60 uppercase tracking-wider mb-1 block">วิธีการแก้ไข</label>
-                              <textarea
-                                value={slot.solution}
-                                onChange={(e) => {
-                                  const i = sitSlots.findIndex((s) => s.technique === slot.technique);
-                                  if (i < 0) return;
-                                  setSitSlots((prev) => {
-                                    const next = [...prev];
-                                    next[i] = { ...next[i], solution: e.target.value };
-                                    return next;
-                                  });
-                                }}
-                                placeholder={item.placeholderSolution}
-                                // ให้พิมพ์ได้เสมอ (ปุ่มโพสต์จะ disable เองตามเงื่อนไข)
-                                disabled={posting}
-                                className="min-h-[88px] w-full resize-y rounded-lg border border-amber-200/80 bg-white px-3 py-2.5 text-base sm:text-sm outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200/50 disabled:opacity-50 placeholder:text-black/35"
-                              />
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
+                  <SITInteractiveTemplate sitSlots={sitSlots} setSitSlots={setSitSlots} disabled={posting} />
 
                   {/* Actions — มือถือ: stack, ปุ่มใหญ่ touch-friendly */}
                   <div className="mt-4 flex flex-col gap-3">
@@ -986,6 +1317,7 @@ const CommentSection: React.FC<{ toolId?: string }> = ({ toolId = "bmc" }) => {
               onAddComment={handleAddComment}
               onImageClick={handleImageClick}
               onLike={handleLike}
+              onUpdatePost={handleUpdatePost}
             />
           ))
         ) : (
