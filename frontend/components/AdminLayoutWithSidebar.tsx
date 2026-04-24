@@ -386,6 +386,14 @@ const AdminLayoutWithSidebar: React.FC = () => {
         >
           แบบประเมิน INNO Club
         </a>
+        <a
+          href="/course-wheel"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block py-2.5 px-3 rounded-lg text-sm font-medium text-gray-400 hover:bg-white/5 hover:text-white transition-colors"
+        >
+          วงล้อหลักสูตร
+        </a>
       </nav>
 
       <button

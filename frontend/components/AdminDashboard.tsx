@@ -172,6 +172,7 @@ const AdminDashboard: React.FC = () => {
             </div>
 
             {selectedCollection && (
+              <div className="space-y-4">
               <div className="rounded-2xl border border-white/10 bg-white/5 overflow-hidden">
                 <div className="px-4 sm:px-6 py-4 border-b border-white/10 space-y-3">
                   <div className="flex flex-col gap-3">
@@ -360,6 +361,7 @@ create policy "Allow read persuasion_results admin"
                   )}
                   </>
                 )}
+              </div>
               </div>
             )}
           </>

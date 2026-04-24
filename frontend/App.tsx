@@ -17,6 +17,7 @@ const AdminLoginPage = lazy(() => import('./components/AdminLoginPage'));
 const AdminApprovePage = lazy(() => import('./components/AdminApprovePage'));
 const AdminLayoutWithSidebar = lazy(() => import('./components/AdminLayoutWithSidebar'));
 const AdminDashboard = lazy(() => import('./components/AdminDashboard'));
+const AdminCourseWheelPage = lazy(() => import('./components/AdminCourseWheelPage'));
 const AdminLeavePage = lazy(() => import('./components/AdminLeavePage'));
 const AdminLeaveManagePage = lazy(() => import('./components/AdminLeaveManagePage'));
 const AdminStickycloudPage = lazy(() => import('./components/AdminStickycloudPage'));
@@ -171,6 +172,13 @@ const App: React.FC = () => {
       </Suspense>
     );
   }
+  if (pathname === '/course-wheel') {
+    return (
+      <Suspense fallback={<RouteFallback />}>
+        <AdminCourseWheelPage />
+      </Suspense>
+    );
+  }
   if (pathname.startsWith('/admin')) {
     return (
       <AdminLayout>
@@ -178,6 +186,7 @@ const App: React.FC = () => {
           <Routes>
             <Route path="/admin" element={<AdminLayoutWithSidebar />}>
               <Route index element={<AdminDashboard />} />
+              <Route path="course-wheel" element={<AdminCourseWheelPage />} />
               <Route path="leave" element={<AdminLeavePage />} />
               <Route path="leave/manage" element={<AdminLeaveManagePage />} />
               <Route path="rooms" element={<AdminStickycloudPage />} />
