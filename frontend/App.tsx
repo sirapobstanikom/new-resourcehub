@@ -33,6 +33,7 @@ const AdminMindDojoAssessmentUsersPage = lazy(() => import('./components/AdminMi
 const Game10Timeout = lazy(() => import('./components/Game10Timeout'));
 const GameReaction = lazy(() => import('./components/GameReaction'));
 const InnoClubEvaluationPage = lazy(() => import('./components/InnoClubEvaluationPage'));
+const HogwartsInnoclubPage = lazy(() => import('./components/HogwartsInnoclubPage'));
 
 function RouteFallback() {
   return (
@@ -232,6 +233,8 @@ const App: React.FC = () => {
       <Suspense fallback={<RouteFallback />}>
         <Routes>
           <Route path="/evaluation/innoclub" element={<InnoClubEvaluationPage />} />
+          <Route path="/evaluation/innoclub-hogwarts" element={<HogwartsInnoclubPage />} />
+          <Route path="/evaluation/innoclub-hogwarts-guest" element={<HogwartsInnoclubPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Suspense>
