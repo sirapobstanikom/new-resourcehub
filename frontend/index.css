@@ -36,6 +36,16 @@
   font-family: "Sarabun", ui-sans-serif, system-ui, sans-serif !important;
 }
 
+.innoclub-hogwarts-font {
+  font-family: "Cinzel", "Cinzel Decorative", "Palatino Linotype", "Book Antiqua", "Times New Roman", "Sarabun", serif !important;
+}
+
+.innoclub-hogwarts-font h1,
+.innoclub-hogwarts-font h2 {
+  font-family: "Cinzel Decorative", "Cinzel", "Palatino Linotype", "Book Antiqua", "Times New Roman", "Sarabun", serif !important;
+  letter-spacing: 0.03em;
+}
+
 /* คลาสเพิ่มเติมของโปรเจกต์ */
 /* ตารางอยู่ที่ ::before เท่านั้น — อย่า mask ทั้งคอนเทนเนอร์ ไม่งั้นข้อความ/ปุ่มจะถูกจางหาย */
 .bg-grid {

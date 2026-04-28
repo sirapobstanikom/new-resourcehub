@@ -1,0 +1,69 @@
+<svg width="1920" height="1080" viewBox="0 0 1920 1080" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="sky" x1="960" y1="0" x2="960" y2="1080" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#1A1238"/>
+      <stop offset="0.45" stop-color="#0D091B"/>
+      <stop offset="1" stop-color="#07050F"/>
+    </linearGradient>
+    <radialGradient id="moonGlow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1520 220) rotate(90) scale(210 210)">
+      <stop stop-color="#FDE68A" stop-opacity="0.65"/>
+      <stop offset="1" stop-color="#FDE68A" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="mist" x1="960" y1="680" x2="960" y2="1080" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#B4530999"/>
+      <stop offset="1" stop-color="#00000000"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1920" height="1080" fill="url(#sky)"/>
+  <rect width="1920" height="1080" fill="url(#moonGlow)"/>
+  <circle cx="1520" cy="220" r="62" fill="#FFF3BF" opacity="0.85"/>
+
+  <g opacity="0.28" fill="#E5E7EB">
+    <circle cx="260" cy="145" r="1.8"/>
+    <circle cx="330" cy="250" r="1.6"/>
+    <circle cx="490" cy="120" r="1.4"/>
+    <circle cx="770" cy="95" r="1.6"/>
+    <circle cx="990" cy="180" r="1.5"/>
+    <circle cx="1120" cy="95" r="1.7"/>
+    <circle cx="1270" cy="150" r="1.5"/>
+    <circle cx="1390" cy="85" r="1.7"/>
+    <circle cx="1660" cy="130" r="1.9"/>
+  </g>
+
+  <g fill="#0B0A15">
+    <rect x="90" y="780" width="1730" height="320"/>
+    <rect x="320" y="570" width="230" height="210"/>
+    <rect x="560" y="510" width="180" height="270"/>
+    <rect x="740" y="610" width="140" height="170"/>
+    <rect x="900" y="530" width="240" height="250"/>
+    <rect x="1160" y="600" width="190" height="180"/>
+    <rect x="1360" y="550" width="210" height="230"/>
+    <rect x="1580" y="640" width="120" height="140"/>
+
+    <polygon points="300,570 435,420 570,570"/>
+    <polygon points="530,510 650,360 770,510"/>
+    <polygon points="895,530 1020,380 1145,530"/>
+    <polygon points="1345,550 1465,395 1585,550"/>
+
+    <rect x="672" y="335" width="14" height="185"/>
+    <polygon points="640,355 679,305 718,355"/>
+    <rect x="1020" y="330" width="14" height="200"/>
+    <polygon points="988,350 1027,300 1066,350"/>
+    <rect x="1460" y="365" width="14" height="190"/>
+    <polygon points="1428,385 1467,335 1506,385"/>
+  </g>
+
+  <g fill="#FBBF24" opacity="0.28">
+    <rect x="372" y="630" width="14" height="24" rx="3"/>
+    <rect x="402" y="630" width="14" height="24" rx="3"/>
+    <rect x="595" y="595" width="14" height="24" rx="3"/>
+    <rect x="625" y="595" width="14" height="24" rx="3"/>
+    <rect x="976" y="635" width="14" height="24" rx="3"/>
+    <rect x="1010" y="635" width="14" height="24" rx="3"/>
+    <rect x="1436" y="625" width="14" height="24" rx="3"/>
+    <rect x="1470" y="625" width="14" height="24" rx="3"/>
+  </g>
+
+  <rect y="680" width="1920" height="400" fill="url(#mist)"/>
+</svg>

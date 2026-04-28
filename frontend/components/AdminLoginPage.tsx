@@ -6,11 +6,29 @@ import { useAuth } from '../contexts/AuthContext';
 
 const DEPRECATED_ADMIN_EMAIL = 'admin@minddojo.me';
 
+const mapSupabaseAuthError = (rawMessage: string) => {
+  const message = (rawMessage || '').toLowerCase();
+  if (message.includes('invalid login credentials')) {
+    return 'อีเมลหรือรหัสผ่านไม่ถูกต้อง';
+  }
+  if (message.includes('email not confirmed')) {
+    return 'บัญชียังไม่ยืนยันอีเมล กรุณาตรวจสอบกล่องอีเมลก่อนเข้าสู่ระบบ';
+  }
+  if (message.includes('too many requests') || message.includes('rate limit')) {
+    return 'พยายามเข้าสู่ระบบบ่อยเกินไป กรุณารอสักครู่แล้วลองใหม่';
+  }
+  if (message.includes('signup is disabled')) {
+    return 'โปรเจกต์ Supabase ปิดการสมัครสมาชิกอยู่ กรุณาติดต่อผู้ดูแลระบบ';
+  }
+  return rawMessage || 'เข้าสู่ระบบไม่สำเร็จ กรุณาลองใหม่';
+};
+
 const AdminLoginPage: React.FC = () => {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
@@ -31,11 +49,11 @@ const AdminLoginPage: React.FC = () => {
       return;
     }
     setLoading(true);
-    const cleanEmail = email.trim().split('#')[0];
+    const cleanEmail = email.trim();
     const { error } = await supabase.auth.signInWithPassword({ email: cleanEmail, password });
     setLoading(false);
     if (error) {
-      setMessage({ type: 'error', text: error.message || 'อีเมลหรือรหัสผ่านไม่ถูกต้อง' });
+      setMessage({ type: 'error', text: mapSupabaseAuthError(error.message) });
       return;
     }
     setAdminAuthenticated();
@@ -74,16 +92,26 @@ const AdminLoginPage: React.FC = () => {
             </div>
             <div>
               <label htmlFor="admin-password" className="block text-sm font-medium text-gray-400 mb-2">รหัสผ่าน</label>
-              <input
-                id="admin-password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                required
-                autoComplete="current-password"
-                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-all"
-              />
+              <div className="relative">
+                <input
+                  id="admin-password"
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  required
+                  autoComplete="current-password"
+                  className="w-full px-4 py-3 pr-24 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-all"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white/10 text-gray-200 hover:bg-white/20 transition-colors"
+                  aria-label={showPassword ? 'ซ่อนรหัสผ่าน' : 'แสดงรหัสผ่าน'}
+                >
+                  {showPassword ? 'ซ่อน' : 'แสดง'}
+                </button>
+              </div>
             </div>
             {message && (
               <div className={`p-3 rounded-xl text-sm ${message.type === 'success' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>

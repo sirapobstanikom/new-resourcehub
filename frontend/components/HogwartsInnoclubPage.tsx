@@ -284,9 +284,29 @@ const HogwartsInnoclubPage: React.FC = () => {
   const selectedBase = baseOptions.find((b) => b.id === form.base_name);
 
   const inputClass = 'w-full rounded-lg bg-black/40 border border-amber-200/25 px-3 py-2 text-amber-50 placeholder:text-amber-100/40';
-
+  const dashboardBackgroundStyle = {
+    backgroundImage: "url('/images/hogwarts/3.png')",
+    backgroundSize: '100%',
+    backgroundPosition: 'center 22%',
+    backgroundRepeat: 'no-repeat',
+  } as const;
   return (
-    <div className="min-h-screen text-white bg-[radial-gradient(circle_at_top,_#2a1b4a_0%,_#0d091b_45%,_#07050f_100%)]">
+    <div className="relative min-h-screen text-white innoclub-hogwarts-font bg-[#07050f] overflow-hidden">
+      {view === 'form' ? (
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage: "url('/images/hogwarts/1.png')",
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+          }}
+        />
+      ) : (
+        <div className="absolute inset-0" style={dashboardBackgroundStyle} />
+      )}
+      <div className="absolute inset-0 bg-gradient-to-b from-[#07050f]/45 via-[#07050f]/68 to-[#07050f]/85" />
+      <div className="relative z-10">
       <header className="border-b border-amber-200/15 backdrop-blur-sm">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
@@ -298,6 +318,13 @@ const HogwartsInnoclubPage: React.FC = () => {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <Link
+              to="/"
+              className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-amber-200/25 bg-white/10 text-amber-100 hover:bg-white/20 transition-colors"
+            >
+              <span className="w-6 h-6 rounded-md bg-amber-300 text-black font-black flex items-center justify-center text-xs">M</span>
+              <span className="text-sm font-semibold">MindDojo</span>
+            </Link>
             <button
               type="button"
               onClick={() => setView('form')}
@@ -331,7 +358,7 @@ const HogwartsInnoclubPage: React.FC = () => {
 
       <main className="max-w-6xl mx-auto px-4 py-8">
         {view === 'form' ? (
-          <form onSubmit={submit} className="max-w-3xl mx-auto space-y-6">
+          <form onSubmit={submit} className="max-w-3xl mx-auto space-y-6 lg:space-y-7">
             <div className="rounded-2xl border border-amber-200/20 bg-black/35 p-5">
               <h2 className="text-xl font-bold text-amber-100 mb-1">เลือกฐานและกลุ่ม</h2>
               <p className="text-sm text-amber-100/75 mb-4">เริ่มจากเลือกฐานและกลุ่มก่อนเข้าสู่การตอบคำถาม</p>
@@ -452,8 +479,13 @@ const HogwartsInnoclubPage: React.FC = () => {
             )}
 
             {selectedBase && (
-              <div className="rounded-2xl border border-amber-200/20 bg-black/35 p-5 space-y-4">
-                <h3 className="text-lg font-bold text-amber-100">{selectedBase.title}</h3>
+              <div className="rounded-2xl border border-amber-200/20 bg-black/35 p-5 space-y-4 min-h-[340px] sm:min-h-[380px] lg:min-h-[430px] transition-all duration-300">
+                <div className="flex items-center justify-between gap-3">
+                  <h3 className="text-lg font-bold text-amber-100">{selectedBase.title}</h3>
+                  <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-300/20 border border-amber-200/30 text-amber-100">
+                    {baseOptions.findIndex((b) => b.id === selectedBase.id) + 1}/4
+                  </span>
+                </div>
 
                 {form.base_name === 'base1' && (
                   <>
@@ -473,15 +505,15 @@ const HogwartsInnoclubPage: React.FC = () => {
                   <>
                     <label className="block space-y-2">
                       <span className="text-sm text-amber-100">1. เปรียบเทียบยอดขายในช่วงเวลาต่าง ๆ เพื่อดูการเติบโต *</span>
-                      <textarea rows={4} value={form.base2_q1} onChange={(e) => setForm((prev) => ({ ...prev, base2_q1: e.target.value }))} className={`${inputClass} resize-none`} />
+                      <textarea rows={4} value={form.base2_q1} onChange={(e) => setForm((prev) => ({ ...prev, base2_q1: e.target.value }))} className={`${inputClass} min-h-[110px] resize-y`} />
                     </label>
                     <label className="block space-y-2">
                       <span className="text-sm text-amber-100">2. Top 3 ผลิตภัณฑ์ที่กำไรสูงสุด และแนวทางขยายยอดขาย *</span>
-                      <textarea rows={4} value={form.base2_q2} onChange={(e) => setForm((prev) => ({ ...prev, base2_q2: e.target.value }))} className={`${inputClass} resize-none`} />
+                      <textarea rows={4} value={form.base2_q2} onChange={(e) => setForm((prev) => ({ ...prev, base2_q2: e.target.value }))} className={`${inputClass} min-h-[110px] resize-y`} />
                     </label>
                     <label className="block space-y-2">
                       <span className="text-sm text-amber-100">3. แนวโน้มโดยรวมเมื่อเวลาผ่านไป (เติบโต/คงที่/ลดลง) *</span>
-                      <textarea rows={4} value={form.base2_q3} onChange={(e) => setForm((prev) => ({ ...prev, base2_q3: e.target.value }))} className={`${inputClass} resize-none`} />
+                      <textarea rows={4} value={form.base2_q3} onChange={(e) => setForm((prev) => ({ ...prev, base2_q3: e.target.value }))} className={`${inputClass} min-h-[110px] resize-y`} />
                     </label>
                   </>
                 )}
@@ -490,15 +522,15 @@ const HogwartsInnoclubPage: React.FC = () => {
                   <>
                     <label className="block space-y-2">
                       <span className="text-sm text-amber-100">1. วิเคราะห์ SWOT ทั้ง 4 ช่อง *</span>
-                      <textarea rows={5} value={form.base3_swot} onChange={(e) => setForm((prev) => ({ ...prev, base3_swot: e.target.value }))} className={`${inputClass} resize-none`} />
+                      <textarea rows={5} value={form.base3_swot} onChange={(e) => setForm((prev) => ({ ...prev, base3_swot: e.target.value }))} className={`${inputClass} min-h-[132px] resize-y`} />
                     </label>
                     <label className="block space-y-2">
                       <span className="text-sm text-amber-100">2. เป้าหมายกำไรเท่าไร และเพราะเหตุใด *</span>
-                      <textarea rows={4} value={form.base3_profit_target} onChange={(e) => setForm((prev) => ({ ...prev, base3_profit_target: e.target.value }))} className={`${inputClass} resize-none`} />
+                      <textarea rows={4} value={form.base3_profit_target} onChange={(e) => setForm((prev) => ({ ...prev, base3_profit_target: e.target.value }))} className={`${inputClass} min-h-[110px] resize-y`} />
                     </label>
                     <label className="block space-y-2">
                       <span className="text-sm text-amber-100">3. กลยุทธ์ที่จะใช้มีอะไรบ้าง *</span>
-                      <textarea rows={4} value={form.base3_strategies} onChange={(e) => setForm((prev) => ({ ...prev, base3_strategies: e.target.value }))} className={`${inputClass} resize-none`} />
+                      <textarea rows={4} value={form.base3_strategies} onChange={(e) => setForm((prev) => ({ ...prev, base3_strategies: e.target.value }))} className={`${inputClass} min-h-[110px] resize-y`} />
                     </label>
                   </>
                 )}
@@ -615,6 +647,7 @@ const HogwartsInnoclubPage: React.FC = () => {
           </div>
         )}
       </main>
+      </div>
     </div>
   );
 };
