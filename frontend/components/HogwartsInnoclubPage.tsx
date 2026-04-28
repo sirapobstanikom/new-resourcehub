@@ -53,8 +53,14 @@ const HogwartsInnoclubPage: React.FC = () => {
   const [answers, setAnswers] = useState<AnswerPayload[]>([]);
   const [loadingDashboard, setLoadingDashboard] = useState(false);
   const [loadingSubmit, setLoadingSubmit] = useState(false);
+  const [rowActionLoadingId, setRowActionLoadingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [previewImageSrc, setPreviewImageSrc] = useState<string | null>(null);
+  const [previewImageAlt, setPreviewImageAlt] = useState<string>('logo preview');
+  const [editingAnswerId, setEditingAnswerId] = useState<string | null>(null);
+  const [editRespondentName, setEditRespondentName] = useState('');
+  const [editSummaryText, setEditSummaryText] = useState('');
   const [form, setForm] = useState({
     base_name: '' as BaseId | '',
     group_name: '',
@@ -68,6 +74,7 @@ const HogwartsInnoclubPage: React.FC = () => {
     base3_strategies: '',
     base4_logo_link: '',
     base4_logo_file_name: '',
+    base4_logo_data_url: '',
   });
 
   const canSubmit = useMemo(() => {
@@ -121,6 +128,17 @@ const HogwartsInnoclubPage: React.FC = () => {
 
   const writeLocalAnswers = (next: AnswerPayload[]) => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+  };
+
+  const patchLocalAnswer = (id: string, patch: Partial<AnswerPayload>) => {
+    const localData = readLocalAnswers();
+    const next = localData.map((row) => (row.id === id ? { ...row, ...patch } : row));
+    writeLocalAnswers(next);
+  };
+
+  const removeLocalAnswer = (id: string) => {
+    const localData = readLocalAnswers();
+    writeLocalAnswers(localData.filter((row) => row.id !== id));
   };
 
   const loadAnswers = async () => {
@@ -221,6 +239,7 @@ const HogwartsInnoclubPage: React.FC = () => {
       answers_json: {
         logo_link: form.base4_logo_link.trim(),
         logo_file_name: form.base4_logo_file_name.trim(),
+        logo_data_url: form.base4_logo_data_url.trim(),
       },
       summary_text: `Logo: ${form.base4_logo_file_name.trim() || form.base4_logo_link.trim() || '-'}`,
       attachment_name: form.base4_logo_file_name.trim() || null,
@@ -277,11 +296,78 @@ const HogwartsInnoclubPage: React.FC = () => {
       base3_strategies: '',
       base4_logo_link: '',
       base4_logo_file_name: '',
+      base4_logo_data_url: '',
     });
     setLoadingSubmit(false);
   };
 
   const selectedBase = baseOptions.find((b) => b.id === form.base_name);
+
+  const startEditAnswer = (row: AnswerPayload) => {
+    setEditingAnswerId(row.id);
+    setEditRespondentName(row.respondent_name || '');
+    setEditSummaryText(row.summary_text || '');
+  };
+
+  const cancelEditAnswer = () => {
+    setEditingAnswerId(null);
+    setEditRespondentName('');
+    setEditSummaryText('');
+  };
+
+  const saveEditAnswer = async (row: AnswerPayload) => {
+    const patch = {
+      respondent_name: editRespondentName.trim() || null,
+      summary_text: editSummaryText.trim() || null,
+    };
+    setRowActionLoadingId(row.id);
+    setError(null);
+    if (isSupabaseConfigured) {
+      const { error: updateError } = await supabase.from('hogwarts_innoclub_answers').update(patch).eq('id', row.id);
+      if (updateError) {
+        setRowActionLoadingId(null);
+        setError(`แก้ไขไม่สำเร็จ (${updateError.message})`);
+        return;
+      }
+    }
+    setAnswers((prev) => prev.map((item) => (item.id === row.id ? { ...item, ...patch } : item)));
+    patchLocalAnswer(row.id, patch);
+    setRowActionLoadingId(null);
+    cancelEditAnswer();
+    setSuccess('อัปเดตคำตอบเรียบร้อย');
+  };
+
+  const deleteAnswer = async (row: AnswerPayload) => {
+    const confirmed = window.confirm('ยืนยันการลบคำตอบนี้ใช่หรือไม่?');
+    if (!confirmed) return;
+    setRowActionLoadingId(row.id);
+    setError(null);
+    if (!isSupabaseConfigured) {
+      setRowActionLoadingId(null);
+      setError('ยังไม่ได้ตั้งค่า Supabase จึงไม่สามารถลบจริงบนฐานข้อมูลได้');
+      return;
+    }
+    const { data: deletedRows, error: deleteError } = await supabase
+      .from('hogwarts_innoclub_answers')
+      .delete()
+      .eq('id', row.id)
+      .select('id');
+    if (deleteError) {
+      setRowActionLoadingId(null);
+      setError(`ลบไม่สำเร็จ (${deleteError.message})`);
+      return;
+    }
+    if (!deletedRows || deletedRows.length === 0) {
+      setRowActionLoadingId(null);
+      setError('ไม่พบข้อมูลใน Supabase หรือไม่มีสิทธิ์ลบ (RLS)');
+      return;
+    }
+    setAnswers((prev) => prev.filter((item) => item.id !== row.id));
+    removeLocalAnswer(row.id);
+    setRowActionLoadingId(null);
+    if (editingAnswerId === row.id) cancelEditAnswer();
+    setSuccess('ลบคำตอบเรียบร้อย');
+  };
 
   const inputClass = 'w-full rounded-lg bg-black/40 border border-amber-200/25 px-3 py-2 text-amber-50 placeholder:text-amber-100/40';
   const dashboardBackgroundStyle = {
@@ -339,19 +425,6 @@ const HogwartsInnoclubPage: React.FC = () => {
             >
               Dashboard
             </button>
-            <a
-              href="/evaluation/innoclub-hogwarts-guest"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-3 py-2 rounded-lg text-sm font-semibold bg-white/10 text-amber-100 hover:bg-white/20"
-            >
-              Guest
-            </a>
-            {!isGuestPage && (
-              <Link to="/admin/login" className="px-3 py-2 rounded-lg text-sm font-semibold bg-white/10 text-amber-100 hover:bg-white/20">
-                Login Admin
-              </Link>
-            )}
           </div>
         </div>
       </header>
@@ -551,9 +624,23 @@ const HogwartsInnoclubPage: React.FC = () => {
                       <input
                         type="file"
                         accept="image/*"
-                        onChange={(e) => {
-                          const fileName = e.target.files?.[0]?.name || '';
-                          setForm((prev) => ({ ...prev, base4_logo_file_name: fileName }));
+                        onChange={async (e) => {
+                          const selectedFile = e.target.files?.[0];
+                          if (!selectedFile) {
+                            setForm((prev) => ({ ...prev, base4_logo_file_name: '', base4_logo_data_url: '' }));
+                            return;
+                          }
+                          const reader = new FileReader();
+                          const dataUrl = await new Promise<string>((resolve, reject) => {
+                            reader.onload = () => resolve(typeof reader.result === 'string' ? reader.result : '');
+                            reader.onerror = () => reject(new Error('read-file-failed'));
+                            reader.readAsDataURL(selectedFile);
+                          }).catch(() => '');
+                          setForm((prev) => ({
+                            ...prev,
+                            base4_logo_file_name: selectedFile.name,
+                            base4_logo_data_url: dataUrl,
+                          }));
                         }}
                         className="w-full rounded-lg bg-black/40 border border-amber-200/25 px-3 py-2 text-amber-50 file:mr-3 file:rounded-md file:border-0 file:bg-amber-300 file:px-3 file:py-1.5 file:text-black file:font-semibold"
                       />
@@ -631,12 +718,98 @@ const HogwartsInnoclubPage: React.FC = () => {
                   <div className="space-y-3">
                     {rows.map((row) => (
                       <div key={row.id} className="rounded-xl border border-white/10 bg-white/5 p-4">
-                        <div className="text-xs text-amber-100/70 mb-2">
-                          {new Date(row.created_at).toLocaleString('th-TH')} · ผู้ตอบ: {row.respondent_name || '-'}
+                        <div className="flex flex-wrap items-start justify-between gap-3 mb-2">
+                          <div className="text-xs text-amber-100/70">
+                            {new Date(row.created_at).toLocaleString('th-TH')} · ผู้ตอบ: {row.respondent_name || '-'}
+                          </div>
+                          {isAdmin && (
+                            <div className="flex items-center gap-2">
+                              {editingAnswerId === row.id ? (
+                                <>
+                                  <button
+                                    type="button"
+                                    onClick={() => saveEditAnswer(row)}
+                                    disabled={rowActionLoadingId === row.id}
+                                    className="rounded-md bg-emerald-400/25 border border-emerald-300/40 px-2.5 py-1 text-xs font-semibold text-emerald-100 hover:bg-emerald-400/35 disabled:opacity-60"
+                                  >
+                                    บันทึก
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={cancelEditAnswer}
+                                    disabled={rowActionLoadingId === row.id}
+                                    className="rounded-md bg-white/10 border border-white/20 px-2.5 py-1 text-xs font-semibold text-amber-100 hover:bg-white/20 disabled:opacity-60"
+                                  >
+                                    ยกเลิก
+                                  </button>
+                                </>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => startEditAnswer(row)}
+                                  disabled={rowActionLoadingId === row.id}
+                                  className="rounded-md bg-white/10 border border-white/20 px-2.5 py-1 text-xs font-semibold text-amber-100 hover:bg-white/20 disabled:opacity-60"
+                                >
+                                  แก้ไข
+                                </button>
+                              )}
+                              <button
+                                type="button"
+                                onClick={() => deleteAnswer(row)}
+                                disabled={rowActionLoadingId === row.id}
+                                className="rounded-md bg-red-500/25 border border-red-300/40 px-2.5 py-1 text-xs font-semibold text-red-100 hover:bg-red-500/35 disabled:opacity-60"
+                              >
+                                ลบ
+                              </button>
+                            </div>
+                          )}
                         </div>
-                        <div className="text-sm text-amber-50 whitespace-pre-wrap">{row.summary_text || '-'}</div>
+                        {editingAnswerId === row.id ? (
+                          <div className="space-y-3">
+                            <label className="block space-y-1">
+                              <span className="text-xs text-amber-100/75">ผู้ตอบ</span>
+                              <input
+                                value={editRespondentName}
+                                onChange={(e) => setEditRespondentName(e.target.value)}
+                                className={`${inputClass} text-sm`}
+                                placeholder="ชื่อผู้ตอบ"
+                              />
+                            </label>
+                            <label className="block space-y-1">
+                              <span className="text-xs text-amber-100/75">สรุปคำตอบ</span>
+                              <textarea
+                                rows={3}
+                                value={editSummaryText}
+                                onChange={(e) => setEditSummaryText(e.target.value)}
+                                className={`${inputClass} text-sm resize-y min-h-[88px]`}
+                                placeholder="แก้ไขสรุปคำตอบ"
+                              />
+                            </label>
+                          </div>
+                        ) : (
+                          <div className="text-sm text-amber-50 whitespace-pre-wrap">{row.summary_text || '-'}</div>
+                        )}
                         {row.attachment_name && (
                           <div className="text-xs text-amber-100/70 mt-2">ไฟล์แนบ: {row.attachment_name}</div>
+                        )}
+                        {row.base_name === 'base4' && (row.answers_json.logo_data_url || row.answers_json.logo_link) && (
+                          <div className="mt-3">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setPreviewImageSrc(row.answers_json.logo_data_url || row.answers_json.logo_link || null);
+                                setPreviewImageAlt(row.attachment_name || 'uploaded logo');
+                              }}
+                              className="block"
+                            >
+                              <img
+                                src={row.answers_json.logo_data_url || row.answers_json.logo_link}
+                                alt={row.attachment_name || 'uploaded logo'}
+                                className="max-h-56 w-auto rounded-lg border border-amber-200/25 bg-black/30 object-contain hover:opacity-90 transition-opacity"
+                              />
+                            </button>
+                            <p className="text-xs text-amber-100/70 mt-1">คลิกรูปเพื่อขยาย</p>
+                          </div>
                         )}
                       </div>
                     ))}
@@ -647,6 +820,26 @@ const HogwartsInnoclubPage: React.FC = () => {
           </div>
         )}
       </main>
+      {previewImageSrc && (
+        <div
+          className="fixed inset-0 z-50 bg-black/85 p-4 sm:p-8 flex items-center justify-center"
+          onClick={() => setPreviewImageSrc(null)}
+        >
+          <button
+            type="button"
+            className="absolute top-4 right-4 rounded-lg bg-white/10 border border-white/20 px-3 py-1.5 text-sm text-white hover:bg-white/20"
+            onClick={() => setPreviewImageSrc(null)}
+          >
+            ปิด
+          </button>
+          <img
+            src={previewImageSrc}
+            alt={previewImageAlt}
+            className="max-h-[90vh] max-w-[92vw] rounded-xl border border-amber-200/25 bg-black/40 object-contain"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
       </div>
     </div>
   );

@@ -394,14 +394,32 @@ const AdminLayoutWithSidebar: React.FC = () => {
         >
           วงล้อหลักสูตร
         </a>
-        <a
-          href="/evaluation/innoclub-hogwarts"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="block py-2.5 px-3 rounded-lg text-sm font-medium text-gray-400 hover:bg-white/5 hover:text-white transition-colors"
-        >
-          ระบบกรอกคำตอบ (Hogwarts)
-        </a>
+        <details className="group rounded-lg">
+          <summary className="list-none cursor-pointer py-2.5 px-3 rounded-lg text-sm font-medium text-gray-400 hover:bg-white/5 hover:text-white transition-colors flex items-center justify-between">
+            <span>Hogwarts Game</span>
+            <svg className="w-4 h-4 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </summary>
+          <div className="mt-1 ml-2 space-y-1 border-l border-white/10 pl-2">
+            <a
+              href="/evaluation/innoclub-hogwarts"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block py-2 px-3 rounded-lg text-sm font-medium text-gray-400 hover:bg-white/5 hover:text-white transition-colors"
+            >
+              Admin Hogwarts
+            </a>
+            <a
+              href="/evaluation/innoclub-hogwarts-guest"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block py-2 px-3 rounded-lg text-sm font-medium text-gray-400 hover:bg-white/5 hover:text-white transition-colors"
+            >
+              Guest Hogwarts
+            </a>
+          </div>
+        </details>
       </nav>
 
       <button
