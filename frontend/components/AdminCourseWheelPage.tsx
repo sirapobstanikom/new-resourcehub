@@ -69,6 +69,11 @@ const FOUNDATION_SKILLS = {
   bullets: ['AI Powered Data Analytics & Visualization', 'Analyst Tools: Scalable Analytics with Power BI', 'Prompt Engineering for Business Leaders']
 };
 
+const WHEEL_COLORS = {
+  dark: { main: '#1E293B', middle: '#334155', outer: '#0F172A', text: '#F8FAFC' },
+  accent: { main: '#F59E0B', middle: '#FBBF24', outer: '#FCD34D', text: '#111827' },
+};
+
 const ICONS = {
   Info: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>,
   RotateCcw: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>,
@@ -139,9 +144,28 @@ const ArcText = memo(({ id, text, radius, startAngle, endAngle, color = 'current
 const SegmentGroup = memo((props: {
   id: string; text: string; startAngle: number; endAngle: number; innerRadius: number; outerRadius: number; fill: string;
   textColor: string; onSelect: (t: string, d: any, q: string) => void; selectionType: string; selectionData: any; quadrantId: string;
-  isActive: boolean; textRadius: number;
+  isActive: boolean; isHovered: boolean; isDimmed: boolean; textRadius: number;
+  onHoverStart: (hoverId: string | null) => void;
 }) => {
-  const { id, text, startAngle, endAngle, innerRadius, outerRadius, fill, textColor, onSelect, selectionType, selectionData, quadrantId, isActive, textRadius } = props;
+  const {
+    id,
+    text,
+    startAngle,
+    endAngle,
+    innerRadius,
+    outerRadius,
+    fill,
+    textColor,
+    onSelect,
+    selectionType,
+    selectionData,
+    quadrantId,
+    isActive,
+    isHovered,
+    isDimmed,
+    textRadius,
+    onHoverStart,
+  } = props;
   const startRad = (startAngle - 90) * (Math.PI / 180);
   const endRad = (endAngle - 90) * (Math.PI / 180);
   const x1 = 500 + outerRadius * Math.cos(startRad);
@@ -154,8 +178,16 @@ const SegmentGroup = memo((props: {
   const y4 = 500 + innerRadius * Math.sin(startRad);
   const largeArcFlag = endAngle - startAngle <= 180 ? '0' : '1';
   const d = `M ${x1} ${y1} A ${outerRadius} ${outerRadius} 0 ${largeArcFlag} 1 ${x2} ${y2} L ${x3} ${y3} A ${innerRadius} ${innerRadius} 0 ${largeArcFlag} 0 ${x4} ${y4} Z`;
+  const scale = isHovered ? 1.04 : isActive ? 1.02 : 1;
+  const opacity = isDimmed ? 0.28 : 1;
+  const filter = isHovered ? 'drop-shadow(0 0 18px rgba(254,210,1,0.35)) brightness(1.08)' : 'none';
   return (
-    <g onClick={() => onSelect(selectionType, selectionData, quadrantId)} className="cursor-pointer" style={{ transformOrigin: '500px 500px', transform: isActive ? 'scale(1.02)' : 'scale(1)' }}>
+    <g
+      onClick={() => onSelect(selectionType, selectionData, quadrantId)}
+      onMouseEnter={() => onHoverStart(id)}
+      className="cursor-pointer"
+      style={{ transformOrigin: '500px 500px', transform: `scale(${scale})`, opacity, filter, transition: 'transform 180ms ease, opacity 180ms ease, filter 180ms ease' }}
+    >
       <defs><clipPath id={`clip-${id}`}><path d={d} /></clipPath></defs>
       <path d={d} fill={fill} className={`wheel-segment ${isActive ? 'active' : ''}`} stroke="rgba(255,255,255,0.2)" strokeWidth="1" />
       <ArcText id={id} text={text} radius={textRadius} startAngle={startAngle} endAngle={endAngle} color={textColor} />
@@ -163,17 +195,68 @@ const SegmentGroup = memo((props: {
   );
 });
 
-const Wheel = memo(({ selection, onSelect, svgRef }: { selection: Selection; onSelect: (t: string, d: any, q: string) => void; svgRef: React.RefObject<SVGSVGElement | null> }) => (
-  <svg ref={svgRef} viewBox="0 0 1000 1000" style={{ width: '100%', height: '100%' }}>
-    <circle cx="500" cy="500" r="495" fill="rgba(255,255,255,0.02)" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
+const Wheel = memo(({
+  selection,
+  onSelect,
+  svgRef,
+  hoveredSegmentId,
+  onHoverStart,
+  onWheelLeave,
+}: {
+  selection: Selection;
+  onSelect: (t: string, d: any, q: string) => void;
+  svgRef: React.RefObject<SVGSVGElement | null>;
+  hoveredSegmentId: string | null;
+  onHoverStart: (hoverId: string | null) => void;
+  onWheelLeave: () => void;
+}) => (
+  <svg ref={svgRef} viewBox="0 0 1000 1000" onMouseLeave={onWheelLeave} style={{ width: '100%', height: '100%', borderRadius: '50%' }}>
+    <circle cx="500" cy="500" r="495" fill="rgba(255,255,255,0.015)" stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
     {WHEEL_DATA.map((quad, i) => {
       const qs = i * 90;
       const qe = (i + 1) * 90;
       return (
         <g key={`outer-${quad.id}`}>
-          <SegmentGroup id={`text-main-${quad.id}`} text={quad.name} startAngle={qs} endAngle={qe} innerRadius={325} outerRadius={395} fill={quad.color === 'yellow' ? '#d9b201' : '#1A1A1A'} textColor={quad.color === 'yellow' ? '#000' : '#FFF'} textRadius={360} isActive={selection.data === quad} onSelect={onSelect} selectionType="main-category" selectionData={quad} quadrantId={quad.id} />
+          <SegmentGroup
+            id={`text-main-${quad.id}`}
+            text={quad.name}
+            startAngle={qs}
+            endAngle={qe}
+            innerRadius={325}
+            outerRadius={395}
+            fill={quad.color === 'yellow' ? WHEEL_COLORS.accent.main : WHEEL_COLORS.dark.main}
+            textColor={quad.color === 'yellow' ? WHEEL_COLORS.accent.text : WHEEL_COLORS.dark.text}
+            textRadius={360}
+            isActive={selection.data === quad}
+            isHovered={hoveredSegmentId === `text-main-${quad.id}`}
+            isDimmed={Boolean(hoveredSegmentId) && hoveredSegmentId !== `text-main-${quad.id}`}
+            onHoverStart={onHoverStart}
+            onSelect={onSelect}
+            selectionType="main-category"
+            selectionData={quad}
+            quadrantId={quad.id}
+          />
           {quad.subCategories.map((sub, j) => (
-            <SegmentGroup key={`${quad.id}-sub-${j}`} id={`text-sub-${quad.id}-${j}`} text={sub.name} startAngle={qs + j * 30} endAngle={qs + (j + 1) * 30} innerRadius={395} outerRadius={495} fill={quad.color === 'yellow' ? '#fed201' : '#111'} textColor={quad.color === 'yellow' ? '#000' : '#FFF'} textRadius={445} isActive={selection.data === sub} onSelect={onSelect} selectionType="subcategory" selectionData={sub} quadrantId={quad.id} />
+            <SegmentGroup
+              key={`${quad.id}-sub-${j}`}
+              id={`text-sub-${quad.id}-${j}`}
+              text={sub.name}
+              startAngle={qs + j * 30}
+              endAngle={qs + (j + 1) * 30}
+              innerRadius={395}
+              outerRadius={495}
+              fill={quad.color === 'yellow' ? WHEEL_COLORS.accent.outer : WHEEL_COLORS.dark.outer}
+              textColor={quad.color === 'yellow' ? WHEEL_COLORS.accent.text : WHEEL_COLORS.dark.text}
+              textRadius={445}
+              isActive={selection.data === sub}
+              isHovered={hoveredSegmentId === `text-sub-${quad.id}-${j}`}
+              isDimmed={Boolean(hoveredSegmentId) && hoveredSegmentId !== `text-sub-${quad.id}-${j}`}
+              onHoverStart={onHoverStart}
+              onSelect={onSelect}
+              selectionType="subcategory"
+              selectionData={sub}
+              quadrantId={quad.id}
+            />
           ))}
         </g>
       );
@@ -183,9 +266,46 @@ const Wheel = memo(({ selection, onSelect, svgRef }: { selection: Selection; onS
       const qe = (i + 1) * 90;
       return (
         <g key={`inner-${quad.id}`}>
-          <SegmentGroup id={`text-inter-${quad.id}`} text={quad.intermediateName} startAngle={qs} endAngle={qe} innerRadius={175} outerRadius={250} fill={quad.color === 'yellow' ? '#fed201' : '#262626'} textColor={quad.color === 'yellow' ? '#000' : '#FFF'} textRadius={212} isActive={selection.type === 'intermediate' && selection.quadrantId === quad.id} onSelect={onSelect} selectionType="intermediate" selectionData={{ name: quad.intermediateName, description: `Core competency area within ${quad.name}.` }} quadrantId={quad.id} />
+          <SegmentGroup
+            id={`text-inter-${quad.id}`}
+            text={quad.intermediateName}
+            startAngle={qs}
+            endAngle={qe}
+            innerRadius={175}
+            outerRadius={250}
+            fill={quad.color === 'yellow' ? WHEEL_COLORS.accent.middle : WHEEL_COLORS.dark.middle}
+            textColor={quad.color === 'yellow' ? WHEEL_COLORS.accent.text : WHEEL_COLORS.dark.text}
+            textRadius={212}
+            isActive={selection.type === 'intermediate' && selection.quadrantId === quad.id}
+            isHovered={hoveredSegmentId === `text-inter-${quad.id}`}
+            isDimmed={Boolean(hoveredSegmentId) && hoveredSegmentId !== `text-inter-${quad.id}`}
+            onHoverStart={onHoverStart}
+            onSelect={onSelect}
+            selectionType="intermediate"
+            selectionData={{ name: quad.intermediateName, description: `Core competency area within ${quad.name}.` }}
+            quadrantId={quad.id}
+          />
           {quad.topics.map((topic, k) => (
-            <SegmentGroup key={`${quad.id}-topic-${k}`} id={`text-topic-${quad.id}-${k}`} text={topic.name} startAngle={qs + k * 30} endAngle={qs + (k + 1) * 30} innerRadius={250} outerRadius={325} fill={quad.color === 'yellow' ? '#e5bc01' : '#333'} textColor={quad.color === 'yellow' ? '#000' : '#FFF'} textRadius={287} isActive={selection.data === topic} onSelect={onSelect} selectionType="topic" selectionData={topic} quadrantId={quad.id} />
+            <SegmentGroup
+              key={`${quad.id}-topic-${k}`}
+              id={`text-topic-${quad.id}-${k}`}
+              text={topic.name}
+              startAngle={qs + k * 30}
+              endAngle={qs + (k + 1) * 30}
+              innerRadius={250}
+              outerRadius={325}
+              fill={quad.color === 'yellow' ? '#FACC15' : '#475569'}
+              textColor={quad.color === 'yellow' ? WHEEL_COLORS.accent.text : WHEEL_COLORS.dark.text}
+              textRadius={287}
+              isActive={selection.data === topic}
+              isHovered={hoveredSegmentId === `text-topic-${quad.id}-${k}`}
+              isDimmed={Boolean(hoveredSegmentId) && hoveredSegmentId !== `text-topic-${quad.id}-${k}`}
+              onHoverStart={onHoverStart}
+              onSelect={onSelect}
+              selectionType="topic"
+              selectionData={topic}
+              quadrantId={quad.id}
+            />
           ))}
         </g>
       );
@@ -229,6 +349,7 @@ function getCategoryIcon(id: string) {
 
 const AdminCourseWheelPage: React.FC = () => {
   const [selection, setSelection] = useState<Selection>({ type: null, data: null, quadrantId: null });
+  const [hoveredSegmentId, setHoveredSegmentId] = useState<string | null>(null);
   const svgRef = useRef<SVGSVGElement | null>(null);
   const isMobile = useIsMobile();
   const selectedQuadrant = selection.quadrantId ? WHEEL_DATA.find(q => q.id === selection.quadrantId) : null;
@@ -241,6 +362,8 @@ const AdminCourseWheelPage: React.FC = () => {
 
   const handleReset = useCallback(() => setSelection({ type: null, data: null, quadrantId: null }), []);
   const handleSelection = useCallback((type: string, data: any, quadrantId: string) => setSelection({ type, data, quadrantId }), []);
+  const handleHoverStart = useCallback((hoverId: string | null) => setHoveredSegmentId(hoverId), []);
+  const handleWheelLeave = useCallback(() => setHoveredSegmentId(null), []);
   const handleOpenCourse = useCallback(() => {
     const courseName = (selection.data as any)?.name;
     if (!courseName) return;
@@ -251,7 +374,7 @@ const AdminCourseWheelPage: React.FC = () => {
   }, [selection.data]);
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#0A0A0A', color: '#fff' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'radial-gradient(circle at top, #111827 0%, #020617 58%, #000000 100%)', color: '#fff' }}>
       <style>{`
         *{box-sizing:border-box}.arc-text{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.02em;paint-order:stroke;stroke-linejoin:round;text-shadow:0 1px 2px rgba(0,0,0,.2)}
         .wheel-segment{cursor:pointer}.wheel-segment:hover{stroke:rgba(255,255,255,.4);stroke-width:1.5px}.wheel-segment.active{stroke:rgba(255,255,255,.5);stroke-width:2px}
@@ -268,8 +391,15 @@ const AdminCourseWheelPage: React.FC = () => {
 
       <main className="main-content" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, gap: 48, maxWidth: 1600, margin: '0 auto', width: '100%' }}>
         <div className="wheel-wrap" style={{ position: 'relative', width: '100%', maxWidth: 850, flexShrink: 0, aspectRatio: isMobile ? 'auto' : '1' }}>
-          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', aspectRatio: '1' }}>
-            <Wheel selection={selection} onSelect={handleSelection} svgRef={svgRef} />
+          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', aspectRatio: '1', borderRadius: '50%', overflow: 'hidden' }}>
+            <Wheel
+              selection={selection}
+              onSelect={handleSelection}
+              svgRef={svgRef}
+              hoveredSegmentId={hoveredSegmentId}
+              onHoverStart={handleHoverStart}
+              onWheelLeave={handleWheelLeave}
+            />
           </div>
         </div>
       </main>
