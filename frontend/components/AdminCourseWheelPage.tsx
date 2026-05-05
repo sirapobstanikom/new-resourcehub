@@ -85,57 +85,163 @@ const ICONS = {
   Lightbulb: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/></svg>
 };
 
-const LINE_GAP = 12;
+const LINE_GAP = 14;
 function splitTextMultiLine(text: string): string[] | null {
-  const words = String(text).trim().split(/\s+/);
-  if (words.length <= 2 || text.length <= 18) return null;
-  if (words.length >= 5 || text.length >= 32) {
-    const third = Math.ceil(words.length / 3);
-    return [words.slice(0, third).join(' '), words.slice(third, third * 2).join(' '), words.slice(third * 2).join(' ')];
-  }
-  const mid = Math.ceil(words.length / 2);
-  return [words.slice(0, mid).join(' '), words.slice(mid).join(' ')];
-}
+  const normalized = String(text)
+    .replace(/\//g, ' / ')
+    .replace(/&/g, ' & ')
+    .trim();
 
-const ArcText = memo(({ id, text, radius, startAngle, endAngle, color = 'currentColor', fontSize = '13px' }:
-  { id: string; text: string; radius: number; startAngle: number; endAngle: number; color?: string; fontSize?: string }) => {
+  const words = normalized.split(/\s+/);
+
+  // สั้นๆ ไม่ต้องแยก
+  if (words.length <= 2 && normalized.length < 18) {
+    return null;
+  }
+
+  // 6 คำขึ้นไป หรือยาวมาก → 4 บรรทัด
+  if (words.length >= 5 || normalized.length > 32) {
+    return [
+      words[0] || '',
+      words[1] || '',
+      words[2] || '',
+      words.slice(3).join(' ')
+    ];
+  }
+
+  // 4 คำขึ้นไป → 3 บรรทัด
+  if (words.length >= 4 || normalized.length > 22) {
+    return [
+      words[0] || '',
+      words[1] || '',
+      words.slice(2).join(' ')
+    ];
+  }
+
+  // ปกติ 2 บรรทัด
+  const mid = Math.ceil(words.length / 2);
+
+  return [
+    words.slice(0, mid).join(' '),
+    words.slice(mid).join(' ')
+  ];
+}
+const ArcText = memo(({
+  id,
+  text,
+  radius,
+  startAngle,
+  endAngle,
+  color = 'currentColor',
+  fontSize = '12px'
+}: {
+  id: string;
+  text: string;
+  radius: number;
+  startAngle: number;
+  endAngle: number;
+  color?: string;
+  fontSize?: string;
+}) => {
+
   const midAngle = (startAngle + endAngle) / 2;
   const normalizedMidAngle = (midAngle + 360) % 360;
-  const isUpsideDown = normalizedMidAngle > 95 && normalizedMidAngle < 265;
-  const padding = 2;
-  const startRad = (startAngle + padding - 90) * (Math.PI / 180);
-  const endRad = (endAngle - padding - 90) * (Math.PI / 180);
+  const isUpsideDown =
+    normalizedMidAngle > 95 && normalizedMidAngle < 265;
+
+  const startRad = (startAngle - 90) * (Math.PI / 180);
+  const endRad = (endAngle - 90) * (Math.PI / 180);
+
   const makePath = (r: number) => {
     const x1 = 500 + r * Math.cos(startRad);
     const y1 = 500 + r * Math.sin(startRad);
+
     const x2 = 500 + r * Math.cos(endRad);
     const y2 = 500 + r * Math.sin(endRad);
-    const pathData = `M ${x1} ${y1} A ${r} ${r} 0 0 1 ${x2} ${y2}`;
-    const reversePathData = `M ${x2} ${y2} A ${r} ${r} 0 0 0 ${x1} ${y1}`;
-    return isUpsideDown ? reversePathData : pathData;
+
+    const normalPath =
+      `M ${x1} ${y1} A ${r} ${r} 0 0 1 ${x2} ${y2}`;
+
+    const reversePath =
+      `M ${x2} ${y2} A ${r} ${r} 0 0 0 ${x1} ${y1}`;
+
+    return isUpsideDown ? reversePath : normalPath;
   };
+
   const lines = splitTextMultiLine(text);
-  const pathId1 = id;
-  const pathId2 = `${id}-L2`;
-  const pathId3 = `${id}-L3`;
-  const orderedLines = lines && isUpsideDown ? [...lines].reverse() : lines;
+  const totalLines = lines?.length || 1;
+
+  const getCenteredRadius = (index: number) => {
+    const offset =
+      (index - (totalLines - 1) / 2) * LINE_GAP;
+
+    return radius - offset;
+  };
+
+  const orderedLines =
+    lines && isUpsideDown
+      ? [...lines].reverse()
+      : lines;
+
+  const textOffset =
+    isUpsideDown ? '48%' : '50%';
+
   return (
     <>
       <defs>
-        <path id={pathId1} d={makePath(radius)} />
-        {lines && lines.length >= 2 && <path id={pathId2} d={makePath(radius - LINE_GAP)} />}
-        {lines && lines.length >= 3 && <path id={pathId3} d={makePath(radius - LINE_GAP * 2)} />}
+        <path
+          id={id}
+          d={makePath(getCenteredRadius(0))}
+        />
+
+        {lines?.[1] && (
+          <path
+            id={`${id}-2`}
+            d={makePath(getCenteredRadius(1))}
+          />
+        )}
+
+        {lines?.[2] && (
+          <path
+            id={`${id}-3`}
+            d={makePath(getCenteredRadius(2))}
+          />
+        )}
+        {lines?.[3] && (
+          <path
+            id={`${id}-4`}
+            d={makePath(getCenteredRadius(3))}
+          />
+        )}
       </defs>
-      {lines ? (
-        <>
-          <text fill={color} className="arc-text pointer-events-none select-none" style={{ fontSize }}><textPath xlinkHref={`#${pathId1}`} startOffset="50%" textAnchor="middle">{orderedLines?.[0]}</textPath></text>
-          <text fill={color} className="arc-text pointer-events-none select-none" style={{ fontSize }}><textPath xlinkHref={`#${pathId2}`} startOffset="50%" textAnchor="middle">{orderedLines?.[1]}</textPath></text>
-          {lines.length >= 3 && <text fill={color} className="arc-text pointer-events-none select-none" style={{ fontSize }}><textPath xlinkHref={`#${pathId3}`} startOffset="50%" textAnchor="middle">{orderedLines?.[2]}</textPath></text>}
-        </>
-      ) : (
-        <text fill={color} className="arc-text pointer-events-none select-none" style={{ fontSize }}>
-          <textPath xlinkHref={`#${pathId1}`} startOffset="50%" textAnchor="middle">{text}</textPath>
+
+      {!lines ? (
+        <text fill={color} className="arc-text">
+          <textPath
+            xlinkHref={`#${id}`}
+            startOffset={textOffset}
+            textAnchor="middle"
+          >
+            {text}
+          </textPath>
         </text>
+      ) : (
+        orderedLines.map((line, i) => (
+          <text
+            key={i}
+            fill={color}
+            className="arc-text"
+            style={{ fontSize }}
+          >
+            <textPath
+              xlinkHref={`#${i === 0 ? id : `${id}-${i + 1}`}`}
+              startOffset={textOffset}
+              textAnchor="middle"
+            >
+              {line}
+            </textPath>
+          </text>
+        ))
       )}
     </>
   );
@@ -188,8 +294,8 @@ const SegmentGroup = memo((props: {
       className="cursor-pointer"
       style={{ transformOrigin: '500px 500px', transform: `scale(${scale})`, opacity, filter, transition: 'transform 180ms ease, opacity 180ms ease, filter 180ms ease' }}
     >
-      <defs><clipPath id={`clip-${id}`}><path d={d} /></clipPath></defs>
-      <path d={d} fill={fill} className={`wheel-segment ${isActive ? 'active' : ''}`} stroke="rgba(255,255,255,0.2)" strokeWidth="1" />
+  
+      <path d={d} fill={fill} className={`wheel-segment ${isActive ? 'active' : ''}`} stroke="rgba(0,0,0,0.15)" strokeWidth="1" />
       <ArcText id={id} text={text} radius={textRadius} startAngle={startAngle} endAngle={endAngle} color={textColor} />
     </g>
   );
@@ -310,13 +416,13 @@ const Wheel = memo(({
         </g>
       );
     })}
-    <g transform="translate(500, 500)">
-      <circle r="165" fill="transparent" stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
+    <g transform="translate(500, 500)" >
+      <circle r="165" fill="#111" stroke="rgba(0,0,0,0.3)" strokeWidth="1" />
       <foreignObject x="-140" y="-140" width="280" height="280">
         <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: 16, pointerEvents: 'none' }}>
-          <h3 style={{ fontSize: 14, fontWeight: 900, color: '#fed201', textTransform: 'uppercase', letterSpacing: '0.2em', margin: '0 0 8px 0' }}>{FOUNDATION_SKILLS.title}</h3>
-          <p style={{ fontSize: 10, fontWeight: 700, color: '#9ca3af', marginBottom: 16, lineHeight: 1.2, textTransform: 'uppercase', letterSpacing: '0.1em' }}>{FOUNDATION_SKILLS.subtitle}</p>
-          <ul style={{ fontSize: 10, textAlign: 'left', margin: 0, padding: 0, listStyle: 'none' }}>
+          <h3 style={{ fontSize: 15, fontWeight: 900, color: '#fed201', textTransform: 'uppercase', letterSpacing: '0.2em', margin: '0 0 8px 0' }}>{FOUNDATION_SKILLS.title}</h3>
+          <p style={{ fontSize: 12, fontWeight: 700, color: '#9ca3af', marginBottom: 16, lineHeight: 1.2, textTransform: 'uppercase', letterSpacing: '0.1em' }}>{FOUNDATION_SKILLS.subtitle}</p>
+          <ul style={{ fontSize: 12, textAlign: 'left', margin: 0, padding: 0, listStyle: 'none' }}>
             {FOUNDATION_SKILLS.bullets.map((b, i) => (
               <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 8 }}>
                 <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#fed201', marginTop: 4, flexShrink: 0 }} />
@@ -354,12 +460,30 @@ const AdminCourseWheelPage: React.FC = () => {
   const isMobile = useIsMobile();
   const selectedQuadrant = selection.quadrantId ? WHEEL_DATA.find(q => q.id === selection.quadrantId) : null;
 
+  // เปลี่ยนจาก
   useEffect(() => {
-    if (isMobile) document.body.classList.add('minddojo-mobile');
-    else document.body.classList.remove('minddojo-mobile');
-    return () => document.body.classList.remove('minddojo-mobile');
-  }, [isMobile]);
+    const style = document.createElement('style');
+    style.id = 'course-wheel-bg-override';
+    style.textContent = `html, body { background: white !important; background-color: white !important; background-image: none !important; }`;
+    document.head.appendChild(style);
+    return () => { document.getElementById('course-wheel-bg-override')?.remove(); };
+  }, []);
 
+  // เป็น
+  useEffect(() => {
+    const body = document.body;
+    const html = document.documentElement;
+    const prevBodyStyle = body.getAttribute('style') || '';
+    const prevHtmlStyle = html.getAttribute('style') || '';
+    
+    body.setAttribute('style', prevBodyStyle + '; background: white !important; background-color: white !important; background-image: none !important;');
+    html.setAttribute('style', prevHtmlStyle + '; background: white !important; background-color: white !important; background-image: none !important;');
+    
+    return () => {
+      body.setAttribute('style', prevBodyStyle);
+      html.setAttribute('style', prevHtmlStyle);
+    };
+  }, []);
   const handleReset = useCallback(() => setSelection({ type: null, data: null, quadrantId: null }), []);
   const handleSelection = useCallback((type: string, data: any, quadrantId: string) => setSelection({ type, data, quadrantId }), []);
   const handleHoverStart = useCallback((hoverId: string | null) => setHoveredSegmentId(hoverId), []);
@@ -387,7 +511,7 @@ const AdminCourseWheelPage: React.FC = () => {
   }, [selection.data]);
   
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'transparent', color: '#fff' }}>
+    <div className="course-wheel-page" style={{width: '100vw',height: '100vh',overflow: 'hidden',display: 'flex',justifyContent: 'center',alignItems: 'center',background: 'white' }}>
       <style>{`
         *{box-sizing:border-box}.arc-text{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.02em;paint-order:stroke;stroke-linejoin:round;text-shadow:0 1px 2px rgba(0,0,0,.2)}
         .wheel-segment{cursor:pointer}.wheel-segment:hover{stroke:rgba(255,255,255,.4);stroke-width:1.5px}.wheel-segment.active{stroke:rgba(255,255,255,.5);stroke-width:2px}
@@ -395,9 +519,11 @@ const AdminCourseWheelPage: React.FC = () => {
         .main-content{flex-direction:column}.wheel-wrap{margin-bottom:64px}@media(min-width:1024px){.main-content{flex-direction:row}.wheel-wrap{margin-bottom:0}}
         .wheel-popup-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:100;display:flex;align-items:center;justify-content:center;padding:24px}
         .wheel-popup-box{background: rgba(17, 17, 17, 0.9);border:1px solid rgba(255,255,255,.1);border-radius:24px;box-shadow:0 25px 50px -12px rgba(0,0,0,.5);max-width:480px;width:100%;max-height:85vh;overflow-y:auto}
-        html, body, #root, .minddojo-mobile {
+        html:has(.course-wheel-page), 
+        body:has(.course-wheel-page) {
           background-color: transparent !important;
-          background: none !important;
+          background-image: none !important;
+          background: transparent !important;
         }
         
         /* ลบเงาหรือ Layout ที่อาจจะสร้างแถบสีดำ */
