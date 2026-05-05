@@ -367,10 +367,23 @@ const AdminCourseWheelPage: React.FC = () => {
   const handleOpenCourse = useCallback(() => {
     const courseName = (selection.data as any)?.name;
     if (!courseName) return;
-    const payload = { source: 'competency-wheel-embed', action: 'open_course', courseName: String(courseName) };
-    if (window.parent && window.parent !== window) window.parent.postMessage(payload, '*');
-    const maybeUrl = (selection.data as any)?.courseUrl;
-    if (maybeUrl) window.open(maybeUrl, '_blank', 'noopener');
+
+    const payload = {
+      source: 'competency-wheel-embed',
+      action: 'open_course',
+      courseName: String(courseName)
+    };
+
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage(payload, '*');
+    }
+
+    const courseUrl =
+      (selection.data as any)?.courseUrl ||
+      'https://www.minddojo.co.th/workshop';
+
+    window.open(courseUrl, '_blank', 'noopener,noreferrer');
+
   }, [selection.data]);
 
   return (
