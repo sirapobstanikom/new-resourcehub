@@ -211,7 +211,7 @@ const Wheel = memo(({
   onWheelLeave: () => void;
 }) => (
   <svg ref={svgRef} viewBox="0 0 1000 1000" onMouseLeave={onWheelLeave} style={{ width: '100%', height: '100%', borderRadius: '50%' }}>
-    <circle cx="500" cy="500" r="495" fill="rgba(255,255,255,0.015)" stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
+    <circle cx="500" cy="500" r="495" fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
     {WHEEL_DATA.map((quad, i) => {
       const qs = i * 90;
       const qe = (i + 1) * 90;
@@ -311,7 +311,7 @@ const Wheel = memo(({
       );
     })}
     <g transform="translate(500, 500)">
-      <circle r="165" fill="#111" stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
+      <circle r="165" fill="transparent" stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
       <foreignObject x="-140" y="-140" width="280" height="280">
         <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: 16, pointerEvents: 'none' }}>
           <h3 style={{ fontSize: 14, fontWeight: 900, color: '#fed201', textTransform: 'uppercase', letterSpacing: '0.2em', margin: '0 0 8px 0' }}>{FOUNDATION_SKILLS.title}</h3>
@@ -385,22 +385,27 @@ const AdminCourseWheelPage: React.FC = () => {
     window.open(courseUrl, '_blank', 'noopener,noreferrer');
 
   }, [selection.data]);
-
+  
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'radial-gradient(circle at top, #111827 0%, #020617 58%, #000000 100%)', color: '#fff' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'transparent', color: '#fff' }}>
       <style>{`
         *{box-sizing:border-box}.arc-text{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.02em;paint-order:stroke;stroke-linejoin:round;text-shadow:0 1px 2px rgba(0,0,0,.2)}
         .wheel-segment{cursor:pointer}.wheel-segment:hover{stroke:rgba(255,255,255,.4);stroke-width:1.5px}.wheel-segment.active{stroke:rgba(255,255,255,.5);stroke-width:2px}
         .glass-panel{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);box-shadow:0 25px 50px -12px rgba(0,0,0,.25)}
         .main-content{flex-direction:column}.wheel-wrap{margin-bottom:64px}@media(min-width:1024px){.main-content{flex-direction:row}.wheel-wrap{margin-bottom:0}}
         .wheel-popup-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:100;display:flex;align-items:center;justify-content:center;padding:24px}
-        .wheel-popup-box{background:#111;border:1px solid rgba(255,255,255,.1);border-radius:24px;box-shadow:0 25px 50px -12px rgba(0,0,0,.5);max-width:480px;width:100%;max-height:85vh;overflow-y:auto}
+        .wheel-popup-box{background: rgba(17, 17, 17, 0.9);border:1px solid rgba(255,255,255,.1);border-radius:24px;box-shadow:0 25px 50px -12px rgba(0,0,0,.5);max-width:480px;width:100%;max-height:85vh;overflow-y:auto}
+        html, body, #root, .minddojo-mobile {
+          background-color: transparent !important;
+          background: none !important;
+        }
+        
+        /* ลบเงาหรือ Layout ที่อาจจะสร้างแถบสีดำ */
+        .main-content {
+          background: transparent !important;
+        }
       `}</style>
 
-      <header style={{ padding: isMobile ? '20px 20px 16px' : '16px 24px', textAlign: 'center', maxWidth: 896, margin: '0 auto' }}>
-        <div className="glass-panel" style={{ display: 'inline-block', padding: '8px 18px', marginBottom: 16, borderRadius: 9999, border: '1px solid rgba(254,210,1,0.2)', color: '#fed201', fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.2em' }}>Strategic Framework 2024</div>
-        <h1 style={{ fontSize: isMobile ? '1.75rem' : 'clamp(1.875rem, 5vw, 4.375rem)', fontWeight: 900, margin: '0 0 12px 0' }}>Competency Wheel</h1>
-      </header>
 
       <main className="main-content" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, gap: 48, maxWidth: 1600, margin: '0 auto', width: '100%' }}>
         <div className="wheel-wrap" style={{ position: 'relative', width: '100%', maxWidth: 850, flexShrink: 0, aspectRatio: isMobile ? 'auto' : '1' }}>
