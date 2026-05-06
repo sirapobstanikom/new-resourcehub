@@ -36,6 +36,22 @@ const GameAr = lazy(() => import('./components/GameAr'));
 const InnoClubEvaluationPage = lazy(() => import('./components/InnoClubEvaluationPage'));
 const HogwartsInnoclubPage = lazy(() => import('./components/HogwartsInnoclubPage'));
 
+function cleanupArOverlays(): void {
+  document.querySelectorAll('video').forEach((v) => {
+    const media = v as HTMLVideoElement;
+    if (!media.classList.contains('arjs-video')) return;
+    const stream = media.srcObject as MediaStream | null;
+    if (stream) {
+      stream.getTracks().forEach((t) => t.stop());
+      media.srcObject = null;
+    }
+    media.remove();
+  });
+  document.querySelectorAll('.a-canvas').forEach((el) => {
+    if (el instanceof HTMLElement) el.remove();
+  });
+}
+
 function RouteFallback() {
   return (
     <div className="min-h-screen bg-transparent text-white flex items-center justify-center">
@@ -152,6 +168,11 @@ const App: React.FC = () => {
   const isTools = pathname === '/resourcehub';
   const isUpdates = pathname === '/updates';
 
+  useEffect(() => {
+    const isArPage = pathname === '/gamification/game-ar' || pathname === '/game-ar';
+    if (!isArPage) cleanupArOverlays();
+  }, [pathname]);
+
   if (isLogin) {
     return (
       <Suspense fallback={<RouteFallback />}>
@@ -226,6 +247,14 @@ const App: React.FC = () => {
           <Route path="/gamification/game-ar" element={<GameAr />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+      </Suspense>
+    );
+  }
+
+  if (pathname === '/game-ar') {
+    return (
+      <Suspense fallback={<RouteFallback />}>
+        <GameAr />
       </Suspense>
     );
   }

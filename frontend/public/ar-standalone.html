@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+    <title>Game AR</title>
+    <style>
+      html, body {
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #000;
+      }
+      .hint {
+        position: fixed;
+        top: 8px;
+        left: 8px;
+        z-index: 30;
+        color: #fff;
+        font: 12px/1.4 Arial, sans-serif;
+        background: rgba(0, 0, 0, 0.5);
+        padding: 6px 10px;
+        border-radius: 8px;
+      }
+      .start-wrap {
+        position: fixed;
+        inset: 0;
+        z-index: 40;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #000;
+      }
+      .start-btn {
+        border: 0;
+        border-radius: 10px;
+        padding: 12px 18px;
+        font: 600 14px/1 Arial, sans-serif;
+        color: #000;
+        background: #facc15;
+        cursor: pointer;
+      }
+      .arjs-video {
+        position: fixed !important;
+        inset: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        object-fit: cover !important;
+        z-index: 1 !important;
+      }
+      #fallbackVideo {
+        position: fixed;
+        inset: 0;
+        width: 100vw;
+        height: 100vh;
+        object-fit: cover;
+        z-index: 1;
+        background: #000;
+        display: none;
+      }
+      a-scene, a-scene canvas {
+        position: fixed !important;
+        inset: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+      }
+      a-scene {
+        z-index: 2 !important;
+        background: transparent !important;
+      }
+      a-scene canvas {
+        z-index: 3 !important;
+      }
+    </style>
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js/aframe/build/aframe-ar.min.js"></script>
+  </head>
+  <body>
+    <div class="start-wrap" id="startWrap">
+      <button id="startBtn" class="start-btn">เริ่มกล้อง AR</button>
+    </div>
+    <div class="hint" id="hint">กด "เริ่มกล้อง AR"</div>
+    <video id="fallbackVideo" autoplay muted playsinline></video>
+
+    <script>
+      const hint = document.getElementById('hint');
+      const startWrap = document.getElementById('startWrap');
+      const startBtn = document.getElementById('startBtn');
+      const fallbackVideo = document.getElementById('fallbackVideo');
+      let fallbackStream = null;
+
+      function forceFullscreenLayout() {
+        document.querySelectorAll('.arjs-video, a-scene, a-scene canvas').forEach((el) => {
+          el.style.position = 'fixed';
+          el.style.top = '0';
+          el.style.left = '0';
+          el.style.width = '100vw';
+          el.style.height = '100vh';
+        });
+      }
+
+      function bootArScene() {
+        const scene = document.createElement('a-scene');
+        scene.setAttribute('embedded', 'true');
+        scene.setAttribute('vr-mode-ui', 'enabled: false');
+        scene.setAttribute('renderer', 'alpha: true; antialias: true;');
+        scene.setAttribute('arjs', 'trackingMethod: best; sourceType: webcam; debugUIEnabled: false;');
+
+        const marker = document.createElement('a-marker');
+        marker.setAttribute('preset', 'hiro');
+        const box = document.createElement('a-box');
+        box.setAttribute('position', '0 0.5 0');
+        box.setAttribute('material', 'color: red;');
+        marker.appendChild(box);
+
+        const cam = document.createElement('a-entity');
+        cam.setAttribute('camera', 'true');
+        scene.appendChild(marker);
+        scene.appendChild(cam);
+        document.body.appendChild(scene);
+
+        scene.addEventListener('camera-init', () => hint.textContent = 'กล้องพร้อมแล้ว: ส่อง marker hiro');
+        scene.addEventListener('camera-error', () => hint.textContent = 'เปิดกล้องไม่ได้: ตรวจสิทธิ์กล้องในเบราว์เซอร์');
+        marker.addEventListener('markerFound', () => hint.textContent = 'เจอ marker hiro แล้ว');
+        marker.addEventListener('markerLost', () => hint.textContent = 'กล้องพร้อมแล้ว: ส่อง marker hiro');
+
+        window.setInterval(forceFullscreenLayout, 500);
+        forceFullscreenLayout();
+      }
+
+      async function ensureFallbackPreview() {
+        if (fallbackStream) return;
+        try {
+          fallbackStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+          fallbackVideo.srcObject = fallbackStream;
+          fallbackVideo.style.display = 'block';
+          hint.textContent = 'แสดงกล้องสำรองแล้ว: ส่อง marker hiro ได้เลย';
+        } catch {
+          hint.textContent = 'เปิดกล้องสำรองไม่ได้: ตรวจสิทธิ์กล้องในเบราว์เซอร์';
+        }
+      }
+
+      function watchArVideoStability() {
+        let missingCount = 0;
+        window.setInterval(() => {
+          const arVideo = document.querySelector('.arjs-video');
+          const visible = !!arVideo && arVideo.videoWidth > 0 && arVideo.videoHeight > 0;
+          if (visible) {
+            missingCount = 0;
+            return;
+          }
+          missingCount += 1;
+          if (missingCount >= 3) {
+            ensureFallbackPreview();
+          }
+        }, 800);
+      }
+
+      startBtn.addEventListener('click', () => {
+        startWrap.style.display = 'none';
+        hint.textContent = 'กำลังเริ่ม AR...';
+        bootArScene();
+        watchArVideoStability();
+      });
+
+      window.addEventListener('beforeunload', () => {
+        if (fallbackStream) {
+          fallbackStream.getTracks().forEach((t) => t.stop());
+          fallbackStream = null;
+        }
+      });
+    </script>
+  </body>
+</html>
