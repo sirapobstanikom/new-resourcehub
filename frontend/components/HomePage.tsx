@@ -214,6 +214,18 @@ const HomePage: React.FC = () => {
               เกมวัดความเร็ว — รอจอเปลี่ยนเป็นสีเขียวแล้วกดทันที วัดเวลาตอบสนอง (ms)
             </p>
           </Link>
+          <Link
+            to="/gamification/game-ar"
+            className="block rounded-2xl border border-white/10 p-6 text-left transition-all bg-white/5 hover:bg-white/10 hover:border-red-400/30 group"
+          >
+            <div className="w-12 h-12 rounded-xl bg-red-500/20 flex items-center justify-center mb-4 group-hover:bg-red-500/30 transition-colors">
+              <span className="text-2xl" aria-hidden>📷</span>
+            </div>
+            <h3 className="font-bold text-lg mb-2 text-white">Game AR (Hiro Marker)</h3>
+            <p className="text-gray-500 text-sm">
+              เปิดกล้องเว็บ ตรวจจับ marker แบบ hiro แล้วแสดงกล่อง 3D สีแดงเหนือ marker
+            </p>
+          </Link>
         </div>
       </section>
 
