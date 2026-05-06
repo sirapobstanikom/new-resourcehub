@@ -197,6 +197,7 @@ function getMonthGrid(year: number, month: number): { date: Date; isCurrentMonth
 }
 
 const ADMIN_LEAVE_MANAGER_EMAILS = ['pink@minddojo.me', 'koy@minddojo.me', 'tonji@minddojo.me'];
+const FORCED_MONTHLY_WFH_EMAILS = ['noon@minddojo.me', 'nahm@minddojo.me'];
 
 const THAI_MONTHS = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
 
@@ -213,6 +214,45 @@ function buildCompactPageItems(totalPages: number, currentPage: number): Array<n
     out.push(p);
   }
   return out;
+}
+
+function allFridaysOfMonth(year: number, monthOneBased: number): string[] {
+  const fridays: string[] = [];
+  const d = new Date(year, monthOneBased - 1, 1);
+  while (d.getMonth() === monthOneBased - 1) {
+    if (d.getDay() === 5) {
+      fridays.push(toDateKey(d));
+    }
+    d.setDate(d.getDate() + 1);
+  }
+  return fridays;
+}
+
+function buildForcedMonthlyWfhRows(year: number): LeaveRequestRow[] {
+  const rows: LeaveRequestRow[] = [];
+  for (const email of FORCED_MONTHLY_WFH_EMAILS) {
+    for (let month = 1; month <= 12; month++) {
+      const fridayKeys = allFridaysOfMonth(year, month);
+      for (const dateKey of fridayKeys) {
+        rows.push({
+          id: `forced-wfh-${email}-${dateKey}`,
+          user_email: email,
+          user_display_name: email.split('@')[0],
+          leave_type: 'wfh',
+          start_date: dateKey,
+          end_date: dateKey,
+          start_time: '09:00:00',
+          end_time: '17:00:00',
+          reason: 'WFH ทุกวันศุกร์ (ตั้งค่าโดยแอดมิน)',
+          status: 'approved',
+          approved_by_email: 'system@minddojo.me',
+          approved_at: `${dateKey}T02:00:00.000Z`,
+          created_at: `${dateKey}T01:00:00.000Z`,
+        });
+      }
+    }
+  }
+  return rows;
 }
 
 const AdminLeavePage: React.FC = () => {
@@ -280,6 +320,7 @@ const AdminLeavePage: React.FC = () => {
   const [cancelAuditsLoading, setCancelAuditsLoading] = useState(false);
   const [cancelAuditsError, setCancelAuditsError] = useState<string | null>(null);
   const [cancelAuditsRefreshKey, setCancelAuditsRefreshKey] = useState(0);
+  const isForcedMonthlyWfhUser = user?.email != null && FORCED_MONTHLY_WFH_EMAILS.includes(user.email.toLowerCase());
 
   const pushDebugLog = (level: 'info' | 'warn' | 'error', label: string, details: Record<string, unknown>) => {
     const text = `${label} ${JSON.stringify(details)}`;
@@ -307,6 +348,7 @@ const AdminLeavePage: React.FC = () => {
       case 'unpaid':
         return (leaveBalance.unpaid_remaining ?? 0) * 8;
       case 'wfh':
+        if (isForcedMonthlyWfhUser) return 0;
         // UI เดิมผูกกับ "เดือนปัจจุบัน" เท่านั้น
         // เพื่อให้เลือก WFH ใน "เดือนใหม่" ได้ แม้เดือนปัจจุบันจะใช้ครบแล้ว
         // (คำขอจะถูกตรวจซ้ำอีกครั้งตอน submit ด้วย)
@@ -326,7 +368,7 @@ const AdminLeavePage: React.FC = () => {
     if (currentRemaining > 0) return;
     const firstAvailable = LEAVE_TYPES.map((t) => t.id).find((id) => getLeaveRemainingHoursEquivalent(id) > 0);
     if (firstAvailable) setLeaveType(firstAvailable);
-  }, [leaveBalance, wfhUsedThisMonth]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [leaveBalance, wfhUsedThisMonth, isForcedMonthlyWfhUser]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const currentYear = new Date().getFullYear();
   const now = new Date();
@@ -381,9 +423,20 @@ const AdminLeavePage: React.FC = () => {
       .then(({ data, error }) => {
         setMyLeaveListLoading(false);
         if (error) return;
-        setMyLeaveList((data as LeaveRequestRow[]) ?? []);
+        const dbRows = (data as LeaveRequestRow[]) ?? [];
+        if (!isForcedMonthlyWfhUser || !user?.email) {
+          setMyLeaveList(dbRows);
+          return;
+        }
+        const year = new Date().getFullYear();
+        const forcedRows = buildForcedMonthlyWfhRows(year).filter((r) => r.user_email === user.email?.toLowerCase());
+        const rowKey = (r: LeaveRequestRow) => `${r.leave_type}-${r.start_date}-${r.end_date}`;
+        const existingKeys = new Set(dbRows.map(rowKey));
+        const merged = [...dbRows, ...forcedRows.filter((r) => !existingKeys.has(rowKey(r)))];
+        merged.sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
+        setMyLeaveList(merged);
       });
-  }, [user?.id, submitted]);
+  }, [user?.id, user?.email, submitted, isForcedMonthlyWfhUser]);
 
   // โหลดประวัติคำขอยกเลิก (ทุกครั้ง/ทุกคน) จาก audit table
   const fetchCancelAudits = async (page: number = cancelAuditsPage) => {
@@ -425,24 +478,31 @@ const AdminLeavePage: React.FC = () => {
 
   useEffect(() => {
     if (!isSupabaseConfigured) return;
-    const from = (approvedPage - 1) * APPROVED_ROWS_PER_PAGE;
-    const to = from + APPROVED_ROWS_PER_PAGE - 1;
     setApprovedLoading(true);
     setApprovedError(null);
     supabase
       .from('leave_requests')
-      .select('id, user_email, user_display_name, leave_type, start_date, end_date, start_time, end_time, reason, attachment_url, other_leave_purpose, status, approved_by_email, approved_at, created_at', { count: 'exact' })
+      .select('id, user_email, user_display_name, leave_type, start_date, end_date, start_time, end_time, reason, attachment_url, other_leave_purpose, status, approved_by_email, approved_at, created_at')
       .eq('status', 'approved')
       .order('created_at', { ascending: false })
-      .range(from, to)
       .then(({ data, error, count }) => {
         setApprovedLoading(false);
         if (error) {
           setApprovedError(error.message);
           return;
         }
-        setApprovedRows((data as LeaveRequestRow[]) ?? []);
-        setApprovedTotal(count ?? 0);
+        const dbRows = (data as LeaveRequestRow[]) ?? [];
+        const year = new Date().getFullYear();
+        const forcedRows = buildForcedMonthlyWfhRows(year);
+        const rowKey = (r: LeaveRequestRow) => `${r.user_email}-${r.leave_type}-${r.start_date}-${r.end_date}`;
+        const existingKeys = new Set(dbRows.map(rowKey));
+        const merged = [...dbRows, ...forcedRows.filter((r) => !existingKeys.has(rowKey(r)))];
+        merged.sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
+
+        const from = (approvedPage - 1) * APPROVED_ROWS_PER_PAGE;
+        const to = from + APPROVED_ROWS_PER_PAGE;
+        setApprovedRows(merged.slice(from, to));
+        setApprovedTotal(merged.length);
       });
   }, [isSupabaseConfigured, approvedPage, submitted, leaveList.length]);
 
@@ -516,6 +576,13 @@ const AdminLeavePage: React.FC = () => {
   }, [user?.id, thisMonthStart, thisMonthEnd]);
 
   useEffect(() => {
+    if (!user?.email) return;
+    if (FORCED_MONTHLY_WFH_EMAILS.includes(user.email.toLowerCase())) {
+      setWfhUsedThisMonth(true);
+    }
+  }, [user?.email]);
+
+  useEffect(() => {
     if (leaveType !== 'sick' && startDate && startDate < today) {
       setStartDate(today);
       setEndDate(today);
@@ -537,7 +604,13 @@ const AdminLeavePage: React.FC = () => {
       .order('start_date', { ascending: true })
       .then(({ data, error }) => {
         if (error) return;
-        setApprovedLeaves((data as LeaveRequestRow[]) ?? []);
+        const dbRows = (data as LeaveRequestRow[]) ?? [];
+        const year = calendarViewDate.getFullYear();
+        const forcedRows = buildForcedMonthlyWfhRows(year);
+        const rowKey = (r: LeaveRequestRow) => `${r.user_email}-${r.leave_type}-${r.start_date}-${r.end_date}`;
+        const existingKeys = new Set(dbRows.map(rowKey));
+        const merged = [...dbRows, ...forcedRows.filter((r) => !existingKeys.has(rowKey(r)))];
+        setApprovedLeaves(merged);
       });
   }, [monthStart, monthEnd]);
 
@@ -628,6 +701,10 @@ const AdminLeavePage: React.FC = () => {
     }
 
     if (leaveType === 'wfh') {
+      if (isForcedMonthlyWfhUser) {
+        setSubmitError('บัญชีนี้ตั้งค่า Work from Home รายเดือนไว้แล้ว (วันศุกร์ของทุกเดือน) และใช้โควต้าเดือนนี้แล้ว');
+        return;
+      }
       if (startDate !== endDate) {
         setSubmitError('ลาประเภท Work from Home ได้แค่ 1 วันต่อเดือน กรุณาเลือกวันเริ่มต้นและวันสิ้นสุดเป็นวันเดียวกัน');
         return;
