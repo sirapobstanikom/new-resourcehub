@@ -89,6 +89,12 @@
       const startBtn = document.getElementById('startBtn');
       const fallbackVideo = document.getElementById('fallbackVideo');
       let fallbackStream = null;
+      const params = new URLSearchParams(window.location.search);
+      const markerMode = params.get('marker') || 'pattern';
+      const markerPreset = params.get('preset') || 'hiro';
+      const markerPatternUrl = params.get('patternUrl') || '/images/hogwarts/mascot.pat';
+      const imageTarget = params.get('image') || '/images/hogwarts/mascot.png';
+      const markerLabel = markerMode === 'pattern' ? markerPatternUrl : markerPreset;
 
       function forceFullscreenLayout() {
         document.querySelectorAll('.arjs-video, a-scene, a-scene canvas').forEach((el) => {
@@ -107,12 +113,29 @@
         scene.setAttribute('renderer', 'alpha: true; antialias: true;');
         scene.setAttribute('arjs', 'trackingMethod: best; sourceType: webcam; debugUIEnabled: false;');
 
+        const assets = document.createElement('a-assets');
+        const objectImage = document.createElement('img');
+        objectImage.id = 'arObjectImage';
+        objectImage.src = imageTarget;
+        objectImage.crossOrigin = 'anonymous';
+        assets.appendChild(objectImage);
+        scene.appendChild(assets);
+
         const marker = document.createElement('a-marker');
-        marker.setAttribute('preset', 'hiro');
-        const box = document.createElement('a-box');
-        box.setAttribute('position', '0 0.5 0');
-        box.setAttribute('material', 'color: red;');
-        marker.appendChild(box);
+        if (markerMode === 'pattern') {
+          marker.setAttribute('type', 'pattern');
+          marker.setAttribute('url', markerPatternUrl);
+        } else {
+          marker.setAttribute('preset', markerPreset);
+        }
+
+        const plane = document.createElement('a-plane');
+        plane.setAttribute('position', '0 0.5 0');
+        plane.setAttribute('rotation', '-90 0 0');
+        plane.setAttribute('width', '1');
+        plane.setAttribute('height', '1');
+        plane.setAttribute('material', 'src: #arObjectImage; transparent: true; side: double;');
+        marker.appendChild(plane);
 
         const cam = document.createElement('a-entity');
         cam.setAttribute('camera', 'true');
@@ -120,10 +143,10 @@
         scene.appendChild(cam);
         document.body.appendChild(scene);
 
-        scene.addEventListener('camera-init', () => hint.textContent = 'กล้องพร้อมแล้ว: ส่อง marker hiro');
+        scene.addEventListener('camera-init', () => hint.textContent = `กล้องพร้อมแล้ว: ส่อง marker ${markerLabel}`);
         scene.addEventListener('camera-error', () => hint.textContent = 'เปิดกล้องไม่ได้: ตรวจสิทธิ์กล้องในเบราว์เซอร์');
-        marker.addEventListener('markerFound', () => hint.textContent = 'เจอ marker hiro แล้ว');
-        marker.addEventListener('markerLost', () => hint.textContent = 'กล้องพร้อมแล้ว: ส่อง marker hiro');
+        marker.addEventListener('markerFound', () => hint.textContent = `เจอ marker ${markerLabel} แล้ว`);
+        marker.addEventListener('markerLost', () => hint.textContent = `กล้องพร้อมแล้ว: ส่อง marker ${markerLabel}`);
 
         window.setInterval(forceFullscreenLayout, 500);
         forceFullscreenLayout();
@@ -135,7 +158,7 @@
           fallbackStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
           fallbackVideo.srcObject = fallbackStream;
           fallbackVideo.style.display = 'block';
-          hint.textContent = 'แสดงกล้องสำรองแล้ว: ส่อง marker hiro ได้เลย';
+          hint.textContent = `แสดงกล้องสำรองแล้ว: ส่อง marker ${markerLabel} ได้เลย`;
         } catch {
           hint.textContent = 'เปิดกล้องสำรองไม่ได้: ตรวจสิทธิ์กล้องในเบราว์เซอร์';
         }
