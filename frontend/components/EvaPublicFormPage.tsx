@@ -230,8 +230,20 @@ const EvaPublicFormPage: React.FC = () => {
     <div className="min-h-screen bg-transparent text-white bg-grid">
       <main className="max-w-4xl mx-auto px-6 py-10">
         <div className="rounded-2xl border border-white/10 bg-white/5 p-6 md:p-8">
-          <h1 className="text-2xl md:text-3xl font-bold text-yellow-200 mb-2">{template.name}</h1>
-          <p className="text-gray-400 mb-6">กรุณาตอบคำถามให้ครบทุกข้อ</p>
+          <div className="mb-6 rounded-2xl border border-yellow-300/20 bg-gradient-to-br from-yellow-400/10 via-amber-300/5 to-transparent p-4 md:p-5">
+            <p className="text-[11px] md:text-xs uppercase tracking-[0.14em] text-yellow-200/75 mb-2">
+              แบบประเมิน
+            </p>
+            <h1
+              title={template.name}
+              className="text-xl md:text-3xl font-bold text-yellow-100 leading-relaxed break-words [overflow-wrap:anywhere]"
+            >
+              {template.name}
+            </h1>
+            <p className="text-gray-300/90 text-sm md:text-base mt-3">
+              กรุณาตอบคำถามให้ครบทุกข้อ
+            </p>
+          </div>
           <form onSubmit={submit} className="space-y-5">
             {template.prompts.map((prompt, idx) => (
               <div key={`${template.id}-${idx}`} className="block space-y-2">
