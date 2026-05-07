@@ -1,10 +1,14 @@
 create table if not exists public.eva_editor_templates (
   id text primary key,
   name text not null,
+  description text not null default '',
   prompts_json jsonb not null default '[]'::jsonb,
   updated_at timestamptz not null default now(),
   created_at timestamptz not null default now()
 );
+
+alter table public.eva_editor_templates
+  add column if not exists description text not null default '';
 
 create table if not exists public.eva_editor_responses (
   id bigint generated always as identity primary key,

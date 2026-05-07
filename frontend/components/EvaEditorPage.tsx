@@ -17,6 +17,7 @@ const DEFAULT_TEMPLATES: EvaEvaluationTemplate[] = [
   {
     id: evaBaseIdFromName('แบบประเมิน InnoClub'),
     name: 'แบบประเมิน InnoClub',
+    description: 'โปรดอ่านคำอธิบายและตอบคำถามให้ครบทุกข้อ',
     prompts: [
       {
         id: 'prompt-1',
@@ -77,6 +78,7 @@ const EvaEditorPage: React.FC = () => {
     const { error } = await supabase.from('eva_editor_templates').upsert({
       id: template.id,
       name: template.name,
+      description: template.description || '',
       prompts_json: template.prompts,
       updated_at: new Date().toISOString(),
     });
@@ -120,7 +122,7 @@ const EvaEditorPage: React.FC = () => {
     const loadTemplatesFromSupabase = async () => {
       const { data, error } = await supabase
         .from('eva_editor_templates')
-        .select('id, name, prompts_json, updated_at')
+        .select('id, name, description, prompts_json, updated_at')
         .order('updated_at', { ascending: false });
       if (error) {
         setSyncError(
@@ -133,6 +135,7 @@ const EvaEditorPage: React.FC = () => {
       const mapped: EvaEvaluationTemplate[] = (data || []).map((row) => ({
         id: row.id as string,
         name: row.name as string,
+        description: (row.description as string) || '',
         prompts: Array.isArray(row.prompts_json) ? (row.prompts_json as EvaPrompt[]) : [],
         updatedAt: (row.updated_at as string) || new Date().toISOString(),
       }));
@@ -155,6 +158,7 @@ const EvaEditorPage: React.FC = () => {
     const nextItem: EvaEvaluationTemplate = {
       id: evaUniqueIdFromName(name, existingIds),
       name,
+      description: '',
       prompts: [],
       updatedAt: new Date().toISOString(),
     };
@@ -170,6 +174,16 @@ const EvaEditorPage: React.FC = () => {
     const next = templates.map((item) =>
       item.id === selectedTemplate.id
         ? { ...item, name, updatedAt: new Date().toISOString() }
+        : item
+    );
+    saveTemplates(next, { upsertTemplateId: selectedTemplate.id });
+  };
+
+  const updateTemplateDescription = (description: string) => {
+    if (!selectedTemplate) return;
+    const next = templates.map((item) =>
+      item.id === selectedTemplate.id
+        ? { ...item, description, updatedAt: new Date().toISOString() }
         : item
     );
     saveTemplates(next, { upsertTemplateId: selectedTemplate.id });
@@ -539,6 +553,14 @@ const EvaEditorPage: React.FC = () => {
                     value={selectedTemplate.name}
                     onChange={(e) => updateTemplateName(e.target.value)}
                     className="mt-1 w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2"
+                  />
+                  <label className="text-sm text-gray-400 mt-3 block">คำอธิบายใต้ชื่อแบบประเมิน</label>
+                  <textarea
+                    value={selectedTemplate.description || ''}
+                    onChange={(e) => updateTemplateDescription(e.target.value)}
+                    rows={3}
+                    placeholder="เช่น โปรดตอบตามความคิดเห็นจริง ใช้เวลาประมาณ 3-5 นาที"
+                    className="mt-1 w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm resize-y"
                   />
                   <div className="mt-2 flex flex-wrap items-center gap-2">
                     <a

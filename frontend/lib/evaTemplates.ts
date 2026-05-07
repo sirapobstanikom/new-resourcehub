@@ -1,6 +1,7 @@
 export type EvaEvaluationTemplate = {
   id: string;
   name: string;
+  description?: string;
   prompts: EvaPrompt[];
   updatedAt: string;
 };
@@ -46,10 +47,11 @@ export function migrateEvaTemplates(templates: EvaEvaluationTemplate[]): EvaEval
       return {
         ...t,
         id: evaBaseIdFromName(t.name || 'แบบประเมิน InnoClub'),
+        description: t.description || '',
         prompts: normalizedPrompts,
       };
     }
-    return { ...t, prompts: normalizedPrompts };
+    return { ...t, description: t.description || '', prompts: normalizedPrompts };
   });
 }
 

@@ -47,7 +47,7 @@ const EvaPublicFormPage: React.FC = () => {
       }
       const { data, error: loadError } = await supabase
         .from('eva_editor_templates')
-        .select('id, name, prompts_json, updated_at')
+        .select('id, name, description, prompts_json, updated_at')
         .order('updated_at', { ascending: false });
       if (loadError) {
         setTemplate(findEvaTemplateByRouteId(localTemplates, templateId));
@@ -62,6 +62,7 @@ const EvaPublicFormPage: React.FC = () => {
       const remoteTemplates: EvaEvaluationTemplate[] = (data || []).map((row) => ({
         id: row.id as string,
         name: row.name as string,
+        description: (row.description as string) || '',
         prompts: Array.isArray(row.prompts_json) ? (row.prompts_json as EvaEvaluationTemplate['prompts']) : [],
         updatedAt: (row.updated_at as string) || new Date().toISOString(),
       }));
@@ -100,7 +101,6 @@ const EvaPublicFormPage: React.FC = () => {
           return ['1', '2', '3', '4', '5'].includes(subValue);
         });
       }
-      if (prompt.type === 'choice') return value.length > 0;
       if (prompt.type === 'choice') {
         if (isOtherOption(value)) return getOtherText(prompt.id).trim().length > 0;
         return value.length > 0;
@@ -231,7 +231,7 @@ const EvaPublicFormPage: React.FC = () => {
       <main className="max-w-4xl mx-auto px-6 py-10">
         <div className="rounded-2xl border border-white/10 bg-white/5 p-6 md:p-8">
           <div className="mb-6 rounded-2xl border border-yellow-300/20 bg-gradient-to-br from-yellow-400/10 via-amber-300/5 to-transparent p-4 md:p-5">
-            <p className="text-[11px] md:text-xs uppercase tracking-[0.14em] text-yellow-200/75 mb-2">
+            <p className="text-xs md:text-sm uppercase tracking-[0.14em] text-yellow-200/75 mb-2">
               แบบประเมิน
             </p>
             <h1
@@ -240,18 +240,25 @@ const EvaPublicFormPage: React.FC = () => {
             >
               {template.name}
             </h1>
-            <p className="text-gray-300/90 text-sm md:text-base mt-3">
-              กรุณาตอบคำถามให้ครบทุกข้อ
-            </p>
+            {template.description?.trim() && (
+              <p className="text-gray-300/90 text-base md:text-lg mt-3 leading-relaxed whitespace-pre-line">
+                {template.description}
+              </p>
+            )}
           </div>
-          <form onSubmit={submit} className="space-y-5">
+          <form onSubmit={submit} className="space-y-7 md:space-y-8">
             {template.prompts.map((prompt, idx) => (
-              <div key={`${template.id}-${idx}`} className="block space-y-2">
-                <p className="text-sm text-gray-200">{idx + 1}. {prompt.title}</p>
+              <div key={`${template.id}-${idx}`} className="block space-y-3">
+                <p className="text-base md:text-lg font-medium text-gray-100 leading-relaxed">
+                  {idx + 1}. {prompt.title}
+                </p>
                 {prompt.type === 'choice' ? (
-                  <div className="space-y-2">
+                  <div className="space-y-2.5">
                     {(prompt.options || []).map((option) => (
-                      <label key={`${prompt.id}-${option}`} className="flex items-center gap-2 text-sm text-gray-200">
+                      <label
+                        key={`${prompt.id}-${option}`}
+                        className="flex items-center gap-3 rounded-xl border border-white/10 bg-black/20 px-3 py-2.5 text-base text-gray-100 hover:bg-white/10 transition-colors"
+                      >
                         <input
                           type="radio"
                           name={`q-${idx}`}
@@ -269,16 +276,19 @@ const EvaPublicFormPage: React.FC = () => {
                           setAnswers((prev) => ({ ...prev, [`${prompt.id}${OTHER_TEXT_KEY_SUFFIX}`]: e.target.value }))
                         }
                         placeholder="โปรดระบุ..."
-                        className="w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm"
+                        className="w-full rounded-xl border border-white/15 bg-black/30 px-4 py-3 text-base"
                       />
                     )}
                   </div>
                 ) : prompt.type === 'multi_choice' ? (
-                  <div className="space-y-2">
+                  <div className="space-y-2.5">
                     {(prompt.options || []).map((option) => {
                       const checked = getMultiSelected(prompt.id).includes(option);
                       return (
-                        <label key={`${prompt.id}-${option}`} className="flex items-center gap-2 text-sm text-gray-200">
+                        <label
+                          key={`${prompt.id}-${option}`}
+                          className="flex items-center gap-3 rounded-xl border border-white/10 bg-black/20 px-3 py-2.5 text-base text-gray-100 hover:bg-white/10 transition-colors"
+                        >
                           <input
                             type="checkbox"
                             checked={checked}
@@ -295,16 +305,16 @@ const EvaPublicFormPage: React.FC = () => {
                           setAnswers((prev) => ({ ...prev, [`${prompt.id}${OTHER_TEXT_KEY_SUFFIX}`]: e.target.value }))
                         }
                         placeholder="โปรดระบุ..."
-                        className="w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm"
+                        className="w-full rounded-xl border border-white/15 bg-black/30 px-4 py-3 text-base"
                       />
                     )}
                   </div>
                 ) : prompt.type === 'rating_1_5' ? (
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     {(prompt.ratingItems && prompt.ratingItems.length > 0 ? prompt.ratingItems : [prompt.title]).map((itemTitle, itemIdx) => (
-                      <div key={`${prompt.id}-rating-${itemIdx}`} className="space-y-2">
-                        <p className="text-sm text-gray-300">{itemIdx + 1}. {itemTitle}</p>
-                        <div className="flex gap-2">
+                      <div key={`${prompt.id}-rating-${itemIdx}`} className="space-y-2.5">
+                        <p className="text-base text-gray-200">{itemIdx + 1}. {itemTitle}</p>
+                        <div className="flex flex-wrap gap-2">
                           {[1, 2, 3, 4, 5].map((n) => {
                             const selected = (answers[`${prompt.id}::${itemIdx}`] || '') === String(n);
                             return (
@@ -314,7 +324,7 @@ const EvaPublicFormPage: React.FC = () => {
                                 onClick={() =>
                                   setAnswers((prev) => ({ ...prev, [`${prompt.id}::${itemIdx}`]: String(n) }))
                                 }
-                                className={`w-10 h-10 rounded-lg border text-sm font-semibold transition-colors ${
+                                className={`w-11 h-11 md:w-12 md:h-12 rounded-xl border text-base font-semibold transition-colors ${
                                   selected
                                     ? 'border-yellow-300 bg-yellow-400/20 text-yellow-100'
                                     : 'border-white/20 bg-black/30 text-gray-200 hover:bg-white/10'
@@ -333,16 +343,16 @@ const EvaPublicFormPage: React.FC = () => {
                     rows={4}
                     value={answers[prompt.id] || ''}
                     onChange={(e) => setAnswers((prev) => ({ ...prev, [prompt.id]: e.target.value }))}
-                    className="w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 resize-y"
+                    className="w-full rounded-xl border border-white/15 bg-black/30 px-4 py-3 text-base leading-relaxed resize-y"
                   />
                 )}
               </div>
             ))}
-            {error && <p className="text-sm text-red-300">{error}</p>}
+            {error && <p className="text-base text-red-300">{error}</p>}
             <button
               type="submit"
               disabled={!canSubmit}
-              className="rounded-lg bg-yellow-400 px-5 py-2.5 font-semibold text-black hover:bg-yellow-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="rounded-xl bg-yellow-400 px-6 py-3 text-base md:text-lg font-semibold text-black hover:bg-yellow-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               ส่งแบบประเมิน
             </button>
