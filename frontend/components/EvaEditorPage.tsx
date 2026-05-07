@@ -179,6 +179,29 @@ const EvaEditorPage: React.FC = () => {
     saveTemplates(next, { upsertTemplateId: selectedTemplate.id });
   };
 
+  const syncTemplateLinkFromName = () => {
+    if (!selectedTemplate) return;
+    const nextName = selectedTemplate.name.trim();
+    if (!nextName) return;
+    const existingIds = new Set(
+      templates
+        .filter((item) => item.id !== selectedTemplate.id)
+        .map((item) => item.id)
+    );
+    const nextId = evaUniqueIdFromName(nextName, existingIds);
+    if (nextId === selectedTemplate.id) return;
+
+    const previousId = selectedTemplate.id;
+    const next = templates.map((item) =>
+      item.id === previousId
+        ? { ...item, id: nextId, updatedAt: new Date().toISOString() }
+        : item
+    );
+    saveTemplates(next, { upsertTemplateId: nextId, deleteTemplateId: previousId });
+    setSelectedId(nextId);
+    setMessage('อัปเดตชื่อและลิงก์แบบประเมินแล้ว');
+  };
+
   const updateTemplateDescription = (description: string) => {
     if (!selectedTemplate) return;
     const next = templates.map((item) =>
@@ -552,6 +575,7 @@ const EvaEditorPage: React.FC = () => {
                   <input
                     value={selectedTemplate.name}
                     onChange={(e) => updateTemplateName(e.target.value)}
+                    onBlur={syncTemplateLinkFromName}
                     className="mt-1 w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2"
                   />
                   <label className="text-sm text-gray-400 mt-3 block">คำอธิบายใต้ชื่อแบบประเมิน</label>
