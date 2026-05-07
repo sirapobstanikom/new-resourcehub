@@ -110,7 +110,7 @@ const InnoClubEvaluationPage: React.FC = () => {
   if (submitted) {
     return (
       <div
-        className="min-h-screen bg-transparent text-white bg-grid flex flex-col selection:bg-yellow-400 selection:text-black innoclub-angsana innoclub-hogwarts-font"
+        className="min-h-screen bg-transparent text-white bg-grid flex flex-col selection:bg-yellow-400 selection:text-black innoclub-angsana"
       >
         <div className="flex flex-col items-center justify-center flex-1 px-6 py-16">
           <div className="max-w-md w-full rounded-2xl border border-white/10 bg-white/5 p-8 text-center">
@@ -130,7 +130,7 @@ const InnoClubEvaluationPage: React.FC = () => {
 
   return (
     <div
-      className="min-h-screen bg-transparent text-white bg-grid flex flex-col selection:bg-yellow-400 selection:text-black innoclub-angsana innoclub-hogwarts-font"
+      className="min-h-screen bg-transparent text-white bg-grid flex flex-col selection:bg-yellow-400 selection:text-black innoclub-angsana"
     >
       <header className="border-b border-white/10 px-4 py-4 sm:px-6 xl:px-10 2xl:px-14">
         <div className="max-w-6xl mx-auto flex items-center justify-between gap-3">
@@ -150,13 +150,7 @@ const InnoClubEvaluationPage: React.FC = () => {
       </header>
 
       <main className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 xl:px-10 2xl:px-14 py-8 sm:py-14 xl:py-16 2xl:py-20">
-        <section className="mb-7 sm:mb-10 rounded-2xl border border-yellow-300/20 bg-gradient-to-br from-[#1f1238]/95 via-[#100a1f]/95 to-[#33200f]/95 p-4 sm:p-6 lg:p-8 2xl:p-10 shadow-[0_10px_30px_rgba(0,0,0,0.35)] max-w-5xl mx-auto">
-          <div className="flex flex-wrap items-center justify-center gap-2 text-[11px] sm:text-xs lg:text-sm text-yellow-100/80 mb-3 lg:mb-4">
-            <span className="rounded-full border border-[#ae0001]/40 bg-[#ae0001]/20 px-3 py-1">Gryffindor</span>
-            <span className="rounded-full border border-[#1a472a]/40 bg-[#1a472a]/20 px-3 py-1">Slytherin</span>
-            <span className="rounded-full border border-[#0e1a40]/40 bg-[#0e1a40]/20 px-3 py-1">Ravenclaw</span>
-            <span className="rounded-full border border-[#ecb939]/40 bg-[#ecb939]/15 px-3 py-1 text-yellow-200">Hufflepuff</span>
-          </div>
+        <section className="mb-7 sm:mb-10 rounded-2xl border border-yellow-300/20 bg-gradient-to-br from-[#121212]/95 via-[#0f0f0f]/95 to-[#1a1a1a]/95 p-4 sm:p-6 lg:p-8 2xl:p-10 shadow-[0_10px_30px_rgba(0,0,0,0.35)] max-w-5xl mx-auto">
           <h1 className="text-xl sm:text-3xl lg:text-4xl 2xl:text-5xl font-bold text-center mb-3 lg:mb-4 leading-relaxed text-yellow-100">
             แบบประเมินความพึงพอใจในการร่วมกิจกรรม
           </h1>
@@ -170,7 +164,7 @@ const InnoClubEvaluationPage: React.FC = () => {
           </p>
         </section>
 
-        <div className="sticky top-0 z-20 -mx-4 mb-8 border-y border-yellow-300/20 bg-[#0b0914]/90 px-4 py-3 backdrop-blur sm:static sm:mx-auto sm:mb-10 sm:max-w-5xl sm:rounded-xl sm:border sm:bg-white/5 lg:px-6 lg:py-4 2xl:px-8">
+        <div className="sticky top-0 z-20 -mx-4 mb-8 border-y border-yellow-300/20 bg-[#101010]/90 px-4 py-3 backdrop-blur sm:static sm:mx-auto sm:mb-10 sm:max-w-5xl sm:rounded-xl sm:border sm:bg-white/5 lg:px-6 lg:py-4 2xl:px-8">
           <div className="flex items-center justify-between gap-3 text-sm lg:text-base 2xl:text-lg">
             <p className="text-yellow-100 font-medium">ความคืบหน้าแบบประเมิน</p>
             <p className="text-white font-medium">
@@ -179,7 +173,7 @@ const InnoClubEvaluationPage: React.FC = () => {
           </div>
           <div className="mt-2 h-2 lg:h-2.5 2xl:h-3 rounded-full bg-white/10 overflow-hidden">
             <div
-              className="h-full bg-gradient-to-r from-[#740001] via-[#0e1a40] to-[#ecb939] transition-all"
+              className="h-full bg-gradient-to-r from-yellow-500 via-amber-400 to-orange-400 transition-all"
               style={{ width: `${(answeredRequiredCount / requiredScores.length) * 100}%` }}
             />
           </div>
@@ -193,7 +187,7 @@ const InnoClubEvaluationPage: React.FC = () => {
           )}
 
           {/* Facilitator */}
-          <section className="rounded-2xl border border-yellow-300/15 bg-gradient-to-b from-white/10 to-white/5 p-4 sm:p-8 lg:p-10 2xl:p-12">
+          <section className="rounded-2xl border border-yellow-300/15 bg-gradient-to-b from-white/10 to-transparent p-4 sm:p-8 lg:p-10 2xl:p-12">
             <h2 className="text-lg lg:text-2xl 2xl:text-3xl font-bold text-yellow-400 mb-7">Facilitator</h2>
             <div className="space-y-5">
               <p className="text-white font-medium text-base lg:text-xl 2xl:text-2xl leading-relaxed">1. ความพึงพอใจโดยรวมต่อ Facilitator *</p>
@@ -210,7 +204,7 @@ const InnoClubEvaluationPage: React.FC = () => {
           </section>
 
           {/* เนื้อหาของ PTT GROUP INNO Club */}
-          <section className="rounded-2xl border border-yellow-300/15 bg-gradient-to-b from-white/10 to-white/5 p-4 sm:p-8 lg:p-10 2xl:p-12">
+          <section className="rounded-2xl border border-yellow-300/15 bg-gradient-to-b from-white/10 to-transparent p-4 sm:p-8 lg:p-10 2xl:p-12">
             <h2 className="text-lg lg:text-2xl 2xl:text-3xl font-bold text-yellow-400 mb-7">เนื้อหาของ PTT GROUP INNO Club</h2>
             <div className="space-y-5">
               <p className="text-white font-medium text-base lg:text-xl 2xl:text-2xl leading-relaxed">1. ความพึงพอใจโดยรวมต่อเนื้อหาของกิจกรรม *</p>
@@ -227,7 +221,7 @@ const InnoClubEvaluationPage: React.FC = () => {
           </section>
 
           {/* ความพึงพอใจโดยรวมและความคิดเห็น */}
-          <section className="rounded-2xl border border-yellow-300/15 bg-gradient-to-b from-white/10 to-white/5 p-4 sm:p-8 lg:p-10 2xl:p-12">
+          <section className="rounded-2xl border border-yellow-300/15 bg-gradient-to-b from-white/10 to-transparent p-4 sm:p-8 lg:p-10 2xl:p-12">
             <h2 className="text-lg lg:text-2xl 2xl:text-3xl font-bold text-yellow-400 mb-7 leading-relaxed">ความพึงพอใจโดยรวมและความคิดเห็นต่อ PTT GROUP INNO Club</h2>
             <div className="space-y-7">
               <div>
@@ -260,7 +254,7 @@ const InnoClubEvaluationPage: React.FC = () => {
           </section>
 
           {/* ข้อเสนอแนะและคำถามเปิด */}
-          <section className="rounded-2xl border border-yellow-300/15 bg-gradient-to-b from-white/10 to-white/5 p-4 sm:p-8 lg:p-10 2xl:p-12">
+          <section className="rounded-2xl border border-yellow-300/15 bg-gradient-to-b from-white/10 to-transparent p-4 sm:p-8 lg:p-10 2xl:p-12">
             <h2 className="text-lg lg:text-2xl 2xl:text-3xl font-bold text-yellow-400 mb-7">ข้อเสนอแนะและแนวทางการนำไปใช้</h2>
             <div className="space-y-7">
               <div>
@@ -306,7 +300,7 @@ const InnoClubEvaluationPage: React.FC = () => {
             </div>
           </section>
 
-          <div className="sticky bottom-0 z-20 -mx-4 border-t border-yellow-300/20 bg-[#0b0914]/95 px-4 pt-3 pb-4 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0">
+          <div className="sticky bottom-0 z-20 -mx-4 border-t border-yellow-300/20 bg-[#101010]/95 px-4 pt-3 pb-4 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0">
             <div className="mb-3 text-xs lg:text-sm text-yellow-100/80 sm:hidden">
               เลือกคะแนนครบ 6 ข้อก่อนจึงจะกดส่งได้
             </div>
