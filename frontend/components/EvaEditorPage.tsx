@@ -192,12 +192,40 @@ const EvaEditorPage: React.FC = () => {
     if (nextId === selectedTemplate.id) return;
 
     const previousId = selectedTemplate.id;
+    const previousName = selectedTemplate.name;
     const next = templates.map((item) =>
       item.id === previousId
         ? { ...item, id: nextId, updatedAt: new Date().toISOString() }
         : item
     );
     saveTemplates(next, { upsertTemplateId: nextId, deleteTemplateId: previousId });
+    if (isSupabaseConfigured) {
+      void supabase
+        .from('eva_editor_responses')
+        .update({ template_id: nextId, template_name: nextName })
+        .eq('template_id', previousId);
+      void supabase
+        .from('eva_editor_responses')
+        .update({ template_id: nextId, template_name: nextName })
+        .eq('template_name', previousName);
+    }
+    if (typeof window !== 'undefined') {
+      try {
+        const raw = localStorage.getItem(RESPONSE_STORAGE_KEY);
+        const parsed = raw ? JSON.parse(raw) : [];
+        if (Array.isArray(parsed)) {
+          const migrated = parsed.map((row) => {
+            if (row?.templateId === previousId || row?.templateName === previousName) {
+              return { ...row, templateId: nextId, templateName: nextName };
+            }
+            return row;
+          });
+          localStorage.setItem(RESPONSE_STORAGE_KEY, JSON.stringify(migrated));
+        }
+      } catch {
+        // ignore local migration failure
+      }
+    }
     setSelectedId(nextId);
     setMessage('อัปเดตชื่อและลิงก์แบบประเมินแล้ว');
   };
@@ -380,7 +408,9 @@ const EvaEditorPage: React.FC = () => {
           answers?: Array<{ prompt?: string; subPrompt?: string; answer?: string }>;
           createdAt?: string;
         }>;
-        return Array.isArray(parsed) ? parsed.filter((r) => r.templateId === template.id) : [];
+        return Array.isArray(parsed)
+          ? parsed.filter((r) => r.templateId === template.id || r.templateName === template.name)
+          : [];
       } catch {
         return [];
       }
@@ -391,7 +421,7 @@ const EvaEditorPage: React.FC = () => {
       const { data, error } = await supabase
         .from('eva_editor_responses')
         .select('created_at, answers_json')
-        .eq('template_id', template.id)
+        .or(`template_id.eq.${template.id},template_name.eq.${template.name}`)
         .order('created_at', { ascending: false });
       if (error) {
         setSyncError(`โหลดคำตอบจาก Supabase ไม่สำเร็จ: ${error.message}`);

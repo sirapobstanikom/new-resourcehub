@@ -42,3 +42,8 @@ drop policy if exists "eva_responses_insert_all" on public.eva_editor_responses;
 create policy "eva_responses_insert_all"
 on public.eva_editor_responses for insert
 with check (true);
+
+drop policy if exists "eva_responses_select_authenticated" on public.eva_editor_responses;
+create policy "eva_responses_select_authenticated"
+on public.eva_editor_responses for select
+using (auth.uid() is not null);
