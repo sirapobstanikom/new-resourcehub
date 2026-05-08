@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { findEvaTemplateByRouteId, loadStoredEvaTemplates, type EvaEvaluationTemplate } from '../lib/evaTemplates';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
@@ -35,6 +35,8 @@ const EvaPublicFormPage: React.FC = () => {
 
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [missingPromptIds, setMissingPromptIds] = useState<string[]>([]);
+  const promptRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   useEffect(() => {
     const loadTemplate = async () => {
@@ -115,14 +117,49 @@ const EvaPublicFormPage: React.FC = () => {
     });
   }, [template, answers]);
 
+  const getMissingPromptIds = (): string[] => {
+    if (!template) return [];
+    return template.prompts
+      .filter((prompt) => {
+        const value = (answers[prompt.id] || '').trim();
+        if (prompt.type === 'rating_1_5') {
+          const items = prompt.ratingItems && prompt.ratingItems.length > 0 ? prompt.ratingItems : [prompt.title];
+          return items.some((_, itemIdx) => {
+            const subValue = (answers[`${prompt.id}::${itemIdx}`] || '').trim();
+            return !['1', '2', '3', '4', '5'].includes(subValue);
+          });
+        }
+        if (prompt.type === 'choice') {
+          if (isOtherOption(value)) return getOtherText(prompt.id).trim().length === 0;
+          return value.length === 0;
+        }
+        if (prompt.type === 'multi_choice') {
+          const selected = getMultiSelected(prompt.id);
+          if (selected.length === 0) return true;
+          if (selected.some((item) => isOtherOption(item))) return getOtherText(prompt.id).trim().length === 0;
+          return false;
+        }
+        return value.length === 0;
+      })
+      .map((prompt) => prompt.id);
+  };
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!template) return;
     if (!canSubmit) {
-      setError('กรุณาตอบทุกข้อก่อนส่ง');
+      const missingIds = getMissingPromptIds();
+      setMissingPromptIds(missingIds);
+      const firstMissingId = missingIds[0];
+      if (firstMissingId) {
+        const targetEl = promptRefs.current[firstMissingId];
+        targetEl?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      setError('กรุณาตอบคำถามให้ครบทุกข้อ');
       return;
     }
     setError(null);
+    setMissingPromptIds([]);
     const payload = {
       id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
       templateId: template.id,
@@ -160,6 +197,7 @@ const EvaPublicFormPage: React.FC = () => {
     };
 
     let hasSupabaseError = false;
+    let savedToSupabase = false;
     if (isSupabaseConfigured) {
       const { error: insertError } = await supabase.from('eva_editor_responses').insert({
         template_id: payload.templateId,
@@ -174,16 +212,21 @@ const EvaPublicFormPage: React.FC = () => {
             ? 'ยังไม่พบตาราง eva_editor_responses ใน Supabase'
             : `บันทึกคำตอบลง Supabase ไม่สำเร็จ (${insertError.message})`
         );
+      } else {
+        savedToSupabase = true;
       }
     }
 
-    try {
-      const raw = localStorage.getItem(RESPONSE_STORAGE_KEY);
-      const current = raw ? JSON.parse(raw) : [];
-      const next = Array.isArray(current) ? [payload, ...current] : [payload];
-      localStorage.setItem(RESPONSE_STORAGE_KEY, JSON.stringify(next));
-    } catch {
-      // ignore local cache failures
+    // เก็บลง local เฉพาะกรณี fallback (เช่น offline / Supabase พลาด) เพื่อไม่ให้นับซ้ำกับข้อมูลจาก Supabase
+    if (!savedToSupabase) {
+      try {
+        const raw = localStorage.getItem(RESPONSE_STORAGE_KEY);
+        const current = raw ? JSON.parse(raw) : [];
+        const next = Array.isArray(current) ? [payload, ...current] : [payload];
+        localStorage.setItem(RESPONSE_STORAGE_KEY, JSON.stringify(next));
+      } catch {
+        // ignore local cache failures
+      }
     }
     if (!hasSupabaseError) setSubmitted(true);
   };
@@ -248,7 +291,13 @@ const EvaPublicFormPage: React.FC = () => {
           </div>
           <form onSubmit={submit} className="space-y-7 md:space-y-8">
             {template.prompts.map((prompt, idx) => (
-              <div key={`${template.id}-${idx}`} className="block space-y-3">
+              <div
+                key={`${template.id}-${idx}`}
+                className="block space-y-3"
+                ref={(el) => {
+                  promptRefs.current[prompt.id] = el;
+                }}
+              >
                 <p className="text-base md:text-lg font-medium text-gray-100 leading-relaxed">
                   {idx + 1}. {prompt.title}
                 </p>
@@ -346,13 +395,15 @@ const EvaPublicFormPage: React.FC = () => {
                     className="w-full rounded-xl border border-white/15 bg-black/30 px-4 py-3 text-base leading-relaxed resize-y"
                   />
                 )}
+                {missingPromptIds.includes(prompt.id) && (
+                  <p className="text-sm text-red-300">กรุณาตอบคำถาม</p>
+                )}
               </div>
             ))}
             {error && <p className="text-base text-red-300">{error}</p>}
             <button
               type="submit"
-              disabled={!canSubmit}
-              className="rounded-xl bg-yellow-400 px-6 py-3 text-base md:text-lg font-semibold text-black hover:bg-yellow-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="rounded-xl bg-yellow-400 px-6 py-3 text-base md:text-lg font-semibold text-black hover:bg-yellow-300 transition-colors"
             >
               ส่งแบบประเมิน
             </button>

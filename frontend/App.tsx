@@ -37,6 +37,8 @@ const InnoClubEvaluationPage = lazy(() => import('./components/InnoClubEvaluatio
 const HogwartsInnoclubPage = lazy(() => import('./components/HogwartsInnoclubPage'));
 const EvaEditorPage = lazy(() => import('./components/EvaEditorPage'));
 const EvaPublicFormPage = lazy(() => import('./components/EvaPublicFormPage'));
+const EvaDashboardPage = lazy(() => import('./components/EvaDashboardPage'));
+const EvaDashboardLoginPage = lazy(() => import('./components/EvaDashboardLoginPage'));
 
 function cleanupArOverlays(): void {
   document.querySelectorAll('video').forEach((v) => {
@@ -267,6 +269,8 @@ const App: React.FC = () => {
         <Routes>
           <Route path="/evaluation/innoclub" element={<InnoClubEvaluationPage />} />
           <Route path="/evaluation/eva-editor" element={<EvaEditorPage />} />
+          <Route path="/evaluation/dashboard/login" element={<EvaDashboardLoginPage />} />
+          <Route path="/evaluation/dashboard" element={<EvaDashboardPage />} />
           <Route path="/evaluation/form/:templateId" element={<EvaPublicFormPage />} />
           <Route path="/evaluation/innoclub-hogwarts" element={<HogwartsInnoclubPage />} />
           <Route path="/evaluation/innoclub-hogwarts-guest" element={<HogwartsInnoclubPage />} />

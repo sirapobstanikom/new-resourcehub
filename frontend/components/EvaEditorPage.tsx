@@ -4,6 +4,14 @@ import * as XLSX from 'xlsx';
 import { isAdminAuthenticated } from '../lib/auth';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import {
+  createNewEvaDashboardInstance,
+  loadEvaDashboardStore,
+  removeDashboardFromStore,
+  saveEvaDashboardStore,
+  type EvaDashboardInstance,
+  upsertDashboardInStore,
+} from '../lib/evaDashboardConfig';
+import {
   type EvaEvaluationTemplate,
   type EvaPrompt,
   type EvaPromptType,
@@ -12,6 +20,8 @@ import {
   evaUniqueIdFromName,
   loadStoredEvaTemplates,
 } from '../lib/evaTemplates';
+
+type EvaEditorPageMode = 'templates' | 'dashboard';
 
 const DEFAULT_TEMPLATES: EvaEvaluationTemplate[] = [
   {
@@ -52,6 +62,18 @@ type SaveOptions = { upsertTemplateId?: string; deleteTemplateId?: string };
 
 const EvaEditorPage: React.FC = () => {
   const isAdmin = isAdminAuthenticated();
+  const [pageMode, setPageMode] = useState<EvaEditorPageMode>('templates');
+  const [dashStore, setDashStore] = useState(() => loadEvaDashboardStore());
+  const [selectedDashId, setSelectedDashId] = useState(() => {
+    const s = loadEvaDashboardStore();
+    return s.editorSelectedDashboardId ?? s.dashboards[0]?.id ?? '';
+  });
+  const [draftDashboard, setDraftDashboard] = useState<EvaDashboardInstance>(() => {
+    const s = loadEvaDashboardStore();
+    const id = s.editorSelectedDashboardId ?? s.dashboards[0]?.id ?? '';
+    return s.dashboards.find((d) => d.id === id) ?? s.dashboards[0]!;
+  });
+  const [dashShowPw, setDashShowPw] = useState(false);
   const [templates, setTemplates] = useState<EvaEvaluationTemplate[]>(() => readTemplates());
   const [selectedId, setSelectedId] = useState<string>(() => readTemplates()[0]?.id || '');
   const [newTemplateName, setNewTemplateName] = useState('');
@@ -92,6 +114,58 @@ const EvaEditorPage: React.FC = () => {
       setSyncError(null);
     }
   };
+
+  const persistDashboardConfig = () => {
+    const latest = loadEvaDashboardStore();
+    let nextStore = upsertDashboardInStore(latest, draftDashboard, { editorSelectedId: selectedDashId });
+    nextStore = { ...nextStore, editorSelectedDashboardId: selectedDashId };
+    saveEvaDashboardStore(nextStore);
+    setDashStore(nextStore);
+    setMessage('บันทึกการตั้งค่า Dashboard แล้ว');
+  };
+
+  const refreshDashboardEditorState = () => {
+    const s = loadEvaDashboardStore();
+    setDashStore(s);
+    const sid = s.editorSelectedDashboardId ?? s.dashboards[0]?.id ?? '';
+    setSelectedDashId(sid);
+    const inst = s.dashboards.find((d) => d.id === sid) ?? s.dashboards[0];
+    if (inst) setDraftDashboard({ ...inst });
+  };
+
+  const addDashboardSlot = () => {
+    const nextInst = createNewEvaDashboardInstance();
+    const latest = loadEvaDashboardStore();
+    let nextStore = upsertDashboardInStore(latest, nextInst, { editorSelectedId: nextInst.id });
+    nextStore = { ...nextStore, editorSelectedDashboardId: nextInst.id };
+    saveEvaDashboardStore(nextStore);
+    setDashStore(nextStore);
+    setSelectedDashId(nextInst.id);
+    setDraftDashboard(nextInst);
+    setMessage('สร้าง Dashboard ใหม่แล้ว — ตั้งชื่อและกดบันทึกเมื่อพร้อม');
+  };
+
+  const deleteSelectedDashboard = () => {
+    const latest = loadEvaDashboardStore();
+    if (latest.dashboards.length <= 1) {
+      setMessage('ต้องมีอย่างน้อยหนึ่ง Dashboard');
+      return;
+    }
+    const nextStore = removeDashboardFromStore(latest, selectedDashId);
+    if (!nextStore) {
+      setMessage('ต้องมีอย่างน้อยหนึ่ง Dashboard');
+      return;
+    }
+    saveEvaDashboardStore(nextStore);
+    setDashStore(nextStore);
+    const nid = nextStore.editorSelectedDashboardId ?? nextStore.dashboards[0].id;
+    setSelectedDashId(nid);
+    const inst = nextStore.dashboards.find((d) => d.id === nid)!;
+    setDraftDashboard(inst);
+    setMessage('ลบ Dashboard แล้ว');
+  };
+
+  const restrictDashboardList = draftDashboard.visibleTemplateIds !== null;
 
   const deleteTemplateFromSupabase = async (templateId: string) => {
     if (!isSupabaseConfigured) return;
@@ -508,12 +582,310 @@ const EvaEditorPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-transparent text-white bg-grid">
       <header className="border-b border-white/10 px-6 py-5">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
+        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
           <h1 className="text-xl md:text-2xl font-bold text-yellow-300">Eva editor</h1>
-          <Link to="/admin" className="text-sm text-gray-300 hover:text-white">กลับหน้าแอดมิน</Link>
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+            <div className="flex rounded-xl border border-white/15 bg-black/30 p-1">
+              <button
+                type="button"
+                onClick={() => {
+                  setMessage(null);
+                  setPageMode('templates');
+                }}
+                className={`rounded-lg px-3 py-2 text-xs sm:text-sm font-medium transition-colors ${
+                  pageMode === 'templates'
+                    ? 'bg-yellow-400/25 text-yellow-100'
+                    : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                แก้ไขแบบประเมิน
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setMessage(null);
+                  setPageMode('dashboard');
+                  refreshDashboardEditorState();
+                }}
+                className={`rounded-lg px-3 py-2 text-xs sm:text-sm font-medium transition-colors ${
+                  pageMode === 'dashboard'
+                    ? 'bg-yellow-400/25 text-yellow-100'
+                    : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                แก้ไข Dashboard
+              </button>
+            </div>
+            <a
+              href={`/evaluation/dashboard/login?dash=${encodeURIComponent(selectedDashId)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm text-yellow-300/90 hover:text-yellow-100 underline underline-offset-2"
+            >
+              เปิดหน้า Login Dashboard
+            </a>
+            <Link to="/admin" className="text-sm text-gray-300 hover:text-white">
+              กลับหน้าแอดมิน
+            </Link>
+          </div>
         </div>
       </header>
 
+      {pageMode === 'dashboard' ? (
+        <main className="max-w-3xl mx-auto px-6 py-8 space-y-6">
+          <p className="text-sm text-gray-400 leading-relaxed">
+            ตั้งค่าได้หลาย Dashboard — แยกลิงก์ด้วย <span className="font-mono text-gray-300">?dash=id</span> บันทึกใน
+            เบราว์เซอร์ของคุณ (localStorage)
+          </p>
+
+          <section className="rounded-2xl border border-white/10 bg-white/5 p-5 space-y-4">
+            <h2 className="font-semibold text-yellow-100">เลือก / จัดการ Dashboard</h2>
+            <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3 items-stretch sm:items-end">
+              <div className="flex-1 min-w-[180px]">
+                <label className="text-sm text-gray-400">เลือก Dashboard ที่จะแก้ไข</label>
+                <select
+                  value={selectedDashId}
+                  onChange={(e) => {
+                    const id = e.target.value;
+                    const inst = dashStore.dashboards.find((d) => d.id === id);
+                    if (!inst) return;
+                    setSelectedDashId(id);
+                    setDraftDashboard({ ...inst });
+                  }}
+                  className="mt-1 w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm"
+                >
+                  {dashStore.dashboards.map((d) => (
+                    <option key={d.id} value={d.id}>
+                      {d.label || d.dashboardTitle || d.id}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => void addDashboardSlot()}
+                  className="rounded-xl border border-emerald-400/40 bg-emerald-500/15 px-4 py-2 text-sm font-medium text-emerald-100 hover:bg-emerald-500/25"
+                >
+                  + สร้าง Dashboard ใหม่
+                </button>
+                <button
+                  type="button"
+                  disabled={dashStore.dashboards.length <= 1}
+                  onClick={() => void deleteSelectedDashboard()}
+                  className="rounded-xl border border-red-400/35 bg-red-500/15 px-4 py-2 text-sm font-medium text-red-100 hover:bg-red-500/25 disabled:opacity-40 disabled:pointer-events-none"
+                >
+                  ลบที่เลือก
+                </button>
+              </div>
+            </div>
+            <div>
+              <label className="text-sm text-gray-400">ชื่อภายใน (แสดงในรายการ editor)</label>
+              <input
+                value={draftDashboard.label}
+                onChange={(e) => setDraftDashboard((c) => ({ ...c, label: e.target.value }))}
+                className="mt-1 w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm"
+              />
+            </div>
+            <p className="text-xs text-gray-500 font-mono break-all">
+              dash id (ใส่ใน URL): {draftDashboard.id}
+            </p>
+            <p className="text-xs text-gray-400">
+              ลิงก์เข้าระบบ:{' '}
+              <span className="font-mono text-gray-300">
+                {`${typeof window !== 'undefined' ? window.location.origin : ''}/evaluation/dashboard/login?dash=${encodeURIComponent(draftDashboard.id)}`}
+              </span>
+            </p>
+          </section>
+
+          <section className="rounded-2xl border border-white/10 bg-white/5 p-5 space-y-4">
+            <h2 className="font-semibold text-yellow-100">ข้อความหน้า Login Dashboard</h2>
+            <div className="space-y-3">
+              <div>
+                <label className="text-sm text-gray-400">หัวข้อ (Title)</label>
+                <input
+                  value={draftDashboard.loginTitle}
+                  onChange={(e) => setDraftDashboard((c) => ({ ...c, loginTitle: e.target.value }))}
+                  className="mt-1 w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm"
+                />
+              </div>
+              <div>
+                <label className="text-sm text-gray-400">ข้อความใต้หัวข้อ</label>
+                <textarea
+                  value={draftDashboard.loginSubtitle}
+                  onChange={(e) => setDraftDashboard((c) => ({ ...c, loginSubtitle: e.target.value }))}
+                  rows={3}
+                  className="mt-1 w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm resize-y"
+                />
+              </div>
+              <div>
+                <label className="text-sm text-gray-400">ข้อความหมายเหตุด้านบนแบบฟอร์ม (ปล่อยว่างได้)</label>
+                <textarea
+                  value={draftDashboard.loginNote}
+                  onChange={(e) => setDraftDashboard((c) => ({ ...c, loginNote: e.target.value }))}
+                  rows={2}
+                  className="mt-1 w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm resize-y"
+                />
+              </div>
+              <div className="grid sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-sm text-gray-400">ป้ายกำกับช่อง Username</label>
+                  <input
+                    value={draftDashboard.usernameLabel}
+                    onChange={(e) => setDraftDashboard((c) => ({ ...c, usernameLabel: e.target.value }))}
+                    className="mt-1 w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm text-gray-400">ป้ายกำกับช่อง Password</label>
+                  <input
+                    value={draftDashboard.passwordLabel}
+                    onChange={(e) => setDraftDashboard((c) => ({ ...c, passwordLabel: e.target.value }))}
+                    className="mt-1 w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm"
+                  />
+                </div>
+              </div>
+              <div className="grid sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-sm text-gray-400">ข้อความปุ่มเข้าระบบ</label>
+                  <input
+                    value={draftDashboard.loginButtonText}
+                    onChange={(e) => setDraftDashboard((c) => ({ ...c, loginButtonText: e.target.value }))}
+                    className="mt-1 w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm text-gray-400">ข้อความเมื่อผิดรหัส</label>
+                  <input
+                    value={draftDashboard.loginErrorMessage}
+                    onChange={(e) => setDraftDashboard((c) => ({ ...c, loginErrorMessage: e.target.value }))}
+                    className="mt-1 w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm"
+                  />
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section className="rounded-2xl border border-white/10 bg-white/5 p-5 space-y-4">
+            <h2 className="font-semibold text-yellow-100">รหัสเข้าสู่ Dashboard</h2>
+            <div className="grid sm:grid-cols-2 gap-3">
+              <div>
+                <label className="text-sm text-gray-400">Username</label>
+                <input
+                  value={draftDashboard.username}
+                  onChange={(e) => setDraftDashboard((c) => ({ ...c, username: e.target.value }))}
+                  autoComplete="off"
+                  className="mt-1 w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm font-mono"
+                />
+              </div>
+              <div>
+                <label className="text-sm text-gray-400">Password</label>
+                <div className="mt-1 flex gap-2">
+                  <input
+                    type={dashShowPw ? 'text' : 'password'}
+                    value={draftDashboard.password}
+                    onChange={(e) => setDraftDashboard((c) => ({ ...c, password: e.target.value }))}
+                    autoComplete="new-password"
+                    className="flex-1 rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm font-mono"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setDashShowPw((v) => !v)}
+                    className="rounded-lg border border-white/20 px-3 py-2 text-xs text-gray-300 hover:bg-white/10 whitespace-nowrap"
+                  >
+                    {dashShowPw ? 'ซ่อน' : 'แสดง'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section className="rounded-2xl border border-white/10 bg-white/5 p-5 space-y-4">
+            <h2 className="font-semibold text-yellow-100">หน้ารายการ Dashboard</h2>
+            <div>
+              <label className="text-sm text-gray-400">หัวข้อแถบบนเมื่อเข้าระบบแล้ว</label>
+              <input
+                value={draftDashboard.dashboardTitle}
+                onChange={(e) => setDraftDashboard((c) => ({ ...c, dashboardTitle: e.target.value }))}
+                className="mt-1 w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm"
+              />
+            </div>
+          </section>
+
+          <section className="rounded-2xl border border-white/10 bg-white/5 p-5 space-y-4">
+            <h2 className="font-semibold text-yellow-100">แบบประเมินที่แสดงบน Dashboard</h2>
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={restrictDashboardList}
+                onChange={(e) => {
+                  const checked = e.target.checked;
+                  setDraftDashboard((c) => ({
+                    ...c,
+                    visibleTemplateIds: checked ? templates.map((t) => t.id) : null,
+                  }));
+                }}
+                className="mt-1 shrink-0"
+              />
+              <span className="text-sm text-gray-300 leading-relaxed">
+                จำกัดเฉพาะแบบประเมินที่เลือก (ถ้าไม่เลือกกล่องนี้ จะ<strong>แสดงแบบประเมินทั้งหมด</strong>ที่มีในระบบบน Dashboard)
+              </span>
+            </label>
+            {restrictDashboardList && (
+              <div className="rounded-lg border border-white/10 bg-black/25 p-3 max-h-64 overflow-y-auto space-y-2">
+                {templates.length === 0 ? (
+                  <p className="text-sm text-gray-500">ยังไม่มีแบบประเมิน ให้ไปที่แท็บ &quot;แก้ไขแบบประเมิน&quot; เพื่อสร้างก่อน</p>
+                ) : (
+                  templates.map((item) => {
+                    const ids = draftDashboard.visibleTemplateIds ?? [];
+                    const checked = ids.includes(item.id);
+                    return (
+                      <label key={item.id} className="flex items-start gap-2 cursor-pointer py-1">
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={(ev) => {
+                            const next = ev.target.checked
+                              ? [...new Set([...ids, item.id])]
+                              : ids.filter((id) => id !== item.id);
+                            setDraftDashboard((c) => ({ ...c, visibleTemplateIds: next }));
+                          }}
+                          className="mt-1 shrink-0"
+                        />
+                        <span className="text-sm text-gray-200 leading-snug">{item.name}</span>
+                      </label>
+                    );
+                  })
+                )}
+              </div>
+            )}
+          </section>
+
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                persistDashboardConfig();
+              }}
+              className="rounded-xl bg-yellow-400 px-5 py-2.5 text-sm font-semibold text-black hover:bg-yellow-300 transition-colors"
+            >
+              บันทึกการตั้งค่า Dashboard
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                refreshDashboardEditorState();
+                setMessage('โหลดค่าล่าสุดจาก localStorage');
+              }}
+              className="rounded-xl border border-white/20 px-4 py-2.5 text-sm text-gray-200 hover:bg-white/10 transition-colors"
+            >
+              โหลดค่าที่บันทึกไว้
+            </button>
+          </div>
+          {message && <p className="text-sm text-emerald-300">{message}</p>}
+          {syncError && <p className="text-sm text-amber-300">{syncError}</p>}
+        </main>
+      ) : (
       <main className="max-w-7xl mx-auto px-6 py-8 grid lg:grid-cols-[320px_minmax(0,1fr)] gap-6">
         <section className="rounded-2xl border border-white/10 bg-white/5 p-4 h-fit">
           <h2 className="font-semibold text-gray-200 mb-3">รายการแบบประเมิน</h2>
@@ -863,6 +1235,7 @@ const EvaEditorPage: React.FC = () => {
           {syncError && <p className="mt-2 text-sm text-amber-300">{syncError}</p>}
         </section>
       </main>
+      )}
     </div>
   );
 };

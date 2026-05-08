@@ -387,6 +387,14 @@ const AdminLayoutWithSidebar: React.FC = () => {
           </summary>
           <div className="mt-1 ml-2 space-y-1 border-l border-white/10 pl-2">
             <a
+              href="/evaluation/dashboard"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block py-2 px-3 rounded-lg text-sm font-medium text-gray-400 hover:bg-white/5 hover:text-white transition-colors"
+            >
+              Dashboard
+            </a>
+            <a
               href="/evaluation/innoclub"
               target="_blank"
               rel="noopener noreferrer"
