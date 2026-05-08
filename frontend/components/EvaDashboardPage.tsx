@@ -36,9 +36,15 @@ type UserCard = {
   submissions: ResponseRow[];
 };
 
-const RESPONSE_STORAGE_KEY = 'minddojo.eva-editor.responses.v1';
-const EVA_DELETE_RLS_SQL = `-- Run in Supabase SQL Editor
-grant delete on table public.eva_editor_responses to anon, authenticated;
+const EVA_DASHBOARD_RLS_SQL = `-- Run in Supabase SQL Editor
+grant select, delete on table public.eva_editor_responses to anon, authenticated;
+
+drop policy if exists "eva_editor_responses_select_policy" on public.eva_editor_responses;
+create policy "eva_editor_responses_select_policy"
+on public.eva_editor_responses
+for select
+to anon, authenticated
+using (true);
 
 drop policy if exists "eva_editor_responses_delete_policy" on public.eva_editor_responses;
 create policy "eva_editor_responses_delete_policy"
@@ -68,31 +74,6 @@ const formatThaiDateTime = (value: string): string => {
   });
 };
 
-const parseResponseRowsFromLocal = (): ResponseRow[] => {
-  if (typeof window === 'undefined') return [];
-  try {
-    const raw = localStorage.getItem(RESPONSE_STORAGE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw) as Array<{
-      templateId?: string;
-      templateName?: string;
-      createdAt?: string;
-      answers?: ResponseAnswer[];
-    }>;
-    if (!Array.isArray(parsed)) return [];
-    return parsed
-      .map((item) => ({
-        templateId: item.templateId || '',
-        templateName: item.templateName || '',
-        createdAt: item.createdAt || '',
-        answers: Array.isArray(item.answers) ? item.answers : [],
-      }))
-      .filter((item) => item.templateId || item.templateName);
-  } catch {
-    return [];
-  }
-};
-
 const EvaDashboardPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -119,6 +100,7 @@ const EvaDashboardPage: React.FC = () => {
   const [exportingTemplateId, setExportingTemplateId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -240,7 +222,6 @@ const EvaDashboardPage: React.FC = () => {
         localMap.set(item.id, { ...item, responseCount: localMap.get(item.id)?.responseCount || 0 });
       });
 
-      const localRows = parseResponseRowsFromLocal();
       let remoteRows: ResponseRow[] = [];
 
       if (isSupabaseConfigured) {
@@ -270,12 +251,17 @@ const EvaDashboardPage: React.FC = () => {
             localMap.set(key, { ...item, responseCount: byId || byName });
           });
         } else if (countError && !error) {
+          const rlsBlocked = /row-level security|permission denied|42501/i.test(countError.message || '');
           setError(
             /does not exist|could not find the table/i.test(countError.message || '')
               ? 'ยังไม่พบตาราง eva_editor_responses ใน Supabase'
-              : `โหลดจำนวนคำตอบไม่สำเร็จ (${countError.message})`
+              : rlsBlocked
+                ? `ยังไม่มีสิทธิ์ Dashboard สำหรับอ่านข้อมูลผู้ตอบ (ไม่ต้องล็อกอินแอดมิน)\nให้รัน SQL นี้ใน Supabase:\n${EVA_DASHBOARD_RLS_SQL}`
+                : `โหลดจำนวนคำตอบไม่สำเร็จ (${countError.message})`
           );
         }
+      } else {
+        setError('Dashboard นี้อ่านข้อมูลผู้ตอบจากฐานข้อมูลเท่านั้น กรุณาตั้งค่า Supabase ก่อนใช้งาน');
       }
 
       const sorted = Array.from(localMap.values()).sort((a, b) =>
@@ -291,18 +277,8 @@ const EvaDashboardPage: React.FC = () => {
       }
       const visibleSorted = filterTemplatesForDashboard(sorted, inst);
 
-      const mergedRows = [...remoteRows, ...localRows];
-      const dedupedRows = Array.from(
-        new Map(
-          mergedRows.map((item) => [
-            `${item.templateId}::${item.templateName}::${item.createdAt}::${JSON.stringify(item.answers)}`,
-            item,
-          ])
-        ).values()
-      );
-
       setTemplates(visibleSorted);
-      setResponses(dedupedRows);
+      setResponses(remoteRows);
       setSelectedTemplateId((current) => {
         if (visibleSorted.length === 0) return '';
         if (current && visibleSorted.some((t) => t.id === current)) return current;
@@ -314,7 +290,32 @@ const EvaDashboardPage: React.FC = () => {
     };
 
     loadDashboardData();
-  }, [hasDashboardAuth, dashParam, dashStore]);
+  }, [hasDashboardAuth, dashParam, dashStore, refreshKey]);
+
+  useEffect(() => {
+    if (!hasDashboardAuth || !isSupabaseConfigured) return;
+    const channel = supabase
+      .channel(`eva-dashboard-live-${dashInstance?.id || 'default'}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'eva_editor_responses' },
+        () => {
+          setRefreshKey((k) => k + 1);
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'eva_editor_templates' },
+        () => {
+          setRefreshKey((k) => k + 1);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [hasDashboardAuth, dashInstance?.id]);
 
   if (loadingDashStore) {
     return (
@@ -359,7 +360,12 @@ const EvaDashboardPage: React.FC = () => {
             .select('id, template_id, template_name, answers_json')
             .eq('template_id', selectedTemplate.id);
           if (byIdError) {
-            setError(`โหลดข้อมูลจาก Supabase เพื่อทำการลบไม่สำเร็จ (${byIdError.message})`);
+            const rlsBlocked = /row-level security|permission denied|42501/i.test(byIdError.message || '');
+            setError(
+              rlsBlocked
+                ? `ยังไม่มีสิทธิ์ Dashboard สำหรับอ่านข้อมูลผู้ตอบ (ไม่ต้องล็อกอินแอดมิน)\nให้รัน SQL นี้ใน Supabase:\n${EVA_DASHBOARD_RLS_SQL}`
+                : `โหลดข้อมูลจาก Supabase เพื่อทำการลบไม่สำเร็จ (${byIdError.message})`
+            );
             return;
           }
 
@@ -368,7 +374,12 @@ const EvaDashboardPage: React.FC = () => {
             .select('id, template_id, template_name, answers_json')
             .eq('template_name', selectedTemplate.name);
           if (byNameError) {
-            setError(`โหลดข้อมูลจาก Supabase เพื่อทำการลบไม่สำเร็จ (${byNameError.message})`);
+            const rlsBlocked = /row-level security|permission denied|42501/i.test(byNameError.message || '');
+            setError(
+              rlsBlocked
+                ? `ยังไม่มีสิทธิ์ Dashboard สำหรับอ่านข้อมูลผู้ตอบ (ไม่ต้องล็อกอินแอดมิน)\nให้รัน SQL นี้ใน Supabase:\n${EVA_DASHBOARD_RLS_SQL}`
+                : `โหลดข้อมูลจาก Supabase เพื่อทำการลบไม่สำเร็จ (${byNameError.message})`
+            );
             return;
           }
 
@@ -405,7 +416,7 @@ const EvaDashboardPage: React.FC = () => {
           const isRlsBlocked = /row-level security|permission denied|42501/i.test(deleteError.message || '');
           setError(
             isRlsBlocked
-              ? `ลบข้อมูลบน Supabase ไม่สำเร็จ (ติดสิทธิ์ RLS) ให้รัน SQL นี้ใน Supabase:\n${EVA_DELETE_RLS_SQL}`
+              ? `ลบข้อมูลบน Supabase ไม่สำเร็จ (ติดสิทธิ์ RLS)\nให้รัน SQL นี้ใน Supabase:\n${EVA_DASHBOARD_RLS_SQL}`
               : `ลบข้อมูลใน Supabase ไม่สำเร็จ (${deleteError.message})`
           );
           return;
@@ -413,29 +424,8 @@ const EvaDashboardPage: React.FC = () => {
 
         const deletedCount = (deletedRows || []).length;
         if (deletedCount === 0) {
-          setError(`ลบข้อมูลบน Supabase ไม่สำเร็จ (อาจติดสิทธิ์ RLS) ให้รัน SQL นี้:\n${EVA_DELETE_RLS_SQL}`);
+          setError(`ลบข้อมูลบน Supabase ไม่สำเร็จ (อาจติดสิทธิ์ RLS)\nให้รัน SQL นี้:\n${EVA_DASHBOARD_RLS_SQL}`);
           return;
-        }
-      }
-
-      if (typeof window !== 'undefined') {
-        try {
-          const raw = localStorage.getItem(RESPONSE_STORAGE_KEY);
-          const parsed = raw ? JSON.parse(raw) : [];
-          if (Array.isArray(parsed)) {
-            const next = parsed.filter((row) => {
-              const templateId = row?.templateId || '';
-              const templateName = row?.templateName || '';
-              const firstAnswer = Array.isArray(row?.answers) ? row.answers[0]?.answer || '' : '';
-              const sameTemplate =
-                templateId === selectedTemplate.id || (!templateId && templateName === selectedTemplate.name);
-              const sameUser = normalizeUserName(firstAnswer) === userName;
-              return !(sameTemplate && sameUser);
-            });
-            localStorage.setItem(RESPONSE_STORAGE_KEY, JSON.stringify(next));
-          }
-        } catch {
-          // ignore local delete failure
         }
       }
 
