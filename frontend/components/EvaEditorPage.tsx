@@ -656,7 +656,9 @@ const EvaEditorPage: React.FC = () => {
                 >
                   {dashStore.dashboards.map((d) => (
                     <option key={d.id} value={d.id}>
-                      {d.label || d.dashboardTitle || d.id}
+                      {d.id === selectedDashId
+                        ? draftDashboard.label.trim() || draftDashboard.dashboardTitle || d.id
+                        : (d.label || '').trim() || d.dashboardTitle || d.id}
                     </option>
                   ))}
                 </select>
@@ -684,17 +686,45 @@ const EvaEditorPage: React.FC = () => {
               <input
                 value={draftDashboard.label}
                 onChange={(e) => setDraftDashboard((c) => ({ ...c, label: e.target.value }))}
+                placeholder="เช่น Dashboard การอบรม A"
                 className="mt-1 w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm"
               />
+              <p className="mt-1 text-[11px] text-gray-500">
+                ชื่อในรายการเลือกด้านบนและหัวข้อลิงก์ด้านล่างใช้ค่านี้เดียวกัน (บันทึกแล้วจะเขียนลงใน localStorage)
+              </p>
             </div>
-            <p className="text-xs text-gray-500 font-mono break-all">
-              dash id (ใส่ใน URL): {draftDashboard.id}
-            </p>
-            <p className="text-xs text-gray-400">
-              ลิงก์เข้าระบบ:{' '}
-              <span className="font-mono text-gray-300">
-                {`${typeof window !== 'undefined' ? window.location.origin : ''}/evaluation/dashboard/login?dash=${encodeURIComponent(draftDashboard.id)}`}
-              </span>
+            {selectedDashId && draftDashboard.id === selectedDashId && (
+              <div className="rounded-xl border border-yellow-400/25 bg-yellow-400/10 p-3 space-y-2">
+                <p className="text-xs font-medium text-gray-400">ลิงก์ของ Dashboard นี้ (เปิดแท็บใหม่)</p>
+                <p className="text-sm font-semibold text-yellow-100">
+                  {draftDashboard.label.trim() || '(ตั้งชื่อภายในก่อนหรือกรอกที่ช่องด้านบน)'}
+                </p>
+                <p className="text-[11px] text-gray-500 font-mono break-all">{draftDashboard.id}</p>
+                <div className="flex flex-wrap gap-2 pt-1">
+                  <a
+                    href={`/evaluation/dashboard/login?dash=${encodeURIComponent(draftDashboard.id)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex rounded-lg border border-sky-400/40 bg-sky-500/15 px-2.5 py-1 text-xs font-medium text-sky-100 hover:bg-sky-500/25"
+                  >
+                    หน้า Login
+                  </a>
+                  <a
+                    href={`/evaluation/dashboard?dash=${encodeURIComponent(draftDashboard.id)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex rounded-lg border border-white/20 bg-white/10 px-2.5 py-1 text-xs font-medium text-gray-100 hover:bg-white/15"
+                  >
+                    หน้า Dashboard
+                  </a>
+                </div>
+              </div>
+            )}
+            <p className="text-xs text-gray-500">
+              <span className="text-gray-400">dash id (พารามิเตอร์ </span>
+              <span className="font-mono text-gray-400">?dash=</span>
+              <span className="text-gray-400">): </span>
+              <span className="font-mono text-gray-300 break-all">{draftDashboard.id}</span>
             </p>
           </section>
 
