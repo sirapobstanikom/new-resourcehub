@@ -631,14 +631,6 @@ const EvaEditorPage: React.FC = () => {
                 แก้ไข Dashboard
               </button>
             </div>
-            <a
-              href={`/evaluation/dashboard/login?dash=${encodeURIComponent(selectedDashId)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-sm text-yellow-300/90 hover:text-yellow-100 underline underline-offset-2"
-            >
-              เปิดหน้า Login Dashboard
-            </a>
             <Link to="/admin" className="text-sm text-gray-300 hover:text-white">
               กลับหน้าแอดมิน
             </Link>
@@ -717,20 +709,12 @@ const EvaEditorPage: React.FC = () => {
                 <p className="text-[11px] text-gray-500 font-mono break-all">{draftDashboard.id}</p>
                 <div className="flex flex-wrap gap-2 pt-1">
                   <a
-                    href={`/evaluation/dashboard/login?dash=${encodeURIComponent(draftDashboard.id)}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex rounded-lg border border-sky-400/40 bg-sky-500/15 px-2.5 py-1 text-xs font-medium text-sky-100 hover:bg-sky-500/25"
-                  >
-                    หน้า Login
-                  </a>
-                  <a
                     href={`/evaluation/dashboard?dash=${encodeURIComponent(draftDashboard.id)}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex rounded-lg border border-white/20 bg-white/10 px-2.5 py-1 text-xs font-medium text-gray-100 hover:bg-white/15"
                   >
-                    หน้า Dashboard
+                    ไปที่ หน้า Dashboard ของแบบประเมินนี้
                   </a>
                 </div>
               </div>
