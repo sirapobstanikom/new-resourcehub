@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   evaDashboardAuthStorageKey,
-  loadEvaDashboardStore,
+  loadEvaDashboardStoreAsync,
+  type EvaDashboardStore,
   resolveActiveDashboard,
 } from '../lib/evaDashboardConfig';
 
@@ -11,14 +12,44 @@ const EvaDashboardLoginPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const dashParam = searchParams.get('dash');
 
-  const store = loadEvaDashboardStore();
-  const instance = resolveActiveDashboard(store, dashParam);
+  const [dashStore, setDashStore] = useState<EvaDashboardStore | null>(null);
+  const [loadingConfig, setLoadingConfig] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const instance = useMemo(
+    () => (dashStore ? resolveActiveDashboard(dashStore, dashParam) : null),
+    [dashStore, dashParam]
+  );
 
   const dashConfig = instance;
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const loadConfig = async () => {
+      const loaded = await loadEvaDashboardStoreAsync();
+      if (cancelled) return;
+      setDashStore(loaded.store);
+      setLoadError(loaded.errorMessage);
+      setLoadingConfig(false);
+    };
+    void loadConfig();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  if (loadingConfig) {
+    return (
+      <div className="min-h-screen bg-transparent text-white bg-grid px-4 py-6 sm:px-6 sm:py-10">
+        <div className="max-w-md mx-auto rounded-3xl border border-white/10 bg-gradient-to-br from-white/10 via-white/5 to-black/30 p-6 text-center">
+          <p className="text-sm text-gray-300">กำลังโหลดการตั้งค่า Dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!instance || !dashConfig) {
     return (
@@ -64,6 +95,7 @@ const EvaDashboardLoginPage: React.FC = () => {
         )}
 
         <form onSubmit={handleLogin} className="mt-5 space-y-4">
+          {loadError && <p className="text-xs text-amber-300 whitespace-pre-wrap">{loadError}</p>}
           <div>
             <label className="text-sm text-gray-300 font-medium">{dashConfig.usernameLabel}</label>
             <input

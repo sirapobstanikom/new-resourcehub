@@ -1,3 +1,5 @@
+import { isSupabaseConfigured, supabase } from './supabase';
+
 export type EvaDashboardConfig = {
 
   /** ข้อความหน้า login */
@@ -63,6 +65,31 @@ export type EvaDashboardStore = {
 
 
 export const EVA_DASHBOARD_CONFIG_KEY = 'minddojo.eva-dashboard.config.v1';
+export const EVA_DASHBOARD_REMOTE_TABLE = 'eva_dashboard_configs';
+export const EVA_DASHBOARD_REMOTE_ROW_ID = 'default';
+export const EVA_DASHBOARD_REMOTE_SQL = `-- Run in Supabase SQL Editor
+create table if not exists public.eva_dashboard_configs (
+  id text primary key,
+  store_json jsonb not null,
+  updated_at timestamptz not null default now()
+);
+
+alter table public.eva_dashboard_configs enable row level security;
+
+drop policy if exists "eva_dashboard_configs_select_policy" on public.eva_dashboard_configs;
+create policy "eva_dashboard_configs_select_policy"
+on public.eva_dashboard_configs
+for select
+to anon, authenticated
+using (true);
+
+drop policy if exists "eva_dashboard_configs_upsert_policy" on public.eva_dashboard_configs;
+create policy "eva_dashboard_configs_upsert_policy"
+on public.eva_dashboard_configs
+for all
+to anon, authenticated
+using (true)
+with check (true);`;
 
 
 
@@ -355,6 +382,76 @@ export function saveEvaDashboardStore(store: EvaDashboardStore): void {
 
   );
 
+}
+
+export async function loadEvaDashboardStoreAsync(): Promise<{
+  store: EvaDashboardStore;
+  from: 'supabase' | 'local';
+  errorMessage: string | null;
+}> {
+  const localStore = loadEvaDashboardStore();
+  if (!isSupabaseConfigured) {
+    return { store: localStore, from: 'local', errorMessage: null };
+  }
+  const { data, error } = await supabase
+    .from(EVA_DASHBOARD_REMOTE_TABLE)
+    .select('store_json')
+    .eq('id', EVA_DASHBOARD_REMOTE_ROW_ID)
+    .maybeSingle();
+  if (error) {
+    const msg =
+      /does not exist|could not find the table/i.test(error.message || '')
+        ? `ยังไม่พบตาราง ${EVA_DASHBOARD_REMOTE_TABLE} ใน Supabase`
+        : `โหลด Dashboard config จาก Supabase ไม่สำเร็จ: ${error.message}`;
+    return { store: localStore, from: 'local', errorMessage: `${msg}\n${EVA_DASHBOARD_REMOTE_SQL}` };
+  }
+  const raw = data?.store_json;
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+    return { store: localStore, from: 'local', errorMessage: null };
+  }
+  const remoteStore = (raw as unknown) as EvaDashboardStore;
+  const normalized = normalizeDashboardStore(remoteStore);
+  saveEvaDashboardStore(normalized);
+  return { store: normalized, from: 'supabase', errorMessage: null };
+}
+
+export async function saveEvaDashboardStoreAsync(store: EvaDashboardStore): Promise<{
+  ok: boolean;
+  errorMessage: string | null;
+}> {
+  const normalized = normalizeDashboardStore(store);
+  saveEvaDashboardStore(normalized);
+  if (!isSupabaseConfigured) return { ok: true, errorMessage: null };
+
+  const { error } = await supabase.from(EVA_DASHBOARD_REMOTE_TABLE).upsert({
+    id: EVA_DASHBOARD_REMOTE_ROW_ID,
+    store_json: normalized,
+    updated_at: new Date().toISOString(),
+  });
+  if (error) {
+    const msg =
+      /does not exist|could not find the table/i.test(error.message || '')
+        ? `ยังไม่พบตาราง ${EVA_DASHBOARD_REMOTE_TABLE} ใน Supabase`
+        : `บันทึก Dashboard config ไป Supabase ไม่สำเร็จ: ${error.message}`;
+    return { ok: false, errorMessage: `${msg}\n${EVA_DASHBOARD_REMOTE_SQL}` };
+  }
+  return { ok: true, errorMessage: null };
+}
+
+function normalizeDashboardStore(store: EvaDashboardStore): EvaDashboardStore {
+  const dashboards =
+    Array.isArray(store.dashboards) && store.dashboards.length > 0
+      ? store.dashboards.map((d) => normalizeInstance(d))
+      : getDefaultEvaDashboardStore().dashboards;
+  let editorSelectedDashboardId = store.editorSelectedDashboardId;
+  if (!editorSelectedDashboardId || !dashboards.some((d) => d.id === editorSelectedDashboardId)) {
+    editorSelectedDashboardId = dashboards[0]?.id;
+  }
+  return {
+    version: 2,
+    dashboards,
+    editorSelectedDashboardId,
+  };
 }
 
 

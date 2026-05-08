@@ -4,7 +4,8 @@ import * as XLSX from 'xlsx';
 import {
   evaDashboardAuthStorageKey,
   filterTemplatesForDashboard,
-  loadEvaDashboardStore,
+  loadEvaDashboardStoreAsync,
+  type EvaDashboardStore,
   resolveActiveDashboard,
 } from '../lib/evaDashboardConfig';
 import { loadStoredEvaTemplates, type EvaEvaluationTemplate } from '../lib/evaTemplates';
@@ -96,7 +97,12 @@ const EvaDashboardPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const dashParam = searchParams.get('dash');
-  const dashInstance = resolveActiveDashboard(loadEvaDashboardStore(), dashParam);
+  const [dashStore, setDashStore] = useState<EvaDashboardStore | null>(null);
+  const [loadingDashStore, setLoadingDashStore] = useState(true);
+  const dashInstance = useMemo(
+    () => (dashStore ? resolveActiveDashboard(dashStore, dashParam) : null),
+    [dashStore, dashParam]
+  );
 
   const hasDashboardAuth =
     !!dashInstance &&
@@ -113,6 +119,21 @@ const EvaDashboardPage: React.FC = () => {
   const [exportingTemplateId, setExportingTemplateId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const loadDashStore = async () => {
+      const loaded = await loadEvaDashboardStoreAsync();
+      if (cancelled) return;
+      setDashStore(loaded.store);
+      if (loaded.errorMessage) setError(loaded.errorMessage);
+      setLoadingDashStore(false);
+    };
+    void loadDashStore();
+    return () => {
+      cancelled = true;
+    };
+  }, [dashParam]);
 
   const selectedTemplate = useMemo(
     () => templates.find((item) => item.id === selectedTemplateId) || null,
@@ -261,8 +282,7 @@ const EvaDashboardPage: React.FC = () => {
         (b.updatedAt || '').localeCompare(a.updatedAt || '')
       );
 
-      const store = loadEvaDashboardStore();
-      const inst = resolveActiveDashboard(store, dashParam);
+      const inst = dashStore ? resolveActiveDashboard(dashStore, dashParam) : null;
       if (!inst) {
         setTemplates([]);
         setResponses([]);
@@ -294,7 +314,15 @@ const EvaDashboardPage: React.FC = () => {
     };
 
     loadDashboardData();
-  }, [hasDashboardAuth, dashParam]);
+  }, [hasDashboardAuth, dashParam, dashStore]);
+
+  if (loadingDashStore) {
+    return (
+      <div className="min-h-screen bg-transparent text-white bg-grid flex items-center justify-center">
+        <p className="text-sm text-gray-300">กำลังโหลดการตั้งค่า Dashboard...</p>
+      </div>
+    );
+  }
 
   const isRowInSelectedTemplate = (item: ResponseRow): boolean => {
     if (!selectedTemplate) return false;

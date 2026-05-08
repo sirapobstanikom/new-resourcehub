@@ -6,8 +6,9 @@ import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import {
   createNewEvaDashboardInstance,
   loadEvaDashboardStore,
+  loadEvaDashboardStoreAsync,
   removeDashboardFromStore,
-  saveEvaDashboardStore,
+  saveEvaDashboardStoreAsync,
   type EvaDashboardInstance,
   upsertDashboardInStore,
 } from '../lib/evaDashboardConfig';
@@ -115,37 +116,46 @@ const EvaEditorPage: React.FC = () => {
     }
   };
 
-  const persistDashboardConfig = () => {
+  const persistDashboardConfig = async () => {
     const latest = loadEvaDashboardStore();
     let nextStore = upsertDashboardInStore(latest, draftDashboard, { editorSelectedId: selectedDashId });
     nextStore = { ...nextStore, editorSelectedDashboardId: selectedDashId };
-    saveEvaDashboardStore(nextStore);
+    const saved = await saveEvaDashboardStoreAsync(nextStore);
     setDashStore(nextStore);
-    setMessage('บันทึกการตั้งค่า Dashboard แล้ว');
+    if (saved.ok) {
+      setMessage('บันทึกการตั้งค่า Dashboard แล้ว (sync Supabase สำเร็จ)');
+      setSyncError(null);
+    } else {
+      setMessage('บันทึกลงเครื่องแล้ว แต่ sync Supabase ไม่สำเร็จ');
+      setSyncError(saved.errorMessage);
+    }
   };
 
-  const refreshDashboardEditorState = () => {
-    const s = loadEvaDashboardStore();
+  const refreshDashboardEditorState = async () => {
+    const loaded = await loadEvaDashboardStoreAsync();
+    const s = loaded.store;
     setDashStore(s);
     const sid = s.editorSelectedDashboardId ?? s.dashboards[0]?.id ?? '';
     setSelectedDashId(sid);
     const inst = s.dashboards.find((d) => d.id === sid) ?? s.dashboards[0];
     if (inst) setDraftDashboard({ ...inst });
+    if (loaded.errorMessage) setSyncError(loaded.errorMessage);
   };
 
-  const addDashboardSlot = () => {
+  const addDashboardSlot = async () => {
     const nextInst = createNewEvaDashboardInstance();
     const latest = loadEvaDashboardStore();
     let nextStore = upsertDashboardInStore(latest, nextInst, { editorSelectedId: nextInst.id });
     nextStore = { ...nextStore, editorSelectedDashboardId: nextInst.id };
-    saveEvaDashboardStore(nextStore);
+    const saved = await saveEvaDashboardStoreAsync(nextStore);
     setDashStore(nextStore);
     setSelectedDashId(nextInst.id);
     setDraftDashboard(nextInst);
-    setMessage('สร้าง Dashboard ใหม่แล้ว — ตั้งชื่อและกดบันทึกเมื่อพร้อม');
+    setMessage(saved.ok ? 'สร้าง Dashboard ใหม่แล้ว — ตั้งชื่อและกดบันทึกเมื่อพร้อม' : 'สร้าง Dashboard แล้ว แต่ sync Supabase ไม่สำเร็จ');
+    if (!saved.ok) setSyncError(saved.errorMessage);
   };
 
-  const deleteSelectedDashboard = () => {
+  const deleteSelectedDashboard = async () => {
     const latest = loadEvaDashboardStore();
     if (latest.dashboards.length <= 1) {
       setMessage('ต้องมีอย่างน้อยหนึ่ง Dashboard');
@@ -156,13 +166,14 @@ const EvaEditorPage: React.FC = () => {
       setMessage('ต้องมีอย่างน้อยหนึ่ง Dashboard');
       return;
     }
-    saveEvaDashboardStore(nextStore);
+    const saved = await saveEvaDashboardStoreAsync(nextStore);
     setDashStore(nextStore);
     const nid = nextStore.editorSelectedDashboardId ?? nextStore.dashboards[0].id;
     setSelectedDashId(nid);
     const inst = nextStore.dashboards.find((d) => d.id === nid)!;
     setDraftDashboard(inst);
-    setMessage('ลบ Dashboard แล้ว');
+    setMessage(saved.ok ? 'ลบ Dashboard แล้ว' : 'ลบ Dashboard แล้ว แต่ sync Supabase ไม่สำเร็จ');
+    if (!saved.ok) setSyncError(saved.errorMessage);
   };
 
   const restrictDashboardList = draftDashboard.visibleTemplateIds !== null;
@@ -223,6 +234,10 @@ const EvaEditorPage: React.FC = () => {
       setSyncError(null);
     };
     loadTemplatesFromSupabase();
+  }, []);
+
+  useEffect(() => {
+    void refreshDashboardEditorState();
   }, []);
 
   const addTemplate = () => {
@@ -605,7 +620,7 @@ const EvaEditorPage: React.FC = () => {
                 onClick={() => {
                   setMessage(null);
                   setPageMode('dashboard');
-                  refreshDashboardEditorState();
+                  void refreshDashboardEditorState();
                 }}
                 className={`rounded-lg px-3 py-2 text-xs sm:text-sm font-medium transition-colors ${
                   pageMode === 'dashboard'
@@ -635,7 +650,7 @@ const EvaEditorPage: React.FC = () => {
         <main className="max-w-3xl mx-auto px-6 py-8 space-y-6">
           <p className="text-sm text-gray-400 leading-relaxed">
             ตั้งค่าได้หลาย Dashboard — แยกลิงก์ด้วย <span className="font-mono text-gray-300">?dash=id</span> บันทึกใน
-            เบราว์เซอร์ของคุณ (localStorage)
+            Supabase (พร้อม cache ในเครื่อง)
           </p>
 
           <section className="rounded-2xl border border-white/10 bg-white/5 p-5 space-y-4">
@@ -690,7 +705,7 @@ const EvaEditorPage: React.FC = () => {
                 className="mt-1 w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm"
               />
               <p className="mt-1 text-[11px] text-gray-500">
-                ชื่อในรายการเลือกด้านบนและหัวข้อลิงก์ด้านล่างใช้ค่านี้เดียวกัน (บันทึกแล้วจะเขียนลงใน localStorage)
+                ชื่อในรายการเลือกด้านบนและหัวข้อลิงก์ด้านล่างใช้ค่านี้เดียวกัน (บันทึกแล้ว sync ไป Supabase)
               </p>
             </div>
             {selectedDashId && draftDashboard.id === selectedDashId && (
@@ -895,7 +910,7 @@ const EvaEditorPage: React.FC = () => {
             <button
               type="button"
               onClick={() => {
-                persistDashboardConfig();
+                void persistDashboardConfig();
               }}
               className="rounded-xl bg-yellow-400 px-5 py-2.5 text-sm font-semibold text-black hover:bg-yellow-300 transition-colors"
             >
@@ -904,8 +919,8 @@ const EvaEditorPage: React.FC = () => {
             <button
               type="button"
               onClick={() => {
-                refreshDashboardEditorState();
-                setMessage('โหลดค่าล่าสุดจาก localStorage');
+                void refreshDashboardEditorState();
+                setMessage('โหลดค่าล่าสุดจากระบบแล้ว');
               }}
               className="rounded-xl border border-white/20 px-4 py-2.5 text-sm text-gray-200 hover:bg-white/10 transition-colors"
             >
