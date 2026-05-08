@@ -200,6 +200,17 @@ const ADMIN_LEAVE_MANAGER_EMAILS = ['pink@minddojo.me', 'koy@minddojo.me', 'tonj
 const FORCED_MONTHLY_WFH_EMAILS = ['noon@minddojo.me', 'nahm@minddojo.me'];
 
 const THAI_MONTHS = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
+const PUBLIC_HOLIDAYS_RLS_SQL = `-- Run in Supabase SQL Editor
+grant select on table public.public_holidays to anon, authenticated;
+
+alter table public.public_holidays enable row level security;
+
+drop policy if exists "public_holidays_select_policy" on public.public_holidays;
+create policy "public_holidays_select_policy"
+on public.public_holidays
+for select
+to anon, authenticated
+using (true);`;
 
 type PublicHoliday = { id: number; month: number; day: number; name: string | null };
 
@@ -263,6 +274,8 @@ const AdminLeavePage: React.FC = () => {
     window.location.href = '/admin/login';
   };
   const [publicHolidays, setPublicHolidays] = useState<PublicHoliday[]>([]);
+  const [publicHolidaysLoading, setPublicHolidaysLoading] = useState(true);
+  const [publicHolidaysError, setPublicHolidaysError] = useState<string | null>(null);
   const [holidaysOpen, setHolidaysOpen] = useState(false);
   const [leaveType, setLeaveType] = useState<string>(LEAVE_TYPES[0].id);
   const [startDate, setStartDate] = useState(() => new Date().toISOString().slice(0, 10));
@@ -401,15 +414,35 @@ const AdminLeavePage: React.FC = () => {
   }, [submitted]);
 
   useEffect(() => {
-    if (!isSupabaseConfigured) return;
-    supabase
-      .from('public_holidays')
-      .select('id, month, day, name')
-      .order('month')
-      .order('day')
-      .then(({ data }) => {
-        if (data) setPublicHolidays(data as PublicHoliday[]);
-      });
+    if (!isSupabaseConfigured) {
+      setPublicHolidaysLoading(false);
+      return;
+    }
+    const loadPublicHolidays = async () => {
+      setPublicHolidaysLoading(true);
+      setPublicHolidaysError(null);
+
+      const runQuery = async (tableName: 'public_holidays' | 'public_holiday') =>
+        supabase.from(tableName).select('id, month, day, name').order('month').order('day');
+
+      let result = await runQuery('public_holidays');
+      if (result.error && /does not exist|could not find the table/i.test(result.error.message || '')) {
+        result = await runQuery('public_holiday');
+      }
+
+      if (result.error) {
+        setPublicHolidays([]);
+        setPublicHolidaysError(
+          /row-level security|permission denied|new row violates row-level security|not allowed/i.test(result.error.message || '')
+            ? `ไม่มีสิทธิ์อ่านตารางวันหยุด (RLS)\n${PUBLIC_HOLIDAYS_RLS_SQL}`
+            : `โหลดวันหยุดไม่สำเร็จ: ${result.error.message}`
+        );
+      } else {
+        setPublicHolidays((result.data as PublicHoliday[]) ?? []);
+      }
+      setPublicHolidaysLoading(false);
+    };
+    void loadPublicHolidays();
   }, []);
 
   useEffect(() => {
@@ -1057,7 +1090,7 @@ const AdminLeavePage: React.FC = () => {
           >
             <span className="font-semibold text-amber-300">วันหยุดประจำปี</span>
             <span className="text-gray-400 text-sm">
-              {publicHolidays.length > 0 ? `${publicHolidays.length} วัน` : 'โหลด...'}
+              {publicHolidaysLoading ? 'โหลด...' : `${publicHolidays.length} วัน`}
             </span>
             <svg className={`w-5 h-5 text-gray-400 transition-transform ${holidaysOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -1066,6 +1099,9 @@ const AdminLeavePage: React.FC = () => {
           {holidaysOpen && (
             <div className="px-4 pb-4 pt-0 border-t border-amber-400/20">
               <p className="text-xs text-gray-400 mt-2 mb-3">วันเหล่านี้ไม่หักวันลา (นอกจากเสาร์–อาทิตย์)</p>
+              {publicHolidaysError && (
+                <p className="text-xs text-amber-300 whitespace-pre-wrap mb-3">{publicHolidaysError}</p>
+              )}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-64 overflow-y-auto">
                 {THAI_MONTHS.map((monthName, i) => {
                   const monthNum = i + 1;
