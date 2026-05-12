@@ -35,6 +35,14 @@ const ASSESSMENTS = [
     comingSoon: false,
   },
   {
+    id: 'reactive-proactive',
+    title: 'Reactive vs Proactive Mindset Assessment',
+    description:
+      'Mindset Assessment — สำรวจแนวโน้มวิธีคิดและพฤติกรรมของตนเองเมื่อเผชิญสถานการณ์ในการทำงาน ทั้งการรับมือกับปัญหา การสื่อสาร การตัดสินใจ และการรับผิดชอบต่อผลลัพธ์',
+    href: '/assessment/reactive-proactive-mindset',
+    comingSoon: false,
+  },
+  {
     id: 'DISC',
     title: 'DISC Assessment',
     description: 'แบบทดสอบประเมินบุคลิกภาพของคุณ',

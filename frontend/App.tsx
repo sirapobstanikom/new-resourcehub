@@ -27,6 +27,7 @@ const DiscAssessment = lazy(() => import('./components/DiscAssessment'));
 const LeadershipAssessment = lazy(() => import('./components/LeadershipAssessment'));
 const PersuasionAssessment = lazy(() => import('./components/PersuasionAssessment'));
 const DigitalLeadershipAssessment = lazy(() => import('./components/DigitalLeadershipAssessment'));
+const ReactiveProactiveMindsetAssessment = lazy(() => import('./components/ReactiveProactiveMindsetAssessment'));
 const MindDojoAssessment = lazy(() => import('./components/MindDojoAssessment'));
 const MindDojoResultPage = lazy(() => import('./components/MindDojoResultPage'));
 const AdminMindDojoAssessmentUsersPage = lazy(() => import('./components/AdminMindDojoAssessmentUsersPage'));
@@ -234,6 +235,10 @@ const App: React.FC = () => {
           <Route path="/assessment/leaderships" element={<LeadershipAssessment />} />
           <Route path="/assessment/persuasion" element={<PersuasionAssessment />} />
           <Route path="/assessment/digital-leadership" element={<DigitalLeadershipAssessment />} />
+          <Route
+            path="/assessment/reactive-proactive-mindset"
+            element={<ReactiveProactiveMindsetAssessment />}
+          />
           <Route path="/assessment/minddojo/result" element={<MindDojoResultPage />} />
           <Route path="/assessment/minddojo" element={<MindDojoAssessment />} />
           <Route path="*" element={<Navigate to="/" replace />} />
