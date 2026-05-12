@@ -7,6 +7,7 @@ import UpdateCard from './components/UpdateCard';
 import HomePage from './components/HomePage';
 import { useAuth } from './contexts/AuthContext';
 import { isAdminAuthenticated, isAuthenticated, logoutAdmin, logoutResourceHub } from './lib/auth';
+import { updateSeoTags } from './lib/seo';
 
 /** โหลดแยก chunk — ลดขนาด bundle หลักบน Vite build / Vercel */
 const ToolDetail = lazy(() => import('./components/ToolDetail'));
@@ -172,6 +173,10 @@ const App: React.FC = () => {
   const isDetailView = pathname.startsWith('/tool/') || pathname.startsWith('/update/');
   const isTools = pathname === '/resourcehub';
   const isUpdates = pathname === '/updates';
+
+  useEffect(() => {
+    updateSeoTags(pathname);
+  }, [pathname]);
 
   useEffect(() => {
     const isArPage = pathname === '/gamification/game-ar' || pathname === '/game-ar';

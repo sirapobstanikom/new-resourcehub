@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /login
+Disallow: /register
+Disallow: /course-wheel
+Disallow: /room
+Disallow: /resourcehub
+Disallow: /tool/
+Disallow: /update/
+Disallow: /evaluation/eva-editor
+Disallow: /evaluation/dashboard
+
+Sitemap: https://www.minddojo.co.th/sitemap.xml

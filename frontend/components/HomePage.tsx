@@ -102,10 +102,10 @@ const HomePage: React.FC = () => {
       {/* Hero */}
       <section className="flex-1 flex flex-col items-center justify-center px-6 py-16 text-center">
         <h1 className="text-4xl md:text-7xl font-black tracking-tighter leading-tight mb-4">
-          Welcome to <span className="text-yellow-400">MindDoJo</span>
+          แบบประเมินและเครื่องมือพัฒนาองค์กรจาก <span className="text-yellow-400">MindDoJo</span>
         </h1>
         <p className="text-zinc-400 text-lg md:text-xl max-w-xl mb-14 leading-relaxed tracking-wide">
-          แพลตฟอร์มสำหรับการประเมิน เครื่องมือ และความรู้เพื่อพัฒนาองค์กร
+          รวมแบบประเมินภาวะผู้นำ DISC Digital Leadership Persuasion และ ResourceHub สำหรับเครื่องมือกลยุทธ์ เทมเพลตธุรกิจ และความรู้ด้านนวัตกรรม
         </p>
       </section>
 
@@ -116,7 +116,7 @@ const HomePage: React.FC = () => {
             MindDoJo <span className="text-yellow-400">ResourceHub</span>
           </h2>
           <p className="text-gray-400 mb-6 max-w-lg mx-auto">
-            คลังเครื่องมือเชิงกลยุทธ์ และ Industry Updates สำหรับการเติบโตขององค์กร
+            คลังเครื่องมือเชิงกลยุทธ์ เช่น Business Model Canvas, Game Plan, Product Strategy, SCAMPER และ Industry Updates สำหรับการเติบโตขององค์กร
           </p>
           {loggedIn ? (
             <button
@@ -139,7 +139,7 @@ const HomePage: React.FC = () => {
       {/* Other Assessments */}
       <section className="px-6 pb-24 max-w-5xl mx-auto w-full">
         <h2 className="text-xl font-bold text-gray-300 mb-6 text-center">
-          Assessment อื่นๆ ของ MindDoJo
+          แบบประเมินออนไลน์ของ MindDoJo
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {ASSESSMENTS.map((item) => {
