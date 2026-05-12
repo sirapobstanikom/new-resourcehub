@@ -36,6 +36,27 @@ function safeExportFilePart(name: string): string {
 const ASSESSMENT_TITLE = 'Reactive vs Proactive Mindset Assessment';
 const SUBTITLE = 'Mindset Assessment';
 
+function isMobileSafariLike(): boolean {
+  if (typeof navigator === 'undefined') return false;
+  return (
+    /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ||
+    (typeof navigator.maxTouchPoints === 'number' && navigator.maxTouchPoints > 0)
+  );
+}
+
+function canvasToPngBlob(canvas: HTMLCanvasElement): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => {
+        if (blob) resolve(blob);
+        else reject(new Error('ไม่สามารถสร้างไฟล์ PNG ได้'));
+      },
+      'image/png',
+      1,
+    );
+  });
+}
+
 function parseStoredAnswers(raw: Record<string, unknown> | undefined): Record<number, number> {
   const out: Record<number, number> = {};
   if (!raw || typeof raw !== 'object') return out;
@@ -231,15 +252,48 @@ const ReactiveProactiveMindsetAssessment: React.FC = () => {
   const captureResultForExport = (): Promise<HTMLCanvasElement> => {
     const el = resultExportRef.current;
     if (!el) return Promise.reject(new Error('ไม่พบพื้นที่ผลลัพธ์'));
+    const mobileScale = isMobileSafariLike() ? Math.min(2, window.devicePixelRatio || 1.5) : 2;
     return html2canvas(el, {
       useCORS: true,
       allowTaint: true,
       backgroundColor: '#0a0a0a',
-      scale: 2,
+      scale: mobileScale,
       logging: false,
+      windowWidth: el.scrollWidth,
       windowHeight: el.scrollHeight,
+      width: el.scrollWidth,
       height: el.scrollHeight,
     });
+  };
+
+  const savePngBlob = async (blob: Blob, fileName: string) => {
+    const file = new File([blob], fileName, { type: 'image/png' });
+    const blobUrl = URL.createObjectURL(blob);
+
+    if (typeof navigator.share === 'function' && navigator.canShare?.({ files: [file] })) {
+      try {
+        await navigator.share({
+          files: [file],
+          title: 'ผล Reactive vs Proactive Mindset Assessment',
+        });
+        URL.revokeObjectURL(blobUrl);
+        return;
+      } catch {
+        // ถ้าผู้ใช้ยกเลิก share sheet ให้ fallback เป็นการเปิดรูปแทน
+      }
+    }
+
+    if (isMobileSafariLike()) {
+      window.open(blobUrl, '_blank', 'noopener');
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
+      return;
+    }
+
+    const link = document.createElement('a');
+    link.download = fileName;
+    link.href = blobUrl;
+    link.click();
+    URL.revokeObjectURL(blobUrl);
   };
 
   const handleDownloadPdf = async () => {
@@ -277,10 +331,8 @@ const ReactiveProactiveMindsetAssessment: React.FC = () => {
     setPngLoading(true);
     try {
       const canvas = await captureResultForExport();
-      const link = document.createElement('a');
-      link.download = `${exportBaseName}.png`;
-      link.href = canvas.toDataURL('image/png');
-      link.click();
+      const blob = await canvasToPngBlob(canvas);
+      await savePngBlob(blob, `${exportBaseName}.png`);
     } catch (e) {
       console.warn('Export Reactive/Proactive PNG:', e);
     } finally {
