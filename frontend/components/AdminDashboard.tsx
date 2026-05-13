@@ -8,7 +8,8 @@ export type CollectionId =
   | 'innoclub_evaluation_responses'
   | 'leave_requests'
   | 'persuasion_results'
-  | 'reactive_proactive_mindset_results';
+  | 'reactive_proactive_mindset_results'
+  | 'conflict_management_style_results';
 
 const COLLECTIONS: { id: CollectionId; label: string; description: string }[] = [
   { id: 'leadership_entries', label: 'Leadership Entries', description: 'ผลแบบประเมินสมรรถนะภาวะผู้นำ' },
@@ -23,6 +24,11 @@ const COLLECTIONS: { id: CollectionId; label: string; description: string }[] = 
     id: 'reactive_proactive_mindset_results',
     label: 'Reactive vs Proactive Mindset',
     description: 'ผลแบบประเมิน Reactive vs Proactive (คะแนนรวม 20–100, คะแนนมิติ dimension_scores)',
+  },
+  {
+    id: 'conflict_management_style_results',
+    label: 'Conflict Management Style',
+    description: 'ผลแบบประเมินรูปแบบการจัดการความขัดแย้ง (คะแนน 5 รูปแบบใน style_scores ข้อละ 3–12)',
   },
 ];
 
@@ -296,6 +302,19 @@ create policy "Allow read persuasion_results admin"
 {`drop policy if exists "Allow read reactive proactive mindset results" on public.reactive_proactive_mindset_results;
 create policy "Allow read reactive proactive mindset results"
   on public.reactive_proactive_mindset_results for select using (true);`}
+                        </code>
+                      </div>
+                    )}
+                    {isPermissionError && selectedCollection === 'conflict_management_style_results' && (
+                      <div className="bg-amber-500/10 text-amber-200 rounded-xl p-4 text-sm">
+                        <p className="font-medium mb-1">ให้เห็นข้อมูล Conflict Management Style:</p>
+                        <p className="text-gray-400 mb-2">
+                          รัน migration ในโฟลเดอร์ <code className="text-yellow-400/90">backend/supabase/migrations</code> หรือเพิ่ม policy ใน SQL Editor:
+                        </p>
+                        <code className="block bg-black/30 p-3 rounded-lg text-xs overflow-x-auto whitespace-pre">
+{`drop policy if exists "Allow read conflict management style results" on public.conflict_management_style_results;
+create policy "Allow read conflict management style results"
+  on public.conflict_management_style_results for select using (true);`}
                         </code>
                       </div>
                     )}

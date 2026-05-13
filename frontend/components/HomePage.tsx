@@ -43,6 +43,14 @@ const ASSESSMENTS = [
     comingSoon: false,
   },
   {
+    id: 'conflict-management-style',
+    title: 'การประเมินรูปแบบการจัดการความขัดแย้ง',
+    description:
+      'Conflict Management Style — 15 ข้อ · สเกลไม่เคย–เสมอ · สรุปคะแนน 5 รูปแบบ: หลีกหนี ยอมตาม เอาชนะ ร่วมมือ ประนีประนอม',
+    href: '/assessment/conflict-management-style',
+    comingSoon: false,
+  },
+  {
     id: 'DISC',
     title: 'DISC Assessment',
     description: 'แบบทดสอบประเมินบุคลิกภาพของคุณ',
