@@ -198,6 +198,8 @@ function getMonthGrid(year: number, month: number): { date: Date; isCurrentMonth
 
 const ADMIN_LEAVE_MANAGER_EMAILS = ['pink@minddojo.me', 'koy@minddojo.me', 'tonji@minddojo.me'];
 const FORCED_MONTHLY_WFH_EMAILS = ['noon@minddojo.me', 'nahm@minddojo.me'];
+/** ใบลาที่บันทึก/อนุมัติโดยระบบ — ไม่แสดงในรายการลาที่อนุมัติแล้วของทุกคน */
+const SYSTEM_LEAVE_APPROVER_EMAIL = 'system@minddojo.me';
 
 const THAI_MONTHS = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
 const PUBLIC_HOLIDAYS_RLS_SQL = `-- Run in Supabase SQL Editor
@@ -256,7 +258,7 @@ function buildForcedMonthlyWfhRows(year: number): LeaveRequestRow[] {
           end_time: '17:00:00',
           reason: 'WFH ทุกวันศุกร์ (ตั้งค่าโดยแอดมิน)',
           status: 'approved',
-          approved_by_email: 'system@minddojo.me',
+          approved_by_email: SYSTEM_LEAVE_APPROVER_EMAIL,
           approved_at: `${dateKey}T02:00:00.000Z`,
           created_at: `${dateKey}T01:00:00.000Z`,
         });
@@ -497,18 +499,6 @@ const AdminLeavePage: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isSupabaseConfigured, cancelAuditsRefreshKey, cancelAuditsPage]);
 
-  // รีเฟรชถ้ายังมีรายการที่รออนุมัติยกเลิก เพื่อให้ผู้อนุมัติแสดงทันที
-  useEffect(() => {
-    const hasPending = cancelAudits.some((a) => a.status === 'cancel_requested');
-    if (!hasPending) return;
-
-    const t = window.setInterval(() => {
-      fetchCancelAudits(cancelAuditsPage);
-    }, 8000);
-
-    return () => window.clearInterval(t);
-  }, [cancelAudits, cancelAuditsPage]);
-
   useEffect(() => {
     if (!isSupabaseConfigured) return;
     setApprovedLoading(true);
@@ -525,17 +515,16 @@ const AdminLeavePage: React.FC = () => {
           return;
         }
         const dbRows = (data as LeaveRequestRow[]) ?? [];
-        const year = new Date().getFullYear();
-        const forcedRows = buildForcedMonthlyWfhRows(year);
-        const rowKey = (r: LeaveRequestRow) => `${r.user_email}-${r.leave_type}-${r.start_date}-${r.end_date}`;
-        const existingKeys = new Set(dbRows.map(rowKey));
-        const merged = [...dbRows, ...forcedRows.filter((r) => !existingKeys.has(rowKey(r)))];
-        merged.sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
+        const systemApprover = SYSTEM_LEAVE_APPROVER_EMAIL.toLowerCase();
+        const visibleRows = dbRows.filter(
+          (r) => (r.approved_by_email ?? '').toLowerCase() !== systemApprover
+        );
+        const sorted = [...visibleRows].sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
 
         const from = (approvedPage - 1) * APPROVED_ROWS_PER_PAGE;
         const to = from + APPROVED_ROWS_PER_PAGE;
-        setApprovedRows(merged.slice(from, to));
-        setApprovedTotal(merged.length);
+        setApprovedRows(sorted.slice(from, to));
+        setApprovedTotal(sorted.length);
       });
   }, [isSupabaseConfigured, approvedPage, submitted, leaveList.length]);
 
