@@ -386,15 +386,23 @@ const ConflictManagementStyleAssessment: React.FC = () => {
 
   const exportBaseName = `Conflict_Management_Style_${safeExportFilePart(displayUser.name)}_${new Date().toISOString().slice(0, 10)}`;
 
-  const captureResultForExport = (): Promise<HTMLCanvasElement> => {
+  const captureResultForExport = (mode: 'png' | 'pdf' = 'png'): Promise<HTMLCanvasElement> => {
     const el = resultExportRef.current;
     if (!el) return Promise.reject(new Error('ไม่พบพื้นที่ผลลัพธ์'));
-    const mobileScale = isMobileSafariLike() ? Math.min(2, window.devicePixelRatio || 1.5) : 2;
+    // PDF ใช้ scale ต่ำกว่าเพื่อลดเวลาเรนเดอร์ (ยังคงคมชัดบน A4)
+    const targetScale =
+      mode === 'pdf'
+        ? isMobileSafariLike()
+          ? 1.1
+          : 1.25
+        : isMobileSafariLike()
+          ? Math.min(1.8, window.devicePixelRatio || 1.5)
+          : 1.8;
     return html2canvas(el, {
       useCORS: true,
       allowTaint: true,
       backgroundColor: '#0a0a0a',
-      scale: mobileScale,
+      scale: targetScale,
       logging: false,
       windowWidth: el.scrollWidth,
       windowHeight: el.scrollHeight,
@@ -437,24 +445,24 @@ const ConflictManagementStyleAssessment: React.FC = () => {
     if (!resultExportRef.current) return;
     setPdfLoading(true);
     try {
-      const canvas = await captureResultForExport();
-      const imgData = canvas.toDataURL('image/png');
+      const canvas = await captureResultForExport('pdf');
+      // JPEG เร็วกว่า PNG สำหรับงาน screenshot ยาว ๆ และไฟล์เล็กลง
+      const imgData = canvas.toDataURL('image/jpeg', 0.86);
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pageW = pdf.internal.pageSize.getWidth();
       const pageH = pdf.internal.pageSize.getHeight();
       pdf.setFillColor(10, 10, 10);
       pdf.rect(0, 0, pageW, pageH, 'F');
-      const imgW = pageW;
-      const imgH = (canvas.height * imgW) / canvas.width;
-      const totalPages = Math.max(1, Math.ceil(imgH / pageH));
-      for (let p = 0; p < totalPages; p++) {
-        if (p > 0) {
-          pdf.addPage();
-          pdf.setFillColor(10, 10, 10);
-          pdf.rect(0, 0, pageW, pageH, 'F');
-        }
-        pdf.addImage(imgData, 'PNG', 0, -p * pageH, imgW, imgH);
-      }
+      // ผู้ใช้ต้องการให้อยู่หน้าเดียว: ย่อทั้งภาพให้ fit ใน A4 โดยไม่ครอป
+      const margin = 6;
+      const maxW = pageW - margin * 2;
+      const maxH = pageH - margin * 2;
+      const fitRatio = Math.min(maxW / canvas.width, maxH / canvas.height);
+      const renderW = canvas.width * fitRatio;
+      const renderH = canvas.height * fitRatio;
+      const offsetX = (pageW - renderW) / 2;
+      const offsetY = (pageH - renderH) / 2;
+      pdf.addImage(imgData, 'JPEG', offsetX, offsetY, renderW, renderH, undefined, 'FAST');
       pdf.save(`${exportBaseName}.pdf`);
     } catch (e) {
       console.warn('Export conflict management PDF:', e);
@@ -467,7 +475,7 @@ const ConflictManagementStyleAssessment: React.FC = () => {
     if (!resultExportRef.current) return;
     setPngLoading(true);
     try {
-      const canvas = await captureResultForExport();
+      const canvas = await captureResultForExport('png');
       const blob = await canvasToPngBlob(canvas);
       await savePngBlob(blob, `${exportBaseName}.png`);
     } catch (e) {
@@ -681,10 +689,6 @@ const ConflictManagementStyleAssessment: React.FC = () => {
                 <p className="text-xs text-gray-500 -mt-4">
                   {displayUser.company} · {displayUser.email}
                 </p>
-
-                <p className="text-sm text-gray-400 text-left">
-                  คะแนนแต่ละรูปแบบคำนวณจากคำตอบ 3 ข้อต่อแบบ (ข้อละ 1–4 คะแนน) รวมเป็น <span className="text-white font-semibold">3–12 คะแนน</span> ต่อรูปแบบ
-                </p>
               </div>
 
               <div className="rounded-2xl border border-white/10 bg-white/5 p-6 space-y-5">
@@ -743,37 +747,25 @@ const ConflictManagementStyleAssessment: React.FC = () => {
                 type="button"
                 onClick={handleDownloadPng}
                 disabled={pngLoading}
-                className="px-6 py-3 rounded-xl font-bold border border-sky-400/50 text-sky-200 hover:bg-sky-400/10 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+                className="px-6 py-3 min-w-[150px] rounded-xl font-bold border border-sky-400/50 text-sky-200 hover:bg-sky-400/10 disabled:opacity-60 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
               >
-                {pngLoading ? (
-                  <>
-                    <span
-                      className="w-4 h-4 border-2 border-sky-400 border-t-transparent rounded-full animate-spin shrink-0"
-                      aria-hidden
-                    />
-                    กำลังสร้าง PNG…
-                  </>
-                ) : (
-                  'ดาวน์โหลด PNG'
-                )}
+                <span
+                  className={`w-4 h-4 border-2 border-sky-400 border-t-transparent rounded-full shrink-0 ${pngLoading ? 'animate-spin opacity-100' : 'opacity-0'}`}
+                  aria-hidden
+                />
+                <span className="tabular-nums">{pngLoading ? 'กำลังสร้าง PNG...' : 'ดาวน์โหลด PNG'}</span>
               </button>
               <button
                 type="button"
                 onClick={handleDownloadPdf}
                 disabled={pdfLoading}
-                className="px-6 py-3 rounded-xl font-bold border border-yellow-400/50 text-yellow-200 hover:bg-yellow-400/10 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+                className="px-6 py-3 min-w-[150px] rounded-xl font-bold border border-yellow-400/50 text-yellow-200 hover:bg-yellow-400/10 disabled:opacity-60 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
               >
-                {pdfLoading ? (
-                  <>
-                    <span
-                      className="w-4 h-4 border-2 border-yellow-400 border-t-transparent rounded-full animate-spin shrink-0"
-                      aria-hidden
-                    />
-                    กำลังสร้าง PDF…
-                  </>
-                ) : (
-                  'ดาวน์โหลด PDF'
-                )}
+                <span
+                  className={`w-4 h-4 border-2 border-yellow-400 border-t-transparent rounded-full shrink-0 ${pdfLoading ? 'animate-spin opacity-100' : 'opacity-0'}`}
+                  aria-hidden
+                />
+                <span className="tabular-nums">{pdfLoading ? 'กำลังสร้าง PDF...' : 'ดาวน์โหลด PDF'}</span>
               </button>
               <button
                 type="button"
