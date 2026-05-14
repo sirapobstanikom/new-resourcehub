@@ -79,12 +79,12 @@ function mapAccountTabRoleToCardRole(role: AccountTabRole | ''): WhaleDoneRole |
   return '';
 }
 
-function accountCaseOptionsForTabRole(role: AccountTabRole | '') {
-  if (!role) return [];
-  if (role === 'requester' || role === 'peer') {
-    return ACCOUNT_CASE_OPTIONS.filter((o) => o.value === 'case4');
+function accountRoleOptionsForCase(caseKey: AccountCaseKey | '') {
+  if (!caseKey) return [];
+  if (caseKey === 'case4') {
+    return ACCOUNT_TAB_ROLE_OPTIONS.filter((o) => o.value === 'requester' || o.value === 'peer');
   }
-  return ACCOUNT_CASE_OPTIONS.filter((o) => o.value !== 'case4');
+  return ACCOUNT_TAB_ROLE_OPTIONS.filter((o) => o.value === 'manager' || o.value === 'employee');
 }
 
 const headerNavBtnBase =
@@ -651,40 +651,11 @@ const WhaleDoneRolePlayPage: React.FC = () => {
               <p className="text-[10px] uppercase tracking-widest text-cyan-400/90">Accountability</p>
               <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight">Accountability</h1>
               <p className="text-gray-400 text-sm max-w-xl mx-auto leading-relaxed">
-                เลือกบทบาทและกรณีด้านล่างเพื่อแสดงบัตรบทบาทสำหรับซ้อมบทสนทนาเรื่องความรับผิดชอบ (Accountability)
+                เลือกกรณีก่อน แล้วเลือกบทบาทด้านล่างเพื่อแสดงบัตรบทบาทสำหรับซ้อมบทสนทนาเรื่องความรับผิดชอบ (Accountability)
               </p>
             </div>
 
             <div className="rounded-2xl border border-white/10 bg-white/5 p-6 md:p-8 space-y-6">
-              <div className="space-y-2">
-                <label htmlFor="acct-role" className="block text-sm font-medium text-gray-400">
-                  เลือกบทบาท
-                </label>
-                <select
-                  id="acct-role"
-                  className={selectClass}
-                  value={accountRole}
-                  onChange={(e) => {
-                    const v = (e.target.value as AccountTabRole) || '';
-                    setAccountRole(v);
-                    if (v === 'requester' || v === 'peer') {
-                      setAccountCase('case4');
-                    } else if (v === 'manager' || v === 'employee') {
-                      setAccountCase((c) => (c === 'case4' ? '' : c));
-                    } else {
-                      setAccountCase('');
-                    }
-                  }}
-                >
-                  <option value="">— เลือก —</option>
-                  {ACCOUNT_TAB_ROLE_OPTIONS.map((o) => (
-                    <option key={o.value} value={o.value}>
-                      {o.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
               <div className="space-y-2">
                 <label htmlFor="acct-case" className="block text-sm font-medium text-gray-400">
                   เลือกกรณี
@@ -693,33 +664,64 @@ const WhaleDoneRolePlayPage: React.FC = () => {
                   id="acct-case"
                   className={selectClass}
                   value={accountCase}
-                  disabled={!accountRole}
-                  onChange={(e) => setAccountCase((e.target.value as AccountCaseKey | '') || '')}
+                  onChange={(e) => {
+                    const v = (e.target.value as AccountCaseKey | '') || '';
+                    setAccountCase(v);
+                    setAccountRole((r) => {
+                      if (!v) return '';
+                      if (v === 'case4') {
+                        return r === 'requester' || r === 'peer' ? r : '';
+                      }
+                      return r === 'manager' || r === 'employee' ? r : '';
+                    });
+                  }}
                 >
                   <option value="">— เลือกกรณี —</option>
-                  {accountCaseOptionsForTabRole(accountRole).map((o) => (
+                  {ACCOUNT_CASE_OPTIONS.map((o) => (
                     <option key={o.value} value={o.value}>
                       {o.label}
                     </option>
                   ))}
                 </select>
-                {accountRole === 'requester' || accountRole === 'peer' ? (
+                {accountCase === 'case4' ? (
                   <p className="text-xs text-cyan-300/85 leading-relaxed">
-                    บทบาทนี้ใช้กับ <span className="font-semibold text-cyan-200">กรณีที่ 04</span> เท่านั้น
-                    (ระบบเลือกกรณีให้อัตโนมัติ)
+                    <span className="font-semibold text-cyan-200">กรณีที่ 04</span> ใช้กับบทบาทผู้ขอความร่วมมือ / คู่เจรจา เท่านั้น
                   </p>
-                ) : accountRole === 'manager' || accountRole === 'employee' ? (
+                ) : accountCase === 'case1' || accountCase === 'case2' || accountCase === 'case3' ? (
                   <p className="text-xs text-gray-500 leading-relaxed">
-                    บทบาทผู้จัดการ / พนักงาน ใช้กับกรณีที่ 01–03
+                    กรณีที่ 01–03 ใช้กับบทบาทผู้จัดการ / พนักงาน
                   </p>
                 ) : null}
+              </div>
+
+              <div className="space-y-2">
+                <label htmlFor="acct-role" className="block text-sm font-medium text-gray-400">
+                  เลือกบทบาท
+                </label>
+                <select
+                  id="acct-role"
+                  className={`${selectClass} ${!accountCase ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  value={accountRole}
+                  disabled={!accountCase}
+                  onChange={(e) => setAccountRole((e.target.value as AccountTabRole) || '')}
+                >
+                  <option value="">— เลือก —</option>
+                  {accountRoleOptionsForCase(accountCase).map((o) => (
+                    <option key={o.value} value={o.value}>
+                      {o.label}
+                    </option>
+                  ))}
+                </select>
+                {!accountCase && (
+                  <p className="text-xs text-gray-500">กรุณาเลือกกรณีก่อน แล้วจึงเลือกบทบาท</p>
+                )}
               </div>
             </div>
 
             {!accountRole || !accountCase ? (
               <div className="rounded-2xl border border-white/10 bg-white/5 p-8 text-center">
                 <p className="text-sm text-gray-400 leading-relaxed">
-                  เลือกทั้งบทบาทและกรณีเพื่อแสดงบัตรบทบาท
+                  เลือกกรณีและบทบาทเพื่อแสดงบัตรบทบาท
                 </p>
               </div>
             ) : accountCard ? (
@@ -844,9 +846,6 @@ const WhaleDoneRolePlayPage: React.FC = () => {
                   {' · '}
                   <span className="text-white font-semibold">
                     {CONFLICT_ROLE_OPTIONS.find((o) => o.value === conflictRole)?.label}
-                  </span>
-                  <span className="block mt-1 text-violet-300/80">
-                    แจกให้ผู้เข้าอบรมหลังจบ Role Play เท่านั้น
                   </span>
                 </p>
                 <button

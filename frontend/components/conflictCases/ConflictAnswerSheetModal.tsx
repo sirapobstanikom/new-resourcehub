@@ -47,9 +47,6 @@ function Case01AnswerBodyRoleA() {
         <p className="text-xs font-bold uppercase tracking-wider text-violet-300/95">
           ANSWER SHEET · CASE 01 · MANAGING UNDERPERFORMANCE WITH COMPASSION
         </p>
-        <p className="text-xs sm:text-sm text-amber-200/95 font-semibold">
-          ⚠️ DISTRIBUTE TO PARTICIPANTS AFTER ROLE PLAY IS COMPLETE · แจกให้ผู้เข้าอบรมหลังจบ Role Play เท่านั้น
-        </p>
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
@@ -153,9 +150,6 @@ function Case01AnswerBodyRoleB() {
       <header className="space-y-2 border-b border-white/10 pb-4">
         <p className="text-xs font-bold uppercase tracking-wider text-violet-300/95">
           ANSWER SHEET · CASE 01 · MANAGING UNDERPERFORMANCE WITH COMPASSION
-        </p>
-        <p className="text-xs sm:text-sm text-amber-200/95 font-semibold">
-          ⚠️ DISTRIBUTE TO PARTICIPANTS AFTER ROLE PLAY IS COMPLETE · แจกให้ผู้เข้าอบรมหลังจบ Role Play เท่านั้น
         </p>
       </header>
 
@@ -261,9 +255,6 @@ function Case02AnswerBodyRoleA() {
         <p className="text-xs font-bold uppercase tracking-wider text-violet-300/95">
           ANSWER SHEET · CASE 02 · MANAGING SOMEONE OLDER THAN YOU
         </p>
-        <p className="text-xs sm:text-sm text-amber-200/95 font-semibold">
-          ⚠️ DISTRIBUTE TO PARTICIPANTS AFTER ROLE PLAY IS COMPLETE · แจกให้ผู้เข้าอบรมหลังจบ Role Play เท่านั้น
-        </p>
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
@@ -367,9 +358,6 @@ function Case02AnswerBodyRoleB() {
       <header className="space-y-2 border-b border-white/10 pb-4">
         <p className="text-xs font-bold uppercase tracking-wider text-violet-300/95">
           ANSWER SHEET · CASE 02 · MANAGING SOMEONE OLDER THAN YOU
-        </p>
-        <p className="text-xs sm:text-sm text-amber-200/95 font-semibold">
-          ⚠️ DISTRIBUTE TO PARTICIPANTS AFTER ROLE PLAY IS COMPLETE · แจกให้ผู้เข้าอบรมหลังจบ Role Play เท่านั้น
         </p>
       </header>
 
@@ -476,9 +464,6 @@ function Case03AnswerBodyRoleA() {
         <p className="text-xs font-bold uppercase tracking-wider text-violet-300/95">
           ANSWER SHEET · CASE 03 · BREAKING DOWN THE SILOS — CROSS-TEAM CONFLICT
         </p>
-        <p className="text-xs sm:text-sm text-amber-200/95 font-semibold">
-          ⚠️ DISTRIBUTE TO PARTICIPANTS AFTER ROLE PLAY IS COMPLETE · แจกให้ผู้เข้าอบรมหลังจบ Role Play เท่านั้น
-        </p>
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
@@ -584,9 +569,6 @@ function Case03AnswerBodyRoleB() {
         <p className="text-xs font-bold uppercase tracking-wider text-violet-300/95">
           ANSWER SHEET · CASE 03 · BREAKING DOWN THE SILOS — CROSS-TEAM CONFLICT
         </p>
-        <p className="text-xs sm:text-sm text-amber-200/95 font-semibold">
-          ⚠️ DISTRIBUTE TO PARTICIPANTS AFTER ROLE PLAY IS COMPLETE · แจกให้ผู้เข้าอบรมหลังจบ Role Play เท่านั้น
-        </p>
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
@@ -690,9 +672,6 @@ function Case04AnswerBodyRoleA() {
       <header className="space-y-2 border-b border-white/10 pb-4">
         <p className="text-xs font-bold uppercase tracking-wider text-violet-300/95">
           ANSWER SHEET · CASE 04 · MANAGING HIGH-CONFIDENCE GEN Z TALENT
-        </p>
-        <p className="text-xs sm:text-sm text-amber-200/95 font-semibold">
-          ⚠️ DISTRIBUTE TO PARTICIPANTS AFTER ROLE PLAY IS COMPLETE · แจกให้ผู้เข้าอบรมหลังจบ Role Play เท่านั้น
         </p>
       </header>
 
@@ -798,9 +777,6 @@ function Case04AnswerBodyRoleB() {
       <header className="space-y-2 border-b border-white/10 pb-4">
         <p className="text-xs font-bold uppercase tracking-wider text-violet-300/95">
           ANSWER SHEET · CASE 04 · MANAGING HIGH-CONFIDENCE GEN Z TALENT
-        </p>
-        <p className="text-xs sm:text-sm text-amber-200/95 font-semibold">
-          ⚠️ DISTRIBUTE TO PARTICIPANTS AFTER ROLE PLAY IS COMPLETE · แจกให้ผู้เข้าอบรมหลังจบ Role Play เท่านั้น
         </p>
       </header>
 
@@ -973,7 +949,6 @@ export function ConflictAnswerSheetModal({ open, onClose, caseKey, role }: Props
             <form onSubmit={handlePasswordSubmit} className="mx-auto max-w-sm space-y-4">
               <p className="text-center text-sm text-violet-200/90 leading-relaxed">
                 กรุณาใส่รหัสผ่านเพื่อเปิดเนื้อหา Answer sheet
-                <span className="block mt-1 text-xs text-gray-500">แจกหลังจบ Role Play เท่านั้น</span>
               </p>
               <div className="space-y-2">
                 <label htmlFor="answer-sheet-password" className="block text-xs font-medium text-gray-400">
