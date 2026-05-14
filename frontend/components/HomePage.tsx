@@ -242,6 +242,18 @@ const HomePage: React.FC = () => {
               เปิดกล้องเว็บ ตรวจจับ marker แบบ hiro แล้วแสดงกล่อง 3D สีแดงเหนือ marker
             </p>
           </Link>
+          <Link
+            to="/gamification/whale-done-role-play"
+            className="block rounded-2xl border border-white/10 p-6 text-left transition-all bg-white/5 hover:bg-white/10 hover:border-cyan-400/35 group md:col-span-2"
+          >
+            <div className="w-12 h-12 rounded-xl bg-cyan-500/20 flex items-center justify-center mb-4 group-hover:bg-cyan-500/30 transition-colors">
+              <span className="text-xl font-black text-cyan-300">WD</span>
+            </div>
+            <h3 className="font-bold text-lg mb-2 text-white">Whale Done Role play</h3>
+            <p className="text-gray-500 text-sm">
+              เลือกบทบาทผู้จัดการหรือพนักงาน แล้วเลือก R1–R4 เพื่ออ่านสถานการณ์และคำแนะนำการรับบท (R1–R4 เปิดใช้งานแล้ว)
+            </p>
+          </Link>
         </div>
       </section>
 
