@@ -15,6 +15,15 @@ import {
   type WhaleDoneR,
   type WhaleDoneRole,
 } from '../data/whaleDoneRolePlayData';
+import {
+  ACCOUNTABILITY_WORKBOOK_CASES,
+  ACCOUNTABILITY_WORKBOOK_FORMULA_HEADING,
+  ACCOUNTABILITY_WORKBOOK_FORMULA_STEPS,
+  ACCOUNTABILITY_WORKBOOK_HOW_TO_USE,
+  ACCOUNTABILITY_WORKBOOK_META,
+  ACCOUNTABILITY_WORKBOOK_TIMING_HEADING,
+  ACCOUNTABILITY_WORKBOOK_TIMING_ROWS,
+} from '../data/accountabilityWithoutDramaWorkbook';
 
 const selectClass =
   'w-full max-w-md px-4 py-3 rounded-xl bg-black/50 border border-white/15 text-white focus:outline-none focus:border-yellow-400 appearance-none cursor-pointer';
@@ -143,6 +152,106 @@ function WhaleDoneEmployeeScenario({ badge, data }: { badge: string; data: Emplo
         </ol>
       </section>
     </article>
+  );
+}
+
+function AccountabilityWithoutDramaWorkbookFrame() {
+  const m = ACCOUNTABILITY_WORKBOOK_META;
+  const how = ACCOUNTABILITY_WORKBOOK_HOW_TO_USE;
+  const fh = ACCOUNTABILITY_WORKBOOK_FORMULA_HEADING;
+  const th = ACCOUNTABILITY_WORKBOOK_TIMING_HEADING;
+
+  return (
+    <aside
+      className="rounded-2xl border-2 border-violet-500/35 bg-violet-950/25 p-6 md:p-8 space-y-8 text-left ring-1 ring-inset ring-white/5"
+      aria-label="Accountability Without Drama workbook reference"
+    >
+      <header className="space-y-3 border-b border-white/10 pb-6">
+        <p className="text-[10px] uppercase tracking-widest text-violet-300/90">Workbook reference</p>
+        <h2 className="text-lg md:text-xl font-black text-white tracking-tight leading-tight">{m.titleEn}</h2>
+        <p className="text-sm text-violet-200/95 font-medium leading-snug">{m.titleTh}</p>
+        <div className="text-xs text-gray-400 space-y-1 leading-relaxed">
+          <p>{m.line1}</p>
+          <p>{m.line2}</p>
+          <p>{m.line3}</p>
+        </div>
+      </header>
+
+      <section className="space-y-3">
+        <h3 className="text-xs font-bold uppercase tracking-wider text-violet-300/90">Cases / กรณีในเล่ม</h3>
+        <ul className="space-y-3 text-sm text-gray-200">
+          {ACCOUNTABILITY_WORKBOOK_CASES.map((c) => (
+            <li key={c.id} className="border-l-2 border-violet-500/50 pl-3">
+              <span className="text-violet-300/90 font-semibold">Case {c.id}</span>
+              <span className="text-gray-500"> · </span>
+              <span className="text-white/95">{c.titleEn}</span>
+              <span className="text-gray-500"> · </span>
+              <span>{c.titleTh}</span>
+            </li>
+          ))}
+        </ul>
+        <p className="text-[11px] text-gray-500 pt-1">{m.footerNote}</p>
+      </section>
+
+      <section className="space-y-3">
+        <h3 className="text-xs font-bold uppercase tracking-wider text-cyan-400/90">
+          {how.headingEn} / {how.headingTh}
+        </h3>
+        <p className="text-sm text-gray-300 leading-relaxed">{how.bodyEn}</p>
+        <p className="text-sm text-gray-300 leading-relaxed border-l-2 border-cyan-500/35 pl-4">{how.bodyTh}</p>
+      </section>
+
+      <section className="space-y-4">
+        <h3 className="text-xs font-bold uppercase tracking-wider text-amber-300/90">
+          {fh.en} / {fh.th}
+        </h3>
+        <ol className="space-y-4">
+          {ACCOUNTABILITY_WORKBOOK_FORMULA_STEPS.map((s) => (
+            <li
+              key={s.step}
+              className="rounded-xl border border-white/10 bg-black/20 p-4 space-y-1.5 text-sm text-gray-200"
+            >
+              <p className="text-[11px] font-bold uppercase tracking-wide text-amber-400/90">{s.step}</p>
+              <p className="font-semibold text-white">
+                {s.titleEn} / {s.titleTh}
+              </p>
+              <p className="text-gray-300 leading-relaxed">{s.bodyEn}</p>
+              <p className="text-gray-400 leading-relaxed text-[13px] border-l-2 border-amber-500/30 pl-3">{s.bodyTh}</p>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      <section className="space-y-3">
+        <h3 className="text-xs font-bold uppercase tracking-wider text-emerald-400/90">
+          {th.en} / {th.th}
+        </h3>
+        <div className="overflow-x-auto rounded-xl border border-white/10">
+          <table className="w-full text-left text-sm">
+            <thead>
+              <tr className="border-b border-white/10 bg-white/[0.06] text-gray-300">
+                <th className="px-3 py-2.5 font-semibold w-14">Case</th>
+                <th className="px-3 py-2.5 font-semibold">Scenario / กรณี</th>
+                <th className="px-3 py-2.5 font-semibold whitespace-nowrap w-24">Time / เวลา</th>
+              </tr>
+            </thead>
+            <tbody>
+              {ACCOUNTABILITY_WORKBOOK_TIMING_ROWS.map((row) => (
+                <tr key={row.caseId} className="border-b border-white/5 last:border-0 text-gray-200">
+                  <td className="px-3 py-2.5 align-top text-violet-300/90 font-medium">{row.caseId}</td>
+                  <td className="px-3 py-2.5 align-top">
+                    <span className="text-white/90">{row.labelEn}</span>
+                    <span className="text-gray-500"> · </span>
+                    <span className="text-gray-300">{row.labelTh}</span>
+                  </td>
+                  <td className="px-3 py-2.5 align-top text-gray-400 whitespace-nowrap">{row.duration}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </aside>
   );
 }
 
@@ -371,6 +480,8 @@ const WhaleDoneRolePlayPage: React.FC = () => {
         {showDetail && role === 'employee' && rLevel === 'r4' && (
           <WhaleDoneEmployeeScenario badge="พนักงาน R4" data={EMPLOYEE_R4} />
         )}
+
+        {showDetail && <AccountabilityWithoutDramaWorkbookFrame />}
       </main>
     </div>
   );
