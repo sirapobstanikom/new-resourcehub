@@ -739,30 +739,11 @@ const WhaleDoneRolePlayPage: React.FC = () => {
                 Conflict_Case
               </h1>
               <p className="text-gray-400 text-sm max-w-xl mx-auto leading-relaxed">
-                เลือก Role และ Case ด้านล่าง
+                เลือก Case ด้านบน แล้วเลือก Role ด้านล่าง
               </p>
             </div>
 
             <div className="rounded-2xl border border-violet-500/25 bg-violet-950/20 p-4 sm:p-6 md:p-8 space-y-5 sm:space-y-6">
-              <div className="space-y-2 min-w-0">
-                <label htmlFor="cc-role" className="block text-sm font-medium text-violet-200/90">
-                  เลือก Role
-                </label>
-                <select
-                  id="cc-role"
-                  className={selectClassFull}
-                  value={conflictRole}
-                  onChange={(e) => setConflictRole((e.target.value as ConflictRoleChoice | '') || '')}
-                >
-                  <option value="">— เลือก Role —</option>
-                  {CONFLICT_ROLE_OPTIONS.map((o) => (
-                    <option key={o.value} value={o.value}>
-                      {o.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
               <div className="space-y-2 min-w-0">
                 <label htmlFor="cc-case" className="block text-sm font-medium text-violet-200/90">
                   เลือก Case
@@ -775,6 +756,25 @@ const WhaleDoneRolePlayPage: React.FC = () => {
                 >
                   <option value="">— เลือก Case —</option>
                   {CONFLICT_CASE_OPTIONS.map((o) => (
+                    <option key={o.value} value={o.value}>
+                      {o.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-2 min-w-0">
+                <label htmlFor="cc-role" className="block text-sm font-medium text-violet-200/90">
+                  เลือก Role
+                </label>
+                <select
+                  id="cc-role"
+                  className={selectClassFull}
+                  value={conflictRole}
+                  onChange={(e) => setConflictRole((e.target.value as ConflictRoleChoice | '') || '')}
+                >
+                  <option value="">— เลือก Role —</option>
+                  {CONFLICT_ROLE_OPTIONS.map((o) => (
                     <option key={o.value} value={o.value}>
                       {o.label}
                     </option>
@@ -824,10 +824,10 @@ const WhaleDoneRolePlayPage: React.FC = () => {
               <p className="text-center text-xs text-gray-500 break-words px-1">
                 ที่เลือกไว้:{' '}
                 {[
-                  conflictRole &&
-                    `Role = ${CONFLICT_ROLE_OPTIONS.find((x) => x.value === conflictRole)?.label ?? conflictRole}`,
                   conflictCase &&
                     `Case = ${CONFLICT_CASE_OPTIONS.find((x) => x.value === conflictCase)?.label ?? conflictCase}`,
+                  conflictRole &&
+                    `Role = ${CONFLICT_ROLE_OPTIONS.find((x) => x.value === conflictRole)?.label ?? conflictRole}`,
                 ]
                   .filter(Boolean)
                   .join(' · ')}
