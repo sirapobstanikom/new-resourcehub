@@ -23,9 +23,47 @@ import {
   type WhaleDoneRole,
   type WhaleDoneScenarioId,
 } from '../data/whaleDoneRolePlayData';
+import {
+  ACCOUNT_CASE_OPTIONS,
+  getAccountabilityCard,
+  type AccountabilityCard,
+  type AccountabilitySection,
+  type AccountCaseKey,
+} from '../data/accountabilityRolePlayData';
+import { AccountabilityWorkbookCollapsible } from './AccountabilityWorkbookCollapsible';
 
 const selectClass =
   'w-full max-w-md px-4 py-3 rounded-xl bg-black/50 border border-white/15 text-white focus:outline-none focus:border-yellow-400 appearance-none cursor-pointer';
+
+type WhaleDonePageTab = 'whaledone' | 'accountability';
+
+/** บทบาทแท็บ Account: ผู้จัดการ/พนักงาน (กรณี 01–03) · ผู้ขอความร่วมมือ/คู่เจรจา (กรณี 04 เท่านั้น) */
+type AccountTabRole = WhaleDoneRole | 'requester' | 'peer';
+
+const ACCOUNT_TAB_ROLE_OPTIONS: { value: AccountTabRole; label: string }[] = [
+  { value: 'manager', label: 'บทบาทผู้จัดการ' },
+  { value: 'employee', label: 'บทบาทพนักงาน' },
+  { value: 'requester', label: 'ผู้ขอความร่วมมือ' },
+  { value: 'peer', label: 'คู่เจรจา' },
+];
+
+function mapAccountTabRoleToCardRole(role: AccountTabRole | ''): WhaleDoneRole | '' {
+  if (role === 'requester') return 'manager';
+  if (role === 'peer') return 'employee';
+  if (role === 'manager' || role === 'employee') return role;
+  return '';
+}
+
+function accountCaseOptionsForTabRole(role: AccountTabRole | '') {
+  if (!role) return [];
+  if (role === 'requester' || role === 'peer') {
+    return ACCOUNT_CASE_OPTIONS.filter((o) => o.value === 'case4');
+  }
+  return ACCOUNT_CASE_OPTIONS.filter((o) => o.value !== 'case4');
+}
+
+const headerNavBtnBase =
+  'px-4 py-2 rounded-lg text-sm font-semibold transition-colors border focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-black/30';
 
 type ManagerScenarioData = {
   headline: string;
@@ -154,31 +192,172 @@ function WhaleDoneEmployeeScenario({ badge, data }: { badge: string; data: Emplo
   );
 }
 
+function AccountabilitySectionBlock({ section }: { section: AccountabilitySection }) {
+  switch (section.type) {
+    case 'who':
+      return (
+        <section className="space-y-3">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-cyan-400/90">คุณคือใคร</h3>
+          {section.body
+            .split('\n')
+            .filter((p) => p.trim())
+            .map((p, i) => (
+              <p key={i} className="text-sm text-gray-200 leading-relaxed">
+                {p}
+              </p>
+            ))}
+        </section>
+      );
+    case 'feelings':
+      return (
+        <section className="space-y-3">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-yellow-400/90">{section.title}</h3>
+          <p className="text-sm text-gray-200 leading-relaxed whitespace-pre-line">{section.body}</p>
+        </section>
+      );
+    case 'goals':
+      return (
+        <section className="space-y-3">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-emerald-400/90">{section.title}</h3>
+          <ol className="space-y-2 list-decimal list-inside marker:text-emerald-400/80 text-sm text-gray-200 leading-relaxed">
+            {section.items.map((item, i) => (
+              <li key={i} className="pl-1">
+                {item}
+              </li>
+            ))}
+          </ol>
+        </section>
+      );
+    case 'paragraph':
+      return (
+        <section className="space-y-3">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-white/90">{section.title}</h3>
+          <p className="text-sm text-gray-200 leading-relaxed whitespace-pre-line">{section.body}</p>
+        </section>
+      );
+    case 'avoid':
+      return (
+        <section className="space-y-3">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-rose-400/90">{section.title}</h3>
+          <ul className="space-y-2 text-sm text-gray-200 leading-relaxed">
+            {section.items.map((item, i) => (
+              <li key={i} className="flex gap-2">
+                <span className="text-rose-400/90 shrink-0">✗</span>
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      );
+    case 'opening':
+      return (
+        <section className="space-y-3">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-cyan-400/90">{section.title}</h3>
+          <p className="text-sm text-cyan-100/90 leading-relaxed border-l-2 border-cyan-500/40 pl-4">
+            {section.body}
+          </p>
+        </section>
+      );
+    case 'howTo':
+      return (
+        <section className="space-y-4">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-emerald-400/90">{section.title}</h3>
+          <ol className="space-y-4 list-decimal list-inside marker:text-emerald-400/80">
+            {section.items.map((item, idx) => (
+              <li key={idx} className="text-sm text-gray-200 leading-relaxed pl-1">
+                <span className="font-semibold text-white">{item.lead}</span>
+                {item.line ? (
+                  <>
+                    <span className="text-gray-400"> : </span>
+                    {item.line}
+                  </>
+                ) : null}
+              </li>
+            ))}
+          </ol>
+        </section>
+      );
+    default: {
+      const _exhaustive: never = section;
+      return _exhaustive;
+    }
+  }
+}
+
+function AccountabilityRoleCardArticle({ card }: { card: AccountabilityCard }) {
+  return (
+    <article className="rounded-2xl border border-cyan-500/20 bg-white/[0.04] p-6 md:p-8 space-y-8 text-left">
+      <h2 className="text-lg md:text-xl font-bold text-cyan-300/95 leading-snug">{card.headline}</h2>
+      {card.sections.map((sec, idx) => (
+        <React.Fragment key={idx}>
+          <AccountabilitySectionBlock section={sec} />
+        </React.Fragment>
+      ))}
+    </article>
+  );
+}
+
 const WhaleDoneRolePlayPage: React.FC = () => {
+  const [activeTab, setActiveTab] = useState<WhaleDonePageTab>('whaledone');
   const [role, setRole] = useState<WhaleDoneRole | ''>('');
   const [scenarioId, setScenarioId] = useState<WhaleDoneScenarioId | ''>('');
+  const [accountRole, setAccountRole] = useState<AccountTabRole | ''>('');
+  const [accountCase, setAccountCase] = useState<AccountCaseKey | ''>('');
 
   const showDetail = role && scenarioId && whaleDoneHasDetail(role, scenarioId);
   const showComingSoon = role && scenarioId && !whaleDoneHasDetail(role, scenarioId);
+  const accountCardRole = mapAccountTabRoleToCardRole(accountRole);
+  const accountCard =
+    accountCardRole && accountCase ? getAccountabilityCard(accountCase, accountCardRole) : null;
 
   return (
     <div className="min-h-screen bg-transparent text-white bg-grid flex flex-col selection:bg-yellow-400 selection:text-black">
-      <header className="flex justify-between items-center px-6 py-6 max-w-4xl mx-auto w-full">
-        <Link to="/" className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-yellow-400 rounded-lg flex items-center justify-center glow-yellow">
-            <span className="text-black font-semibold text-xl">M</span>
+      <header className="px-6 py-6 max-w-4xl mx-auto w-full">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <Link to="/" className="flex items-center gap-3 shrink-0">
+            <div className="w-10 h-10 bg-yellow-400 rounded-lg flex items-center justify-center glow-yellow">
+              <span className="text-black font-semibold text-xl">M</span>
+            </div>
+            <span className="text-xl font-semibold tracking-tighter">MindDoJo</span>
+          </Link>
+
+          <div className="flex flex-wrap items-center gap-2 sm:justify-center">
+            <button
+              type="button"
+              onClick={() => setActiveTab('whaledone')}
+              className={`${headerNavBtnBase} ${
+                activeTab === 'whaledone'
+                  ? 'bg-yellow-400/20 border-yellow-400 text-yellow-200'
+                  : 'bg-white/5 border-white/15 text-gray-300 hover:border-white/30 hover:text-white'
+              }`}
+            >
+              WhaleDone
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('accountability')}
+              className={`${headerNavBtnBase} ${
+                activeTab === 'accountability'
+                  ? 'bg-cyan-500/20 border-cyan-400 text-cyan-100'
+                  : 'bg-white/5 border-white/15 text-gray-300 hover:border-white/30 hover:text-white'
+              }`}
+            >
+              Accountability
+            </button>
           </div>
-          <span className="text-xl font-semibold tracking-tighter">MindDoJo</span>
-        </Link>
-        <Link
-          to="/"
-          className="text-sm text-gray-400 hover:text-white transition-colors"
-        >
-          กลับหน้าหลัก
-        </Link>
+
+          <Link
+            to="/"
+            className="text-sm text-gray-400 hover:text-white transition-colors sm:text-right shrink-0"
+          >
+            กลับหน้าหลัก
+          </Link>
+        </div>
       </header>
 
       <main className="flex-1 px-6 pb-16 max-w-3xl mx-auto w-full space-y-8">
+        {activeTab === 'whaledone' && (
+          <>
         <div className="text-center space-y-2">
           <p className="text-[10px] uppercase tracking-widest text-cyan-400/90">Gamification</p>
           <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight">
@@ -414,6 +593,94 @@ const WhaleDoneRolePlayPage: React.FC = () => {
 
         {showDetail && role === 'employee' && scenarioId === 'w4' && (
           <WhaleDoneEmployeeScenario badge="พนักงาน W4" data={EMPLOYEE_W4} />
+        )}
+          </>
+        )}
+
+        {activeTab === 'accountability' && (
+          <>
+            <div className="text-center space-y-2">
+              <p className="text-[10px] uppercase tracking-widest text-cyan-400/90">Accountability</p>
+              <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight">Accountability</h1>
+              <p className="text-gray-400 text-sm max-w-xl mx-auto leading-relaxed">
+                เลือกบทบาทและกรณีด้านล่างเพื่อแสดงบัตรบทบาทสำหรับซ้อมบทสนทนาเรื่องความรับผิดชอบ (Accountability)
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-6 md:p-8 space-y-6">
+              <div className="space-y-2">
+                <label htmlFor="acct-role" className="block text-sm font-medium text-gray-400">
+                  เลือกบทบาท
+                </label>
+                <select
+                  id="acct-role"
+                  className={selectClass}
+                  value={accountRole}
+                  onChange={(e) => {
+                    const v = (e.target.value as AccountTabRole) || '';
+                    setAccountRole(v);
+                    if (v === 'requester' || v === 'peer') {
+                      setAccountCase('case4');
+                    } else if (v === 'manager' || v === 'employee') {
+                      setAccountCase((c) => (c === 'case4' ? '' : c));
+                    } else {
+                      setAccountCase('');
+                    }
+                  }}
+                >
+                  <option value="">— เลือก —</option>
+                  {ACCOUNT_TAB_ROLE_OPTIONS.map((o) => (
+                    <option key={o.value} value={o.value}>
+                      {o.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <label htmlFor="acct-case" className="block text-sm font-medium text-gray-400">
+                  เลือกกรณี
+                </label>
+                <select
+                  id="acct-case"
+                  className={selectClass}
+                  value={accountCase}
+                  disabled={!accountRole}
+                  onChange={(e) => setAccountCase((e.target.value as AccountCaseKey | '') || '')}
+                >
+                  <option value="">— เลือกกรณี —</option>
+                  {accountCaseOptionsForTabRole(accountRole).map((o) => (
+                    <option key={o.value} value={o.value}>
+                      {o.label}
+                    </option>
+                  ))}
+                </select>
+                {accountRole === 'requester' || accountRole === 'peer' ? (
+                  <p className="text-xs text-cyan-300/85 leading-relaxed">
+                    บทบาทนี้ใช้กับ <span className="font-semibold text-cyan-200">กรณีที่ 04</span> เท่านั้น
+                    (ระบบเลือกกรณีให้อัตโนมัติ)
+                  </p>
+                ) : accountRole === 'manager' || accountRole === 'employee' ? (
+                  <p className="text-xs text-gray-500 leading-relaxed">
+                    บทบาทผู้จัดการ / พนักงาน ใช้กับกรณีที่ 01–03
+                  </p>
+                ) : null}
+              </div>
+            </div>
+
+            {!accountRole || !accountCase ? (
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-8 text-center">
+                <p className="text-sm text-gray-400 leading-relaxed">
+                  เลือกทั้งบทบาทและกรณีเพื่อแสดงบัตรบทบาท
+                </p>
+              </div>
+            ) : accountCard ? (
+              <div className="space-y-6">
+                <AccountabilityRoleCardArticle card={accountCard} />
+                <AccountabilityWorkbookCollapsible key={`${accountRole}-${accountCase}`} />
+              </div>
+            ) : null}
+          </>
         )}
       </main>
     </div>
