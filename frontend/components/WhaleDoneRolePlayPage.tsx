@@ -739,7 +739,7 @@ const WhaleDoneRolePlayPage: React.FC = () => {
                 Conflict_Case
               </h1>
               <p className="text-gray-400 text-sm max-w-xl mx-auto leading-relaxed">
-                Case1–Case4 พร้อมใช้งาน · เลือก Role และ Case ด้านล่าง
+                เลือก Role และ Case ด้านล่าง
               </p>
             </div>
 
@@ -815,7 +815,7 @@ const WhaleDoneRolePlayPage: React.FC = () => {
               <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-5 sm:p-6 text-center">
                 <p className="text-sm text-gray-400 leading-relaxed">
                   เลือก <span className="text-violet-200/90 font-medium">Case</span> เพื่ออ่านสถานการณ์
-                  <span className="block mt-1 text-xs text-gray-500">Case1–4 มีเนื้อหาพร้อมแล้ว</span>
+                  <span className="block mt-1 text-xs text-gray-500">Case1–4</span>
                 </p>
               </div>
             ) : null}
