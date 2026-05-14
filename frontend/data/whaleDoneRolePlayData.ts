@@ -1,5 +1,7 @@
 export type WhaleDoneRole = 'manager' | 'employee';
 export type WhaleDoneR = 'r1' | 'r2' | 'r3' | 'r4';
+export type WhaleDoneW = 'w1' | 'w2' | 'w3' | 'w4';
+export type WhaleDoneScenarioId = WhaleDoneR | WhaleDoneW;
 
 export const ROLE_OPTIONS: { value: WhaleDoneRole; labelTh: string }[] = [
   { value: 'manager', labelTh: 'บทบาทผู้จัดการ' },
@@ -13,8 +15,30 @@ export const R_OPTIONS: { value: WhaleDoneR; label: string }[] = [
   { value: 'r4', label: 'R4' },
 ];
 
-/** ทุกระดับ R มีเนื้อหา (สถานการณ์ร่วมต่อ R; บทบาทแยกผู้จัดการ/พนักงาน) */
-export function whaleDoneHasDetail(_role: WhaleDoneRole, _r: WhaleDoneR): boolean {
+export const W_OPTIONS: { value: WhaleDoneW; label: string }[] = [
+  { value: 'w1', label: 'W1' },
+  { value: 'w2', label: 'W2' },
+  { value: 'w3', label: 'W3' },
+  { value: 'w4', label: 'W4' },
+];
+
+export const SCENARIO_GROUPS: {
+  labelTh: string;
+  options: { value: WhaleDoneScenarioId; label: string }[];
+}[] = [
+  {
+    labelTh: 'Redirection (R) — การเปลี่ยนทิศทาง',
+    options: R_OPTIONS.map((o) => ({ value: o.value, label: o.label })),
+  },
+  {
+    labelTh: 'Whale Done! (W) — ชื่นชมเชิงบวก',
+    options: W_OPTIONS.map((o) => ({ value: o.value, label: o.label })),
+  },
+];
+
+/** R ทุกระดับมีเนื้อหา; W มีเนื้อหาเฉพาะ W1 (W2–W4 เร็วๆ นี้) */
+export function whaleDoneHasDetail(_role: WhaleDoneRole, scenario: WhaleDoneScenarioId): boolean {
+  if (scenario.startsWith('w')) return scenario === 'w1';
   return true;
 }
 
@@ -261,6 +285,80 @@ export const EMPLOYEE_R4 = {
     {
       lead: 'ถ้าหัวหน้าสื่อสารได้ดี',
       line: '“ต่อไปผมจะเพิ่มขั้นตอนตรวจสอบและยืนยันข้อมูลไว้ในกระบวนการส่งงานของผมครับ”',
+    },
+  ],
+} as const;
+
+/** สถานการณ์ W1 — เหมือนกันทั้งผู้จัดการและพนักงาน */
+export const W1_SITUATION = {
+  situationEn:
+    "Team meeting, any department. Khun Ying has been on the team for 18 months. She's technically competent but has rarely spoken in group meetings. Today, unprompted, she raised a potential data inconsistency that no one else had noticed — potentially saving the team from submitting a flawed report.",
+  situationTh:
+    'การประชุมทีม, ฝ่ายใดก็ได้ คุณหญิงอยู่ในทีมมา 18 เดือน เธอมีความสามารถทางเทคนิคแต่แทบไม่เคยพูดในการประชุมกลุ่ม วันนี้เธอยกเรื่องความไม่สอดคล้องของข้อมูลที่ไม่มีใครสังเกตเห็น ช่วยทีมจากการส่งรายงานที่มีข้อผิดพลาด',
+} as const;
+
+export const MANAGER_W1 = {
+  ...W1_SITUATION,
+  headline: 'W1 · QUIET EMPLOYEE SPEAKS UP — พนักงานเงียบพูดขึ้นมา',
+  subhead: 'WHALE DONE! — MANAGER ROLE · Whale Done! — บทบาทผู้จัดการ',
+  cardTitle: 'W1 · บัตรบทบาทผู้จัดการ — Whale Done!',
+  whoYouAre:
+    'คุณคือผู้จัดการทีม ระหว่างการประชุมคุณหญิงเพิ่งชี้ให้เห็นความไม่สอดคล้องในการประชุม คุณต้องการให้ Whale Done แก่เธอ ทันที เจาะจง และจริงใจ สูตร Whale Done : อธิบายพฤติกรรมเฉพาะ อธิบายผลกระทบ แสดงความขอบคุณอย่างจริงใจ',
+  stepsTitle: 'ขั้นตอน Whale Done',
+  steps: [
+    {
+      label: 'อธิบาย',
+      body:
+        '“คุณ… สิ่งที่คุณเพิ่งทำ คุณเห็นความไม่สอดคล้องในข้อมูลที่พวกเราพลาดไป และพูดออกมา”',
+    },
+    {
+      label: 'ผลกระทบ',
+      body:
+        'อยากบอกตรงๆ ว่าการพูดขึ้นมาเมื่อกี้ต้องใช้ความกล้า และมันช่วยให้ทีมเห็นประเด็นสำคัญจริงๆ ขอบคุณที่คุณกล้าพูด',
+    },
+    {
+      label: 'ขอบคุณ',
+      body:
+        '“อยากบอกตรงๆ นั้นต้องใช้ความกล้าอย่างมาก และมันสร้างความแตกต่างที่แท้จริง ขอบคุณที่พูดขึ้นมา”',
+    },
+    {
+      label: 'ส่งเสริมอนาคต',
+      body:
+        '“หวังว่าคุณจะทำแบบนั้นต่อไป สายตาที่ใส่ใจรายละเอียดของคุณคือสิ่งที่ทำให้ทีมนี้แข็งแกร่งขึ้น”',
+    },
+  ],
+  avoidTitle: 'สิ่งที่ต้องหลีกเลี่ยง',
+  avoid: [
+    "พูดกว้างๆ : 'ทำงานดีทุกคน' — ความเจาะจงคือสิ่งที่ทำให้ Whale Done ได้ผล",
+    'เก็บไว้ทีหลัง — Whale Done ทรงพลังที่สุดเมื่อทำทันทีทันใด',
+    'ทำมากเกินไป — ไม่จำเป็นต้องชมเกินจริง เช่น “คุณเก่งมาก เป็นสิ่งที่ดีที่สุดของทีม” เพราะ Whale Done ที่ดีควรจริงใจและเฉพาะเจาะจง มากกว่ากระตือรือร้นจนดูไม่เป็นธรรมชาติ',
+  ],
+} as const;
+
+export const EMPLOYEE_W1 = {
+  ...W1_SITUATION,
+  headline: 'W1 · QUIET EMPLOYEE SPEAKS UP — พนักงานเงียบพูดขึ้นมา',
+  subhead: 'WHALE DONE! — EMPLOYEE ROLE · Whale Done! — บทบาทพนักงาน',
+  cardTitle: 'W1 · บัตรบทบาทพนักงาน',
+  whoYouAre:
+    'คุณคือพนักงาน การพูดในการประชุมไม่เคยสบายสำหรับคุณ คุณแจ้งปัญหาเพราะกังวลจริงๆ ไม่ใช่เพราะต้องการความสนใจ ตอนนี้คุณค่อนข้างกังวลว่าคุณทำสิ่งที่ถูกต้องหรือไม่',
+  feelingsTitle: 'คุณรู้สึกอย่างไร',
+  feelings:
+    'คุณอาจรู้สึกไม่มั่นใจ และแอบหวังว่าตัวเองไม่ได้พูดเกินไป ถ้าผู้จัดการชื่นชมอย่างเจาะจงและจริงใจ คุณจะรู้สึกว่า “สิ่งที่พูดไปมีคุณค่าและถูกมองเห็นจริงๆ” แต่ถ้าถูกมองข้าม หรือได้รับคำชมกว้างๆ แบบไม่ชัดเจน ครั้งต่อไปคุณอาจลังเลและกล้าพูดน้อยลง',
+  howToPlayTitle: 'วิธีรับบทบาทนี้',
+  howToPlay: [
+    {
+      lead: 'รับ Whale Done ที่เจาะจงอย่างสง่างาม',
+      line: '“ขอบคุณ ไม่แน่ใจว่าควรพูดหรือเปล่า”',
+    },
+    {
+      lead: 'ถ้า Whale Done กว้างหรือคลุมเครือ',
+      line: 'ตอบสุภาพ แต่ไม่ค่อยรู้สึกเชื่อมโยง เช่น “อ้อ ขอบคุณ”',
+    },
+    {
+      lead: 'ถ้าทำได้ดี',
+      line:
+        'คุณจะผ่อนคลายลงอย่างเห็นได้ชัด และกล้ามีส่วนร่วมมากขึ้นในช่วงที่เหลือของการประชุม',
     },
   ],
 } as const;

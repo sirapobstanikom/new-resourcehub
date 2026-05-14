@@ -1,19 +1,21 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   EMPLOYEE_R1,
   EMPLOYEE_R2,
   EMPLOYEE_R3,
   EMPLOYEE_R4,
+  EMPLOYEE_W1,
   MANAGER_R1,
   MANAGER_R2,
   MANAGER_R3,
   MANAGER_R4,
-  R_OPTIONS,
+  MANAGER_W1,
   ROLE_OPTIONS,
+  SCENARIO_GROUPS,
   whaleDoneHasDetail,
-  type WhaleDoneR,
   type WhaleDoneRole,
+  type WhaleDoneScenarioId,
 } from '../data/whaleDoneRolePlayData';
 import {
   ACCOUNTABILITY_WORKBOOK_CASES,
@@ -164,7 +166,7 @@ function AccountabilityWithoutDramaWorkbookFrame() {
   return (
     <aside
       className="rounded-2xl border-2 border-violet-500/35 bg-violet-950/25 p-6 md:p-8 space-y-8 text-left ring-1 ring-inset ring-white/5"
-      aria-label="Accountability Without Drama workbook reference"
+      aria-label="****Accountability Without Drama workbook reference****"
     >
       <header className="space-y-3 border-b border-white/10 pb-6">
         <p className="text-[10px] uppercase tracking-widest text-violet-300/90">Workbook reference</p>
@@ -257,10 +259,16 @@ function AccountabilityWithoutDramaWorkbookFrame() {
 
 const WhaleDoneRolePlayPage: React.FC = () => {
   const [role, setRole] = useState<WhaleDoneRole | ''>('');
-  const [rLevel, setRLevel] = useState<WhaleDoneR | ''>('');
+  const [scenarioId, setScenarioId] = useState<WhaleDoneScenarioId | ''>('');
+  const [workbookOpen, setWorkbookOpen] = useState(false);
 
-  const showDetail = role && rLevel && whaleDoneHasDetail(role, rLevel);
-  const showComingSoon = role && rLevel && !whaleDoneHasDetail(role, rLevel);
+  const showDetail = role && scenarioId && whaleDoneHasDetail(role, scenarioId);
+  const showComingSoon = role && scenarioId && !whaleDoneHasDetail(role, scenarioId);
+  const showAccountabilityWorkbook = Boolean(showDetail && scenarioId.startsWith('r'));
+
+  useEffect(() => {
+    setWorkbookOpen(false);
+  }, [scenarioId]);
 
   return (
     <div className="min-h-screen bg-transparent text-white bg-grid flex flex-col selection:bg-yellow-400 selection:text-black">
@@ -286,7 +294,7 @@ const WhaleDoneRolePlayPage: React.FC = () => {
             Whale Done Role play
           </h1>
           <p className="text-gray-400 text-sm max-w-xl mx-auto leading-relaxed">
-            เลือกบทบาทและระดับ R เพื่ออ่านสถานการณ์และคำแนะนำการรับบทสำหรับซ้อมบทสนทนา (R1–R4 เปิดใช้งานแล้ว)
+            เลือกบทบาท แล้วเลือก R1–R4 (การเปลี่ยนทิศทาง) หรือ W1–W4 (Whale Done! ชื่นชมเชิงบวก) — R ทั้งหมดและ W1 เปิดใช้งานแล้ว
           </p>
         </div>
 
@@ -302,7 +310,7 @@ const WhaleDoneRolePlayPage: React.FC = () => {
               onChange={(e) => {
                 const v = e.target.value as WhaleDoneRole | '';
                 setRole(v);
-                setRLevel('');
+                setScenarioId('');
               }}
             >
               <option value="">— เลือก —</option>
@@ -315,25 +323,29 @@ const WhaleDoneRolePlayPage: React.FC = () => {
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="wd-r" className="block text-sm font-medium text-gray-400">
-              เลือกระดับ (R)
+            <label htmlFor="wd-scenario" className="block text-sm font-medium text-gray-400">
+              เลือก R หรือ W
             </label>
             <select
-              id="wd-r"
+              id="wd-scenario"
               className={`${selectClass} ${!role ? 'opacity-50 cursor-not-allowed' : ''}`}
-              value={rLevel}
+              value={scenarioId}
               disabled={!role}
-              onChange={(e) => setRLevel((e.target.value as WhaleDoneR) || '')}
+              onChange={(e) => setScenarioId((e.target.value as WhaleDoneScenarioId) || '')}
             >
-              <option value="">— เลือก R —</option>
-              {R_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.label}
-                </option>
+              <option value="">— เลือก R หรือ W —</option>
+              {SCENARIO_GROUPS.map((group) => (
+                <optgroup key={group.labelTh} label={group.labelTh}>
+                  {group.options.map((o) => (
+                    <option key={o.value} value={o.value}>
+                      {o.label}
+                    </option>
+                  ))}
+                </optgroup>
               ))}
             </select>
             {!role && (
-              <p className="text-xs text-gray-500">กรุณาเลือกบทบาทก่อน แล้วจึงเลือก R1–R4</p>
+              <p className="text-xs text-gray-500">กรุณาเลือกบทบาทก่อน แล้วจึงเลือก R1–R4 หรือ W1–W4</p>
             )}
           </div>
         </div>
@@ -342,12 +354,12 @@ const WhaleDoneRolePlayPage: React.FC = () => {
           <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-6 text-center">
             <p className="font-bold text-amber-200 mb-1">เร็วๆ นี้</p>
             <p className="text-sm text-gray-300">
-              เนื้อหาสำหรับบทบาทนี้และระดับ {rLevel?.toUpperCase()} กำลังเตรียมไว้ให้
+              เนื้อหาสำหรับบทบาทนี้และระดับ {scenarioId?.toUpperCase()} กำลังเตรียมไว้ให้
             </p>
           </div>
         )}
 
-        {showDetail && role === 'manager' && rLevel === 'r1' && (
+        {showDetail && role === 'manager' && scenarioId === 'r1' && (
           <article className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 md:p-8 space-y-8 text-left">
             <div>
               <h2 className="text-lg md:text-xl font-bold text-yellow-400/95 mb-1">
@@ -406,7 +418,7 @@ const WhaleDoneRolePlayPage: React.FC = () => {
           </article>
         )}
 
-        {showDetail && role === 'employee' && rLevel === 'r1' && (
+        {showDetail && role === 'employee' && scenarioId === 'r1' && (
           <article className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 md:p-8 space-y-8 text-left">
             <div>
               <h2 className="text-lg md:text-xl font-bold text-yellow-400/95 mb-1">
@@ -457,31 +469,70 @@ const WhaleDoneRolePlayPage: React.FC = () => {
           </article>
         )}
 
-        {showDetail && role === 'manager' && rLevel === 'r2' && (
+        {showDetail && role === 'manager' && scenarioId === 'r2' && (
           <WhaleDoneManagerScenario badge="ผู้จัดการ R2" data={MANAGER_R2} />
         )}
 
-        {showDetail && role === 'manager' && rLevel === 'r3' && (
+        {showDetail && role === 'manager' && scenarioId === 'r3' && (
           <WhaleDoneManagerScenario badge="ผู้จัดการ R3" data={MANAGER_R3} />
         )}
 
-        {showDetail && role === 'manager' && rLevel === 'r4' && (
+        {showDetail && role === 'manager' && scenarioId === 'r4' && (
           <WhaleDoneManagerScenario badge="ผู้จัดการ R4" data={MANAGER_R4} />
         )}
 
-        {showDetail && role === 'employee' && rLevel === 'r2' && (
+        {showDetail && role === 'employee' && scenarioId === 'r2' && (
           <WhaleDoneEmployeeScenario badge="พนักงาน R2" data={EMPLOYEE_R2} />
         )}
 
-        {showDetail && role === 'employee' && rLevel === 'r3' && (
+        {showDetail && role === 'employee' && scenarioId === 'r3' && (
           <WhaleDoneEmployeeScenario badge="พนักงาน R3" data={EMPLOYEE_R3} />
         )}
 
-        {showDetail && role === 'employee' && rLevel === 'r4' && (
+        {showDetail && role === 'employee' && scenarioId === 'r4' && (
           <WhaleDoneEmployeeScenario badge="พนักงาน R4" data={EMPLOYEE_R4} />
         )}
 
-        {showDetail && <AccountabilityWithoutDramaWorkbookFrame />}
+        {showDetail && role === 'manager' && scenarioId === 'w1' && (
+          <WhaleDoneManagerScenario badge="ผู้จัดการ W1" data={MANAGER_W1} />
+        )}
+
+        {showDetail && role === 'employee' && scenarioId === 'w1' && (
+          <WhaleDoneEmployeeScenario badge="พนักงาน W1" data={EMPLOYEE_W1} />
+        )}
+
+        {showAccountabilityWorkbook && (
+          <div className="space-y-3">
+            <button
+              type="button"
+              id="accountability-workbook-toggle"
+              aria-expanded={workbookOpen}
+              aria-controls="accountability-workbook-panel"
+              aria-label={
+                workbookOpen
+                  ? 'ซ่อนเอกสารอ้างอิง Accountability Without Drama'
+                  : 'แสดงเอกสารอ้างอิง Accountability Without Drama'
+              }
+              onClick={() => setWorkbookOpen((o) => !o)}
+              className="w-full flex items-center justify-between gap-3 rounded-xl border border-violet-500/45 bg-violet-950/35 px-4 py-3.5 text-left text-sm text-violet-100 hover:bg-violet-950/50 hover:border-violet-400/55 focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-400/80 focus-visible:ring-offset-2 focus-visible:ring-offset-black/40 transition-colors"
+            >
+              <span className="min-w-0 font-semibold text-white leading-snug tracking-tight break-words">
+                ****Accountability Without Drama workbook reference****
+              </span>
+              <span
+                className="shrink-0 text-violet-300 text-lg font-mono w-8 text-center"
+                aria-hidden
+              >
+                {workbookOpen ? '▲' : '▼'}
+              </span>
+            </button>
+            {workbookOpen && (
+              <div id="accountability-workbook-panel" role="region" aria-labelledby="accountability-workbook-toggle">
+                <AccountabilityWithoutDramaWorkbookFrame />
+              </div>
+            )}
+          </div>
+        )}
       </main>
     </div>
   );
