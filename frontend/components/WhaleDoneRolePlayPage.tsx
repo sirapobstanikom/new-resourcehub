@@ -82,29 +82,45 @@ const CONFLICT_CANVAS_EXAMPLES: Record<
 
 const CONFLICT_CANVAS_DOWNLOAD_PASSWORD = '1234';
 
-async function downloadConflictCanvasExample(caseKey: ConflictCanvasDownloadCase) {
-  const { url, filename } = CONFLICT_CANVAS_EXAMPLES[caseKey];
+type CanvasBlobCacheEntry = { blob: Blob; objectUrl: string };
+
+function isMobileCanvasDevice(): boolean {
+  if (typeof navigator === 'undefined') return false;
+  return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+}
+
+async function prefetchCanvasBlob(url: string): Promise<Blob | null> {
   try {
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(String(res.status));
-    const blob = await res.blob();
-    const objectUrl = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = objectUrl;
-    a.download = filename;
-    a.rel = 'noopener';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(objectUrl);
+    const res = await fetch(url, { mode: 'cors', credentials: 'omit' });
+    if (!res.ok) return null;
+    return await res.blob();
   } catch {
-    const a = document.createElement('a');
-    a.href = url;
-    a.target = '_blank';
-    a.rel = 'noopener noreferrer';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
+    return null;
+  }
+}
+
+function triggerCanvasBlobDownload(objectUrl: string, filename: string): void {
+  const a = document.createElement('a');
+  a.href = objectUrl;
+  a.download = filename;
+  a.rel = 'noopener';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
+
+async function tryShareCanvasFile(blob: Blob, filename: string): Promise<boolean> {
+  if (typeof navigator === 'undefined' || !navigator.share) return false;
+  const file = new File([blob], filename, { type: blob.type || 'image/jpeg' });
+  if (typeof navigator.canShare === 'function' && !navigator.canShare({ files: [file] })) {
+    return false;
+  }
+  try {
+    await navigator.share({ files: [file], title: filename });
+    return true;
+  } catch (err) {
+    if (err instanceof Error && err.name === 'AbortError') return true;
+    return false;
   }
 }
 
@@ -389,12 +405,20 @@ const WhaleDoneRolePlayPage: React.FC = () => {
   const [canvasDownloadCase, setCanvasDownloadCase] = useState<ConflictCanvasDownloadCase>('case1');
   const [canvasPasswordInput, setCanvasPasswordInput] = useState('');
   const [canvasPasswordError, setCanvasPasswordError] = useState<string | null>(null);
+  const [canvasBlobCache, setCanvasBlobCache] = useState<
+    Partial<Record<ConflictCanvasDownloadCase, CanvasBlobCacheEntry>>
+  >({});
+  const [canvasPrefetching, setCanvasPrefetching] = useState(false);
+  const [canvasDownloadHint, setCanvasDownloadHint] = useState<string | null>(null);
+  const [canvasMobileOpenUrl, setCanvasMobileOpenUrl] = useState<string | null>(null);
   const canvasPasswordInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!canvasPasswordModalOpen) return;
     setCanvasPasswordInput('');
     setCanvasPasswordError(null);
+    setCanvasDownloadHint(null);
+    setCanvasMobileOpenUrl(null);
     setCanvasDownloadCase('case1');
     const t = window.setTimeout(() => canvasPasswordInputRef.current?.focus(), 50);
     const prev = document.body.style.overflow;
@@ -405,13 +429,90 @@ const WhaleDoneRolePlayPage: React.FC = () => {
     };
   }, [canvasPasswordModalOpen]);
 
+  useEffect(() => {
+    if (!canvasPasswordModalOpen) return;
+    let cancelled = false;
+    const keys = Object.keys(CONFLICT_CANVAS_EXAMPLES) as ConflictCanvasDownloadCase[];
+    setCanvasPrefetching(true);
+    void Promise.all(
+      keys.map(async (key) => {
+        const blob = await prefetchCanvasBlob(CONFLICT_CANVAS_EXAMPLES[key].url);
+        if (cancelled || !blob) return;
+        const objectUrl = URL.createObjectURL(blob);
+        setCanvasBlobCache((prev) => {
+          const old = prev[key];
+          if (old) URL.revokeObjectURL(old.objectUrl);
+          return { ...prev, [key]: { blob, objectUrl } };
+        });
+      }),
+    ).finally(() => {
+      if (!cancelled) setCanvasPrefetching(false);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [canvasPasswordModalOpen]);
+
+  useEffect(() => {
+    if (canvasPasswordModalOpen) return;
+    setCanvasBlobCache((prev) => {
+      for (const entry of Object.values(prev) as CanvasBlobCacheEntry[]) {
+        URL.revokeObjectURL(entry.objectUrl);
+      }
+      return {};
+    });
+  }, [canvasPasswordModalOpen]);
+
+  const openCanvasImageForMobileSave = (url: string) => {
+    setCanvasMobileOpenUrl(url);
+    setCanvasDownloadHint(
+      'เปิดภาพแล้ว — กดค้างที่ภาพ → เลือก «บันทึกรูปภาพ» หรือ «ดาวน์โหลด» (หากไม่เห็นภาพ ให้กดปุ่มด้านล่าง)',
+    );
+    const opened = window.open(url, '_blank', 'noopener,noreferrer');
+    if (!opened) window.location.assign(url);
+  };
+
   const confirmCanvasDownload = () => {
-    if (canvasPasswordInput.trim() === CONFLICT_CANVAS_DOWNLOAD_PASSWORD) {
-      void downloadConflictCanvasExample(canvasDownloadCase);
-      setCanvasPasswordModalOpen(false);
-    } else {
+    if (canvasPasswordInput.trim() !== CONFLICT_CANVAS_DOWNLOAD_PASSWORD) {
       setCanvasPasswordError('รหัสผ่านไม่ถูกต้อง');
+      return;
     }
+    const caseKey = canvasDownloadCase;
+    const { url, filename } = CONFLICT_CANVAS_EXAMPLES[caseKey];
+    const cached = canvasBlobCache[caseKey];
+    const mobile = isMobileCanvasDevice();
+
+    if (mobile) {
+      void (async () => {
+        if (cached) {
+          const shared = await tryShareCanvasFile(cached.blob, filename);
+          if (shared) {
+            setCanvasPasswordModalOpen(false);
+            return;
+          }
+        }
+        openCanvasImageForMobileSave(url);
+      })();
+      return;
+    }
+
+    if (cached) {
+      triggerCanvasBlobDownload(cached.objectUrl, filename);
+      setCanvasPasswordModalOpen(false);
+      return;
+    }
+
+    void (async () => {
+      const blob = await prefetchCanvasBlob(url);
+      if (blob) {
+        const objectUrl = URL.createObjectURL(blob);
+        triggerCanvasBlobDownload(objectUrl, filename);
+        URL.revokeObjectURL(objectUrl);
+      } else {
+        window.open(url, '_blank', 'noopener,noreferrer');
+      }
+      setCanvasPasswordModalOpen(false);
+    })();
   };
 
   const showDetail = role && scenarioId && whaleDoneHasDetail(role, scenarioId);
@@ -948,6 +1049,19 @@ const WhaleDoneRolePlayPage: React.FC = () => {
                   {canvasPasswordError && (
                     <p className="mt-2 text-sm text-red-300">{canvasPasswordError}</p>
                   )}
+                  {canvasDownloadHint && (
+                    <p className="mt-3 text-xs text-emerald-200/90 leading-relaxed">{canvasDownloadHint}</p>
+                  )}
+                  {canvasMobileOpenUrl && (
+                    <a
+                      href={canvasMobileOpenUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-3 block w-full rounded-xl border border-violet-400/50 bg-violet-500/15 px-4 py-2.5 text-center text-sm font-semibold text-violet-100 hover:bg-violet-500/25"
+                    >
+                      เปิดภาพ Canvas อีกครั้ง
+                    </a>
+                  )}
                   <div className="mt-5 flex flex-col-reverse sm:flex-row gap-2 sm:justify-end">
                     <button
                       type="button"
@@ -959,9 +1073,10 @@ const WhaleDoneRolePlayPage: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => confirmCanvasDownload()}
-                      className="w-full sm:w-auto rounded-xl border border-emerald-400/50 bg-emerald-700/35 px-4 py-2.5 text-sm font-semibold text-emerald-50 hover:bg-emerald-600/40"
+                      disabled={canvasPrefetching}
+                      className="w-full sm:w-auto rounded-xl border border-emerald-400/50 bg-emerald-700/35 px-4 py-2.5 text-sm font-semibold text-emerald-50 hover:bg-emerald-600/40 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      ดาวน์โหลด
+                      {canvasPrefetching ? 'กำลังเตรียมไฟล์…' : 'ดาวน์โหลด'}
                     </button>
                   </div>
                 </div>
