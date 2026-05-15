@@ -15,6 +15,7 @@ import {
 import {
   type EvaEvaluationTemplate,
   type EvaPrompt,
+  type EvaPromptNumberStyle,
   type EvaPromptType,
   type EvaCommitmentRow,
   EVA_TEMPLATE_STORAGE_KEY,
@@ -27,6 +28,7 @@ import {
   defaultEvaCommitmentRows,
   evaBaseIdFromName,
   evaUniqueIdFromName,
+  getPromptNumberStyle,
   loadStoredEvaTemplates,
 } from '../lib/evaTemplates';
 
@@ -59,6 +61,22 @@ const getOtherOptionLabel = (value: string) =>
   value.startsWith(OTHER_OPTION_PREFIX) ? value.slice(OTHER_OPTION_PREFIX.length) || 'Other:' : 'Other:';
 
 const buildOtherOptionValue = (label: string) => `${OTHER_OPTION_PREFIX}${label.trim() || 'Other:'}`;
+
+function newEvaBlockId(prefix: string) {
+  return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2, 6)}`;
+}
+
+function makeNewTextPrompt(): EvaPrompt {
+  return { id: newEvaBlockId('prompt'), title: 'คำถามใหม่', type: 'text' };
+}
+
+function makeNewDescriptionPrompt(): EvaPrompt {
+  return {
+    id: newEvaBlockId('desc'),
+    title: 'พิมพ์คำอธิบายระหว่างโจทย์ที่นี่...',
+    type: 'description',
+  };
+}
 
 function readTemplates(): EvaEvaluationTemplate[] {
   if (typeof window === 'undefined') return DEFAULT_TEMPLATES;
@@ -366,8 +384,12 @@ const EvaEditorPage: React.FC = () => {
   const addPrompt = () => {
     if (!selectedTemplate) return;
     const title = newPromptTitle.trim();
-    if (!title) return;
-    const promptId = `prompt-${Date.now()}-${Math.random().toString(16).slice(2, 6)}`;
+    if (newPromptType === 'description') {
+      if (!title) {
+        setMessage('กรุณาพิมพ์เนื้อหาคำอธิบาย');
+        return;
+      }
+    } else if (!title) return;
     const options =
       newPromptType === 'choice' || newPromptType === 'multi_choice'
         ? newPromptOptions.map((line) => line.trim()).filter(Boolean)
@@ -404,6 +426,30 @@ const EvaEditorPage: React.FC = () => {
     const fillLeadIn = newPromptType === 'fill_sentence' ? newFillLeadIn : undefined;
     const fillBridge = newPromptType === 'fill_sentence' ? newFillBridge : undefined;
     const fillClosing = newPromptType === 'fill_sentence' ? newFillClosing : undefined;
+
+    if (newPromptType === 'description') {
+      const nextPrompt: EvaPrompt = { id: newEvaBlockId('desc'), title, type: 'description' };
+      updateSelectedTemplate((item) => ({
+        ...item,
+        prompts: [...item.prompts, nextPrompt],
+        updatedAt: new Date().toISOString(),
+      }));
+      setNewPromptTitle('');
+      setNewPromptType('text');
+      setNewPromptOptions(['ตัวเลือก 1', 'ตัวเลือก 2']);
+      setNewPromptRatingItems(['คำถาม 1', 'คำถาม 2']);
+      setNewCommitmentHeaders([...EVA_DEFAULT_COMMITMENT_HEADERS]);
+      setNewCommitmentRows(defaultEvaCommitmentRows().map((r) => ({ ...r })));
+      setNewFillIntroEn(EVA_DEFAULT_FILL_INTRO_EN);
+      setNewFillIntroTh(EVA_DEFAULT_FILL_INTRO_TH);
+      setNewFillLeadIn(EVA_DEFAULT_FILL_LEAD_IN);
+      setNewFillBridge(EVA_DEFAULT_FILL_BRIDGE);
+      setNewFillClosing(EVA_DEFAULT_FILL_CLOSING);
+      setMessage('เพิ่มคำอธิบายแล้ว');
+      return;
+    }
+
+    const promptId = newEvaBlockId('prompt');
 
     const nextPrompt: EvaPrompt = {
       id: promptId,
@@ -445,15 +491,56 @@ const EvaEditorPage: React.FC = () => {
       return { ...item, prompts, updatedAt: new Date().toISOString() };
     });
 
+  const setPromptNumberStyle = (idx: number, style: EvaPromptNumberStyle) =>
+    updateSelectedTemplate((item) => {
+      const prompts = [...item.prompts];
+      const cur = prompts[idx];
+      if (cur.type === 'description') return item;
+      const next: EvaPrompt = { ...cur };
+      delete next.showNumberPrefix;
+      if (style === 'auto') {
+        delete next.promptNumberStyle;
+        delete next.fixedNumberPrefix;
+      } else if (style === 'none') {
+        next.promptNumberStyle = 'none';
+        delete next.fixedNumberPrefix;
+      } else {
+        next.promptNumberStyle = 'fixed';
+        if (next.fixedNumberPrefix === undefined) next.fixedNumberPrefix = '';
+      }
+      prompts[idx] = next;
+      return { ...item, prompts, updatedAt: new Date().toISOString() };
+    });
+
+  const updatePromptFixedNumberPrefix = (idx: number, value: string) =>
+    updateSelectedTemplate((item) => {
+      const prompts = [...item.prompts];
+      const cur = prompts[idx];
+      if (cur.type === 'description' || getPromptNumberStyle(cur) !== 'fixed') return item;
+      prompts[idx] = { ...cur, fixedNumberPrefix: value };
+      return { ...item, prompts, updatedAt: new Date().toISOString() };
+    });
+
   const updatePromptType = (idx: number, type: EvaPromptType) =>
     updateSelectedTemplate((item) => {
       const prompts = [...item.prompts];
       const current = prompts[idx];
+      if (type === 'description') {
+        prompts[idx] = { id: current.id, title: current.title, type: 'description' };
+        return { ...item, prompts, updatedAt: new Date().toISOString() };
+      }
       const next: EvaPrompt = {
         id: current.id,
         title: current.title,
         type,
       };
+      const numStyle = getPromptNumberStyle(current);
+      if (numStyle === 'none') {
+        next.promptNumberStyle = 'none';
+      } else if (numStyle === 'fixed') {
+        next.promptNumberStyle = 'fixed';
+        next.fixedNumberPrefix = current.fixedNumberPrefix ?? '';
+      }
       if (type === 'choice' || type === 'multi_choice') {
         next.options = current.options || ['ตัวเลือก 1', 'ตัวเลือก 2'];
       }
@@ -607,6 +694,28 @@ const EvaEditorPage: React.FC = () => {
       prompts: item.prompts.filter((_, i) => i !== idx),
       updatedAt: new Date().toISOString(),
     }));
+
+  const insertPromptAt = (insertIndex: number, prompt: EvaPrompt) => {
+    updateSelectedTemplate((item) => {
+      const prompts = [...item.prompts];
+      const i = Math.max(0, Math.min(insertIndex, prompts.length));
+      prompts.splice(i, 0, prompt);
+      return { ...item, prompts, updatedAt: new Date().toISOString() };
+    });
+    setMessage('แทรกรายการแล้ว');
+  };
+
+  const movePrompt = (idx: number, delta: -1 | 1) => {
+    updateSelectedTemplate((item) => {
+      const prompts = [...item.prompts];
+      const j = idx + delta;
+      if (j < 0 || j >= prompts.length) return item;
+      const tmp = prompts[idx];
+      prompts[idx] = prompts[j];
+      prompts[j] = tmp;
+      return { ...item, prompts, updatedAt: new Date().toISOString() };
+    });
+  };
 
   const isDateInRange = (isoDate: string) => {
     if (!isoDate) return true;
@@ -1099,7 +1208,7 @@ const EvaEditorPage: React.FC = () => {
               >
                 <button type="button" onClick={() => setSelectedId(item.id)} className="w-full text-left">
                   <p className="font-medium truncate">{item.name}</p>
-                  <p className="text-xs text-gray-400 mt-1">{item.prompts.length} โจทย์</p>
+                  <p className="text-xs text-gray-400 mt-1">{item.prompts.length} รายการ</p>
                 </button>
                 <a
                   href={`/evaluation/form/${encodeURIComponent(item.id)}`}
@@ -1194,24 +1303,116 @@ const EvaEditorPage: React.FC = () => {
               </div>
 
               <div>
-                <h3 className="font-semibold text-gray-200 mb-3">โจทย์ ({selectedTemplate.prompts.length})</h3>
+                <h3 className="font-semibold text-gray-200 mb-3">
+                  โจทย์และคำอธิบาย ({selectedTemplate.prompts.length})
+                </h3>
                 <div className="space-y-3">
                   {selectedTemplate.prompts.map((prompt, idx) => (
-                    <div key={`${selectedTemplate.id}-prompt-${idx}`} className="rounded-lg border border-white/10 bg-black/20 p-3">
+                    <div key={`${selectedTemplate.id}-${prompt.id}`} className="rounded-lg border border-white/10 bg-black/20 p-3">
                       <div className="flex items-start gap-2 mb-2">
-                        <span className="text-sm text-gray-400 pt-2">{idx + 1}.</span>
-                        <textarea
-                          value={prompt.title}
-                          onChange={(e) => updatePromptTitle(idx, e.target.value)}
-                          rows={2}
-                          className="flex-1 rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm resize-y"
-                        />
+                        <span className="text-sm text-gray-400 pt-2 w-7 shrink-0 text-right tabular-nums">{idx + 1}.</span>
+                        <div className="flex-1 min-w-0 space-y-1.5">
+                          {prompt.type === 'description' && (
+                            <span className="inline-block rounded-md border border-amber-400/40 bg-amber-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-100">
+                              คำอธิบาย
+                            </span>
+                          )}
+                          <textarea
+                            value={prompt.title}
+                            onChange={(e) => updatePromptTitle(idx, e.target.value)}
+                            rows={prompt.type === 'description' ? 5 : 2}
+                            placeholder={
+                              prompt.type === 'description'
+                                ? 'เนื้อหาคำอธิบายระหว่างโจทย์ (หลายบรรทัดได้)'
+                                : 'ข้อความโจทย์ที่ผู้ตอบเห็น'
+                            }
+                            className="w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm resize-y"
+                          />
+                          {prompt.type !== 'description' && (
+                            <div className="space-y-2 text-xs text-gray-400">
+                              <p className="font-medium text-gray-300">เลข / ข้อความนำหน้าบนฟอร์มผู้ตอบ</p>
+                              <div className="flex flex-wrap gap-x-4 gap-y-1.5">
+                                <label className="inline-flex items-center gap-1.5 cursor-pointer select-none">
+                                  <input
+                                    type="radio"
+                                    name={`eva-num-${selectedTemplate.id}-${prompt.id}`}
+                                    checked={getPromptNumberStyle(prompt) === 'auto'}
+                                    onChange={() => setPromptNumberStyle(idx, 'auto')}
+                                    className="border-white/30 bg-black/40 accent-yellow-400"
+                                  />
+                                  อัตโนมัติ (1. 2. …)
+                                </label>
+                                <label className="inline-flex items-center gap-1.5 cursor-pointer select-none">
+                                  <input
+                                    type="radio"
+                                    name={`eva-num-${selectedTemplate.id}-${prompt.id}`}
+                                    checked={getPromptNumberStyle(prompt) === 'none'}
+                                    onChange={() => setPromptNumberStyle(idx, 'none')}
+                                    className="border-white/30 bg-black/40 accent-yellow-400"
+                                  />
+                                  ไม่มีนำหน้า
+                                </label>
+                                <label className="inline-flex items-center gap-1.5 cursor-pointer select-none">
+                                  <input
+                                    type="radio"
+                                    name={`eva-num-${selectedTemplate.id}-${prompt.id}`}
+                                    checked={getPromptNumberStyle(prompt) === 'fixed'}
+                                    onChange={() => setPromptNumberStyle(idx, 'fixed')}
+                                    className="border-white/30 bg-black/40 accent-yellow-400"
+                                  />
+                                  กำหนดเอง
+                                </label>
+                              </div>
+                              {getPromptNumberStyle(prompt) === 'fixed' && (
+                                <input
+                                  type="text"
+                                  value={prompt.fixedNumberPrefix ?? ''}
+                                  onChange={(e) => updatePromptFixedNumberPrefix(idx, e.target.value)}
+                                  placeholder="เช่น Q1. หรือ ข้อ ก. (ใส่ช่องว่างท้ายได้)"
+                                  className="w-full max-w-md rounded-lg border border-white/15 bg-black/30 px-2 py-1.5 text-sm text-gray-100 placeholder:text-gray-500"
+                                />
+                              )}
+                            </div>
+                          )}
+                        </div>
                         <button
                           type="button"
                           onClick={() => removePrompt(idx)}
-                          className="rounded-lg bg-red-500/20 border border-red-400/40 px-2.5 py-2 text-xs font-semibold text-red-200 hover:bg-red-500/30 transition-colors"
+                          className="rounded-lg bg-red-500/20 border border-red-400/40 px-2.5 py-2 text-xs font-semibold text-red-200 hover:bg-red-500/30 transition-colors shrink-0"
                         >
                           ลบ
+                        </button>
+                      </div>
+                      <div className="flex flex-wrap gap-1.5 mb-2 pl-8 sm:pl-9">
+                        <button
+                          type="button"
+                          onClick={() => insertPromptAt(idx, makeNewTextPrompt())}
+                          className="rounded-md border border-emerald-400/35 bg-emerald-500/10 px-2 py-1 text-[11px] font-medium text-emerald-100 hover:bg-emerald-500/20"
+                        >
+                          แทรกโจทย์ด้านบน
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => insertPromptAt(idx, makeNewDescriptionPrompt())}
+                          className="rounded-md border border-amber-400/35 bg-amber-500/10 px-2 py-1 text-[11px] font-medium text-amber-100 hover:bg-amber-500/20"
+                        >
+                          แทรกคำอธิบายด้านบน
+                        </button>
+                        <button
+                          type="button"
+                          disabled={idx === 0}
+                          onClick={() => movePrompt(idx, -1)}
+                          className="rounded-md border border-white/15 bg-white/5 px-2 py-1 text-[11px] text-gray-200 hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-35"
+                        >
+                          เลื่อนขึ้น
+                        </button>
+                        <button
+                          type="button"
+                          disabled={idx >= selectedTemplate.prompts.length - 1}
+                          onClick={() => movePrompt(idx, 1)}
+                          className="rounded-md border border-white/15 bg-white/5 px-2 py-1 text-[11px] text-gray-200 hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-35"
+                        >
+                          เลื่อนลง
                         </button>
                       </div>
                       <div className="space-y-2 pl-6">
@@ -1226,7 +1427,15 @@ const EvaEditorPage: React.FC = () => {
                           <option value="rating_1_5">เลือกระดับ 1-5</option>
                           <option value="commitment_table">ตาราง COMMITMENT / BY WHEN / HOW</option>
                           <option value="fill_sentence">เติมช่องว่าง — คำมั่นผู้นำ (ประโยคเดียว)</option>
+                          <option value="description">คำอธิบาย (ไม่ต้องตอบ)</option>
                         </select>
+                        {prompt.type === 'description' && (
+                          <p className="text-xs text-gray-500 leading-relaxed">
+                            แสดงเป็นข้อความบนฟอร์มผู้ตอบเท่านั้น ไม่นับเป็นข้อที่ต้องกรอก และไม่บันทึกในคำตอบ
+                          </p>
+                        )}
+                        {prompt.type !== 'description' && (
+                          <>
                         {(prompt.type === 'choice' || prompt.type === 'multi_choice') && (
                           <div className="space-y-2">
                             {(prompt.options || []).map((option, optionIdx) => (
@@ -1380,6 +1589,8 @@ const EvaEditorPage: React.FC = () => {
                             />
                           </div>
                         )}
+                          </>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -1399,14 +1610,22 @@ const EvaEditorPage: React.FC = () => {
                   <option value="rating_1_5">เลือกระดับ 1-5</option>
                   <option value="commitment_table">ตาราง COMMITMENT / BY WHEN / HOW</option>
                   <option value="fill_sentence">เติมช่องว่าง — คำมั่นผู้นำ (ประโยคเดียว)</option>
+                  <option value="description">คำอธิบาย (ไม่ต้องตอบ)</option>
                 </select>
                 <textarea
                   value={newPromptTitle}
                   onChange={(e) => setNewPromptTitle(e.target.value)}
-                  rows={3}
-                  placeholder="พิมพ์โจทย์ที่ต้องการเพิ่ม..."
+                  rows={newPromptType === 'description' ? 4 : 3}
+                  placeholder={
+                    newPromptType === 'description'
+                      ? 'พิมพ์คำอธิบายระหว่างโจทย์ (หลายบรรทัดได้)...'
+                      : 'พิมพ์โจทย์ที่ต้องการเพิ่ม...'
+                  }
                   className="mt-1 w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm resize-y"
                 />
+                {newPromptType === 'description' && (
+                  <p className="mt-1 text-xs text-gray-500">ไม่บังคับให้ผู้ตอบกรอก — ใช้แบ่งช่วงหรืออธิบายบริบท</p>
+                )}
                 {(newPromptType === 'choice' || newPromptType === 'multi_choice') && (
                   <div className="mt-2 space-y-2">
                     {newPromptOptions.map((option, idx) => (
@@ -1488,9 +1707,11 @@ const EvaEditorPage: React.FC = () => {
                     </button>
                   </div>
                 )}
-                {(newPromptType === 'commitment_table' || newPromptType === 'fill_sentence') && (
+                {(newPromptType === 'commitment_table' || newPromptType === 'fill_sentence' || newPromptType === 'description') && (
                   <p className="mt-2 text-xs text-gray-500">
-                    ช่องชื่อโจทย์ด้านบนคือหัวข้อที่ผู้ตอบเห็นเหนือคำถาม (เช่น ตาราง Accountability)
+                    {newPromptType === 'description'
+                      ? 'ช่องด้านบนคือข้อความคำอธิบายที่ผู้ตอบจะเห็น (ไม่มีช่องกรอก)'
+                      : 'ช่องชื่อโจทย์ด้านบนคือหัวข้อที่ผู้ตอบเห็นเหนือคำถาม (เช่น ตาราง Accountability)'}
                   </p>
                 )}
                 {newPromptType === 'commitment_table' && (

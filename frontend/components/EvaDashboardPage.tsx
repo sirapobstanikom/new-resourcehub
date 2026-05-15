@@ -14,6 +14,7 @@ import {
   type EvaEvaluationTemplate,
 } from '../lib/evaTemplates';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { EvaAnswerHoverPopover } from './EvaAnswerHoverPopover';
 
 type TemplateSummary = EvaEvaluationTemplate & {
   responseCount: number;
@@ -673,7 +674,7 @@ const EvaDashboardPage: React.FC = () => {
 
               <div className="grid grid-cols-1 xl:grid-cols-3 gap-2">
                 <div className="rounded-xl border border-white/10 bg-black/20 p-3">
-                  <p className="text-xs text-gray-400">จำนวนคำถามทั้งหมด</p>
+                  <p className="text-xs text-gray-400">จำนวนรายการในแบบประเมิน</p>
                   <p className="text-lg sm:text-xl font-semibold text-white mt-1">{selectedTemplate.prompts.length}</p>
                 </div>
                 <div className="rounded-xl border border-white/10 bg-black/20 p-3">
@@ -913,11 +914,19 @@ const EvaDashboardPage: React.FC = () => {
                                       <td className="px-2.5 sm:px-3 py-2.5 text-gray-200 leading-relaxed [overflow-wrap:anywhere]">
                                         {r.commitment || '—'}
                                       </td>
-                                      <td className="px-2.5 sm:px-3 py-2.5 text-yellow-100/95 leading-relaxed whitespace-pre-wrap [overflow-wrap:anywhere]">
-                                        {r.byWhen || '—'}
+                                      <td className="px-2.5 sm:px-3 py-2.5 text-yellow-100/95 leading-relaxed">
+                                        <EvaAnswerHoverPopover text={r.byWhen} className="block max-w-full">
+                                          <span className="block line-clamp-3 cursor-help [overflow-wrap:anywhere]">
+                                            {r.byWhen || '—'}
+                                          </span>
+                                        </EvaAnswerHoverPopover>
                                       </td>
-                                      <td className="px-2.5 sm:px-3 py-2.5 text-emerald-100/90 leading-relaxed whitespace-pre-wrap [overflow-wrap:anywhere]">
-                                        {r.howKnow || '—'}
+                                      <td className="px-2.5 sm:px-3 py-2.5 text-emerald-100/90 leading-relaxed">
+                                        <EvaAnswerHoverPopover text={r.howKnow} className="block max-w-full">
+                                          <span className="block line-clamp-3 cursor-help [overflow-wrap:anywhere]">
+                                            {r.howKnow || '—'}
+                                          </span>
+                                        </EvaAnswerHoverPopover>
                                       </td>
                                     </tr>
                                   ))}

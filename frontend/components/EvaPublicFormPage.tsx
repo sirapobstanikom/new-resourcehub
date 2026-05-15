@@ -9,10 +9,12 @@ import {
   EVA_DEFAULT_FILL_INTRO_TH,
   EVA_DEFAULT_FILL_LEAD_IN,
   findEvaTemplateByRouteId,
+  getPromptNumberStyle,
   loadStoredEvaTemplates,
   type EvaEvaluationTemplate,
 } from '../lib/evaTemplates';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { EvaAnswerHoverPopover } from './EvaAnswerHoverPopover';
 
 const RESPONSE_STORAGE_KEY = 'minddojo.eva-editor.responses.v1';
 const MULTI_CHOICE_SEP = ' | ';
@@ -137,6 +139,7 @@ const EvaPublicFormPage: React.FC = () => {
         const b = (answers[`${prompt.id}::fs::b`] || '').trim();
         return a.length > 0 && b.length > 0;
       }
+      if (prompt.type === 'description') return true;
       return value.length > 0;
     });
   }, [template, answers]);
@@ -176,6 +179,7 @@ const EvaPublicFormPage: React.FC = () => {
           const b = (answers[`${prompt.id}::fs::b`] || '').trim();
           return a.length === 0 || b.length === 0;
         }
+        if (prompt.type === 'description') return false;
         return value.length === 0;
       })
       .map((prompt) => prompt.id);
@@ -202,6 +206,7 @@ const EvaPublicFormPage: React.FC = () => {
       templateId: template.id,
       templateName: template.name,
       answers: template.prompts.flatMap((prompt) => {
+        if (prompt.type === 'description') return [];
         if (prompt.type === 'rating_1_5') {
           const items = prompt.ratingItems && prompt.ratingItems.length > 0 ? prompt.ratingItems : [prompt.title];
           return items.map((itemTitle, itemIdx) => ({
@@ -381,18 +386,45 @@ const EvaPublicFormPage: React.FC = () => {
             )}
           </div>
           <form onSubmit={submit} className="space-y-7 md:space-y-8">
-            {template.prompts.map((prompt, idx) => (
-              <div
-                key={`${template.id}-${idx}`}
-                className="block space-y-3"
-                ref={(el) => {
-                  promptRefs.current[prompt.id] = el;
-                }}
-              >
-                <p className="text-base md:text-lg font-medium text-gray-100 leading-relaxed">
-                  {idx + 1}. {prompt.title}
-                </p>
-                {prompt.type === 'choice' ? (
+            {(() => {
+              let displayOrdinal = 0;
+              return template.prompts.map((prompt) => {
+                if (prompt.type === 'description') {
+                  return (
+                    <div
+                      key={`${template.id}-${prompt.id}`}
+                      className="rounded-xl border border-amber-300/25 bg-amber-500/[0.07] px-4 py-3 md:px-5 md:py-4"
+                    >
+                      <p className="text-xs font-semibold uppercase tracking-wider text-amber-200/85 mb-2">คำอธิบาย</p>
+                      <div className="text-base text-gray-200 leading-relaxed whitespace-pre-line [overflow-wrap:anywhere]">
+                        {prompt.title}
+                      </div>
+                    </div>
+                  );
+                }
+                const style = getPromptNumberStyle(prompt);
+                let prefix = '';
+                if (style === 'auto') {
+                  displayOrdinal += 1;
+                  prefix = `${displayOrdinal}. `;
+                } else if (style === 'none') {
+                  prefix = '';
+                } else {
+                  prefix = prompt.fixedNumberPrefix ?? '';
+                }
+                return (
+                  <div
+                    key={`${template.id}-${prompt.id}`}
+                    className="block space-y-3"
+                    ref={(el) => {
+                      promptRefs.current[prompt.id] = el;
+                    }}
+                  >
+                    <p className="text-base md:text-lg font-medium text-gray-100 leading-relaxed">
+                      {prefix}
+                      {prompt.title}
+                    </p>
+                    {prompt.type === 'choice' ? (
                   <div className="space-y-2.5">
                     {(prompt.options || []).map((option) => (
                       <label
@@ -401,7 +433,7 @@ const EvaPublicFormPage: React.FC = () => {
                       >
                         <input
                           type="radio"
-                          name={`q-${idx}`}
+                          name={`q-${prompt.id}`}
                           value={option}
                           checked={(answers[prompt.id] || '') === option}
                           onChange={(e) => setAnswers((prev) => ({ ...prev, [prompt.id]: e.target.value }))}
@@ -499,32 +531,42 @@ const EvaPublicFormPage: React.FC = () => {
                                   {row.commitment}
                                 </td>
                                 <td className="px-3 py-2 align-top">
-                                  <input
-                                    type="text"
-                                    value={answers[`${prompt.id}::ct::${ri}::by`] || ''}
-                                    onChange={(e) =>
-                                      setAnswers((prev) => ({
-                                        ...prev,
-                                        [`${prompt.id}::ct::${ri}::by`]: e.target.value,
-                                      }))
-                                    }
-                                    placeholder={row.byWhenPlaceholder || 'ระบุ...'}
-                                    className="w-full min-w-[8rem] rounded-lg border border-white/15 bg-black/40 px-3 py-2 text-base"
-                                  />
+                                  <EvaAnswerHoverPopover
+                                    text={answers[`${prompt.id}::ct::${ri}::by`] || ''}
+                                    className="block w-full"
+                                  >
+                                    <input
+                                      type="text"
+                                      value={answers[`${prompt.id}::ct::${ri}::by`] || ''}
+                                      onChange={(e) =>
+                                        setAnswers((prev) => ({
+                                          ...prev,
+                                          [`${prompt.id}::ct::${ri}::by`]: e.target.value,
+                                        }))
+                                      }
+                                      placeholder={row.byWhenPlaceholder || 'ระบุ...'}
+                                      className="w-full min-w-[8rem] rounded-lg border border-white/15 bg-black/40 px-3 py-2 text-base cursor-help"
+                                    />
+                                  </EvaAnswerHoverPopover>
                                 </td>
                                 <td className="px-3 py-2 align-top">
-                                  <input
-                                    type="text"
-                                    value={answers[`${prompt.id}::ct::${ri}::how`] || ''}
-                                    onChange={(e) =>
-                                      setAnswers((prev) => ({
-                                        ...prev,
-                                        [`${prompt.id}::ct::${ri}::how`]: e.target.value,
-                                      }))
-                                    }
-                                    placeholder={row.howKnowPlaceholder || 'ระบุ...'}
-                                    className="w-full min-w-[10rem] rounded-lg border border-white/15 bg-black/40 px-3 py-2 text-base"
-                                  />
+                                  <EvaAnswerHoverPopover
+                                    text={answers[`${prompt.id}::ct::${ri}::how`] || ''}
+                                    className="block w-full"
+                                  >
+                                    <input
+                                      type="text"
+                                      value={answers[`${prompt.id}::ct::${ri}::how`] || ''}
+                                      onChange={(e) =>
+                                        setAnswers((prev) => ({
+                                          ...prev,
+                                          [`${prompt.id}::ct::${ri}::how`]: e.target.value,
+                                        }))
+                                      }
+                                      placeholder={row.howKnowPlaceholder || 'ระบุ...'}
+                                      className="w-full min-w-[10rem] rounded-lg border border-white/15 bg-black/40 px-3 py-2 text-base cursor-help"
+                                    />
+                                  </EvaAnswerHoverPopover>
                                 </td>
                               </tr>
                             )
@@ -595,7 +637,9 @@ const EvaPublicFormPage: React.FC = () => {
                   <p className="text-sm text-red-300">กรุณาตอบคำถาม</p>
                 )}
               </div>
-            ))}
+                );
+              });
+            })()}
             {error && <p className="text-base text-red-300">{error}</p>}
             <button
               type="submit"

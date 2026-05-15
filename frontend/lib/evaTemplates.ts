@@ -12,7 +12,9 @@ export type EvaPromptType =
   | 'multi_choice'
   | 'rating_1_5'
   | 'commitment_table'
-  | 'fill_sentence';
+  | 'fill_sentence'
+  /** ข้อความอธิบายระหว่างโจทย์ — ผู้ตอบไม่ต้องกรอก */
+  | 'description';
 
 /** แถวในตาราง COMMITMENT / BY WHEN / HOW I'LL KNOW */
 export type EvaCommitmentRow = {
@@ -23,10 +25,19 @@ export type EvaCommitmentRow = {
   howKnowPlaceholder?: string;
 };
 
+/** รูปแบบเลข / ข้อความนำหน้าหัวข้อโจทย์บนฟอร์มผู้ตอบ */
+export type EvaPromptNumberStyle = 'auto' | 'none' | 'fixed';
+
 export type EvaPrompt = {
   id: string;
   title: string;
   type: EvaPromptType;
+  /** auto = 1. 2. … ตามลำดับที่แสดง, none = ไม่มี, fixed = ใช้ fixedNumberPrefix ตามที่พิมพ์ */
+  promptNumberStyle?: EvaPromptNumberStyle;
+  /** เมื่อ promptNumberStyle === 'fixed' */
+  fixedNumberPrefix?: string;
+  /** @deprecated อ่านแล้วแปลงเป็น promptNumberStyle ใน normalize */
+  showNumberPrefix?: boolean;
   options?: string[];
   ratingItems?: string[];
   commitmentHeaders?: [string, string, string];
@@ -42,6 +53,18 @@ export type EvaPrompt = {
   /** ข้อความหลังช่องว่างที่สอง */
   fillClosing?: string;
 };
+
+export function getPromptNumberStyle(prompt: EvaPrompt): EvaPromptNumberStyle {
+  if (
+    prompt.promptNumberStyle === 'auto' ||
+    prompt.promptNumberStyle === 'none' ||
+    prompt.promptNumberStyle === 'fixed'
+  ) {
+    return prompt.promptNumberStyle;
+  }
+  if (prompt.showNumberPrefix === false) return 'none';
+  return 'auto';
+}
 
 export const EVA_DEFAULT_COMMITMENT_HEADERS: [string, string, string] = [
   'COMMITMENT',
@@ -166,7 +189,8 @@ function normalizePrompt(raw: unknown, idx: number): EvaPrompt {
       obj.type === 'rating_1_5' ||
       obj.type === 'text' ||
       obj.type === 'commitment_table' ||
-      obj.type === 'fill_sentence'
+      obj.type === 'fill_sentence' ||
+      obj.type === 'description'
         ? obj.type
         : 'text';
     const options =
@@ -186,10 +210,30 @@ function normalizePrompt(raw: unknown, idx: number): EvaPrompt {
     const fillLeadIn = type === 'fill_sentence' && typeof obj.fillLeadIn === 'string' ? obj.fillLeadIn : undefined;
     const fillBridge = type === 'fill_sentence' && typeof obj.fillBridge === 'string' ? obj.fillBridge : undefined;
     const fillClosing = type === 'fill_sentence' && typeof obj.fillClosing === 'string' ? obj.fillClosing : undefined;
+    if (type === 'description') {
+      return {
+        id: obj.id?.trim() || `prompt-${idx + 1}`,
+        title: typeof obj.title === 'string' ? obj.title : '',
+        type: 'description' as const,
+      };
+    }
+    const numberingExtra: Partial<Pick<EvaPrompt, 'promptNumberStyle' | 'fixedNumberPrefix'>> = (() => {
+      const s = obj.promptNumberStyle;
+      if (s === 'none') return { promptNumberStyle: 'none' as const };
+      if (s === 'fixed')
+        return {
+          promptNumberStyle: 'fixed' as const,
+          fixedNumberPrefix: typeof obj.fixedNumberPrefix === 'string' ? obj.fixedNumberPrefix : '',
+        };
+      if (s === 'auto') return {};
+      if (obj.showNumberPrefix === false) return { promptNumberStyle: 'none' as const };
+      return {};
+    })();
     return {
       id: obj.id?.trim() || `prompt-${idx + 1}`,
       title: obj.title?.trim() || `คำถามที่ ${idx + 1}`,
       type,
+      ...numberingExtra,
       options,
       ratingItems,
       commitmentHeaders,
