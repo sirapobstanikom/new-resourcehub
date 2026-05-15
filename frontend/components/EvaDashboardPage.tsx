@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { Fragment, useEffect, useMemo, useState } from 'react';
 import { Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import * as XLSX from 'xlsx';
 import {
@@ -8,7 +8,11 @@ import {
   type EvaDashboardStore,
   resolveActiveDashboard,
 } from '../lib/evaDashboardConfig';
-import { loadStoredEvaTemplates, type EvaEvaluationTemplate } from '../lib/evaTemplates';
+import {
+  EVA_DEFAULT_COMMITMENT_HEADERS,
+  loadStoredEvaTemplates,
+  type EvaEvaluationTemplate,
+} from '../lib/evaTemplates';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
 type TemplateSummary = EvaEvaluationTemplate & {
@@ -19,7 +23,70 @@ type ResponseAnswer = {
   prompt?: string;
   subPrompt?: string;
   answer?: string;
+  promptType?: string;
+  tableRow?: number;
+  commitmentColumn?: 'commitment' | 'by_when' | 'how_know';
+  commitmentHeaders?: [string, string, string];
 };
+
+type AnswerDisplayBlock =
+  | { kind: 'plain'; answer: ResponseAnswer }
+  | {
+      kind: 'commitment_table';
+      prompt: string;
+      headers: [string, string, string];
+      rows: Array<{ rowIndex: number; commitment: string; byWhen: string; howKnow: string }>;
+    }
+  | { kind: 'commitment_table_legacy'; prompt: string; items: ResponseAnswer[] };
+
+function buildAnswerDisplayBlocks(answers: ResponseAnswer[]): AnswerDisplayBlock[] {
+  const blocks: AnswerDisplayBlock[] = [];
+  let i = 0;
+  while (i < answers.length) {
+    const cur = answers[i];
+    if (cur?.promptType === 'commitment_table') {
+      const prompt = cur.prompt || '';
+      const isNew = typeof cur.tableRow === 'number';
+      const collected: ResponseAnswer[] = [];
+      while (i < answers.length) {
+        const a = answers[i];
+        if (a?.promptType !== 'commitment_table' || (a.prompt || '') !== prompt) break;
+        const aNew = typeof a.tableRow === 'number';
+        if (isNew !== aNew) break;
+        collected.push(a);
+        i += 1;
+      }
+      if (isNew) {
+        const headersEntry = collected.find(
+          (e) => Array.isArray(e.commitmentHeaders) && (e.commitmentHeaders as string[]).length === 3
+        );
+        const headers = headersEntry?.commitmentHeaders
+          ? ([...headersEntry.commitmentHeaders] as [string, string, string])
+          : EVA_DEFAULT_COMMITMENT_HEADERS;
+        const rowMap = new Map<number, { commitment: string; byWhen: string; howKnow: string }>();
+        for (const e of collected) {
+          const tr = e.tableRow as number;
+          if (!rowMap.has(tr)) rowMap.set(tr, { commitment: '', byWhen: '', howKnow: '' });
+          const row = rowMap.get(tr)!;
+          const ans = (e.answer ?? '').trim();
+          if (e.commitmentColumn === 'commitment') row.commitment = ans;
+          else if (e.commitmentColumn === 'by_when') row.byWhen = ans;
+          else if (e.commitmentColumn === 'how_know') row.howKnow = ans;
+        }
+        const rows = [...rowMap.keys()]
+          .sort((a, b) => a - b)
+          .map((rowIndex) => ({ rowIndex, ...rowMap.get(rowIndex)! }));
+        blocks.push({ kind: 'commitment_table', prompt, headers, rows });
+      } else {
+        blocks.push({ kind: 'commitment_table_legacy', prompt, items: collected });
+      }
+    } else {
+      blocks.push({ kind: 'plain', answer: cur });
+      i += 1;
+    }
+  }
+  return blocks;
+}
 
 type ResponseRow = {
   rowId?: string;
@@ -794,14 +861,93 @@ const EvaDashboardPage: React.FC = () => {
                   <p className="text-xs text-gray-400 mb-2">
                     ส่งเมื่อ: {formatThaiDateTime(submission.createdAt)}
                   </p>
-                  <div className="space-y-2">
-                    {submission.answers.map((answer, ansIdx) => (
-                      <div key={`${submission.createdAt}-${ansIdx}`} className="text-sm">
-                        <p className="text-gray-200">
-                          {ansIdx + 1}. {answer.subPrompt ? `${answer.prompt} :: ${answer.subPrompt}` : answer.prompt || '-'}
-                        </p>
-                        <p className="text-yellow-100 mt-1 whitespace-pre-wrap">{answer.answer || '-'}</p>
-                      </div>
+                  <div className="space-y-3">
+                    {buildAnswerDisplayBlocks(submission.answers).map((block, bi) => (
+                      <Fragment key={`${submission.createdAt}-block-${bi}`}>
+                        {block.kind === 'plain' && (
+                          <div className="text-sm rounded-lg border border-white/8 bg-black/20 p-3">
+                            <p className="text-gray-200 font-medium leading-snug">
+                              {bi + 1}.{' '}
+                              {block.answer.subPrompt
+                                ? `${block.answer.prompt} :: ${block.answer.subPrompt}`
+                                : block.answer.prompt || '-'}
+                            </p>
+                            <p className="text-yellow-100/95 mt-2 whitespace-pre-wrap leading-relaxed">
+                              {block.answer.answer ?? '-'}
+                            </p>
+                          </div>
+                        )}
+                        {block.kind === 'commitment_table' && (
+                          <div className="text-sm rounded-xl border border-amber-400/25 bg-amber-950/25 p-3 sm:p-4">
+                            <p className="text-gray-100 font-semibold text-base leading-snug">
+                              {bi + 1}. {block.prompt}
+                            </p>
+                            <p className="text-xs text-amber-200/75 mt-1 mb-3">ตาราง COMMITMENT / BY WHEN / HOW</p>
+                            <div className="overflow-x-auto rounded-lg border border-white/10 bg-black/40 shadow-inner">
+                              <table className="w-full min-w-[560px] text-left text-sm border-collapse">
+                                <thead>
+                                  <tr className="border-b border-white/15 bg-white/[0.06]">
+                                    <th className="px-2.5 sm:px-3 py-2.5 font-semibold text-amber-100/95 w-10 whitespace-nowrap">
+                                      #
+                                    </th>
+                                    <th className="px-2.5 sm:px-3 py-2.5 font-semibold text-amber-100/95 align-bottom min-w-[10rem]">
+                                      {block.headers[0]}
+                                    </th>
+                                    <th className="px-2.5 sm:px-3 py-2.5 font-semibold text-amber-100/95 align-bottom min-w-[7.5rem]">
+                                      {block.headers[1]}
+                                    </th>
+                                    <th className="px-2.5 sm:px-3 py-2.5 font-semibold text-amber-100/95 align-bottom min-w-[9rem]">
+                                      {block.headers[2]}
+                                    </th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {block.rows.map((r) => (
+                                    <tr
+                                      key={r.rowIndex}
+                                      className="border-b border-white/[0.07] last:border-0 align-top hover:bg-white/[0.04]"
+                                    >
+                                      <td className="px-2.5 sm:px-3 py-2.5 text-gray-500 tabular-nums whitespace-nowrap">
+                                        {r.rowIndex + 1}
+                                      </td>
+                                      <td className="px-2.5 sm:px-3 py-2.5 text-gray-200 leading-relaxed [overflow-wrap:anywhere]">
+                                        {r.commitment || '—'}
+                                      </td>
+                                      <td className="px-2.5 sm:px-3 py-2.5 text-yellow-100/95 leading-relaxed whitespace-pre-wrap [overflow-wrap:anywhere]">
+                                        {r.byWhen || '—'}
+                                      </td>
+                                      <td className="px-2.5 sm:px-3 py-2.5 text-emerald-100/90 leading-relaxed whitespace-pre-wrap [overflow-wrap:anywhere]">
+                                        {r.howKnow || '—'}
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                        )}
+                        {block.kind === 'commitment_table_legacy' && (
+                          <div className="text-sm space-y-2 rounded-lg border border-white/8 bg-black/20 p-3">
+                            <p className="text-gray-200 font-medium leading-snug">
+                              {bi + 1}. {block.prompt}
+                            </p>
+                            <p className="text-xs text-gray-500">ตาราง (บันทึกแบบเก่า — แสดงรายข้อ)</p>
+                            {block.items.map((answer, j) => (
+                              <div
+                                key={`${submission.createdAt}-leg-${j}`}
+                                className="border-t border-white/8 pt-2 first:border-t-0 first:pt-0"
+                              >
+                                <p className="text-gray-300 leading-snug">
+                                  {answer.subPrompt || answer.prompt || '-'}
+                                </p>
+                                <p className="text-yellow-100/95 mt-1 whitespace-pre-wrap leading-relaxed">
+                                  {answer.answer || '-'}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </Fragment>
                     ))}
                   </div>
                 </div>

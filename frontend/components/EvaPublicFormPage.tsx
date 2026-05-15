@@ -214,20 +214,35 @@ const EvaPublicFormPage: React.FC = () => {
         if (prompt.type === 'commitment_table') {
           const rows = prompt.commitmentRows?.length ? prompt.commitmentRows : defaultEvaCommitmentRows();
           const headers = prompt.commitmentHeaders ?? EVA_DEFAULT_COMMITMENT_HEADERS;
+          const headerTriple: [string, string, string] = [...headers] as [string, string, string];
           return rows.flatMap((row, ri) => {
             const by = (answers[`${prompt.id}::ct::${ri}::by`] || '').trim();
             const how = (answers[`${prompt.id}::ct::${ri}::how`] || '').trim();
+            const rowLabel = `แถว ${ri + 1}`;
             return [
               {
                 prompt: prompt.title,
-                subPrompt: `${row.commitment} — ${headers[1]}`,
                 promptType: prompt.type,
+                tableRow: ri,
+                commitmentColumn: 'commitment' as const,
+                commitmentHeaders: ri === 0 ? headerTriple : undefined,
+                subPrompt: `${headerTriple[0]} · ${rowLabel}`,
+                answer: row.commitment.trim() || '—',
+              },
+              {
+                prompt: prompt.title,
+                promptType: prompt.type,
+                tableRow: ri,
+                commitmentColumn: 'by_when' as const,
+                subPrompt: `${headerTriple[1]} · ${rowLabel}`,
                 answer: by,
               },
               {
                 prompt: prompt.title,
-                subPrompt: `${row.commitment} — ${headers[2]}`,
                 promptType: prompt.type,
+                tableRow: ri,
+                commitmentColumn: 'how_know' as const,
+                subPrompt: `${headerTriple[2]} · ${rowLabel}`,
                 answer: how,
               },
             ];
@@ -524,32 +539,48 @@ const EvaPublicFormPage: React.FC = () => {
                       {prompt.fillIntroEn ?? EVA_DEFAULT_FILL_INTRO_EN}
                     </p>
                     <p className="text-base md:text-lg text-gray-200">{prompt.fillIntroTh ?? EVA_DEFAULT_FILL_INTRO_TH}</p>
-                    <div className="text-base md:text-lg text-gray-100 leading-relaxed flex flex-wrap items-baseline gap-x-1 gap-y-3">
-                      <span className="text-gray-400 select-none" aria-hidden>
-                        &ldquo;
-                      </span>
-                      <span>{prompt.fillLeadIn ?? EVA_DEFAULT_FILL_LEAD_IN}</span>
-                      <input
-                        type="text"
-                        value={answers[`${prompt.id}::fs::a`] || ''}
-                        onChange={(e) =>
-                          setAnswers((prev) => ({ ...prev, [`${prompt.id}::fs::a`]: e.target.value }))
-                        }
-                        className="flex-1 min-w-[10rem] border-b-2 border-yellow-400/50 bg-transparent px-1 py-1 text-base md:text-lg text-white focus:border-yellow-300 focus:outline-none"
-                      />
-                      <span>{prompt.fillBridge ?? EVA_DEFAULT_FILL_BRIDGE}</span>
-                      <input
-                        type="text"
-                        value={answers[`${prompt.id}::fs::b`] || ''}
-                        onChange={(e) =>
-                          setAnswers((prev) => ({ ...prev, [`${prompt.id}::fs::b`]: e.target.value }))
-                        }
-                        className="flex-1 min-w-[10rem] border-b-2 border-yellow-400/50 bg-transparent px-1 py-1 text-base md:text-lg text-white focus:border-yellow-300 focus:outline-none"
-                      />
-                      <span>{prompt.fillClosing ?? EVA_DEFAULT_FILL_CLOSING}</span>
-                      <span className="text-gray-400 select-none" aria-hidden>
-                        &rdquo;
-                      </span>
+                    <div className="max-w-full">
+                      <div className="flex max-w-full flex-wrap content-start items-baseline gap-x-1 gap-y-1.5 text-base md:text-lg leading-relaxed text-gray-100">
+                        <span className="shrink-0 translate-y-px text-gray-400 select-none" aria-hidden>
+                          &ldquo;
+                        </span>
+                        <span className="min-w-0 max-w-full shrink translate-y-px break-words">
+                          {prompt.fillLeadIn ?? EVA_DEFAULT_FILL_LEAD_IN}
+                        </span>
+                        <textarea
+                          rows={1}
+                          value={answers[`${prompt.id}::fs::a`] || ''}
+                          onChange={(e) =>
+                            setAnswers((prev) => ({ ...prev, [`${prompt.id}::fs::a`]: e.target.value }))
+                          }
+                          style={{
+                            width: `${Math.max(14, (answers[`${prompt.id}::fs::a`] || '').length + 2)}ch`,
+                            maxWidth: '100%',
+                          }}
+                          className="box-border min-h-[1.6em] min-w-[10ch] max-w-full shrink-0 resize-y self-baseline border-0 border-b-2 border-yellow-400/50 bg-transparent px-0.5 pb-0.5 pt-0 leading-relaxed text-white break-words [field-sizing:content] focus:border-yellow-300 focus:outline-none"
+                        />
+                        <span className="min-w-0 max-w-full shrink translate-y-px break-words">
+                          {prompt.fillBridge ?? EVA_DEFAULT_FILL_BRIDGE}
+                        </span>
+                        <textarea
+                          rows={1}
+                          value={answers[`${prompt.id}::fs::b`] || ''}
+                          onChange={(e) =>
+                            setAnswers((prev) => ({ ...prev, [`${prompt.id}::fs::b`]: e.target.value }))
+                          }
+                          style={{
+                            width: `${Math.max(14, (answers[`${prompt.id}::fs::b`] || '').length + 2)}ch`,
+                            maxWidth: '100%',
+                          }}
+                          className="box-border min-h-[1.6em] min-w-[10ch] max-w-full shrink-0 resize-y self-baseline border-0 border-b-2 border-yellow-400/50 bg-transparent px-0.5 pb-0.5 pt-0 leading-relaxed text-white break-words [field-sizing:content] focus:border-yellow-300 focus:outline-none"
+                        />
+                        <span className="min-w-0 max-w-full shrink translate-y-px break-words">
+                          {prompt.fillClosing ?? EVA_DEFAULT_FILL_CLOSING}
+                        </span>
+                        <span className="shrink-0 translate-y-px text-gray-400 select-none" aria-hidden>
+                          &rdquo;
+                        </span>
+                      </div>
                     </div>
                   </div>
                 ) : (
