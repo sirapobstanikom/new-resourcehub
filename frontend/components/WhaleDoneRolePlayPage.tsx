@@ -66,21 +66,21 @@ type ConflictCanvasDownloadCase = 'case1' | 'case2';
 
 const CONFLICT_CANVAS_EXAMPLES: Record<
   ConflictCanvasDownloadCase,
-  { url: string; filename: string; label: string }
+  { url: string; filename: string; label: string; password: string }
 > = {
   case1: {
     url: 'https://axaasphuaaadzjoffznj.supabase.co/storage/v1/object/public/images/messageImage_1778817388031.jpg',
     filename: 'Conflict-Management-Canvas-Case01.jpg',
     label: 'Case 01',
+    password: '1234',
   },
   case2: {
     url: 'https://axaasphuaaadzjoffznj.supabase.co/storage/v1/object/public/images/messageImage_1778832056050.jpg',
     filename: 'Conflict-Management-Canvas-Case02.jpg',
     label: 'Case 02',
+    password: '5678',
   },
 };
-
-const CONFLICT_CANVAS_DOWNLOAD_PASSWORD = '1234';
 
 type CanvasBlobCacheEntry = { blob: Blob; objectUrl: string };
 
@@ -473,7 +473,7 @@ const WhaleDoneRolePlayPage: React.FC = () => {
   };
 
   const confirmCanvasDownload = () => {
-    if (canvasPasswordInput.trim() !== CONFLICT_CANVAS_DOWNLOAD_PASSWORD) {
+    if (canvasPasswordInput.trim() !== CONFLICT_CANVAS_EXAMPLES[canvasDownloadCase].password) {
       setCanvasPasswordError('รหัสผ่านไม่ถูกต้อง');
       return;
     }
@@ -1016,7 +1016,10 @@ const WhaleDoneRolePlayPage: React.FC = () => {
                             type="radio"
                             name="canvas-download-case"
                             checked={canvasDownloadCase === key}
-                            onChange={() => setCanvasDownloadCase(key)}
+                            onChange={() => {
+                              setCanvasDownloadCase(key);
+                              setCanvasPasswordError(null);
+                            }}
                             className="accent-violet-400"
                           />
                           {CONFLICT_CANVAS_EXAMPLES[key].label}
