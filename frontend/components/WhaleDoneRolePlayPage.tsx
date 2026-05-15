@@ -62,15 +62,30 @@ const CONFLICT_ROLE_OPTIONS: { value: ConflictRoleChoice; label: string }[] = [
   { value: 'role_b', label: 'Role B' },
 ];
 
-const CONFLICT_CANVAS_EXAMPLE_JPG_URL =
-  'https://axaasphuaaadzjoffznj.supabase.co/storage/v1/object/public/images/messageImage_1778817388031.jpg';
+type ConflictCanvasDownloadCase = 'case1' | 'case2';
+
+const CONFLICT_CANVAS_EXAMPLES: Record<
+  ConflictCanvasDownloadCase,
+  { url: string; filename: string; label: string }
+> = {
+  case1: {
+    url: 'https://axaasphuaaadzjoffznj.supabase.co/storage/v1/object/public/images/messageImage_1778817388031.jpg',
+    filename: 'Conflict-Management-Canvas-Case01.jpg',
+    label: 'Case 01',
+  },
+  case2: {
+    url: 'https://axaasphuaaadzjoffznj.supabase.co/storage/v1/object/public/images/messageImage_1778832056050.jpg',
+    filename: 'Conflict-Management-Canvas-Case02.jpg',
+    label: 'Case 02',
+  },
+};
 
 const CONFLICT_CANVAS_DOWNLOAD_PASSWORD = '1234';
 
-async function downloadConflictCanvasExample() {
-  const filename = 'Conflict-Management-Canvas-Example.jpg';
+async function downloadConflictCanvasExample(caseKey: ConflictCanvasDownloadCase) {
+  const { url, filename } = CONFLICT_CANVAS_EXAMPLES[caseKey];
   try {
-    const res = await fetch(CONFLICT_CANVAS_EXAMPLE_JPG_URL);
+    const res = await fetch(url);
     if (!res.ok) throw new Error(String(res.status));
     const blob = await res.blob();
     const objectUrl = URL.createObjectURL(blob);
@@ -84,7 +99,7 @@ async function downloadConflictCanvasExample() {
     URL.revokeObjectURL(objectUrl);
   } catch {
     const a = document.createElement('a');
-    a.href = CONFLICT_CANVAS_EXAMPLE_JPG_URL;
+    a.href = url;
     a.target = '_blank';
     a.rel = 'noopener noreferrer';
     document.body.appendChild(a);
@@ -371,6 +386,7 @@ const WhaleDoneRolePlayPage: React.FC = () => {
     role: ConflictRoleChoice;
   } | null>(null);
   const [canvasPasswordModalOpen, setCanvasPasswordModalOpen] = useState(false);
+  const [canvasDownloadCase, setCanvasDownloadCase] = useState<ConflictCanvasDownloadCase>('case1');
   const [canvasPasswordInput, setCanvasPasswordInput] = useState('');
   const [canvasPasswordError, setCanvasPasswordError] = useState<string | null>(null);
   const canvasPasswordInputRef = useRef<HTMLInputElement>(null);
@@ -379,6 +395,7 @@ const WhaleDoneRolePlayPage: React.FC = () => {
     if (!canvasPasswordModalOpen) return;
     setCanvasPasswordInput('');
     setCanvasPasswordError(null);
+    setCanvasDownloadCase('case1');
     const t = window.setTimeout(() => canvasPasswordInputRef.current?.focus(), 50);
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
@@ -390,7 +407,7 @@ const WhaleDoneRolePlayPage: React.FC = () => {
 
   const confirmCanvasDownload = () => {
     if (canvasPasswordInput.trim() === CONFLICT_CANVAS_DOWNLOAD_PASSWORD) {
-      void downloadConflictCanvasExample();
+      void downloadConflictCanvasExample(canvasDownloadCase);
       setCanvasPasswordModalOpen(false);
     } else {
       setCanvasPasswordError('รหัสผ่านไม่ถูกต้อง');
@@ -863,7 +880,7 @@ const WhaleDoneRolePlayPage: React.FC = () => {
                   Download Canvas ตัวอย่าง
                 </button>
                 <p className="mt-2 text-center text-[11px] text-gray-500 leading-relaxed">
-                  ดาวน์โหลดภาพตัวอย่าง Conflict Management Canvas (JPG) — ต้องใส่รหัสผ่านก่อน
+                  ดาวน์โหลดภาพตัวอย่าง Conflict Management Canvas (Case 01 / Case 02) — ต้องใส่รหัสผ่านก่อน
                 </p>
               </div>
             </div>
@@ -884,8 +901,28 @@ const WhaleDoneRolePlayPage: React.FC = () => {
                     ยืนยันรหัสผ่าน
                   </h2>
                   <p className="mt-1 text-xs text-gray-400 leading-relaxed">
-                    กรอกรหัสผ่านเพื่อดาวน์โหลด Canvas ตัวอย่าง
+                    เลือก Case แล้วกรอกรหัสผ่านเพื่อดาวน์โหลด Canvas ตัวอย่าง
                   </p>
+                  <fieldset className="mt-4 space-y-2">
+                    <legend className="text-sm font-medium text-violet-200/90">เลือก Case</legend>
+                    <div className="flex flex-wrap gap-3">
+                      {(Object.keys(CONFLICT_CANVAS_EXAMPLES) as ConflictCanvasDownloadCase[]).map((key) => (
+                        <label
+                          key={key}
+                          className="inline-flex items-center gap-2 cursor-pointer select-none rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-sm text-gray-200 hover:bg-white/10 has-[:checked]:border-violet-400/60 has-[:checked]:bg-violet-500/15"
+                        >
+                          <input
+                            type="radio"
+                            name="canvas-download-case"
+                            checked={canvasDownloadCase === key}
+                            onChange={() => setCanvasDownloadCase(key)}
+                            className="accent-violet-400"
+                          />
+                          {CONFLICT_CANVAS_EXAMPLES[key].label}
+                        </label>
+                      ))}
+                    </div>
+                  </fieldset>
                   <label htmlFor="canvas-download-pw" className="mt-4 block text-sm font-medium text-violet-200/90">
                     รหัสผ่าน
                   </label>

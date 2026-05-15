@@ -367,17 +367,21 @@ const EvaPublicFormPage: React.FC = () => {
       <main className="max-w-4xl mx-auto px-6 py-10">
         <div className="rounded-2xl border border-white/10 bg-white/5 p-6 md:p-8">
           <div className="mb-6 rounded-2xl border border-yellow-300/20 bg-gradient-to-br from-yellow-400/10 via-amber-300/5 to-transparent p-4 md:p-5">
-            <p className="text-xs md:text-sm uppercase tracking-[0.14em] text-yellow-200/75 mb-2">
-              แบบประเมิน
-            </p>
             {template.heading?.trim() && (
               <h1
                 title={template.heading}
-                className="text-2xl md:text-4xl font-black text-white leading-tight break-words [overflow-wrap:anywhere] mb-2"
+                className="text-2xl md:text-4xl font-black text-white leading-tight break-words [overflow-wrap:anywhere] mb-3"
               >
                 {template.heading}
               </h1>
             )}
+            <p
+              className={`text-xs md:text-sm uppercase tracking-[0.14em] text-yellow-200/75 ${
+                template.name?.trim() ? 'mb-2' : 'mb-0'
+              }`}
+            >
+              แบบประเมิน
+            </p>
             {template.name?.trim() && (
               <p
                 title={template.name}
