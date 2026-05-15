@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   EMPLOYEE_R1,
@@ -61,6 +61,37 @@ const CONFLICT_ROLE_OPTIONS: { value: ConflictRoleChoice; label: string }[] = [
   { value: 'role_a', label: 'Role A' },
   { value: 'role_b', label: 'Role B' },
 ];
+
+const CONFLICT_CANVAS_EXAMPLE_JPG_URL =
+  'https://axaasphuaaadzjoffznj.supabase.co/storage/v1/object/public/images/messageImage_1778817388031.jpg';
+
+const CONFLICT_CANVAS_DOWNLOAD_PASSWORD = '1234';
+
+async function downloadConflictCanvasExample() {
+  const filename = 'Conflict-Management-Canvas-Example.jpg';
+  try {
+    const res = await fetch(CONFLICT_CANVAS_EXAMPLE_JPG_URL);
+    if (!res.ok) throw new Error(String(res.status));
+    const blob = await res.blob();
+    const objectUrl = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = objectUrl;
+    a.download = filename;
+    a.rel = 'noopener';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(objectUrl);
+  } catch {
+    const a = document.createElement('a');
+    a.href = CONFLICT_CANVAS_EXAMPLE_JPG_URL;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }
+}
 
 /** บทบาทแท็บ Account: ผู้จัดการ/พนักงาน (กรณี 01–03) · ผู้ขอความร่วมมือ/คู่เจรจา (กรณี 04 เท่านั้น) */
 type AccountTabRole = WhaleDoneRole | 'requester' | 'peer';
@@ -335,6 +366,32 @@ const WhaleDoneRolePlayPage: React.FC = () => {
     caseKey: ConflictCaseKey;
     role: ConflictRoleChoice;
   } | null>(null);
+  const [canvasPasswordModalOpen, setCanvasPasswordModalOpen] = useState(false);
+  const [canvasPasswordInput, setCanvasPasswordInput] = useState('');
+  const [canvasPasswordError, setCanvasPasswordError] = useState<string | null>(null);
+  const canvasPasswordInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!canvasPasswordModalOpen) return;
+    setCanvasPasswordInput('');
+    setCanvasPasswordError(null);
+    const t = window.setTimeout(() => canvasPasswordInputRef.current?.focus(), 50);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      window.clearTimeout(t);
+      document.body.style.overflow = prev;
+    };
+  }, [canvasPasswordModalOpen]);
+
+  const confirmCanvasDownload = () => {
+    if (canvasPasswordInput.trim() === CONFLICT_CANVAS_DOWNLOAD_PASSWORD) {
+      void downloadConflictCanvasExample();
+      setCanvasPasswordModalOpen(false);
+    } else {
+      setCanvasPasswordError('รหัสผ่านไม่ถูกต้อง');
+    }
+  };
 
   const showDetail = role && scenarioId && whaleDoneHasDetail(role, scenarioId);
   const showComingSoon = role && scenarioId && !whaleDoneHasDetail(role, scenarioId);
@@ -783,7 +840,83 @@ const WhaleDoneRolePlayPage: React.FC = () => {
                   ))}
                 </select>
               </div>
+
+              <div className="pt-1 border-t border-violet-500/20">
+                <button
+                  type="button"
+                  onClick={() => setCanvasPasswordModalOpen(true)}
+                  className="w-full rounded-xl border border-emerald-400/45 bg-emerald-950/35 px-4 py-2.5 text-sm font-semibold text-emerald-100 hover:bg-emerald-900/45 hover:border-emerald-300/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/80 focus-visible:ring-offset-2 focus-visible:ring-offset-violet-950/80 transition-colors"
+                >
+                  Download Canvas ตัวอย่าง
+                </button>
+                <p className="mt-2 text-center text-[11px] text-gray-500 leading-relaxed">
+                  ดาวน์โหลดภาพตัวอย่าง Conflict Management Canvas (JPG) — ต้องใส่รหัสผ่านก่อน
+                </p>
+              </div>
             </div>
+
+            {canvasPasswordModalOpen && (
+              <div
+                className="fixed inset-0 z-[60] flex items-end justify-center sm:items-center bg-black/75 backdrop-blur-sm p-4"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="canvas-pw-title"
+                onClick={() => setCanvasPasswordModalOpen(false)}
+              >
+                <div
+                  className="w-full max-w-sm rounded-2xl border border-violet-400/35 bg-zinc-950/95 p-5 shadow-xl"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <h2 id="canvas-pw-title" className="text-base font-bold text-violet-100">
+                    ยืนยันรหัสผ่าน
+                  </h2>
+                  <p className="mt-1 text-xs text-gray-400 leading-relaxed">
+                    กรอกรหัสผ่านเพื่อดาวน์โหลด Canvas ตัวอย่าง
+                  </p>
+                  <label htmlFor="canvas-download-pw" className="mt-4 block text-sm font-medium text-violet-200/90">
+                    รหัสผ่าน
+                  </label>
+                  <input
+                    ref={canvasPasswordInputRef}
+                    id="canvas-download-pw"
+                    type="password"
+                    autoComplete="off"
+                    value={canvasPasswordInput}
+                    onChange={(e) => {
+                      setCanvasPasswordInput(e.target.value);
+                      setCanvasPasswordError(null);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        confirmCanvasDownload();
+                      }
+                    }}
+                    className="mt-1.5 w-full rounded-xl border border-white/15 bg-black/40 px-3 py-2.5 text-white placeholder:text-gray-600 focus:outline-none focus:border-violet-400"
+                    placeholder="••••"
+                  />
+                  {canvasPasswordError && (
+                    <p className="mt-2 text-sm text-red-300">{canvasPasswordError}</p>
+                  )}
+                  <div className="mt-5 flex flex-col-reverse sm:flex-row gap-2 sm:justify-end">
+                    <button
+                      type="button"
+                      onClick={() => setCanvasPasswordModalOpen(false)}
+                      className="w-full sm:w-auto rounded-xl border border-white/20 bg-white/5 px-4 py-2.5 text-sm font-medium text-gray-200 hover:bg-white/10"
+                    >
+                      ยกเลิก
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => confirmCanvasDownload()}
+                      className="w-full sm:w-auto rounded-xl border border-emerald-400/50 bg-emerald-700/35 px-4 py-2.5 text-sm font-semibold text-emerald-50 hover:bg-emerald-600/40"
+                    >
+                      ดาวน์โหลด
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {answerSheetOpen && answerSheetSnap && (
               <ConflictAnswerSheetModal
