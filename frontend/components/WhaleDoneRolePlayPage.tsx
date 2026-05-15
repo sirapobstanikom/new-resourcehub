@@ -136,9 +136,9 @@ function accountRoleOptionsForCase(caseKey: AccountCaseKey | '') {
 const headerNavBtnBase =
   'min-h-[40px] px-2.5 py-2 sm:px-4 rounded-lg text-[11px] sm:text-sm font-semibold leading-tight transition-colors border focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-black/30';
 
-/** แบบประเมิน CK Power — People Management for Leaders */
+/** แบบประเมิน LEADERSHIP REFLECTION — Design Your Leadership Life */
 const LEADERSHIP_REFLECTION_FORM_PATH =
-  '/evaluation/form/eva-CK-Power-%3A-People-Management-for-Leaders';
+  '/evaluation/form/eva-LEADERSHIP-REFLECTION-Design-Your-Leadership-Life';
 
 type ManagerScenarioData = {
   headline: string;
