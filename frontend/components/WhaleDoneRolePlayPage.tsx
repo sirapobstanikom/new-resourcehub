@@ -121,6 +121,10 @@ function accountRoleOptionsForCase(caseKey: AccountCaseKey | '') {
 const headerNavBtnBase =
   'min-h-[40px] px-2.5 py-2 sm:px-4 rounded-lg text-[11px] sm:text-sm font-semibold leading-tight transition-colors border focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-black/30';
 
+/** แบบประเมิน CK Power — People Management for Leaders */
+const LEADERSHIP_REFLECTION_FORM_PATH =
+  '/evaluation/form/eva-CK-Power-%3A-People-Management-for-Leaders';
+
 type ManagerScenarioData = {
   headline: string;
   subhead: string;
@@ -410,46 +414,55 @@ const WhaleDoneRolePlayPage: React.FC = () => {
             <span className="text-xl font-semibold tracking-tighter">MindDoJo</span>
           </Link>
 
-          <nav
-            className="grid grid-cols-3 gap-1.5 w-full sm:w-auto sm:flex sm:flex-wrap sm:justify-center sm:max-w-[min(100%,28rem)]"
-            aria-label="เลือกโหมด"
-          >
-            <button
-              type="button"
-              onClick={() => setActiveTab('whaledone')}
-              className={`${headerNavBtnBase} ${
-                activeTab === 'whaledone'
-                  ? 'bg-yellow-400/20 border-yellow-400 text-yellow-200'
-                  : 'bg-white/5 border-white/15 text-gray-300 hover:border-white/30 hover:text-white'
-              }`}
+          <motion className="flex flex-col gap-2 w-full sm:flex-1 sm:min-w-0">
+            <nav
+              className="grid grid-cols-3 gap-1.5 w-full sm:flex sm:flex-wrap sm:justify-center"
+              aria-label="เลือกโหมด"
             >
-              WhaleDone
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab('accountability')}
-              className={`${headerNavBtnBase} ${
-                activeTab === 'accountability'
-                  ? 'bg-cyan-500/20 border-cyan-400 text-cyan-100'
-                  : 'bg-white/5 border-white/15 text-gray-300 hover:border-white/30 hover:text-white'
-              }`}
+              <button
+                type="button"
+                onClick={() => setActiveTab('whaledone')}
+                className={`${headerNavBtnBase} ${
+                  activeTab === 'whaledone'
+                    ? 'bg-yellow-400/20 border-yellow-400 text-yellow-200'
+                    : 'bg-white/5 border-white/15 text-gray-300 hover:border-white/30 hover:text-white'
+                }`}
+              >
+                WhaleDone
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('accountability')}
+                className={`${headerNavBtnBase} ${
+                  activeTab === 'accountability'
+                    ? 'bg-cyan-500/20 border-cyan-400 text-cyan-100'
+                    : 'bg-white/5 border-white/15 text-gray-300 hover:border-white/30 hover:text-white'
+                }`}
+              >
+                <span className="hidden min-[380px]:inline">Accountability</span>
+                <span className="min-[380px]:hidden">Account…</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('conflict_case')}
+                className={`${headerNavBtnBase} ${
+                  activeTab === 'conflict_case'
+                    ? 'bg-violet-500/25 border-violet-400 text-violet-100'
+                    : 'bg-white/5 border-white/15 text-gray-300 hover:border-white/30 hover:text-white'
+                }`}
+              >
+                <span className="hidden min-[380px]:inline">Conflict_Case</span>
+                <span className="min-[380px]:hidden">Conflict…</span>
+              </button>
+            </nav>
+            <Link
+              to={LEADERSHIP_REFLECTION_FORM_PATH}
+              className={`${headerNavBtnBase} w-full text-center bg-emerald-500/15 border-emerald-400/55 text-emerald-100 hover:bg-emerald-500/25 hover:border-emerald-300 hover:text-white uppercase tracking-wide`}
             >
-              <span className="hidden min-[380px]:inline">Accountability</span>
-              <span className="min-[380px]:hidden">Account…</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab('conflict_case')}
-              className={`${headerNavBtnBase} ${
-                activeTab === 'conflict_case'
-                  ? 'bg-violet-500/25 border-violet-400 text-violet-100'
-                  : 'bg-white/5 border-white/15 text-gray-300 hover:border-white/30 hover:text-white'
-              }`}
-            >
-              <span className="hidden min-[380px]:inline">Conflict_Case</span>
-              <span className="min-[380px]:hidden">Conflict…</span>
-            </button>
-          </nav>
+              <span className="hidden min-[420px]:inline">LEADERSHIP REFLECTION</span>
+              <span className="min-[420px]:hidden">LEADERSHIP…</span>
+            </Link>
+          </motion>
 
           <Link
             to="/"
