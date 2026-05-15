@@ -8,13 +8,15 @@ type EvaAnswerHoverPopoverProps = {
   className?: string;
 };
 
-/** แสดงป๊อปอัพข้อความเต็มเมื่อชี้เมาส์ (หรือโฟกัสภายใน) — ใช้กับช่องคำตอบตาราง COMMITMENT */
+/** แสดงป๊อปอัพข้อความเต็มเมื่อชี้เมาส์ — ใช้กับช่องคำตอบตาราง COMMITMENT (hover เท่านั้น ไม่แตะ focus) */
 export function EvaAnswerHoverPopover({ text, children, className = '' }: EvaAnswerHoverPopoverProps) {
   const display = text.trim();
   const tooltipId = useId();
   const anchorRef = useRef<HTMLDivElement>(null);
-  const [open, setOpen] = useState(false);
+  const [hovering, setHovering] = useState(false);
   const [coords, setCoords] = useState({ x: 0, y: 0 });
+
+  const open = hovering && display.length > 0;
 
   const updatePosition = useCallback(() => {
     const el = anchorRef.current;
@@ -22,13 +24,6 @@ export function EvaAnswerHoverPopover({ text, children, className = '' }: EvaAns
     const rect = el.getBoundingClientRect();
     setCoords({ x: rect.left + rect.width / 2, y: rect.top });
   }, []);
-
-  const show = useCallback(() => {
-    updatePosition();
-    setOpen(true);
-  }, [updatePosition]);
-
-  const hide = useCallback(() => setOpen(false), []);
 
   useEffect(() => {
     if (!open) return;
@@ -40,10 +35,6 @@ export function EvaAnswerHoverPopover({ text, children, className = '' }: EvaAns
       window.removeEventListener('resize', onScrollOrResize);
     };
   }, [open, updatePosition]);
-
-  if (!display) {
-    return <>{children}</>;
-  }
 
   const tooltip =
     open &&
@@ -75,14 +66,11 @@ export function EvaAnswerHoverPopover({ text, children, className = '' }: EvaAns
       <div
         ref={anchorRef}
         className={className}
-        onMouseEnter={show}
-        onMouseLeave={hide}
-        onFocusCapture={show}
-        onBlurCapture={(e) => {
-          const next = e.relatedTarget as Node | null;
-          if (!next || !anchorRef.current?.contains(next)) hide();
+        onMouseEnter={() => {
+          updatePosition();
+          setHovering(true);
         }}
-        aria-describedby={open ? tooltipId : undefined}
+        onMouseLeave={() => setHovering(false)}
       >
         {children}
       </div>
@@ -90,4 +78,3 @@ export function EvaAnswerHoverPopover({ text, children, className = '' }: EvaAns
     </>
   );
 }
-

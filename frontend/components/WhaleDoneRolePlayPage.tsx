@@ -414,7 +414,7 @@ const WhaleDoneRolePlayPage: React.FC = () => {
             <span className="text-xl font-semibold tracking-tighter">MindDoJo</span>
           </Link>
 
-          <motion className="flex flex-col gap-2 w-full sm:flex-1 sm:min-w-0">
+          <div className="flex flex-col gap-2 w-full sm:flex-1 sm:min-w-0">
             <nav
               className="grid grid-cols-3 gap-1.5 w-full sm:flex sm:flex-wrap sm:justify-center"
               aria-label="เลือกโหมด"
@@ -462,7 +462,7 @@ const WhaleDoneRolePlayPage: React.FC = () => {
               <span className="hidden min-[420px]:inline">LEADERSHIP REFLECTION</span>
               <span className="min-[420px]:hidden">LEADERSHIP…</span>
             </Link>
-          </motion>
+          </div>
 
           <Link
             to="/"

@@ -545,7 +545,7 @@ const EvaPublicFormPage: React.FC = () => {
                                         }))
                                       }
                                       placeholder={row.byWhenPlaceholder || 'ระบุ...'}
-                                      className="w-full min-w-[8rem] rounded-lg border border-white/15 bg-black/40 px-3 py-2 text-base cursor-help"
+                                      className="w-full min-w-[8rem] rounded-lg border border-white/15 bg-black/40 px-3 py-2 text-base"
                                     />
                                   </EvaAnswerHoverPopover>
                                 </td>
@@ -564,7 +564,7 @@ const EvaPublicFormPage: React.FC = () => {
                                         }))
                                       }
                                       placeholder={row.howKnowPlaceholder || 'ระบุ...'}
-                                      className="w-full min-w-[10rem] rounded-lg border border-white/15 bg-black/40 px-3 py-2 text-base cursor-help"
+                                      className="w-full min-w-[10rem] rounded-lg border border-white/15 bg-black/40 px-3 py-2 text-base"
                                     />
                                   </EvaAnswerHoverPopover>
                                 </td>
