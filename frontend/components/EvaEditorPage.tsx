@@ -16,7 +16,15 @@ import {
   type EvaEvaluationTemplate,
   type EvaPrompt,
   type EvaPromptType,
+  type EvaCommitmentRow,
   EVA_TEMPLATE_STORAGE_KEY,
+  EVA_DEFAULT_COMMITMENT_HEADERS,
+  EVA_DEFAULT_FILL_BRIDGE,
+  EVA_DEFAULT_FILL_CLOSING,
+  EVA_DEFAULT_FILL_INTRO_EN,
+  EVA_DEFAULT_FILL_INTRO_TH,
+  EVA_DEFAULT_FILL_LEAD_IN,
+  defaultEvaCommitmentRows,
   evaBaseIdFromName,
   evaUniqueIdFromName,
   loadStoredEvaTemplates,
@@ -82,6 +90,17 @@ const EvaEditorPage: React.FC = () => {
   const [newPromptType, setNewPromptType] = useState<EvaPromptType>('text');
   const [newPromptOptions, setNewPromptOptions] = useState<string[]>(['ตัวเลือก 1', 'ตัวเลือก 2']);
   const [newPromptRatingItems, setNewPromptRatingItems] = useState<string[]>(['คำถาม 1', 'คำถาม 2']);
+  const [newCommitmentHeaders, setNewCommitmentHeaders] = useState<[string, string, string]>(() => [
+    ...EVA_DEFAULT_COMMITMENT_HEADERS,
+  ]);
+  const [newCommitmentRows, setNewCommitmentRows] = useState<EvaCommitmentRow[]>(() =>
+    defaultEvaCommitmentRows().map((r) => ({ ...r }))
+  );
+  const [newFillIntroEn, setNewFillIntroEn] = useState(EVA_DEFAULT_FILL_INTRO_EN);
+  const [newFillIntroTh, setNewFillIntroTh] = useState(EVA_DEFAULT_FILL_INTRO_TH);
+  const [newFillLeadIn, setNewFillLeadIn] = useState(EVA_DEFAULT_FILL_LEAD_IN);
+  const [newFillBridge, setNewFillBridge] = useState(EVA_DEFAULT_FILL_BRIDGE);
+  const [newFillClosing, setNewFillClosing] = useState(EVA_DEFAULT_FILL_CLOSING);
   const [message, setMessage] = useState<string | null>(null);
   const [syncError, setSyncError] = useState<string | null>(null);
   const [exportingTemplateId, setExportingTemplateId] = useState<string | null>(null);
@@ -359,7 +378,47 @@ const EvaEditorPage: React.FC = () => {
       setMessage('โจทย์แบบตัวเลือกต้องมีอย่างน้อย 2 ข้อ');
       return;
     }
-    const nextPrompt: EvaPrompt = { id: promptId, title, type: newPromptType, options, ratingItems };
+    if (newPromptType === 'commitment_table') {
+      const rows = newCommitmentRows.map((r) => ({
+        commitment: r.commitment.trim(),
+        byWhenPlaceholder: r.byWhenPlaceholder?.trim() || '',
+        howKnowPlaceholder: r.howKnowPlaceholder?.trim() || '',
+      }));
+      if (!rows.some((r) => r.commitment)) {
+        setMessage('โจทย์แบบตารางต้องมีอย่างน้อยหนึ่งแถวที่มีข้อความในคอลัมน์ COMMITMENT');
+        return;
+      }
+    }
+    const commitmentHeaders: [string, string, string] | undefined =
+      newPromptType === 'commitment_table' ? [...newCommitmentHeaders] : undefined;
+    const commitmentRows: EvaCommitmentRow[] | undefined =
+      newPromptType === 'commitment_table'
+        ? newCommitmentRows.map((r) => ({
+            commitment: r.commitment.trim(),
+            byWhenPlaceholder: r.byWhenPlaceholder?.trim() || '',
+            howKnowPlaceholder: r.howKnowPlaceholder?.trim() || '',
+          }))
+        : undefined;
+    const fillIntroEn = newPromptType === 'fill_sentence' ? newFillIntroEn.trim() : undefined;
+    const fillIntroTh = newPromptType === 'fill_sentence' ? newFillIntroTh.trim() : undefined;
+    const fillLeadIn = newPromptType === 'fill_sentence' ? newFillLeadIn : undefined;
+    const fillBridge = newPromptType === 'fill_sentence' ? newFillBridge : undefined;
+    const fillClosing = newPromptType === 'fill_sentence' ? newFillClosing : undefined;
+
+    const nextPrompt: EvaPrompt = {
+      id: promptId,
+      title,
+      type: newPromptType,
+      options,
+      ratingItems,
+      commitmentHeaders,
+      commitmentRows,
+      fillIntroEn,
+      fillIntroTh,
+      fillLeadIn,
+      fillBridge,
+      fillClosing,
+    };
     updateSelectedTemplate((item) => ({
       ...item,
       prompts: [...item.prompts, nextPrompt],
@@ -369,6 +428,13 @@ const EvaEditorPage: React.FC = () => {
     setNewPromptType('text');
     setNewPromptOptions(['ตัวเลือก 1', 'ตัวเลือก 2']);
     setNewPromptRatingItems(['คำถาม 1', 'คำถาม 2']);
+    setNewCommitmentHeaders([...EVA_DEFAULT_COMMITMENT_HEADERS]);
+    setNewCommitmentRows(defaultEvaCommitmentRows().map((r) => ({ ...r })));
+    setNewFillIntroEn(EVA_DEFAULT_FILL_INTRO_EN);
+    setNewFillIntroTh(EVA_DEFAULT_FILL_INTRO_TH);
+    setNewFillLeadIn(EVA_DEFAULT_FILL_LEAD_IN);
+    setNewFillBridge(EVA_DEFAULT_FILL_BRIDGE);
+    setNewFillClosing(EVA_DEFAULT_FILL_CLOSING);
     setMessage('เพิ่มโจทย์แล้ว');
   };
 
@@ -383,15 +449,34 @@ const EvaEditorPage: React.FC = () => {
     updateSelectedTemplate((item) => {
       const prompts = [...item.prompts];
       const current = prompts[idx];
-      prompts[idx] = {
-        ...current,
+      const next: EvaPrompt = {
+        id: current.id,
+        title: current.title,
         type,
-        options:
-          type === 'choice' || type === 'multi_choice'
-            ? current.options || ['ตัวเลือก 1', 'ตัวเลือก 2']
-            : undefined,
-        ratingItems: type === 'rating_1_5' ? current.ratingItems || ['คำถาม 1', 'คำถาม 2'] : undefined,
       };
+      if (type === 'choice' || type === 'multi_choice') {
+        next.options = current.options || ['ตัวเลือก 1', 'ตัวเลือก 2'];
+      }
+      if (type === 'rating_1_5') {
+        next.ratingItems = current.ratingItems || ['คำถาม 1', 'คำถาม 2'];
+      }
+      if (type === 'commitment_table') {
+        next.commitmentHeaders = current.commitmentHeaders
+          ? [...current.commitmentHeaders]
+          : [...EVA_DEFAULT_COMMITMENT_HEADERS];
+        next.commitmentRows =
+          current.commitmentRows && current.commitmentRows.length > 0
+            ? current.commitmentRows.map((r) => ({ ...r }))
+            : defaultEvaCommitmentRows();
+      }
+      if (type === 'fill_sentence') {
+        next.fillIntroEn = current.fillIntroEn ?? EVA_DEFAULT_FILL_INTRO_EN;
+        next.fillIntroTh = current.fillIntroTh ?? EVA_DEFAULT_FILL_INTRO_TH;
+        next.fillLeadIn = current.fillLeadIn ?? EVA_DEFAULT_FILL_LEAD_IN;
+        next.fillBridge = current.fillBridge ?? EVA_DEFAULT_FILL_BRIDGE;
+        next.fillClosing = current.fillClosing ?? EVA_DEFAULT_FILL_CLOSING;
+      }
+      prompts[idx] = next;
       return { ...item, prompts, updatedAt: new Date().toISOString() };
     });
 
@@ -456,6 +541,63 @@ const EvaEditorPage: React.FC = () => {
       const prompts = [...item.prompts];
       const ratingItems = [...(prompts[idx].ratingItems || [])].filter((_, i) => i !== itemIdx);
       prompts[idx] = { ...prompts[idx], ratingItems };
+      return { ...item, prompts, updatedAt: new Date().toISOString() };
+    });
+
+  const updatePromptCommitmentHeader = (idx: number, col: 0 | 1 | 2, value: string) =>
+    updateSelectedTemplate((item) => {
+      const prompts = [...item.prompts];
+      const p = prompts[idx];
+      if (p.type !== 'commitment_table') return item;
+      const h = [...(p.commitmentHeaders ?? [...EVA_DEFAULT_COMMITMENT_HEADERS])] as [string, string, string];
+      h[col] = value;
+      prompts[idx] = { ...p, commitmentHeaders: h };
+      return { ...item, prompts, updatedAt: new Date().toISOString() };
+    });
+
+  const updatePromptCommitmentRow = (pIdx: number, rowIdx: number, field: keyof EvaCommitmentRow, value: string) =>
+    updateSelectedTemplate((item) => {
+      const prompts = [...item.prompts];
+      const p = prompts[pIdx];
+      if (p.type !== 'commitment_table') return item;
+      const rows = [...(p.commitmentRows ?? defaultEvaCommitmentRows())];
+      const row = { ...rows[rowIdx], [field]: value };
+      rows[rowIdx] = row;
+      prompts[pIdx] = { ...p, commitmentRows: rows };
+      return { ...item, prompts, updatedAt: new Date().toISOString() };
+    });
+
+  const addPromptCommitmentRow = (pIdx: number) =>
+    updateSelectedTemplate((item) => {
+      const prompts = [...item.prompts];
+      const p = prompts[pIdx];
+      if (p.type !== 'commitment_table') return item;
+      const rows = [...(p.commitmentRows ?? defaultEvaCommitmentRows())];
+      rows.push({ commitment: '', byWhenPlaceholder: '', howKnowPlaceholder: '' });
+      prompts[pIdx] = { ...p, commitmentRows: rows };
+      return { ...item, prompts, updatedAt: new Date().toISOString() };
+    });
+
+  const removePromptCommitmentRow = (pIdx: number, rowIdx: number) =>
+    updateSelectedTemplate((item) => {
+      const prompts = [...item.prompts];
+      const p = prompts[pIdx];
+      if (p.type !== 'commitment_table') return item;
+      const rows = [...(p.commitmentRows ?? [])].filter((_, i) => i !== rowIdx);
+      prompts[pIdx] = { ...p, commitmentRows: rows.length > 0 ? rows : defaultEvaCommitmentRows() };
+      return { ...item, prompts, updatedAt: new Date().toISOString() };
+    });
+
+  const updatePromptFillField = (
+    pIdx: number,
+    key: 'fillIntroEn' | 'fillIntroTh' | 'fillLeadIn' | 'fillBridge' | 'fillClosing',
+    value: string
+  ) =>
+    updateSelectedTemplate((item) => {
+      const prompts = [...item.prompts];
+      const p = prompts[pIdx];
+      if (p.type !== 'fill_sentence') return item;
+      prompts[pIdx] = { ...p, [key]: value };
       return { ...item, prompts, updatedAt: new Date().toISOString() };
     });
 
@@ -1082,6 +1224,8 @@ const EvaEditorPage: React.FC = () => {
                           <option value="choice">คำตอบแบบช้อยส์</option>
                           <option value="multi_choice">คำตอบแบบเลือกได้หลายอัน</option>
                           <option value="rating_1_5">เลือกระดับ 1-5</option>
+                          <option value="commitment_table">ตาราง COMMITMENT / BY WHEN / HOW</option>
+                          <option value="fill_sentence">เติมช่องว่าง — คำมั่นผู้นำ (ประโยคเดียว)</option>
                         </select>
                         {(prompt.type === 'choice' || prompt.type === 'multi_choice') && (
                           <div className="space-y-2">
@@ -1144,6 +1288,98 @@ const EvaEditorPage: React.FC = () => {
                             </button>
                           </div>
                         )}
+                        {prompt.type === 'commitment_table' && (
+                          <div className="space-y-3 rounded-lg border border-white/10 bg-black/25 p-3">
+                            <p className="text-xs text-gray-500">หัวตาราง (3 คอลัมน์)</p>
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                              {([0, 1, 2] as const).map((col) => (
+                                <input
+                                  key={col}
+                                  value={(prompt.commitmentHeaders ?? EVA_DEFAULT_COMMITMENT_HEADERS)[col]}
+                                  onChange={(e) => updatePromptCommitmentHeader(idx, col, e.target.value)}
+                                  className="rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-xs"
+                                />
+                              ))}
+                            </div>
+                            <p className="text-xs text-gray-500">แถว — คอลัมน์ 2–3 ใช้เป็นข้อความตัวอย่าง (placeholder) บนฟอร์มผู้ตอบ</p>
+                            {(prompt.commitmentRows ?? defaultEvaCommitmentRows()).map((row, ri) => (
+                              <div key={`${prompt.id}-er-${ri}`} className="space-y-2 rounded border border-white/8 p-2">
+                                <div className="flex justify-end">
+                                  <button
+                                    type="button"
+                                    onClick={() => removePromptCommitmentRow(idx, ri)}
+                                    className="text-xs text-red-300 hover:underline"
+                                  >
+                                    ลบแถว
+                                  </button>
+                                </div>
+                                <input
+                                  value={row.commitment}
+                                  onChange={(e) => updatePromptCommitmentRow(idx, ri, 'commitment', e.target.value)}
+                                  placeholder="ข้อความ COMMITMENT"
+                                  className="w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm"
+                                />
+                                <input
+                                  value={row.byWhenPlaceholder || ''}
+                                  onChange={(e) =>
+                                    updatePromptCommitmentRow(idx, ri, 'byWhenPlaceholder', e.target.value)
+                                  }
+                                  placeholder="placeholder BY WHEN (เช่น By end of week)"
+                                  className="w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-xs"
+                                />
+                                <input
+                                  value={row.howKnowPlaceholder || ''}
+                                  onChange={(e) =>
+                                    updatePromptCommitmentRow(idx, ri, 'howKnowPlaceholder', e.target.value)
+                                  }
+                                  placeholder="placeholder HOW I'LL KNOW..."
+                                  className="w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-xs"
+                                />
+                              </div>
+                            ))}
+                            <button
+                              type="button"
+                              onClick={() => addPromptCommitmentRow(idx)}
+                              className="rounded-lg bg-emerald-400/20 border border-emerald-300/40 px-3 py-2 text-xs font-semibold text-emerald-100"
+                            >
+                              + เพิ่มแถว
+                            </button>
+                          </div>
+                        )}
+                        {prompt.type === 'fill_sentence' && (
+                          <div className="space-y-2 rounded-lg border border-white/10 bg-black/25 p-3">
+                            <input
+                              value={prompt.fillIntroEn ?? ''}
+                              onChange={(e) => updatePromptFillField(idx, 'fillIntroEn', e.target.value)}
+                              placeholder="หัวข้อ EN"
+                              className="w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm"
+                            />
+                            <input
+                              value={prompt.fillIntroTh ?? ''}
+                              onChange={(e) => updatePromptFillField(idx, 'fillIntroTh', e.target.value)}
+                              placeholder="หัวข้อ TH"
+                              className="w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm"
+                            />
+                            <input
+                              value={prompt.fillLeadIn ?? ''}
+                              onChange={(e) => updatePromptFillField(idx, 'fillLeadIn', e.target.value)}
+                              placeholder="ก่อนช่องว่างแรก (เช่น I commit to )"
+                              className="w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-xs"
+                            />
+                            <input
+                              value={prompt.fillBridge ?? ''}
+                              onChange={(e) => updatePromptFillField(idx, 'fillBridge', e.target.value)}
+                              placeholder="ระหว่างช่องว่าง"
+                              className="w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-xs"
+                            />
+                            <input
+                              value={prompt.fillClosing ?? ''}
+                              onChange={(e) => updatePromptFillField(idx, 'fillClosing', e.target.value)}
+                              placeholder="หลังช่องว่างที่สอง (เช่น .)"
+                              className="w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-xs"
+                            />
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -1161,6 +1397,8 @@ const EvaEditorPage: React.FC = () => {
                   <option value="choice">คำตอบแบบช้อยส์</option>
                   <option value="multi_choice">คำตอบแบบเลือกได้หลายอัน</option>
                   <option value="rating_1_5">เลือกระดับ 1-5</option>
+                  <option value="commitment_table">ตาราง COMMITMENT / BY WHEN / HOW</option>
+                  <option value="fill_sentence">เติมช่องว่าง — คำมั่นผู้นำ (ประโยคเดียว)</option>
                 </select>
                 <textarea
                   value={newPromptTitle}
@@ -1248,6 +1486,151 @@ const EvaEditorPage: React.FC = () => {
                     >
                       + เพิ่มข้อย่อย
                     </button>
+                  </div>
+                )}
+                {(newPromptType === 'commitment_table' || newPromptType === 'fill_sentence') && (
+                  <p className="mt-2 text-xs text-gray-500">
+                    ช่องชื่อโจทย์ด้านบนคือหัวข้อที่ผู้ตอบเห็นเหนือคำถาม (เช่น ตาราง Accountability)
+                  </p>
+                )}
+                {newPromptType === 'commitment_table' && (
+                  <div className="mt-2 space-y-3 rounded-lg border border-white/10 bg-black/25 p-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setNewCommitmentHeaders([...EVA_DEFAULT_COMMITMENT_HEADERS]);
+                        setNewCommitmentRows(defaultEvaCommitmentRows().map((r) => ({ ...r })));
+                      }}
+                      className="rounded-lg bg-sky-500/20 border border-sky-400/40 px-3 py-2 text-xs font-semibold text-sky-100 hover:bg-sky-500/30"
+                    >
+                      ใส่ตัวอย่าง Accountability / Whale Done
+                    </button>
+                    <p className="text-xs text-gray-500">หัวตาราง (3 คอลัมน์)</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                      {([0, 1, 2] as const).map((col) => (
+                        <input
+                          key={col}
+                          value={newCommitmentHeaders[col]}
+                          onChange={(e) =>
+                            setNewCommitmentHeaders((prev) => {
+                              const n = [...prev] as [string, string, string];
+                              n[col] = e.target.value;
+                              return n;
+                            })
+                          }
+                          className="rounded-lg border border-white/15 bg-black/30 px-2 py-1.5 text-xs"
+                        />
+                      ))}
+                    </div>
+                    <p className="text-xs text-gray-500">
+                      แต่ละแถว: คอลัมน์ 2–3 เป็นข้อความตัวอย่าง (placeholder) บนฟอร์มผู้ตอบ
+                    </p>
+                    {newCommitmentRows.map((row, ri) => (
+                      <div key={`new-ct-${ri}`} className="space-y-1 rounded border border-white/8 p-2">
+                        <div className="flex justify-end">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setNewCommitmentRows((prev) =>
+                                prev.length <= 1 ? prev : prev.filter((_, i) => i !== ri)
+                              )
+                            }
+                            className="text-xs text-red-300 hover:underline"
+                          >
+                            ลบแถว
+                          </button>
+                        </div>
+                        <input
+                          value={row.commitment}
+                          onChange={(e) =>
+                            setNewCommitmentRows((prev) =>
+                              prev.map((r, i) => (i === ri ? { ...r, commitment: e.target.value } : r))
+                            )
+                          }
+                          placeholder="COMMITMENT"
+                          className="w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm"
+                        />
+                        <input
+                          value={row.byWhenPlaceholder || ''}
+                          onChange={(e) =>
+                            setNewCommitmentRows((prev) =>
+                              prev.map((r, i) => (i === ri ? { ...r, byWhenPlaceholder: e.target.value } : r))
+                            )
+                          }
+                          placeholder="placeholder BY WHEN"
+                          className="w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-xs"
+                        />
+                        <input
+                          value={row.howKnowPlaceholder || ''}
+                          onChange={(e) =>
+                            setNewCommitmentRows((prev) =>
+                              prev.map((r, i) => (i === ri ? { ...r, howKnowPlaceholder: e.target.value } : r))
+                            )
+                          }
+                          placeholder="placeholder HOW I'LL KNOW"
+                          className="w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-xs"
+                        />
+                      </div>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setNewCommitmentRows((prev) => [
+                          ...prev,
+                          { commitment: '', byWhenPlaceholder: '', howKnowPlaceholder: '' },
+                        ])
+                      }
+                      className="rounded-lg bg-emerald-400/20 border border-emerald-300/40 px-3 py-2 text-xs font-semibold text-emerald-100"
+                    >
+                      + เพิ่มแถว
+                    </button>
+                  </div>
+                )}
+                {newPromptType === 'fill_sentence' && (
+                  <div className="mt-2 space-y-2 rounded-lg border border-white/10 bg-black/25 p-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setNewFillIntroEn(EVA_DEFAULT_FILL_INTRO_EN);
+                        setNewFillIntroTh(EVA_DEFAULT_FILL_INTRO_TH);
+                        setNewFillLeadIn(EVA_DEFAULT_FILL_LEAD_IN);
+                        setNewFillBridge(EVA_DEFAULT_FILL_BRIDGE);
+                        setNewFillClosing(EVA_DEFAULT_FILL_CLOSING);
+                      }}
+                      className="rounded-lg bg-sky-500/20 border border-sky-400/40 px-3 py-2 text-xs font-semibold text-sky-100 hover:bg-sky-500/30"
+                    >
+                      ใส่ตัวอย่างประโยคคำมั่นผู้นำ
+                    </button>
+                    <input
+                      value={newFillIntroEn}
+                      onChange={(e) => setNewFillIntroEn(e.target.value)}
+                      placeholder="หัวข้อ EN"
+                      className="w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm"
+                    />
+                    <input
+                      value={newFillIntroTh}
+                      onChange={(e) => setNewFillIntroTh(e.target.value)}
+                      placeholder="หัวข้อ TH"
+                      className="w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm"
+                    />
+                    <input
+                      value={newFillLeadIn}
+                      onChange={(e) => setNewFillLeadIn(e.target.value)}
+                      placeholder="ก่อนช่องว่างแรก"
+                      className="w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-xs"
+                    />
+                    <input
+                      value={newFillBridge}
+                      onChange={(e) => setNewFillBridge(e.target.value)}
+                      placeholder="ระหว่างช่องว่าง"
+                      className="w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-xs"
+                    />
+                    <input
+                      value={newFillClosing}
+                      onChange={(e) => setNewFillClosing(e.target.value)}
+                      placeholder="หลังช่องว่างที่สอง"
+                      className="w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-xs"
+                    />
                   </div>
                 )}
                 <button

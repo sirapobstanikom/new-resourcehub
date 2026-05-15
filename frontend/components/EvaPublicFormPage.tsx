@@ -1,6 +1,17 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { findEvaTemplateByRouteId, loadStoredEvaTemplates, type EvaEvaluationTemplate } from '../lib/evaTemplates';
+import {
+  defaultEvaCommitmentRows,
+  EVA_DEFAULT_COMMITMENT_HEADERS,
+  EVA_DEFAULT_FILL_BRIDGE,
+  EVA_DEFAULT_FILL_CLOSING,
+  EVA_DEFAULT_FILL_INTRO_EN,
+  EVA_DEFAULT_FILL_INTRO_TH,
+  EVA_DEFAULT_FILL_LEAD_IN,
+  findEvaTemplateByRouteId,
+  loadStoredEvaTemplates,
+  type EvaEvaluationTemplate,
+} from '../lib/evaTemplates';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
 const RESPONSE_STORAGE_KEY = 'minddojo.eva-editor.responses.v1';
@@ -113,6 +124,19 @@ const EvaPublicFormPage: React.FC = () => {
         if (selected.some((item) => isOtherOption(item))) return getOtherText(prompt.id).trim().length > 0;
         return true;
       }
+      if (prompt.type === 'commitment_table') {
+        const rows = prompt.commitmentRows?.length ? prompt.commitmentRows : defaultEvaCommitmentRows();
+        return rows.every((_, ri) => {
+          const by = (answers[`${prompt.id}::ct::${ri}::by`] || '').trim();
+          const how = (answers[`${prompt.id}::ct::${ri}::how`] || '').trim();
+          return by.length > 0 && how.length > 0;
+        });
+      }
+      if (prompt.type === 'fill_sentence') {
+        const a = (answers[`${prompt.id}::fs::a`] || '').trim();
+        const b = (answers[`${prompt.id}::fs::b`] || '').trim();
+        return a.length > 0 && b.length > 0;
+      }
       return value.length > 0;
     });
   }, [template, answers]);
@@ -138,6 +162,19 @@ const EvaPublicFormPage: React.FC = () => {
           if (selected.length === 0) return true;
           if (selected.some((item) => isOtherOption(item))) return getOtherText(prompt.id).trim().length === 0;
           return false;
+        }
+        if (prompt.type === 'commitment_table') {
+          const rows = prompt.commitmentRows?.length ? prompt.commitmentRows : defaultEvaCommitmentRows();
+          return rows.some((_, ri) => {
+            const by = (answers[`${prompt.id}::ct::${ri}::by`] || '').trim();
+            const how = (answers[`${prompt.id}::ct::${ri}::how`] || '').trim();
+            return by.length === 0 || how.length === 0;
+          });
+        }
+        if (prompt.type === 'fill_sentence') {
+          const a = (answers[`${prompt.id}::fs::a`] || '').trim();
+          const b = (answers[`${prompt.id}::fs::b`] || '').trim();
+          return a.length === 0 || b.length === 0;
         }
         return value.length === 0;
       })
@@ -174,24 +211,63 @@ const EvaPublicFormPage: React.FC = () => {
             answer: (answers[`${prompt.id}::${itemIdx}`] || '').trim(),
           }));
         }
-        return [{
-          prompt: prompt.title,
-          promptType: prompt.type,
-          answer: (() => {
-            const value = (answers[prompt.id] || '').trim();
-            if (prompt.type === 'choice' && isOtherOption(value)) {
-              return `${getOtherOptionLabel(value)}: ${getOtherText(prompt.id).trim()}`;
-            }
-            if (prompt.type === 'multi_choice') {
-              const selected = getMultiSelected(prompt.id);
-              const mapped = selected.map((item) =>
-                isOtherOption(item) ? `${getOtherOptionLabel(item)}: ${getOtherText(prompt.id).trim()}` : item
-              );
-              return mapped.join(MULTI_CHOICE_SEP);
-            }
-            return value;
-          })(),
-        }];
+        if (prompt.type === 'commitment_table') {
+          const rows = prompt.commitmentRows?.length ? prompt.commitmentRows : defaultEvaCommitmentRows();
+          const headers = prompt.commitmentHeaders ?? EVA_DEFAULT_COMMITMENT_HEADERS;
+          return rows.flatMap((row, ri) => {
+            const by = (answers[`${prompt.id}::ct::${ri}::by`] || '').trim();
+            const how = (answers[`${prompt.id}::ct::${ri}::how`] || '').trim();
+            return [
+              {
+                prompt: prompt.title,
+                subPrompt: `${row.commitment} — ${headers[1]}`,
+                promptType: prompt.type,
+                answer: by,
+              },
+              {
+                prompt: prompt.title,
+                subPrompt: `${row.commitment} — ${headers[2]}`,
+                promptType: prompt.type,
+                answer: how,
+              },
+            ];
+          });
+        }
+        if (prompt.type === 'fill_sentence') {
+          const a = (answers[`${prompt.id}::fs::a`] || '').trim();
+          const b = (answers[`${prompt.id}::fs::b`] || '').trim();
+          const lead = prompt.fillLeadIn ?? EVA_DEFAULT_FILL_LEAD_IN;
+          const bridge = prompt.fillBridge ?? EVA_DEFAULT_FILL_BRIDGE;
+          const close = prompt.fillClosing ?? EVA_DEFAULT_FILL_CLOSING;
+          return [
+            {
+              prompt: prompt.title,
+              subPrompt: 'ประโยคเต็ม (รวมเทมเพลต)',
+              promptType: prompt.type,
+              answer: `${lead}${a}${bridge}${b}${close}`,
+            },
+          ];
+        }
+        return [
+          {
+            prompt: prompt.title,
+            promptType: prompt.type,
+            answer: (() => {
+              const value = (answers[prompt.id] || '').trim();
+              if (prompt.type === 'choice' && isOtherOption(value)) {
+                return `${getOtherOptionLabel(value)}: ${getOtherText(prompt.id).trim()}`;
+              }
+              if (prompt.type === 'multi_choice') {
+                const selected = getMultiSelected(prompt.id);
+                const mapped = selected.map((item) =>
+                  isOtherOption(item) ? `${getOtherOptionLabel(item)}: ${getOtherText(prompt.id).trim()}` : item
+                );
+                return mapped.join(MULTI_CHOICE_SEP);
+              }
+              return value;
+            })(),
+          },
+        ];
       }),
       createdAt: new Date().toISOString(),
     };
@@ -386,6 +462,95 @@ const EvaPublicFormPage: React.FC = () => {
                         </div>
                       </div>
                     ))}
+                  </div>
+                ) : prompt.type === 'commitment_table' ? (
+                  <div className="space-y-3">
+                    <div className="overflow-x-auto rounded-xl border border-white/12 bg-black/25">
+                      <table className="w-full min-w-[520px] text-left text-sm">
+                        <thead>
+                          <tr className="border-b border-white/10 bg-white/[0.06]">
+                            {(prompt.commitmentHeaders ?? EVA_DEFAULT_COMMITMENT_HEADERS).map((h) => (
+                              <th key={h} className="px-3 py-2.5 font-semibold text-yellow-200/90 whitespace-nowrap">
+                                {h}
+                              </th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {(prompt.commitmentRows?.length ? prompt.commitmentRows : defaultEvaCommitmentRows()).map(
+                            (row, ri) => (
+                              <tr key={`${prompt.id}-ct-${ri}`} className="border-b border-white/8 last:border-0">
+                                <td className="px-3 py-3 text-gray-200 align-top max-w-[14rem] sm:max-w-xs leading-snug">
+                                  {row.commitment}
+                                </td>
+                                <td className="px-3 py-2 align-top">
+                                  <input
+                                    type="text"
+                                    value={answers[`${prompt.id}::ct::${ri}::by`] || ''}
+                                    onChange={(e) =>
+                                      setAnswers((prev) => ({
+                                        ...prev,
+                                        [`${prompt.id}::ct::${ri}::by`]: e.target.value,
+                                      }))
+                                    }
+                                    placeholder={row.byWhenPlaceholder || 'ระบุ...'}
+                                    className="w-full min-w-[8rem] rounded-lg border border-white/15 bg-black/40 px-3 py-2 text-base"
+                                  />
+                                </td>
+                                <td className="px-3 py-2 align-top">
+                                  <input
+                                    type="text"
+                                    value={answers[`${prompt.id}::ct::${ri}::how`] || ''}
+                                    onChange={(e) =>
+                                      setAnswers((prev) => ({
+                                        ...prev,
+                                        [`${prompt.id}::ct::${ri}::how`]: e.target.value,
+                                      }))
+                                    }
+                                    placeholder={row.howKnowPlaceholder || 'ระบุ...'}
+                                    className="w-full min-w-[10rem] rounded-lg border border-white/15 bg-black/40 px-3 py-2 text-base"
+                                  />
+                                </td>
+                              </tr>
+                            )
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                ) : prompt.type === 'fill_sentence' ? (
+                  <div className="space-y-4 rounded-xl border border-white/12 bg-black/20 p-4 md:p-5">
+                    <p className="text-sm md:text-base font-semibold text-sky-200/95 tracking-wide uppercase">
+                      {prompt.fillIntroEn ?? EVA_DEFAULT_FILL_INTRO_EN}
+                    </p>
+                    <p className="text-base md:text-lg text-gray-200">{prompt.fillIntroTh ?? EVA_DEFAULT_FILL_INTRO_TH}</p>
+                    <div className="text-base md:text-lg text-gray-100 leading-relaxed flex flex-wrap items-baseline gap-x-1 gap-y-3">
+                      <span className="text-gray-400 select-none" aria-hidden>
+                        &ldquo;
+                      </span>
+                      <span>{prompt.fillLeadIn ?? EVA_DEFAULT_FILL_LEAD_IN}</span>
+                      <input
+                        type="text"
+                        value={answers[`${prompt.id}::fs::a`] || ''}
+                        onChange={(e) =>
+                          setAnswers((prev) => ({ ...prev, [`${prompt.id}::fs::a`]: e.target.value }))
+                        }
+                        className="flex-1 min-w-[10rem] border-b-2 border-yellow-400/50 bg-transparent px-1 py-1 text-base md:text-lg text-white focus:border-yellow-300 focus:outline-none"
+                      />
+                      <span>{prompt.fillBridge ?? EVA_DEFAULT_FILL_BRIDGE}</span>
+                      <input
+                        type="text"
+                        value={answers[`${prompt.id}::fs::b`] || ''}
+                        onChange={(e) =>
+                          setAnswers((prev) => ({ ...prev, [`${prompt.id}::fs::b`]: e.target.value }))
+                        }
+                        className="flex-1 min-w-[10rem] border-b-2 border-yellow-400/50 bg-transparent px-1 py-1 text-base md:text-lg text-white focus:border-yellow-300 focus:outline-none"
+                      />
+                      <span>{prompt.fillClosing ?? EVA_DEFAULT_FILL_CLOSING}</span>
+                      <span className="text-gray-400 select-none" aria-hidden>
+                        &rdquo;
+                      </span>
+                    </div>
                   </div>
                 ) : (
                   <textarea

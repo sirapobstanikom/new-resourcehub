@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
@@ -26,6 +26,11 @@ const STORAGE_KEY = 'conflict_management_style_assessment_v1';
 
 const ASSESSMENT_TITLE = 'การประเมินรูปแบบการจัดการความขัดแย้ง';
 const SUBTITLE = 'Conflict Management Style';
+
+const CMS_SECTION_TITLES = ['ช่วงข้อ 1–5', 'ช่วงข้อ 6–10', 'ช่วงข้อ 11–15'] as const;
+
+const inputFieldClass =
+  'w-full rounded-2xl border border-white/12 bg-black/45 px-4 py-3.5 text-[15px] text-white placeholder:text-gray-600 shadow-inner shadow-black/40 focus:border-sky-400/60 focus:outline-none focus:ring-2 focus:ring-sky-500/25 focus:ring-offset-2 focus:ring-offset-black/20 transition-all';
 
 function safeExportFilePart(name: string): string {
   const t = name.trim() || 'ผู้ประเมิน';
@@ -111,24 +116,33 @@ function parseStoredAnswers(raw: Record<string, unknown> | undefined): Record<nu
 
 const INTRO_BODY = (
   <>
-    <p className="mb-4 text-gray-300 leading-relaxed">
-      กรุณาเลือกคำตอบที่ตรงกับตัวคุณมากที่สุด การประเมินนี้ออกแบบมาเพื่อช่วยให้คุณเรียนรู้เกี่ยวกับรูปแบบการจัดการความขัดแย้งของคุณ
-      ไม่มีคำตอบที่ถูกหรือผิด
+    <p className="mb-5 text-gray-300 leading-relaxed text-[15px]">
+      อ่านแต่ละข้อความแล้วเลือกคำตอบที่ตรงกับตัวคุณมากที่สุด โดยพิจารณาว่าข้อความนั้นสะท้อนแนวโน้ม วิธีคิด
+      หรือวิธีการที่คุณมักใช้เมื่อต้องจัดการกับความขัดแย้งมากน้อยเพียงใด ไม่มีคำตอบที่ถูกหรือผิด
+      ขอให้ตอบตามความเป็นจริง เพื่อให้ผลลัพธ์สะท้อนรูปแบบของคุณได้ใกล้เคียงที่สุด
     </p>
-    <div className="rounded-xl border border-white/10 overflow-hidden text-left text-xs mb-4">
-      <div className="grid grid-cols-2 bg-white/10 px-3 py-2 font-semibold text-white">
-        <span>คะแนน</span>
-        <span>ความหมาย</span>
+    <div className="rounded-2xl border border-sky-500/20 bg-gradient-to-br from-sky-500/10 via-black/20 to-yellow-500/5 overflow-hidden text-left mb-5">
+      <div className="px-4 py-3 border-b border-white/10 bg-white/[0.06]">
+        <p className="text-[11px] font-bold uppercase tracking-wider text-sky-300/90">สเกลการตอบ</p>
+        <p className="text-xs text-gray-500 mt-0.5">แตะเลข 1–4 ตามความถี่ที่คุณทำแบบนั้น</p>
       </div>
-      {([1, 2, 3, 4] as const).map((s) => (
-        <div key={s} className="grid grid-cols-2 border-t border-white/10 px-3 py-2 text-gray-300">
-          <span className="tabular-nums text-yellow-400/90 font-bold">{s}</span>
-          <span>{CMS_SCALE_LABELS[s]}</span>
-        </div>
-      ))}
+      <div className="grid grid-cols-2 gap-px bg-white/10">
+        {([1, 2, 3, 4] as const).map((s) => (
+          <div
+            key={s}
+            className="flex items-center gap-3 bg-black/35 px-3 py-3 sm:px-4 sm:py-3.5"
+          >
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-yellow-400/15 text-sm font-black tabular-nums text-yellow-300 ring-1 ring-yellow-400/30">
+              {s}
+            </span>
+            <span className="text-sm text-gray-200 leading-snug">{CMS_SCALE_LABELS[s]}</span>
+          </div>
+        ))}
+      </div>
     </div>
-    <p className="text-xs text-gray-500 leading-relaxed">
-      เมื่อทำครบ 15 ข้อ ระบบจะรวมคะแนนตามรูปแบบ 5 ประเภท ได้แก่ การหลีกหนี การยอมตาม การเอาชนะ การร่วมมือ และการประนีประนอม (แต่ละแบบคะแนนเต็ม 12)
+    <p className="text-xs text-gray-500 leading-relaxed rounded-xl border border-white/8 bg-white/[0.03] px-4 py-3">
+      เมื่อทำครบ 15 ข้อ ระบบจะรวมคะแนนตามรูปแบบ 5 ประเภท ได้แก่ การหลีกหนี การยอมตาม การเอาชนะ การร่วมมือ และการประนีประนอม
+      <span className="text-gray-400"> (แต่ละแบบคะแนนเต็ม 12)</span>
     </p>
   </>
 );
@@ -382,7 +396,11 @@ const ConflictManagementStyleAssessment: React.FC = () => {
 
   const displayAnswers = savedSnapshot?.answers ?? answers;
   const displayUser = savedSnapshot?.user ?? user;
-  const styleScores = getCmsStyleScores(displayAnswers);
+  const { styleScores, maxStyleScore } = useMemo(() => {
+    const scores = getCmsStyleScores(displayAnswers);
+    const max = Math.max(0, ...CMS_STYLES.map((s) => scores[s.id]));
+    return { styleScores: scores, maxStyleScore: max };
+  }, [displayAnswers]);
 
   const exportBaseName = `Conflict_Management_Style_${safeExportFilePart(displayUser.name)}_${new Date().toISOString().slice(0, 10)}`;
 
@@ -486,29 +504,34 @@ const ConflictManagementStyleAssessment: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-transparent text-white bg-grid flex flex-col selection:bg-yellow-400 selection:text-black">
+    <div className="min-h-screen bg-transparent text-white bg-grid flex flex-col selection:bg-sky-400/30 selection:text-white">
       {showIntroModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" aria-modal="true" role="dialog">
-          <div
-            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4" aria-modal="true" role="dialog">
+          <button
+            type="button"
+            className="absolute inset-0 bg-black/75 backdrop-blur-md cursor-default"
+            aria-label="ปิดคำแนะนำและเริ่ม"
             onClick={handleCloseIntroAndStart}
-            aria-hidden="true"
           />
-          <div className="relative w-full max-w-lg rounded-3xl border border-white/20 bg-gradient-to-b from-neutral-900/95 to-black/95 shadow-2xl shadow-sky-400/10 overflow-hidden max-h-[90vh] overflow-y-auto">
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(56,189,248,0.12),transparent)] pointer-events-none" />
-            <div className="relative p-8 md:p-10 text-center">
-              <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-sky-400/20 border border-sky-400/35 flex items-center justify-center">
-                <span className="text-3xl" aria-hidden>
-                  🤝
-                </span>
+          <div className="relative w-full sm:max-w-lg rounded-t-3xl sm:rounded-3xl border border-white/15 bg-gradient-to-b from-zinc-900/98 via-neutral-950/98 to-black shadow-2xl shadow-sky-500/10 overflow-hidden max-h-[min(92vh,720px)] flex flex-col">
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_90%_55%_at_50%_-10%,rgba(56,189,248,0.14),transparent)] pointer-events-none" />
+            <div className="relative flex-1 overflow-y-auto overscroll-contain p-6 sm:p-8">
+              <div className="flex flex-col items-center text-center mb-6">
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-sky-400/30 to-yellow-400/20 border border-sky-400/35 flex items-center justify-center shadow-lg shadow-sky-500/10 mb-4">
+                  <span className="text-2xl" aria-hidden>
+                    🤝
+                  </span>
+                </div>
+                <p className="text-[10px] uppercase tracking-[0.2em] text-sky-400/90 mb-1">{SUBTITLE}</p>
+                <h2 className="text-lg sm:text-xl font-black text-white tracking-tight leading-snug">{ASSESSMENT_TITLE}</h2>
               </div>
-              <p className="text-[10px] uppercase tracking-widest text-sky-400/90 mb-2">{SUBTITLE}</p>
-              <h2 className="text-xl md:text-2xl font-black text-white tracking-tight mb-4">{ASSESSMENT_TITLE}</h2>
-              <div className="text-sm md:text-base mb-8 text-left">{INTRO_BODY}</div>
+              <div className="text-sm sm:text-[15px] text-left">{INTRO_BODY}</div>
+            </div>
+            <div className="relative shrink-0 border-t border-white/10 p-4 sm:p-5 bg-black/30">
               <button
                 type="button"
                 onClick={handleCloseIntroAndStart}
-                className="w-full py-3.5 px-6 rounded-xl font-bold bg-yellow-400 text-black hover:bg-yellow-300 shadow-lg shadow-yellow-400/25 transition-all"
+                className="w-full py-3.5 px-6 rounded-2xl font-bold text-[15px] bg-gradient-to-r from-yellow-400 to-amber-300 text-black hover:from-yellow-300 hover:to-amber-200 shadow-lg shadow-yellow-400/25 transition-all active:scale-[0.99]"
               >
                 เริ่มทำแบบประเมิน
               </button>
@@ -517,36 +540,51 @@ const ConflictManagementStyleAssessment: React.FC = () => {
         </div>
       )}
 
-      <header className="flex justify-between items-center px-6 py-6 max-w-4xl mx-auto w-full">
-        <Link to="/" className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-yellow-400 rounded-lg flex items-center justify-center glow-yellow">
-            <span className="text-black font-semibold text-xl">M</span>
-          </div>
-          <span className="text-xl font-semibold tracking-tighter">MindDoJo</span>
-        </Link>
-        {step === 'assessment' && (
-          <span className="text-gray-500 text-sm font-medium">
-            ตอบแล้ว {answeredCount} / {totalQuestions} ข้อ
-          </span>
-        )}
+      <header className="sticky top-0 z-40 border-b border-white/5 bg-black/40 backdrop-blur-xl supports-[backdrop-filter]:bg-black/25">
+        <div className="max-w-3xl mx-auto w-full px-4 sm:px-6 py-4 flex justify-between items-center gap-4">
+          <Link to="/" className="flex items-center gap-3 shrink-0 group">
+            <div className="w-10 h-10 bg-gradient-to-br from-yellow-400 to-amber-400 rounded-xl flex items-center justify-center shadow-lg shadow-yellow-500/20 group-hover:scale-[1.02] transition-transform">
+              <span className="text-black font-black text-lg">M</span>
+            </div>
+            <span className="text-lg font-bold tracking-tight text-white/95 hidden min-[380px]:inline">MindDoJo</span>
+          </Link>
+          {step === 'assessment' && (
+            <div className="flex flex-col items-end gap-1 min-w-0">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-sky-400/90 truncate max-w-[14rem] sm:max-w-none">
+                ความคืบหน้า
+              </span>
+              <span className="text-sm font-bold tabular-nums text-white">
+                {answeredCount}
+                <span className="text-gray-500 font-medium"> / {totalQuestions}</span>
+                <span className="text-gray-500 font-normal text-xs ml-1.5 hidden sm:inline">ข้อ</span>
+              </span>
+            </div>
+          )}
+        </div>
       </header>
 
-      <main className="flex-1 px-6 py-8 max-w-3xl mx-auto w-full pb-24">
+      <main className="flex-1 w-full max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-10 pb-28 sm:pb-32">
         {step === 'login' && (
-          <div className="max-w-md mx-auto">
-            <p className="text-center text-[10px] uppercase tracking-widest text-sky-400/90 mb-2">{SUBTITLE}</p>
-            <h1 className="text-2xl md:text-3xl font-black tracking-tight mb-2 text-center leading-snug text-yellow-400/95">
-              {ASSESSMENT_TITLE}
-            </h1>
-            <p className="text-gray-400 text-sm text-center mb-6 max-w-sm mx-auto leading-relaxed">
-              สำรวจรูปแบบการจัดการความขัดแย้งของคุณผ่านคำถาม 15 ข้อ และสเกล 4 ระดับ — ใช้ในห้องอบรมหรือเพื่อทำความเข้าใจตนเอง
-            </p>
+          <div className="max-w-md mx-auto space-y-8">
+            <div className="text-center space-y-3">
+              <div className="inline-flex items-center gap-2 rounded-full border border-sky-500/25 bg-sky-500/10 px-3 py-1">
+                <span className="h-1.5 w-1.5 rounded-full bg-sky-400 animate-pulse" aria-hidden />
+                <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-sky-300/95">{SUBTITLE}</span>
+              </div>
+              <h1 className="text-2xl sm:text-3xl md:text-[2rem] font-black tracking-tight leading-[1.15] text-transparent bg-clip-text bg-gradient-to-r from-white via-white to-gray-400">
+                {ASSESSMENT_TITLE}
+              </h1>
+              <p className="text-gray-400 text-sm sm:text-[15px] leading-relaxed max-w-sm mx-auto">
+                สำรวจแนวโน้มของคุณผ่านคำถาม 15 ข้อ และสเกล 4 ระดับ — เหมาะสำหรับอบรมหรือทำความเข้าใจตนเอง
+              </p>
+            </div>
+
             <form
               onSubmit={handleLoginSubmit}
-              className="rounded-2xl border border-white/10 bg-white/5 p-6 md:p-8 space-y-5"
+              className="rounded-3xl border border-white/10 bg-gradient-to-b from-white/[0.06] to-black/30 p-6 sm:p-8 space-y-5 shadow-xl shadow-black/40 ring-1 ring-white/5"
             >
-              <div>
-                <label htmlFor="cms-name" className="block text-sm font-medium text-gray-400 mb-2">
+              <div className="space-y-1.5">
+                <label htmlFor="cms-name" className="block text-xs font-semibold uppercase tracking-wider text-gray-400">
                   ชื่อ
                 </label>
                 <input
@@ -554,13 +592,14 @@ const ConflictManagementStyleAssessment: React.FC = () => {
                   type="text"
                   value={user.name}
                   onChange={(e) => setUser((u) => ({ ...u, name: e.target.value }))}
-                  placeholder="กรอกชื่อ"
+                  placeholder="ชื่อที่แสดงบนผลลัพธ์"
                   required
-                  className="w-full px-4 py-3 rounded-xl bg-black/50 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-yellow-400"
+                  autoComplete="name"
+                  className={inputFieldClass}
                 />
               </div>
-              <div>
-                <label htmlFor="cms-email" className="block text-sm font-medium text-gray-400 mb-2">
+              <div className="space-y-1.5">
+                <label htmlFor="cms-email" className="block text-xs font-semibold uppercase tracking-wider text-gray-400">
                   อีเมล
                 </label>
                 <input
@@ -568,13 +607,14 @@ const ConflictManagementStyleAssessment: React.FC = () => {
                   type="email"
                   value={user.email}
                   onChange={(e) => setUser((u) => ({ ...u, email: e.target.value }))}
-                  placeholder="กรอกอีเมล"
+                  placeholder="you@company.com"
                   required
-                  className="w-full px-4 py-3 rounded-xl bg-black/50 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-yellow-400"
+                  autoComplete="email"
+                  className={inputFieldClass}
                 />
               </div>
-              <div>
-                <label htmlFor="cms-company" className="block text-sm font-medium text-gray-400 mb-2">
+              <div className="space-y-1.5">
+                <label htmlFor="cms-company" className="block text-xs font-semibold uppercase tracking-wider text-gray-400">
                   บริษัท / องค์กร
                 </label>
                 <input
@@ -582,96 +622,156 @@ const ConflictManagementStyleAssessment: React.FC = () => {
                   type="text"
                   value={user.company}
                   onChange={(e) => setUser((u) => ({ ...u, company: e.target.value }))}
-                  placeholder="บริษัท"
+                  placeholder="ชื่อองค์กร"
                   required
-                  className="w-full px-4 py-3 rounded-xl bg-black/50 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-yellow-400"
+                  autoComplete="organization"
+                  className={inputFieldClass}
                 />
               </div>
               <button
                 type="submit"
-                className="w-full py-3 rounded-xl font-bold bg-yellow-400 text-black hover:bg-yellow-300 shadow-lg shadow-yellow-400/20 transition-all"
+                className="w-full py-3.5 rounded-2xl font-bold text-[15px] bg-gradient-to-r from-sky-500 to-sky-400 text-white hover:from-sky-400 hover:to-sky-300 shadow-lg shadow-sky-500/20 transition-all active:scale-[0.99]"
               >
-                เข้าสู่แบบประเมิน
+                ดำเนินการต่อ
               </button>
+              <p className="text-center text-[11px] text-gray-600 leading-relaxed">
+                กดปุ่มแล้วอ่านคำอธิบายสั้นๆ ก่อนเริ่มตอบคำถาม
+              </p>
             </form>
           </div>
         )}
 
         {step === 'assessment' && (
-          <div className="space-y-8">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-sm text-gray-500">
-              <span className="font-semibold text-sky-400/90">
-                ส่วนที่ {sectionIndex + 1} · ข้อ {currentNums[0]}–{currentNums[currentNums.length - 1]}
-              </span>
-              <span>
-                หน้า {sectionIndex + 1} / {totalSections}
-              </span>
-            </div>
-            <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
-              <div
-                className="h-full bg-gradient-to-r from-sky-500/90 to-yellow-400 rounded-full transition-all duration-300"
-                style={{ width: `${progress}%` }}
-              />
+          <div className="space-y-8 sm:space-y-10">
+            <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-white/[0.07] via-black/20 to-sky-500/[0.04] p-5 sm:p-6 shadow-xl shadow-black/30 ring-1 ring-white/5">
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-5">
+                <div>
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-sky-400/90 mb-1">
+                    {CMS_SECTION_TITLES[sectionIndex] ?? `ส่วนที่ ${sectionIndex + 1}`}
+                  </p>
+                  <h2 className="text-lg sm:text-xl font-bold text-white tracking-tight">
+                    คำถามข้อ {currentNums[0]}–{currentNums[currentNums.length - 1]}
+                  </h2>
+                  <p className="text-xs text-gray-500 mt-1">แตะระดับ 1–4 ตามความถี่ที่คุณทำแบบนั้น</p>
+                </div>
+                <div className="flex sm:flex-col items-center sm:items-end gap-2 shrink-0">
+                  <span className="text-xs font-semibold text-gray-500 whitespace-nowrap">
+                    ช่วง {sectionIndex + 1} / {totalSections}
+                  </span>
+                  <div className="flex gap-1.5">
+                    {Array.from({ length: totalSections }).map((_, i) => (
+                      <span
+                        key={i}
+                        className={`h-2 w-6 sm:w-8 rounded-full transition-colors ${
+                          i === sectionIndex
+                            ? 'bg-sky-400'
+                            : i < sectionIndex
+                              ? 'bg-sky-400/35'
+                              : 'bg-white/15'
+                        }`}
+                        aria-hidden
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div className="flex justify-between text-[11px] text-gray-500 uppercase tracking-wider font-semibold">
+                  <span>ความคืบหน้ารวม</span>
+                  <span className="tabular-nums text-sky-300/90">{Math.round(progress)}%</span>
+                </div>
+                <div className="h-2 rounded-full bg-black/40 overflow-hidden ring-1 ring-white/10">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-sky-500 via-sky-400 to-amber-400 transition-all duration-500 ease-out"
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
+              </div>
             </div>
 
-            <div className="space-y-6">
+            <div className="space-y-6 sm:space-y-7">
               {(currentNums as CmsQuestionNum[]).map((num, i) => {
                 const q = getCmsQuestionByNum(num);
                 if (!q) return null;
                 const globalIdx =
                   CMS_SECTION_QUESTION_NUMS.slice(0, sectionIndex).reduce((n, arr) => n + arr.length, 0) + i;
+                const answered = answers[num] != null;
                 return (
                   <div
                     key={num}
                     id={`cms-question-${num}`}
-                    className="rounded-2xl border border-white/10 bg-white/5 p-5 md:p-6 space-y-4 shadow-lg shadow-black/20 scroll-mt-28"
+                    className={`rounded-3xl border p-5 sm:p-7 space-y-5 scroll-mt-28 transition-shadow ${
+                      answered
+                        ? 'border-sky-500/25 bg-gradient-to-b from-sky-500/[0.06] to-black/25 shadow-lg shadow-sky-500/5'
+                        : 'border-white/10 bg-gradient-to-b from-white/[0.04] to-black/20 ring-1 ring-white/5'
+                    }`}
                   >
-                    <p className="text-xs font-bold text-yellow-400/90 uppercase tracking-widest">
-                      ข้อที่ {globalIdx + 1} / {totalQuestions}
-                    </p>
-                    <p className="text-white text-sm md:text-base leading-relaxed font-medium">{q.text}</p>
-                    <div className="flex flex-col gap-2">
-                      <p className="text-xs text-gray-500">เลือก 1–4</p>
-                      <div className="flex flex-wrap gap-2">
-                        {([1, 2, 3, 4] as const).map((v) => (
-                          <button
-                            key={v}
-                            type="button"
-                            onClick={() => setScale(num, v)}
-                            title={CMS_SCALE_LABELS[v]}
-                            className={`min-w-[2.75rem] px-3 py-2 rounded-xl text-sm font-bold border-2 transition-all ${
-                              answers[num] === v
-                                ? 'bg-sky-400/20 border-sky-400 text-white'
-                                : 'bg-white/5 border-white/10 text-gray-400 hover:border-white/25'
-                            }`}
-                          >
-                            {v}
-                          </button>
-                        ))}
-                      </div>
-                      {answers[num] != null && (
-                        <p className="text-xs text-gray-400 mt-1">{CMS_SCALE_LABELS[answers[num] as 1 | 2 | 3 | 4]}</p>
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="inline-flex items-center gap-2 rounded-full border border-yellow-400/25 bg-yellow-400/10 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-yellow-200/95">
+                        ข้อ {globalIdx + 1} / {totalQuestions}
+                      </span>
+                      {answered ? (
+                        <span className="text-[11px] font-medium text-sky-300/90 flex items-center gap-1">
+                          <span className="text-emerald-400" aria-hidden>
+                            ✓
+                          </span>
+                          บันทึกแล้ว
+                        </span>
+                      ) : (
+                        <span className="text-[11px] text-amber-200/80">ยังไม่ได้เลือก</span>
                       )}
+                    </div>
+                    <p className="text-white text-[15px] sm:text-base leading-relaxed font-medium">{q.text}</p>
+                    <div>
+                      <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-500 mb-3">
+                        เลือกระดับที่ตรงกับคุณมากที่สุด
+                      </p>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
+                        {([1, 2, 3, 4] as const).map((v) => {
+                          const selected = answers[num] === v;
+                          return (
+                            <button
+                              key={v}
+                              type="button"
+                              onClick={() => setScale(num, v)}
+                              title={CMS_SCALE_LABELS[v]}
+                              className={`relative flex flex-col items-center justify-center gap-1 rounded-2xl border-2 px-2 py-3.5 sm:py-4 min-h-[5.5rem] transition-all active:scale-[0.98] ${
+                                selected
+                                  ? 'border-sky-400 bg-sky-500/20 text-white shadow-lg shadow-sky-500/15 ring-2 ring-sky-400/40'
+                                  : 'border-white/12 bg-black/30 text-gray-400 hover:border-white/25 hover:bg-white/[0.06] hover:text-gray-200'
+                              }`}
+                            >
+                              <span className="text-xl sm:text-2xl font-black tabular-nums leading-none">{v}</span>
+                              <span className="text-[11px] sm:text-xs text-center leading-tight px-0.5">
+                                {CMS_SCALE_LABELS[v]}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
                   </div>
                 );
               })}
             </div>
 
-            <div id="cms-assessment-nav" className="flex justify-between pt-6 scroll-mt-8">
+            <div
+              id="cms-assessment-nav"
+              className="sticky bottom-4 z-30 flex justify-between gap-3 p-2 rounded-2xl border border-white/10 bg-black/70 backdrop-blur-xl shadow-2xl shadow-black/50 scroll-mt-8"
+            >
               <button
                 type="button"
                 onClick={handlePrevSection}
                 disabled={sectionIndex === 0}
-                className="px-5 py-2.5 rounded-xl font-bold border border-white/10 text-gray-400 hover:bg-white/5 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                className="flex-1 sm:flex-none px-4 sm:px-6 py-3 rounded-xl font-bold text-sm border border-white/12 text-gray-300 hover:bg-white/8 disabled:opacity-35 disabled:cursor-not-allowed transition-all"
               >
-                ← ก่อนหน้า
+                ← ย้อนกลับ
               </button>
               <button
                 type="button"
                 onClick={handleNextSection}
                 disabled={!canNextSection}
-                className="px-6 py-2.5 rounded-xl font-bold bg-yellow-400 text-black hover:bg-yellow-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                className="flex-1 sm:flex-none px-5 sm:px-8 py-3 rounded-xl font-bold text-sm bg-gradient-to-r from-yellow-400 to-amber-300 text-black hover:from-yellow-300 hover:to-amber-200 disabled:opacity-40 disabled:cursor-not-allowed shadow-lg shadow-yellow-500/15 transition-all"
               >
                 {sectionIndex >= totalSections - 1 ? 'ดูผลลัพธ์' : 'ถัดไป →'}
               </button>
@@ -680,55 +780,76 @@ const ConflictManagementStyleAssessment: React.FC = () => {
         )}
 
         {step === 'result' && isCmsComplete(displayAnswers) && (
-          <div className="space-y-10 max-w-xl mx-auto">
+          <div className="space-y-10 max-w-2xl mx-auto">
             <div ref={resultExportRef} className="space-y-8">
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-6 md:p-8 space-y-6 text-center">
-                <p className="text-[10px] uppercase tracking-widest text-sky-400/90">{SUBTITLE}</p>
-                <h1 className="text-2xl md:text-3xl font-black text-white leading-snug">{ASSESSMENT_TITLE}</h1>
-                <p className="text-gray-400 text-sm">{displayUser.name}</p>
-                <p className="text-xs text-gray-500 -mt-4">
-                  {displayUser.company} · {displayUser.email}
-                </p>
+              <div className="rounded-3xl border border-white/12 bg-gradient-to-b from-white/[0.08] via-sky-500/[0.04] to-black/40 p-6 sm:p-9 text-center shadow-xl shadow-black/40 ring-1 ring-sky-500/10">
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-sky-400/90 mb-2">{SUBTITLE}</p>
+                <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-white leading-snug mb-4">{ASSESSMENT_TITLE}</h1>
+                <div className="inline-flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm">
+                  <span className="font-semibold text-white">{displayUser.name}</span>
+                  <span className="hidden sm:inline text-gray-600">·</span>
+                  <span className="text-gray-400 text-xs sm:text-sm">
+                    {displayUser.company} · {displayUser.email}
+                  </span>
+                </div>
               </div>
 
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-6 space-y-5">
-                <h2 className="text-sm font-bold text-gray-300 uppercase tracking-wider text-center">
+              <div className="rounded-3xl border border-white/10 bg-gradient-to-b from-white/[0.05] to-black/30 p-6 sm:p-8 space-y-6 shadow-xl shadow-black/30">
+                <h2 className="text-center text-xs sm:text-sm font-black uppercase tracking-[0.15em] text-gray-400">
                   ผลคะแนน 5 รูปแบบ
                 </h2>
+                <div className="text-left text-sm text-gray-400 space-y-2 border-b border-white/10 pb-6">
+                  <p className="font-semibold text-gray-200">การให้คะแนนการประเมิน</p>
+                  <p className="leading-relaxed">
+                    คำถามแต่ละข้อสอดคล้องกับรูปแบบการจัดการความขัดแย้ง 5 แบบ เพื่อค้นหารูปแบบที่เหมาะสมที่สุดของคุณ
+                    รวมคะแนนของแต่ละกลุ่มคำถามตามที่ระบุไว้ด้านล่าง:
+                  </p>
+                </div>
                 {CMS_STYLES.map((st) => {
                   const score = styleScores[st.id];
                   const pct = ((score - 3) / 9) * 100;
                   const artwork = STYLE_ARTWORK[st.id];
+                  const isTop = score > 0 && score === maxStyleScore;
                   return (
                     <div
                       key={st.id}
-                      className="border-t border-white/10 first:border-t-0 first:pt-0 pt-4 first:pt-0"
+                      className={`rounded-2xl border p-4 sm:p-5 transition-colors ${
+                        isTop
+                          ? 'border-amber-400/40 bg-gradient-to-r from-amber-400/10 via-yellow-500/5 to-transparent ring-1 ring-amber-400/20'
+                          : 'border-white/8 bg-black/20'
+                      }`}
                     >
-                      <div className="flex gap-3 items-start">
+                      <div className="flex gap-4 items-start">
                         <div className="shrink-0">
                           <div
-                            className="w-20 h-14 rounded-xl border border-white/10 bg-black/20 overflow-hidden flex items-center justify-center"
+                            className="w-[5.25rem] h-[3.75rem] sm:w-24 sm:h-[4.25rem] rounded-xl border border-white/12 bg-black/30 overflow-hidden flex items-center justify-center shadow-inner"
                             role="img"
                             aria-label={`${st.titleTh} artwork`}
                             dangerouslySetInnerHTML={{ __html: artwork.svg }}
                           />
                         </div>
-                        <div className="flex-1">
-                          <div className="flex justify-between gap-2 text-sm mb-2">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-wrap items-baseline justify-between gap-2 mb-2">
                             <div>
-                              <span className="text-white font-semibold block">{st.titleTh}</span>
-                              <span className="text-xs text-gray-500">{st.titleEn}</span>
+                              <span className="text-white font-bold block leading-tight">{st.titleTh}</span>
+                              <span className="text-[11px] sm:text-xs text-gray-500">{st.titleEn}</span>
                             </div>
-                            <span className="tabular-nums shrink-0 text-sky-400/90 font-bold">
-                              {score} / 12
-                            </span>
+                            <div className="flex items-center gap-2 shrink-0">
+                              {isTop ? (
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-amber-300/95 hidden sm:inline">
+                                  สูงสุด
+                                </span>
+                              ) : null}
+                              <span className="tabular-nums text-lg font-black text-sky-300">
+                                {score}
+                                <span className="text-sm font-bold text-gray-500">/12</span>
+                              </span>
+                            </div>
                           </div>
-                          <p className="text-[11px] text-gray-500 mb-2">
-                            จากข้อ {st.questionNums.join(', ')}
-                          </p>
+                          <p className="text-[11px] text-gray-500 mb-3">จากข้อ {st.questionNums.join(', ')}</p>
                           <div className="h-2 rounded-full bg-white/10 overflow-hidden">
                             <div
-                              className="h-full bg-gradient-to-r from-sky-500/80 to-yellow-400/90 rounded-full transition-all"
+                              className="h-full bg-gradient-to-r from-sky-500 to-amber-400 rounded-full transition-all duration-500"
                               style={{ width: `${Math.min(100, Math.max(0, pct))}%` }}
                             />
                           </div>
@@ -739,18 +860,18 @@ const ConflictManagementStyleAssessment: React.FC = () => {
                 })}
               </div>
 
-              <p className="text-center text-[10px] text-gray-500 pb-2">MindDoJo · {ASSESSMENT_TITLE}</p>
+              <p className="text-center text-[10px] text-gray-600 pb-1">MindDoJo · {ASSESSMENT_TITLE}</p>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-3 justify-center flex-wrap">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <button
                 type="button"
                 onClick={handleDownloadPng}
                 disabled={pngLoading}
-                className="px-6 py-3 min-w-[150px] rounded-xl font-bold border border-sky-400/50 text-sky-200 hover:bg-sky-400/10 disabled:opacity-60 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+                className="min-h-[52px] rounded-2xl font-bold text-sm border border-sky-400/45 text-sky-100 bg-sky-500/10 hover:bg-sky-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
               >
                 <span
-                  className={`w-4 h-4 border-2 border-sky-400 border-t-transparent rounded-full shrink-0 ${pngLoading ? 'animate-spin opacity-100' : 'opacity-0'}`}
+                  className={`w-4 h-4 border-2 border-sky-300 border-t-transparent rounded-full shrink-0 ${pngLoading ? 'animate-spin opacity-100' : 'opacity-0'}`}
                   aria-hidden
                 />
                 <span className="tabular-nums">{pngLoading ? 'กำลังสร้าง PNG...' : 'ดาวน์โหลด PNG'}</span>
@@ -759,10 +880,10 @@ const ConflictManagementStyleAssessment: React.FC = () => {
                 type="button"
                 onClick={handleDownloadPdf}
                 disabled={pdfLoading}
-                className="px-6 py-3 min-w-[150px] rounded-xl font-bold border border-yellow-400/50 text-yellow-200 hover:bg-yellow-400/10 disabled:opacity-60 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+                className="min-h-[52px] rounded-2xl font-bold text-sm border border-amber-400/45 text-amber-100 bg-amber-500/10 hover:bg-amber-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
               >
                 <span
-                  className={`w-4 h-4 border-2 border-yellow-400 border-t-transparent rounded-full shrink-0 ${pdfLoading ? 'animate-spin opacity-100' : 'opacity-0'}`}
+                  className={`w-4 h-4 border-2 border-amber-300 border-t-transparent rounded-full shrink-0 ${pdfLoading ? 'animate-spin opacity-100' : 'opacity-0'}`}
                   aria-hidden
                 />
                 <span className="tabular-nums">{pdfLoading ? 'กำลังสร้าง PDF...' : 'ดาวน์โหลด PDF'}</span>
@@ -770,13 +891,13 @@ const ConflictManagementStyleAssessment: React.FC = () => {
               <button
                 type="button"
                 onClick={restart}
-                className="px-6 py-3 rounded-xl font-bold border border-white/15 text-gray-300 hover:bg-white/5 transition-all"
+                className="min-h-[52px] rounded-2xl font-bold text-sm border border-white/15 text-gray-300 hover:bg-white/6 transition-all sm:col-span-2"
               >
                 ทำแบบประเมินใหม่
               </button>
               <Link
                 to="/"
-                className="px-6 py-3 rounded-xl font-bold bg-yellow-400 text-black hover:bg-yellow-300 text-center transition-all"
+                className="min-h-[52px] rounded-2xl font-bold text-sm bg-gradient-to-r from-yellow-400 to-amber-300 text-black hover:from-yellow-300 hover:to-amber-200 flex items-center justify-center text-center transition-all shadow-lg shadow-yellow-500/15 sm:col-span-2"
               >
                 กลับหน้าหลัก
               </Link>
