@@ -1,9 +1,21 @@
 export type EvaEvaluationTemplate = {
   id: string;
   name: string;
+  /** หัวข้อใหญ่บนฟอร์มผู้ตอบ (ใส่ก่อนชื่อแบบประเมินได้ หรือไม่ใส่ก็ได้) */
+  heading?: string;
   description?: string;
   prompts: EvaPrompt[];
   updatedAt: string;
+};
+
+export type EvaDescriptionWeight = 'normal' | 'bold';
+export type EvaDescriptionAlign = 'left' | 'center';
+/** สไตล์ต่อบรรทัดในบล็อกคำอธิบาย */
+export type EvaDescriptionLineStyle = 'normal' | 'bold' | 'small';
+
+export type EvaDescriptionLine = {
+  text: string;
+  style: EvaDescriptionLineStyle;
 };
 
 export type EvaPromptType =
@@ -52,7 +64,68 @@ export type EvaPrompt = {
   fillBridge?: string;
   /** ข้อความหลังช่องว่างที่สอง */
   fillClosing?: string;
+  /** @deprecated ใช้ descriptionLines แทน — อ่านแล้วแปลงใน getDescriptionLines */
+  descriptionWeight?: EvaDescriptionWeight;
+  /** จัดตำแหน่งทั้งบล็อก — ใช้เมื่อ type === 'description' */
+  descriptionAlign?: EvaDescriptionAlign;
+  /** บรรทัดคำอธิบายพร้อมสไตล์ต่อบรรทัด */
+  descriptionLines?: EvaDescriptionLine[];
 };
+
+function parseDescriptionLineStyle(raw: unknown): EvaDescriptionLineStyle {
+  if (raw === 'bold' || raw === 'small') return raw;
+  return 'normal';
+}
+
+export function descriptionLinesToTitle(lines: EvaDescriptionLine[]): string {
+  return lines.map((l) => l.text).join('\n');
+}
+
+/** โจทย์ที่ต้องกรอกคำตอบบนฟอร์ม (ไม่มีข้อความโจทย์ = ไม่บังคับ) */
+export function isEvaPromptRequiredForAnswer(prompt: EvaPrompt): boolean {
+  if (prompt.type === 'description') return false;
+  return Boolean(prompt.title?.trim());
+}
+
+/** บรรทัดคำอธิบายที่มีข้อความ — บรรทัดว่างไม่แสดงบนฟอร์ม */
+export function getVisibleDescriptionLines(prompt: EvaPrompt): EvaDescriptionLine[] {
+  return getDescriptionLines(prompt).filter((l) => l.text.trim().length > 0);
+}
+
+/** อ่านบรรทัดคำอธิบาย (รองรับข้อมูลเก่าที่ใช้ title + descriptionWeight) */
+export function getDescriptionLines(prompt: EvaPrompt): EvaDescriptionLine[] {
+  if (Array.isArray(prompt.descriptionLines) && prompt.descriptionLines.length > 0) {
+    return prompt.descriptionLines.map((l) => ({
+      text: typeof l.text === 'string' ? l.text : '',
+      style: parseDescriptionLineStyle(l.style),
+    }));
+  }
+  const legacyBold = prompt.descriptionWeight === 'bold';
+  const parts = (prompt.title || '').split('\n');
+  if (parts.length === 0) return [{ text: '', style: 'normal' }];
+  return parts.map((text) => ({ text, style: legacyBold ? 'bold' : 'normal' }));
+}
+
+export function getDescriptionAlign(prompt: EvaPrompt): EvaDescriptionAlign {
+  return prompt.descriptionAlign === 'center' ? 'center' : 'left';
+}
+
+export function evaDescriptionLineClassName(style: EvaDescriptionLineStyle): string {
+  if (style === 'bold') return 'font-bold text-base md:text-lg text-gray-100';
+  if (style === 'small') return 'font-normal text-sm md:text-base text-gray-300/95';
+  return 'font-normal text-base md:text-lg text-gray-200';
+}
+
+/** class คอนเทนเนอร์บล็อกคำอธิบายบนฟอร์มผู้ตอบ */
+export function evaDescriptionBlockClassName(prompt: EvaPrompt): string {
+  const align = getDescriptionAlign(prompt) === 'center' ? 'text-center' : 'text-left';
+  return `space-y-1.5 leading-relaxed ${align}`;
+}
+
+/** @deprecated ใช้ getDescriptionLines + evaDescriptionLineClassName */
+export function evaDescriptionBodyClassName(prompt: EvaPrompt): string {
+  return `${evaDescriptionBlockClassName(prompt)} whitespace-pre-line [overflow-wrap:anywhere]`;
+}
 
 export function getPromptNumberStyle(prompt: EvaPrompt): EvaPromptNumberStyle {
   if (
@@ -139,11 +212,17 @@ export function migrateEvaTemplates(templates: EvaEvaluationTemplate[]): EvaEval
       return {
         ...t,
         id: evaBaseIdFromName(t.name || 'แบบประเมิน InnoClub'),
+        heading: typeof t.heading === 'string' ? t.heading : '',
         description: t.description || '',
         prompts: normalizedPrompts,
       };
     }
-    return { ...t, description: t.description || '', prompts: normalizedPrompts };
+    return {
+      ...t,
+      heading: typeof t.heading === 'string' ? t.heading : '',
+      description: t.description || '',
+      prompts: normalizedPrompts,
+    };
   });
 }
 
@@ -211,10 +290,39 @@ function normalizePrompt(raw: unknown, idx: number): EvaPrompt {
     const fillBridge = type === 'fill_sentence' && typeof obj.fillBridge === 'string' ? obj.fillBridge : undefined;
     const fillClosing = type === 'fill_sentence' && typeof obj.fillClosing === 'string' ? obj.fillClosing : undefined;
     if (type === 'description') {
+      const descriptionExtra: Partial<Pick<EvaPrompt, 'descriptionAlign' | 'descriptionLines'>> = {};
+      if (obj.descriptionAlign === 'center') descriptionExtra.descriptionAlign = 'center';
+      const rawLines = obj.descriptionLines;
+      if (Array.isArray(rawLines) && rawLines.length > 0) {
+        descriptionExtra.descriptionLines = rawLines.map((l) => {
+          const row = l as Partial<EvaDescriptionLine>;
+          return {
+            text: typeof row.text === 'string' ? row.text : '',
+            style: parseDescriptionLineStyle(row.style),
+          };
+        });
+      }
+      const title =
+        descriptionExtra.descriptionLines?.length
+          ? descriptionLinesToTitle(descriptionExtra.descriptionLines)
+          : typeof obj.title === 'string'
+            ? obj.title
+            : '';
+      if (!descriptionExtra.descriptionLines?.length) {
+        const legacyBold = obj.descriptionWeight === 'bold';
+        descriptionExtra.descriptionLines = title.split('\n').map((text) => ({
+          text,
+          style: legacyBold ? ('bold' as const) : ('normal' as const),
+        }));
+        if (descriptionExtra.descriptionLines.length === 0) {
+          descriptionExtra.descriptionLines = [{ text: '', style: 'normal' }];
+        }
+      }
       return {
         id: obj.id?.trim() || `prompt-${idx + 1}`,
-        title: typeof obj.title === 'string' ? obj.title : '',
+        title,
         type: 'description' as const,
+        ...descriptionExtra,
       };
     }
     const numberingExtra: Partial<Pick<EvaPrompt, 'promptNumberStyle' | 'fixedNumberPrefix'>> = (() => {
@@ -231,7 +339,7 @@ function normalizePrompt(raw: unknown, idx: number): EvaPrompt {
     })();
     return {
       id: obj.id?.trim() || `prompt-${idx + 1}`,
-      title: obj.title?.trim() || `คำถามที่ ${idx + 1}`,
+      title: typeof obj.title === 'string' ? obj.title : '',
       type,
       ...numberingExtra,
       options,
@@ -247,7 +355,7 @@ function normalizePrompt(raw: unknown, idx: number): EvaPrompt {
   }
   return {
     id: `prompt-${idx + 1}`,
-    title: `คำถามที่ ${idx + 1}`,
+    title: '',
     type: 'text',
   };
 }

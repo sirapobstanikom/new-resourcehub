@@ -9,10 +9,15 @@ import {
   EVA_DEFAULT_FILL_INTRO_TH,
   EVA_DEFAULT_FILL_LEAD_IN,
   findEvaTemplateByRouteId,
+  evaDescriptionBlockClassName,
+  evaDescriptionLineClassName,
+  getVisibleDescriptionLines,
+  isEvaPromptRequiredForAnswer,
   getPromptNumberStyle,
   loadStoredEvaTemplates,
   type EvaEvaluationTemplate,
 } from '../lib/evaTemplates';
+import { fetchEvaEditorTemplatesFromSupabase } from '../lib/evaSupabaseTemplates';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { EvaAnswerHoverPopover } from './EvaAnswerHoverPopover';
 
@@ -60,27 +65,17 @@ const EvaPublicFormPage: React.FC = () => {
         setLoadingTemplate(false);
         return;
       }
-      const { data, error: loadError } = await supabase
-        .from('eva_editor_templates')
-        .select('id, name, description, prompts_json, updated_at')
-        .order('updated_at', { ascending: false });
+      const { templates: remoteTemplates, error: loadError } = await fetchEvaEditorTemplatesFromSupabase();
       if (loadError) {
         setTemplate(findEvaTemplateByRouteId(localTemplates, templateId));
         setError(
-          /does not exist|could not find the table/i.test(loadError.message || '')
+          /does not exist|could not find the table/i.test(loadError)
             ? 'ยังไม่พบตาราง eva_editor_templates ใน Supabase'
-            : `โหลดแบบประเมินจาก Supabase ไม่สำเร็จ (${loadError.message})`
+            : `โหลดแบบประเมินจาก Supabase ไม่สำเร็จ (${loadError})`
         );
         setLoadingTemplate(false);
         return;
       }
-      const remoteTemplates: EvaEvaluationTemplate[] = (data || []).map((row) => ({
-        id: row.id as string,
-        name: row.name as string,
-        description: (row.description as string) || '',
-        prompts: Array.isArray(row.prompts_json) ? (row.prompts_json as EvaEvaluationTemplate['prompts']) : [],
-        updatedAt: (row.updated_at as string) || new Date().toISOString(),
-      }));
       const found = findEvaTemplateByRouteId(remoteTemplates, templateId)
         || findEvaTemplateByRouteId(localTemplates, templateId);
       setTemplate(found);
@@ -108,6 +103,7 @@ const EvaPublicFormPage: React.FC = () => {
   const canSubmit = useMemo(() => {
     if (!template) return false;
     return template.prompts.every((prompt) => {
+      if (!isEvaPromptRequiredForAnswer(prompt)) return true;
       const value = (answers[prompt.id] || '').trim();
       if (prompt.type === 'rating_1_5') {
         const items = prompt.ratingItems && prompt.ratingItems.length > 0 ? prompt.ratingItems : [prompt.title];
@@ -148,6 +144,7 @@ const EvaPublicFormPage: React.FC = () => {
     if (!template) return [];
     return template.prompts
       .filter((prompt) => {
+        if (!isEvaPromptRequiredForAnswer(prompt)) return false;
         const value = (answers[prompt.id] || '').trim();
         if (prompt.type === 'rating_1_5') {
           const items = prompt.ratingItems && prompt.ratingItems.length > 0 ? prompt.ratingItems : [prompt.title];
@@ -373,12 +370,26 @@ const EvaPublicFormPage: React.FC = () => {
             <p className="text-xs md:text-sm uppercase tracking-[0.14em] text-yellow-200/75 mb-2">
               แบบประเมิน
             </p>
-            <h1
-              title={template.name}
-              className="text-xl md:text-3xl font-bold text-yellow-100 leading-relaxed break-words [overflow-wrap:anywhere]"
-            >
-              {template.name}
-            </h1>
+            {template.heading?.trim() && (
+              <h1
+                title={template.heading}
+                className="text-2xl md:text-4xl font-black text-white leading-tight break-words [overflow-wrap:anywhere] mb-2"
+              >
+                {template.heading}
+              </h1>
+            )}
+            {template.name?.trim() && (
+              <p
+                title={template.name}
+                className={`leading-relaxed break-words [overflow-wrap:anywhere] text-yellow-100 ${
+                  template.heading?.trim()
+                    ? 'text-lg md:text-xl font-semibold'
+                    : 'text-xl md:text-3xl font-bold'
+                }`}
+              >
+                {template.name}
+              </p>
+            )}
             {template.description?.trim() && (
               <p className="text-gray-300/90 text-base md:text-lg mt-3 leading-relaxed whitespace-pre-line">
                 {template.description}
@@ -390,26 +401,35 @@ const EvaPublicFormPage: React.FC = () => {
               let displayOrdinal = 0;
               return template.prompts.map((prompt) => {
                 if (prompt.type === 'description') {
+                  const visibleLines = getVisibleDescriptionLines(prompt);
+                  if (visibleLines.length === 0) return null;
                   return (
                     <div
                       key={`${template.id}-${prompt.id}`}
                       className="rounded-xl border border-amber-300/25 bg-amber-500/[0.07] px-4 py-3 md:px-5 md:py-4"
                     >
-                      <p className="text-xs font-semibold uppercase tracking-wider text-amber-200/85 mb-2">คำอธิบาย</p>
-                      <div className="text-base text-gray-200 leading-relaxed whitespace-pre-line [overflow-wrap:anywhere]">
-                        {prompt.title}
+                      <div className={evaDescriptionBlockClassName(prompt)}>
+                        {visibleLines.map((line, lineIdx) => (
+                          <p
+                            key={`${prompt.id}-dl-${lineIdx}`}
+                            className={`${evaDescriptionLineClassName(line.style)} [overflow-wrap:anywhere]`}
+                          >
+                            {line.text}
+                          </p>
+                        ))}
                       </div>
                     </div>
                   );
                 }
+                const titleVisible = Boolean(prompt.title.trim());
                 const style = getPromptNumberStyle(prompt);
                 let prefix = '';
-                if (style === 'auto') {
+                if (style === 'auto' && titleVisible) {
                   displayOrdinal += 1;
                   prefix = `${displayOrdinal}. `;
                 } else if (style === 'none') {
                   prefix = '';
-                } else {
+                } else if (titleVisible) {
                   prefix = prompt.fixedNumberPrefix ?? '';
                 }
                 return (
@@ -420,10 +440,12 @@ const EvaPublicFormPage: React.FC = () => {
                       promptRefs.current[prompt.id] = el;
                     }}
                   >
-                    <p className="text-base md:text-lg font-medium text-gray-100 leading-relaxed">
-                      {prefix}
-                      {prompt.title}
-                    </p>
+                    {titleVisible && (
+                      <p className="text-base md:text-lg font-medium text-gray-100 leading-relaxed">
+                        {prefix}
+                        {prompt.title}
+                      </p>
+                    )}
                     {prompt.type === 'choice' ? (
                   <div className="space-y-2.5">
                     {(prompt.options || []).map((option) => (

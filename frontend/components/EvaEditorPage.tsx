@@ -2,6 +2,10 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import * as XLSX from 'xlsx';
 import { isAdminAuthenticated } from '../lib/auth';
+import {
+  fetchEvaEditorTemplatesFromSupabase,
+  upsertEvaEditorTemplateToSupabase,
+} from '../lib/evaSupabaseTemplates';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import {
   createNewEvaDashboardInstance,
@@ -12,12 +16,18 @@ import {
   type EvaDashboardInstance,
   upsertDashboardInStore,
 } from '../lib/evaDashboardConfig';
+import { EvaDescriptionLinesEditor } from './EvaDescriptionLinesEditor';
 import {
   type EvaEvaluationTemplate,
   type EvaPrompt,
+  type EvaDescriptionAlign,
+  type EvaDescriptionLine,
   type EvaPromptNumberStyle,
   type EvaPromptType,
   type EvaCommitmentRow,
+  descriptionLinesToTitle,
+  getDescriptionAlign,
+  getDescriptionLines,
   EVA_TEMPLATE_STORAGE_KEY,
   EVA_DEFAULT_COMMITMENT_HEADERS,
   EVA_DEFAULT_FILL_BRIDGE,
@@ -67,16 +77,18 @@ function newEvaBlockId(prefix: string) {
 }
 
 function makeNewTextPrompt(): EvaPrompt {
-  return { id: newEvaBlockId('prompt'), title: 'คำถามใหม่', type: 'text' };
+  return { id: newEvaBlockId('prompt'), title: '', type: 'text' };
 }
 
 function makeNewDescriptionPrompt(): EvaPrompt {
   return {
     id: newEvaBlockId('desc'),
-    title: 'พิมพ์คำอธิบายระหว่างโจทย์ที่นี่...',
+    title: '',
     type: 'description',
+    descriptionLines: [{ text: '', style: 'normal' }],
   };
 }
+
 
 function readTemplates(): EvaEvaluationTemplate[] {
   if (typeof window === 'undefined') return DEFAULT_TEMPLATES;
@@ -119,6 +131,10 @@ const EvaEditorPage: React.FC = () => {
   const [newFillLeadIn, setNewFillLeadIn] = useState(EVA_DEFAULT_FILL_LEAD_IN);
   const [newFillBridge, setNewFillBridge] = useState(EVA_DEFAULT_FILL_BRIDGE);
   const [newFillClosing, setNewFillClosing] = useState(EVA_DEFAULT_FILL_CLOSING);
+  const [newDescriptionLines, setNewDescriptionLines] = useState<EvaDescriptionLine[]>([
+    { text: '', style: 'normal' },
+  ]);
+  const [newDescriptionAlign, setNewDescriptionAlign] = useState<EvaDescriptionAlign>('left');
   const [message, setMessage] = useState<string | null>(null);
   const [syncError, setSyncError] = useState<string | null>(null);
   const [exportingTemplateId, setExportingTemplateId] = useState<string | null>(null);
@@ -135,18 +151,18 @@ const EvaEditorPage: React.FC = () => {
 
   const syncTemplateToSupabase = async (template: EvaEvaluationTemplate) => {
     if (!isSupabaseConfigured) return;
-    const { error } = await supabase.from('eva_editor_templates').upsert({
-      id: template.id,
-      name: template.name,
-      description: template.description || '',
-      prompts_json: template.prompts,
-      updated_at: new Date().toISOString(),
-    });
-    if (error) {
+    const result = await upsertEvaEditorTemplateToSupabase(template);
+    if (!result.ok) {
       setSyncError(
-        /does not exist|could not find the table/i.test(error.message || '')
+        /does not exist|could not find the table/i.test(result.error || '')
           ? 'ยังไม่พบตาราง eva_editor_templates ใน Supabase'
-          : `บันทึก Supabase ไม่สำเร็จ: ${error.message}`
+          : `บันทึก Supabase ไม่สำเร็จ: ${result.error}`
+      );
+      return;
+    }
+    if (!result.headingSynced && template.heading?.trim()) {
+      setSyncError(
+        'บันทึกแบบประเมินแล้ว แต่ Heading ยังเก็บเฉพาะในเครื่อง — รัน migration คอลัมน์ heading ใน Supabase เพื่อ sync ข้ามอุปกรณ์'
       );
     } else {
       setSyncError(null);
@@ -242,25 +258,16 @@ const EvaEditorPage: React.FC = () => {
   useEffect(() => {
     if (!isSupabaseConfigured) return;
     const loadTemplatesFromSupabase = async () => {
-      const { data, error } = await supabase
-        .from('eva_editor_templates')
-        .select('id, name, description, prompts_json, updated_at')
-        .order('updated_at', { ascending: false });
+      const { templates: mapped, error, headingColumnAvailable } =
+        await fetchEvaEditorTemplatesFromSupabase();
       if (error) {
         setSyncError(
-          /does not exist|could not find the table/i.test(error.message || '')
+          /does not exist|could not find the table/i.test(error)
             ? 'ยังไม่พบตาราง eva_editor_templates ใน Supabase'
-            : `โหลดข้อมูล Supabase ไม่สำเร็จ: ${error.message}`
+            : `โหลดข้อมูล Supabase ไม่สำเร็จ: ${error}`
         );
         return;
       }
-      const mapped: EvaEvaluationTemplate[] = (data || []).map((row) => ({
-        id: row.id as string,
-        name: row.name as string,
-        description: (row.description as string) || '',
-        prompts: Array.isArray(row.prompts_json) ? (row.prompts_json as EvaPrompt[]) : [],
-        updatedAt: (row.updated_at as string) || new Date().toISOString(),
-      }));
       if (mapped.length > 0) {
         setTemplates(mapped);
         if (typeof window !== 'undefined') {
@@ -268,7 +275,11 @@ const EvaEditorPage: React.FC = () => {
         }
         setSelectedId(mapped[0].id);
       }
-      setSyncError(null);
+      setSyncError(
+        headingColumnAvailable
+          ? null
+          : 'Supabase ยังไม่มีคอลัมน์ heading — รัน migration แล้ว Heading จะ sync ได้ (ตอนนี้ใช้จากเครื่อง/localStorage)'
+      );
     };
     loadTemplatesFromSupabase();
   }, []);
@@ -356,6 +367,16 @@ const EvaEditorPage: React.FC = () => {
     setMessage('อัปเดตชื่อและลิงก์แบบประเมินแล้ว');
   };
 
+  const updateTemplateHeading = (heading: string) => {
+    if (!selectedTemplate) return;
+    const next = templates.map((item) =>
+      item.id === selectedTemplate.id
+        ? { ...item, heading, updatedAt: new Date().toISOString() }
+        : item
+    );
+    saveTemplates(next, { upsertTemplateId: selectedTemplate.id });
+  };
+
   const updateTemplateDescription = (description: string) => {
     if (!selectedTemplate) return;
     const next = templates.map((item) =>
@@ -385,11 +406,11 @@ const EvaEditorPage: React.FC = () => {
     if (!selectedTemplate) return;
     const title = newPromptTitle.trim();
     if (newPromptType === 'description') {
-      if (!title) {
-        setMessage('กรุณาพิมพ์เนื้อหาคำอธิบาย');
+      if (!newDescriptionLines.some((l) => l.text.trim())) {
+        setMessage('กรุณาพิมพ์เนื้อหาคำอธิบายอย่างน้อยหนึ่งบรรทัด');
         return;
       }
-    } else if (!title) return;
+    } else if (!title && newPromptType !== 'text') return;
     const options =
       newPromptType === 'choice' || newPromptType === 'multi_choice'
         ? newPromptOptions.map((line) => line.trim()).filter(Boolean)
@@ -428,7 +449,17 @@ const EvaEditorPage: React.FC = () => {
     const fillClosing = newPromptType === 'fill_sentence' ? newFillClosing : undefined;
 
     if (newPromptType === 'description') {
-      const nextPrompt: EvaPrompt = { id: newEvaBlockId('desc'), title, type: 'description' };
+      const lines = newDescriptionLines.map((l) => ({
+        text: l.text,
+        style: l.style,
+      }));
+      const nextPrompt: EvaPrompt = {
+        id: newEvaBlockId('desc'),
+        title: descriptionLinesToTitle(lines),
+        type: 'description',
+        descriptionLines: lines,
+        ...(newDescriptionAlign === 'center' ? { descriptionAlign: 'center' as const } : {}),
+      };
       updateSelectedTemplate((item) => ({
         ...item,
         prompts: [...item.prompts, nextPrompt],
@@ -445,6 +476,8 @@ const EvaEditorPage: React.FC = () => {
       setNewFillLeadIn(EVA_DEFAULT_FILL_LEAD_IN);
       setNewFillBridge(EVA_DEFAULT_FILL_BRIDGE);
       setNewFillClosing(EVA_DEFAULT_FILL_CLOSING);
+      setNewDescriptionLines([{ text: '', style: 'normal' }]);
+      setNewDescriptionAlign('left');
       setMessage('เพิ่มคำอธิบายแล้ว');
       return;
     }
@@ -512,6 +545,33 @@ const EvaEditorPage: React.FC = () => {
       return { ...item, prompts, updatedAt: new Date().toISOString() };
     });
 
+  const updatePromptDescriptionLines = (idx: number, lines: EvaDescriptionLine[]) =>
+    updateSelectedTemplate((item) => {
+      const prompts = [...item.prompts];
+      const cur = prompts[idx];
+      if (cur.type !== 'description') return item;
+      const next: EvaPrompt = {
+        ...cur,
+        descriptionLines: lines,
+        title: descriptionLinesToTitle(lines),
+      };
+      delete next.descriptionWeight;
+      prompts[idx] = next;
+      return { ...item, prompts, updatedAt: new Date().toISOString() };
+    });
+
+  const updatePromptDescriptionAlign = (idx: number, align: EvaDescriptionAlign) =>
+    updateSelectedTemplate((item) => {
+      const prompts = [...item.prompts];
+      const cur = prompts[idx];
+      if (cur.type !== 'description') return item;
+      const next: EvaPrompt = { ...cur };
+      if (align === 'center') next.descriptionAlign = 'center';
+      else delete next.descriptionAlign;
+      prompts[idx] = next;
+      return { ...item, prompts, updatedAt: new Date().toISOString() };
+    });
+
   const updatePromptFixedNumberPrefix = (idx: number, value: string) =>
     updateSelectedTemplate((item) => {
       const prompts = [...item.prompts];
@@ -526,7 +586,20 @@ const EvaEditorPage: React.FC = () => {
       const prompts = [...item.prompts];
       const current = prompts[idx];
       if (type === 'description') {
-        prompts[idx] = { id: current.id, title: current.title, type: 'description' };
+        const lines =
+          current.type === 'description'
+            ? getDescriptionLines(current)
+            : [{ text: current.title, style: 'normal' as const }];
+        const desc: EvaPrompt = {
+          id: current.id,
+          title: descriptionLinesToTitle(lines),
+          type: 'description',
+          descriptionLines: lines,
+        };
+        if (current.type === 'description' && current.descriptionAlign === 'center') {
+          desc.descriptionAlign = 'center';
+        }
+        prompts[idx] = desc;
         return { ...item, prompts, updatedAt: new Date().toISOString() };
       }
       const next: EvaPrompt = {
@@ -1253,7 +1326,14 @@ const EvaEditorPage: React.FC = () => {
             <div className="space-y-5">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex-1 min-w-[220px]">
-                  <label className="text-sm text-gray-400">ชื่อแบบประเมิน</label>
+                  <label className="text-sm text-gray-400">Heading แบบประเมิน (ไม่บังคับ)</label>
+                  <input
+                    value={selectedTemplate.heading || ''}
+                    onChange={(e) => updateTemplateHeading(e.target.value)}
+                    placeholder="หัวข้อใหญ่บนฟอร์มผู้ตอบ — ใส่ก่อนชื่อแบบประเมินได้"
+                    className="mt-1 w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2"
+                  />
+                  <label className="text-sm text-gray-400 mt-3 block">ชื่อแบบประเมิน</label>
                   <input
                     value={selectedTemplate.name}
                     onChange={(e) => updateTemplateName(e.target.value)}
@@ -1317,17 +1397,23 @@ const EvaEditorPage: React.FC = () => {
                               คำอธิบาย
                             </span>
                           )}
-                          <textarea
-                            value={prompt.title}
-                            onChange={(e) => updatePromptTitle(idx, e.target.value)}
-                            rows={prompt.type === 'description' ? 5 : 2}
-                            placeholder={
-                              prompt.type === 'description'
-                                ? 'เนื้อหาคำอธิบายระหว่างโจทย์ (หลายบรรทัดได้)'
-                                : 'ข้อความโจทย์ที่ผู้ตอบเห็น'
-                            }
-                            className="w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm resize-y"
-                          />
+                          {prompt.type === 'description' ? (
+                            <EvaDescriptionLinesEditor
+                              fieldId={`${selectedTemplate.id}-${prompt.id}`}
+                              lines={getDescriptionLines(prompt)}
+                              align={getDescriptionAlign(prompt)}
+                              onLinesChange={(lines) => updatePromptDescriptionLines(idx, lines)}
+                              onAlignChange={(a) => updatePromptDescriptionAlign(idx, a)}
+                            />
+                          ) : (
+                            <textarea
+                              value={prompt.title}
+                              onChange={(e) => updatePromptTitle(idx, e.target.value)}
+                              rows={2}
+                              placeholder="ข้อความโจทย์ที่ผู้ตอบเห็น"
+                              className="w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm resize-y"
+                            />
+                          )}
                           {prompt.type !== 'description' && (
                             <div className="space-y-2 text-xs text-gray-400">
                               <p className="font-medium text-gray-300">เลข / ข้อความนำหน้าบนฟอร์มผู้ตอบ</p>
@@ -1431,7 +1517,7 @@ const EvaEditorPage: React.FC = () => {
                         </select>
                         {prompt.type === 'description' && (
                           <p className="text-xs text-gray-500 leading-relaxed">
-                            แสดงเป็นข้อความบนฟอร์มผู้ตอบเท่านั้น ไม่นับเป็นข้อที่ต้องกรอก และไม่บันทึกในคำตอบ
+                            แสดงเป็นข้อความบนฟอร์มผู้ตอบเท่านั้น (ไม่แสดงคำว่า &quot;คำอธิบาย&quot;) — เลือกสไตล์ต่อบรรทัด: ปกติ / ตัวหนา / ตัวเล็ก
                           </p>
                         )}
                         {prompt.type !== 'description' && (
@@ -1612,19 +1698,25 @@ const EvaEditorPage: React.FC = () => {
                   <option value="fill_sentence">เติมช่องว่าง — คำมั่นผู้นำ (ประโยคเดียว)</option>
                   <option value="description">คำอธิบาย (ไม่ต้องตอบ)</option>
                 </select>
-                <textarea
-                  value={newPromptTitle}
-                  onChange={(e) => setNewPromptTitle(e.target.value)}
-                  rows={newPromptType === 'description' ? 4 : 3}
-                  placeholder={
-                    newPromptType === 'description'
-                      ? 'พิมพ์คำอธิบายระหว่างโจทย์ (หลายบรรทัดได้)...'
-                      : 'พิมพ์โจทย์ที่ต้องการเพิ่ม...'
-                  }
-                  className="mt-1 w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm resize-y"
-                />
-                {newPromptType === 'description' && (
-                  <p className="mt-1 text-xs text-gray-500">ไม่บังคับให้ผู้ตอบกรอก — ใช้แบ่งช่วงหรืออธิบายบริบท</p>
+                {newPromptType === 'description' ? (
+                  <div className="mt-2">
+                    <EvaDescriptionLinesEditor
+                      fieldId="new-desc-block"
+                      lines={newDescriptionLines}
+                      align={newDescriptionAlign}
+                      onLinesChange={setNewDescriptionLines}
+                      onAlignChange={setNewDescriptionAlign}
+                    />
+                    <p className="mt-1 text-xs text-gray-500">ไม่บังคับให้ผู้ตอบกรอก — ใช้แบ่งช่วงหรืออธิบายบริบท</p>
+                  </div>
+                ) : (
+                  <textarea
+                    value={newPromptTitle}
+                    onChange={(e) => setNewPromptTitle(e.target.value)}
+                    rows={3}
+                    placeholder="พิมพ์โจทย์ที่ต้องการเพิ่ม..."
+                    className="mt-1 w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm resize-y"
+                  />
                 )}
                 {(newPromptType === 'choice' || newPromptType === 'multi_choice') && (
                   <div className="mt-2 space-y-2">
