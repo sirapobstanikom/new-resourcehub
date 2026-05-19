@@ -36,6 +36,7 @@ const AdminMindDojoAssessmentUsersPage = lazy(() => import('./components/AdminMi
 const Game10Timeout = lazy(() => import('./components/Game10Timeout'));
 const GameReaction = lazy(() => import('./components/GameReaction'));
 const GameAr = lazy(() => import('./components/GameAr'));
+const GameHiddenFox = lazy(() => import('./components/GameHiddenFox'));
 const WhaleDoneRolePlayPage = lazy(() => import('./components/WhaleDoneRolePlayPage'));
 const InnoClubEvaluationPage = lazy(() => import('./components/InnoClubEvaluationPage'));
 const HogwartsInnoclubPage = lazy(() => import('./components/HogwartsInnoclubPage'));
@@ -265,6 +266,7 @@ const App: React.FC = () => {
           <Route path="/gamification/10-timeout" element={<Game10Timeout />} />
           <Route path="/gamification/reaction" element={<GameReaction />} />
           <Route path="/gamification/game-ar" element={<GameAr />} />
+          <Route path="/gamification/hidden-fox" element={<GameHiddenFox />} />
           <Route path="/gamification/whale-done-role-play" element={<WhaleDoneRolePlayPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
