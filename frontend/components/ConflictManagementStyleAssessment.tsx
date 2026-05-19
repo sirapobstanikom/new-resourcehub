@@ -151,102 +151,28 @@ const STYLE_ARTWORK: Record<
   CmsStyleId,
   {
     titleTh: string;
-    svg: string;
+    image: string;
   }
 > = {
   avoiding: {
     titleTh: 'การหลีกหนี',
-    svg: `
-      <svg xmlns="http://www.w3.org/2000/svg" width="240" height="180" viewBox="0 0 240 180" fill="none">
-        <defs>
-          <linearGradient id="g" x1="0" y1="0" x2="240" y2="180" gradientUnits="userSpaceOnUse">
-            <stop stop-color="#38BDF8" stop-opacity="0.18"/>
-            <stop offset="1" stop-color="#FBBF24" stop-opacity="0.18"/>
-          </linearGradient>
-        </defs>
-        <rect x="18" y="18" width="204" height="144" rx="22" fill="url(#g)" stroke="#38BDF8" stroke-opacity="0.35"/>
-        <path d="M82 60h56l14 14v56H82V60z" fill="#0B1220" fill-opacity="0.35" stroke="#38BDF8" stroke-opacity="0.55" stroke-width="2"/>
-        <path d="M102 94c12-14 26-14 38 0" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/>
-        <path d="M94 120c10-12 42-12 52 0" stroke="#38BDF8" stroke-width="6" stroke-linecap="round" stroke-opacity="0.9"/>
-        <path d="M64 132l-14 14" stroke="#FBBF24" stroke-width="8" stroke-linecap="round"/>
-      </svg>
-    `,
+    image: 'https://axaasphuaaadzjoffznj.supabase.co/storage/v1/object/public/images/avoiding.png',
   },
   accommodating: {
     titleTh: 'การยอมตาม',
-    svg: `
-      <svg xmlns="http://www.w3.org/2000/svg" width="240" height="180" viewBox="0 0 240 180" fill="none">
-        <defs>
-          <linearGradient id="g" x1="0" y1="0" x2="240" y2="180" gradientUnits="userSpaceOnUse">
-            <stop stop-color="#FBBF24" stop-opacity="0.18"/>
-            <stop offset="1" stop-color="#22C55E" stop-opacity="0.15"/>
-          </linearGradient>
-        </defs>
-        <rect x="18" y="18" width="204" height="144" rx="22" fill="url(#g)" stroke="#22C55E" stroke-opacity="0.35"/>
-        <path d="M72 108c18-34 78-34 96 0" stroke="#22C55E" stroke-width="10" stroke-linecap="round"/>
-        <path d="M88 92c10-16 24-24 32-24" stroke="#FBBF24" stroke-width="8" stroke-linecap="round" stroke-opacity="0.95"/>
-        <path d="M152 88l18 18-18 18-18-18 18-18z" fill="#0B1220" fill-opacity="0.35" stroke="#FBBF24" stroke-opacity="0.7" stroke-width="2"/>
-        <path d="M62 134c26 14 102 14 128 0" stroke="#38BDF8" stroke-width="6" stroke-linecap="round" stroke-opacity="0.85"/>
-      </svg>
-    `,
+    image: 'https://axaasphuaaadzjoffznj.supabase.co/storage/v1/object/public/images/accommodating.png',
   },
   competing: {
     titleTh: 'การเอาชนะ',
-    svg: `
-      <svg xmlns="http://www.w3.org/2000/svg" width="240" height="180" viewBox="0 0 240 180" fill="none">
-        <defs>
-          <linearGradient id="g" x1="0" y1="0" x2="240" y2="180" gradientUnits="userSpaceOnUse">
-            <stop stop-color="#F43F5E" stop-opacity="0.18"/>
-            <stop offset="1" stop-color="#FBBF24" stop-opacity="0.18"/>
-          </linearGradient>
-        </defs>
-        <rect x="18" y="18" width="204" height="144" rx="22" fill="url(#g)" stroke="#F43F5E" stroke-opacity="0.35"/>
-        <path d="M120 52l28 20v48c0 18-14 34-28 34s-28-16-28-34V72l28-20z" fill="#0B1220" fill-opacity="0.35" stroke="#FBBF24" stroke-opacity="0.65" stroke-width="2"/>
-        <path d="M92 116l56-44" stroke="#F43F5E" stroke-width="10" stroke-linecap="round"/>
-        <path d="M98 62c8-6 36-6 44 0" stroke="#38BDF8" stroke-width="6" stroke-linecap="round" stroke-opacity="0.9"/>
-        <path d="M64 144l18-18" stroke="#FBBF24" stroke-width="8" stroke-linecap="round"/>
-      </svg>
-    `,
+    image: 'https://axaasphuaaadzjoffznj.supabase.co/storage/v1/object/public/images/competing.png',
   },
   collaborating: {
     titleTh: 'การร่วมมือ',
-    svg: `
-      <svg xmlns="http://www.w3.org/2000/svg" width="240" height="180" viewBox="0 0 240 180" fill="none">
-        <defs>
-          <linearGradient id="g" x1="0" y1="0" x2="240" y2="180" gradientUnits="userSpaceOnUse">
-            <stop stop-color="#38BDF8" stop-opacity="0.18"/>
-            <stop offset="1" stop-color="#A78BFA" stop-opacity="0.16"/>
-          </linearGradient>
-        </defs>
-        <rect x="18" y="18" width="204" height="144" rx="22" fill="url(#g)" stroke="#A78BFA" stroke-opacity="0.35"/>
-        <circle cx="92" cy="92" r="18" fill="#0B1220" fill-opacity="0.35" stroke="#38BDF8" stroke-opacity="0.75" stroke-width="2"/>
-        <circle cx="148" cy="72" r="18" fill="#0B1220" fill-opacity="0.35" stroke="#A78BFA" stroke-opacity="0.75" stroke-width="2"/>
-        <circle cx="152" cy="112" r="18" fill="#0B1220" fill-opacity="0.35" stroke="#FBBF24" stroke-opacity="0.7" stroke-width="2"/>
-        <path d="M106 84l26-18" stroke="#38BDF8" stroke-width="8" stroke-linecap="round" stroke-opacity="0.9"/>
-        <path d="M132 84l22 22" stroke="#A78BFA" stroke-width="8" stroke-linecap="round" stroke-opacity="0.9"/>
-        <path d="M86 112c10 10 22 16 36 14" stroke="#FBBF24" stroke-width="6" stroke-linecap="round" stroke-opacity="0.9"/>
-      </svg>
-    `,
+    image: 'https://axaasphuaaadzjoffznj.supabase.co/storage/v1/object/public/images/collaborating.png',
   },
   compromising: {
     titleTh: 'การประนีประนอม',
-    svg: `
-      <svg xmlns="http://www.w3.org/2000/svg" width="240" height="180" viewBox="0 0 240 180" fill="none">
-        <defs>
-          <linearGradient id="g" x1="0" y1="0" x2="240" y2="180" gradientUnits="userSpaceOnUse">
-            <stop stop-color="#22C55E" stop-opacity="0.16"/>
-            <stop offset="1" stop-color="#38BDF8" stop-opacity="0.16"/>
-          </linearGradient>
-        </defs>
-        <rect x="18" y="18" width="204" height="144" rx="22" fill="url(#g)" stroke="#22C55E" stroke-opacity="0.35"/>
-        <path d="M120 50v26" stroke="#FBBF24" stroke-width="8" stroke-linecap="round"/>
-        <path d="M82 82h76" stroke="#38BDF8" stroke-width="10" stroke-linecap="round" stroke-opacity="0.9"/>
-        <path d="M70 136l50-54" stroke="#22C55E" stroke-width="8" stroke-linecap="round" stroke-opacity="0.95"/>
-        <path d="M170 136l-50-54" stroke="#38BDF8" stroke-width="8" stroke-linecap="round" stroke-opacity="0.95"/>
-        <circle cx="78" cy="128" r="10" fill="#0B1220" fill-opacity="0.35" stroke="#FBBF24" stroke-opacity="0.7" stroke-width="2"/>
-        <circle cx="162" cy="128" r="10" fill="#0B1220" fill-opacity="0.35" stroke="#FBBF24" stroke-opacity="0.7" stroke-width="2"/>
-      </svg>
-    `,
+    image: 'https://axaasphuaaadzjoffznj.supabase.co/storage/v1/object/public/images/Compromising.webp',
   },
 };
 
@@ -408,14 +334,13 @@ const ConflictManagementStyleAssessment: React.FC = () => {
     const el = resultExportRef.current;
     if (!el) return Promise.reject(new Error('ไม่พบพื้นที่ผลลัพธ์'));
     // PDF ใช้ scale ต่ำกว่าเพื่อลดเวลาเรนเดอร์ (ยังคงคมชัดบน A4)
+
     const targetScale =
-      mode === 'pdf'
-        ? isMobileSafariLike()
-          ? 1.1
-          : 1.25
-        : isMobileSafariLike()
-          ? Math.min(1.8, window.devicePixelRatio || 1.5)
-          : 1.8;
+    mode === 'pdf'
+      ? 2.5
+      : isMobileSafariLike()
+        ? Math.min(2, window.devicePixelRatio || 1.5)
+        : 2;
     return html2canvas(el, {
       useCORS: true,
       allowTaint: true,
@@ -462,25 +387,28 @@ const ConflictManagementStyleAssessment: React.FC = () => {
   const handleDownloadPdf = async () => {
     if (!resultExportRef.current) return;
     setPdfLoading(true);
+  
     try {
       const canvas = await captureResultForExport('pdf');
-      // JPEG เร็วกว่า PNG สำหรับงาน screenshot ยาว ๆ และไฟล์เล็กลง
-      const imgData = canvas.toDataURL('image/jpeg', 0.86);
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const pageW = pdf.internal.pageSize.getWidth();
-      const pageH = pdf.internal.pageSize.getHeight();
-      pdf.setFillColor(10, 10, 10);
-      pdf.rect(0, 0, pageW, pageH, 'F');
-      // ผู้ใช้ต้องการให้อยู่หน้าเดียว: ย่อทั้งภาพให้ fit ใน A4 โดยไม่ครอป
-      const margin = 6;
-      const maxW = pageW - margin * 2;
-      const maxH = pageH - margin * 2;
-      const fitRatio = Math.min(maxW / canvas.width, maxH / canvas.height);
-      const renderW = canvas.width * fitRatio;
-      const renderH = canvas.height * fitRatio;
-      const offsetX = (pageW - renderW) / 2;
-      const offsetY = (pageH - renderH) / 2;
-      pdf.addImage(imgData, 'JPEG', offsetX, offsetY, renderW, renderH, undefined, 'FAST');
+  
+      const imgData = canvas.toDataURL('image/png', 1);
+  
+      // ใช้ขนาดตาม screenshot จริง
+      const pdf = new jsPDF({
+        orientation: canvas.width > canvas.height ? 'landscape' : 'portrait',
+        unit: 'px',
+        format: [canvas.width, canvas.height],
+      });
+  
+      pdf.addImage(
+        imgData,
+        'PNG',
+        0,
+        0,
+        canvas.width,
+        canvas.height
+      );
+  
       pdf.save(`${exportBaseName}.pdf`);
     } catch (e) {
       console.warn('Export conflict management PDF:', e);
@@ -780,9 +708,9 @@ const ConflictManagementStyleAssessment: React.FC = () => {
         )}
 
         {step === 'result' && isCmsComplete(displayAnswers) && (
-          <div className="space-y-10 max-w-2xl mx-auto">
+          <div className="space-y-8 w-full max-w-5xl mx-auto">
             <div ref={resultExportRef} className="space-y-8">
-              <div className="rounded-3xl border border-white/12 bg-gradient-to-b from-white/[0.08] via-sky-500/[0.04] to-black/40 p-6 sm:p-9 text-center shadow-xl shadow-black/40 ring-1 ring-sky-500/10">
+              <div className="rounded-3xl border border-white/12 bg-gradient-to-b from-white/[0.08] via-sky-500/[0.04] to-black/40 p-4 sm:p-9 text-center shadow-xl shadow-black/40 ring-1 ring-sky-500/10">
                 <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-sky-400/90 mb-2">{SUBTITLE}</p>
                 <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-white leading-snug mb-4">{ASSESSMENT_TITLE}</h1>
                 <div className="inline-flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm">
@@ -805,65 +733,152 @@ const ConflictManagementStyleAssessment: React.FC = () => {
                     รวมคะแนนของแต่ละกลุ่มคำถามตามที่ระบุไว้ด้านล่าง:
                   </p>
                 </div>
-                {CMS_STYLES.map((st) => {
-                  const score = styleScores[st.id];
-                  const pct = ((score - 3) / 9) * 100;
-                  const artwork = STYLE_ARTWORK[st.id];
-                  const isTop = score > 0 && score === maxStyleScore;
-                  return (
-                    <div
-                      key={st.id}
-                      className={`rounded-2xl border p-4 sm:p-5 transition-colors ${
-                        isTop
-                          ? 'border-amber-400/40 bg-gradient-to-r from-amber-400/10 via-yellow-500/5 to-transparent ring-1 ring-amber-400/20'
-                          : 'border-white/8 bg-black/20'
-                      }`}
-                    >
-                      <div className="flex gap-4 items-start">
-                        <div className="shrink-0">
-                          <div
-                            className="w-[5.25rem] h-[3.75rem] sm:w-24 sm:h-[4.25rem] rounded-xl border border-white/12 bg-black/30 overflow-hidden flex items-center justify-center shadow-inner"
-                            role="img"
-                            aria-label={`${st.titleTh} artwork`}
-                            dangerouslySetInnerHTML={{ __html: artwork.svg }}
-                          />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex flex-wrap items-baseline justify-between gap-2 mb-2">
-                            <div>
-                              <span className="text-white font-bold block leading-tight">{st.titleTh}</span>
-                              <span className="text-[11px] sm:text-xs text-gray-500">{st.titleEn}</span>
-                            </div>
-                            <div className="flex items-center gap-2 shrink-0">
-                              {isTop ? (
-                                <span className="text-[10px] font-bold uppercase tracking-wider text-amber-300/95 hidden sm:inline">
-                                  สูงสุด
-                                </span>
-                              ) : null}
-                              <span className="tabular-nums text-lg font-black text-sky-300">
-                                {score}
-                                <span className="text-sm font-bold text-gray-500">/12</span>
+                <div className="grid grid-cols-6 sm:grid-cols-6 gap-4">
+                  {CMS_STYLES.map((st, index) => {
+                    const score = styleScores[st.id];
+                    const artwork = STYLE_ARTWORK[st.id];
+                    const isTop = score > 0 && score === maxStyleScore;
+
+                    return (
+                      <div
+                        key={st.id}
+                        className={`col-span-2 ${
+                          index === 3
+                            ? 'col-start-2'
+                            : index === 4
+                            ? 'col-start-4'
+                            : ''
+                        } rounded-t-[500px] rounded-b-[200px] min-w-0 border-2 border-2 p-5 sm:p-6 min-h-[300px] flex flex-col justify-start transition-colors ${
+                          isTop
+                            ? 'border-amber-400/40 bg-gradient-to-b from-amber-400/10 via-black/20 to-transparent ring-1 ring-amber-400/20'
+                            : 'border-white/100 bg-black/20'
+                        }`}
+                      >
+                        <div className="flex flex-col items-center text-center gap-3">
+                          {/* DONUT */}
+                          <div className="relative w-[72px] h-[72px] sm:w-[96px] sm:h-[96px] md:w-[112px] md:h-[112px]">
+                          <svg
+                            className="w-full h-full -rotate-90"
+                            viewBox="0 0 120 120"
+                          >
+                          <defs>
+                            <linearGradient
+                              id={`donutGradient-${st.id}`}
+                              x1="0%"
+                              y1="0%"
+                              x2="100%"
+                              y2="100%"
+                            >
+                                <stop offset="0%" stopColor="#FDC830" />
+                                <stop offset="100%" stopColor="#00B4DB" />
+                            </linearGradient>
+                          </defs>
+                              {/* background */}
+                              <circle
+                                cx="60"
+                                cy="60"
+                                r="54"
+                                stroke="rgba(255,255,255,0.10)"
+                                strokeWidth="8"
+                                fill="none"
+                              />
+
+                              {/* progress */}
+                              <circle
+                                cx="60"
+                                cy="60"
+                                r="54"
+                                stroke={`url(#donutGradient-${st.id})`}
+                                strokeWidth="8"
+                                fill="none"
+                                strokeLinecap="round"
+                                strokeDasharray="326.7"
+                                strokeDashoffset={
+                                  326.7 - (score / 12) * 326.7
+                                }
+                                className="transition-all duration-700"
+                              />
+                            </svg>
+
+                            {/* score */}
+                            <div className="absolute inset-0 flex flex-col items-center justify-center">
+                              <svg
+                                width="60"
+                                height="42"
+                                viewBox="0 0 60 42"
+                                className="overflow-visible"
+                              >
+                                <defs>
+                                  <linearGradient
+                                    id={`scoreGradient-${st.id}`}
+                                    x1="0%"
+                                    y1="0%"
+                                    x2="100%"
+                                    y2="0%"
+                                  >
+                                    <stop offset="0%" stopColor="#00B4DB" />
+                                    <stop offset="100%" stopColor="#FDC830" />
+                                  </linearGradient>
+                                </defs>
+
+                                <text
+                                  x="50%"
+                                  y="30"
+                                  textAnchor="middle"
+                                  fontSize="32"
+                                  fontWeight="900"
+                                  fill={`url(#scoreGradient-${st.id})`}
+                                  fontFamily="Arial, sans-serif"
+                                >
+                                  {score}
+                                </text>
+                              </svg>
+
+                              <span className="text-[10px] sm:text-xs font-bold text-gray-500 -mt-1">
+                                /12
                               </span>
                             </div>
                           </div>
-                          <p className="text-[11px] text-gray-500 mb-3">จากข้อ {st.questionNums.join(', ')}</p>
-                          <div className="h-2 rounded-full bg-white/10 overflow-hidden">
-                            <div
-                              className="h-full bg-gradient-to-r from-sky-500 to-amber-400 rounded-full transition-all duration-500"
-                              style={{ width: `${Math.min(100, Math.max(0, pct))}%` }}
+
+                          {/* ICON */}
+                          <div className="flex items-center justify-center">
+                            <img
+                              src={artwork.image}
+                              alt={st.titleTh}
+                              className="w-[100px] h-[100px] object-contain"
+                              loading="lazy"
+                              referrerPolicy="no-referrer"
+                              onError={(e) => {
+                                console.error('Image load failed:', artwork.image);
+                                e.currentTarget.style.display = 'none';
+                              }}
                             />
                           </div>
+
+                          {/* TITLE */}
+                          <span className="text-white font-bold text-sm sm:text-base md:text-lg leading-[1.15] break-words text-center px-1">
+                            {st.titleTh}
+                          </span>
+
+                          {/* SUBTITLE */}
+                          <span className="text-[10px] sm:text-[11px] text-gray-500 -mt-1">
+                            {st.titleEn}
+                          </span>
+
+                          {/* QUESTION */}
+                          <p className="text-[10px] sm:text-[11px] text-gray-500 leading-snug">
+                            จากข้อ : {st.questionNums.join(', ')}
+                          </p>
                         </div>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
-
+                    );
+                  })}
+                </div>
+                </div>
               <p className="text-center text-[10px] text-gray-600 pb-1">MindDoJo · {ASSESSMENT_TITLE}</p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid grid-cols-2 gap-3 gap-3">
               <button
                 type="button"
                 onClick={handleDownloadPng}
@@ -874,7 +889,20 @@ const ConflictManagementStyleAssessment: React.FC = () => {
                   className={`w-4 h-4 border-2 border-sky-300 border-t-transparent rounded-full shrink-0 ${pngLoading ? 'animate-spin opacity-100' : 'opacity-0'}`}
                   aria-hidden
                 />
-                <span className="tabular-nums">{pngLoading ? 'กำลังสร้าง PNG...' : 'ดาวน์โหลด PNG'}</span>
+                <span className="tabular-nums flex items-center gap-2">
+                {pngLoading ? (
+                  'กำลังสร้าง PNG...'
+                ) : (
+                  <>
+                    <img
+                      src="https://axaasphuaaadzjoffznj.supabase.co/storage/v1/object/public/images/image%20(1).webp"
+                      alt="download"
+                      className="w-4 h-4 object-contain"
+                    />
+                    <span>ดาวน์โหลด PNG</span>
+                  </>
+                )}
+              </span>
               </button>
               <button
                 type="button"
@@ -886,20 +914,58 @@ const ConflictManagementStyleAssessment: React.FC = () => {
                   className={`w-4 h-4 border-2 border-amber-300 border-t-transparent rounded-full shrink-0 ${pdfLoading ? 'animate-spin opacity-100' : 'opacity-0'}`}
                   aria-hidden
                 />
-                <span className="tabular-nums">{pdfLoading ? 'กำลังสร้าง PDF...' : 'ดาวน์โหลด PDF'}</span>
+                <span className="tabular-nums flex items-center gap-2">
+                  {pdfLoading ? (
+                    'กำลังสร้าง PDF...'
+                  ) : (
+                    <>
+                      <img
+                        src="https://axaasphuaaadzjoffznj.supabase.co/storage/v1/object/public/images/downloads.webp"
+                        alt="PDF"
+                        className="w-4 h-4 object-contain"
+                        loading="lazy"
+                        referrerPolicy="no-referrer"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                        }}
+                      />
+                      <span>ดาวน์โหลด PDF</span>
+                    </>
+                  )}
+                </span>
               </button>
               <button
                 type="button"
                 onClick={restart}
-                className="min-h-[52px] rounded-2xl font-bold text-sm border border-white/15 text-gray-300 hover:bg-white/6 transition-all sm:col-span-2"
+                className="min-h-[52px] rounded-2xl font-bold text-sm border border-white/15 text-gray-300 hover:bg-white/6 transition-all col-span-2 flex items-center justify-center gap-2"
               >
-                ทำแบบประเมินใหม่
+                <img
+                  src="https://axaasphuaaadzjoffznj.supabase.co/storage/v1/object/public/images/restart.webp"
+                  alt="Restart"
+                  className="w-4 h-4 object-contain"
+                  loading="lazy"
+                  referrerPolicy="no-referrer"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+                <span>ทำแบบประเมินใหม่</span>
               </button>
               <Link
                 to="/"
-                className="min-h-[52px] rounded-2xl font-bold text-sm bg-gradient-to-r from-yellow-400 to-amber-300 text-black hover:from-yellow-300 hover:to-amber-200 flex items-center justify-center text-center transition-all shadow-lg shadow-yellow-500/15 sm:col-span-2"
+                className="min-h-[52px] rounded-2xl font-bold text-sm bg-gradient-to-r from-yellow-400 to-amber-300 text-black hover:from-yellow-300 hover:to-amber-200 flex items-center justify-center gap-2 text-center transition-all shadow-lg shadow-yellow-500/15 col-span-2"
               >
-                กลับหน้าหลัก
+                <img
+                  src="https://axaasphuaaadzjoffznj.supabase.co/storage/v1/object/public/images/home.webp"
+                  alt="Home"
+                  className="w-5 h-5 object-contain"
+                  loading="lazy"
+                  referrerPolicy="no-referrer"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+                <span>กลับหน้าหลัก</span>
               </Link>
             </div>
           </div>
