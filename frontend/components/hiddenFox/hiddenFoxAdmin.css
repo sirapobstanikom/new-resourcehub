@@ -1,0 +1,434 @@
+/* Admin panel — Wolf Hunter settings */
+.hf-admin-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(13, 10, 30, 0.95);
+  backdrop-filter: blur(10px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: hf-fadeIn 0.3s ease-out;
+}
+@keyframes hf-fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.hf-admin-container {
+  width: 100%;
+  height: 100%;
+  background: var(--purple-dark);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+@media (min-width: 768px) {
+  .hf-admin-overlay { padding: 30px; }
+  .hf-admin-container {
+    max-width: 1100px;
+    height: 90vh;
+    border-radius: 30px;
+    border: 2px solid var(--purple-light);
+    flex-direction: row;
+  }
+  .hf-admin-desktop-only { display: flex !important; }
+  .hf-admin-mobile-only { display: none !important; }
+}
+@media (max-width: 767px) {
+  .hf-admin-desktop-only { display: none !important; }
+  .hf-admin-mobile-only { display: flex !important; }
+  .hf-admin-sidebar {
+    width: 100% !important;
+    flex-shrink: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 15px !important;
+  }
+  .hf-admin-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #0c0c10;
+    flex-direction: row !important;
+    padding: 10px !important;
+    border-top: 2px solid var(--purple-light);
+    z-index: 100;
+  }
+  .hf-admin-nav-item {
+    flex: 1;
+    flex-direction: column !important;
+    align-items: center;
+    font-size: 0.6rem !important;
+    gap: 4px !important;
+  }
+  .hf-admin-main { height: calc(100% - 70px); }
+  .hf-admin-content-scroll { padding: 20px 20px 100px !important; }
+}
+.hf-admin-sidebar {
+  width: 220px;
+  background: #0c0c10;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+.hf-admin-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.hf-admin-brand-text h1 {
+  margin: 0;
+  font-family: 'Luckiest Guy', cursive;
+  font-size: 1.1rem;
+  color: var(--neon-green);
+}
+.hf-admin-brand-text span {
+  font-size: 0.7rem;
+  color: var(--purple-light);
+}
+.hf-admin-close-mobile {
+  background: var(--purple-light);
+  color: var(--purple-dark);
+  border: none;
+  border-radius: 8px;
+  padding: 4px;
+  margin-left: auto;
+  cursor: pointer;
+  border-bottom: 3px solid #ca8a04;
+}
+.hf-admin-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+.hf-admin-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  background: transparent;
+  border: none;
+  border-radius: 12px;
+  color: var(--purple-light);
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-align: left;
+}
+.hf-admin-nav-item.active {
+  background: rgba(250, 204, 21, 0.15);
+  color: var(--white);
+  border: 1px solid var(--purple-light);
+}
+.hf-admin-nav-item .hf-admin-desktop-only { margin-left: auto; }
+.hf-admin-sidebar-footer { margin-top: auto; }
+.hf-admin-exit {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  color: var(--white);
+  cursor: pointer;
+}
+.hf-admin-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.hf-admin-main-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+.hf-admin-main-header h2 {
+  margin: 0;
+  font-family: 'Luckiest Guy', cursive;
+  color: var(--gold);
+}
+.hf-admin-stat-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 20px;
+  font-size: 0.8rem;
+  color: var(--purple-light);
+}
+.hf-admin-content-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+}
+.hf-admin-tab { display: flex; flex-direction: column; gap: 20px; }
+.hf-admin-card {
+  background: rgba(0, 0, 0, 0.25);
+  border: 2px solid rgba(162, 155, 254, 0.3);
+  border-radius: 20px;
+  padding: 20px;
+}
+.hf-admin-card h3 {
+  margin: 0 0 16px;
+  font-family: 'Luckiest Guy', cursive;
+  color: var(--gold);
+}
+.hf-admin-hint {
+  font-size: 0.7rem;
+  color: #a1a1aa;
+  margin: -8px 0 16px;
+}
+.hf-admin-stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.hf-admin-label {
+  display: block;
+  font-size: 0.65rem;
+  color: var(--purple-light);
+  font-weight: 900;
+  letter-spacing: 1px;
+}
+.hf-admin-value {
+  display: block;
+  font-size: 1.8rem;
+  font-family: 'Luckiest Guy', cursive;
+  color: var(--neon-green);
+}
+.hf-admin-card label {
+  display: block;
+  margin-bottom: 16px;
+  color: var(--white);
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+.hf-admin-range {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+.hf-admin-range input[type='range'] { flex: 1; }
+.hf-admin-range span {
+  min-width: 48px;
+  text-align: center;
+  background: var(--purple-main);
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-weight: 900;
+}
+.hf-admin-save,
+.hf-admin-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--neon-green);
+  color: var(--purple-dark);
+  border: none;
+  border-bottom: 4px solid var(--neon-green-dark);
+  border-radius: 12px;
+  padding: 12px 20px;
+  font-family: 'Luckiest Guy', cursive;
+  cursor: pointer;
+  margin-top: 8px;
+}
+.hf-admin-add { font-size: 0.85rem; padding: 8px 14px; }
+.hf-admin-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.hf-admin-map-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+}
+.hf-admin-map-card {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 15px;
+  overflow: hidden;
+  border: 2px solid transparent;
+}
+.hf-admin-map-thumb {
+  position: relative;
+  height: 100px;
+  overflow: hidden;
+}
+.hf-admin-map-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.hf-admin-level-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: var(--neon-green);
+  color: var(--purple-dark);
+  font-size: 0.65rem;
+  font-weight: 900;
+  padding: 2px 8px;
+  border-radius: 8px;
+}
+.hf-admin-map-info {
+  padding: 12px;
+}
+.hf-admin-map-info h4 { margin: 0 0 4px; color: var(--white); }
+.hf-admin-map-info p { margin: 0; font-size: 0.75rem; color: var(--purple-light); }
+.hf-admin-map-actions {
+  display: flex;
+  gap: 6px;
+  padding: 0 12px 12px;
+  flex-wrap: wrap;
+}
+.hf-admin-map-actions button {
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--purple-light);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--white);
+  cursor: pointer;
+  font-size: 0.75rem;
+}
+.hf-admin-map-actions button.danger {
+  border-color: var(--red);
+  color: var(--red);
+}
+.hf-admin-map-actions button:disabled { opacity: 0.4; cursor: not-allowed; }
+.hf-admin-map-editor label {
+  display: block;
+  margin-bottom: 12px;
+  color: var(--purple-light);
+  font-size: 0.8rem;
+}
+.hf-admin-map-editor input {
+  width: 100%;
+  margin-top: 6px;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid var(--purple-light);
+  background: rgba(0, 0, 0, 0.4);
+  color: var(--white);
+}
+.hf-admin-info-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+  background: rgba(250, 204, 21, 0.1);
+  border-radius: 10px;
+  font-size: 0.8rem;
+  color: var(--purple-light);
+  margin-bottom: 16px;
+}
+.hf-admin-map-preview {
+  position: relative;
+  width: 100%;
+  border-radius: 15px;
+  border: 2px solid var(--purple-light);
+  background: #000;
+  cursor: crosshair;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.hf-admin-map-preview img {
+  width: 100%;
+  display: block;
+}
+.hf-admin-marker {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.hf-admin-dot {
+  width: 14px;
+  height: 14px;
+  background: var(--red);
+  border: 2px solid var(--white);
+  border-radius: 50%;
+}
+.hf-admin-marker-label {
+  font-size: 0.65rem;
+  color: var(--white);
+  font-weight: 900;
+}
+.hf-admin-editor-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.hf-admin-cancel {
+  padding: 12px 20px;
+  background: #555;
+  color: var(--white);
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 700;
+}
+.hf-admin-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.hf-admin-table th,
+.hf-admin-table td {
+  padding: 10px;
+  text-align: left;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--white);
+}
+.hf-admin-table th {
+  color: var(--purple-light);
+  font-size: 0.75rem;
+}
+.hf-admin-table .bold { font-weight: 700; }
+.hf-admin-delete {
+  background: transparent;
+  border: 1px solid var(--red);
+  color: var(--red);
+  padding: 6px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.hf-admin-danger h3 { color: var(--red); font-family: 'Luckiest Guy', cursive; }
+.hf-admin-danger-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background: rgba(244, 63, 94, 0.1);
+  border: 1px solid rgba(244, 63, 94, 0.3);
+  border-radius: 12px;
+  margin-bottom: 12px;
+}
+.hf-admin-danger-item strong { color: var(--white); }
+.hf-admin-danger-item p { margin: 4px 0 0; font-size: 0.8rem; color: var(--purple-light); }
+.hf-admin-danger-btn {
+  padding: 8px 16px;
+  border: 2px solid var(--red);
+  background: transparent;
+  color: var(--red);
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 900;
+}
+
+/* Scope game layout inside ResourceHub wrapper */
+.fox-protocol-app {
+  width: 100%;
+  height: 100%;
+  min-height: 100vh;
+}

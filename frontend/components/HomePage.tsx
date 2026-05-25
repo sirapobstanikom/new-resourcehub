@@ -249,9 +249,9 @@ const HomePage: React.FC = () => {
             <div className="w-12 h-12 rounded-xl bg-orange-500/20 flex items-center justify-center mb-4 group-hover:bg-orange-500/30 transition-colors">
               <span className="text-2xl" aria-hidden>🦊</span>
             </div>
-            <h3 className="font-bold text-lg mb-2 text-white">Hidden Fox — Wolf Hunter</h3>
+            <h3 className="font-bold text-lg mb-2 text-white">Hidden Fox</h3>
             <p className="text-gray-500 text-sm">
-              ล่าหมาป่าบนแผนที่ — เล่นแนวนอน บันทึกคะแนน Hall of Fame
+              ล่าจิ้งจอกแอบบนแผนที่ — เล่นแนวนอน บันทึกคะแนน Hall of Fame
             </p>
           </Link>
         </div>
