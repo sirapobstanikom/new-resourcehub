@@ -442,6 +442,68 @@ export interface DiscFeedbackPayload {
   ranking: DiscType[];
 }
 
+export interface KeyPrinciplesSectionResult {
+  titleEn: string;
+  sum: number;
+  bandRange: string;
+  bandMeaningTh: string;
+}
+
+export interface KeyPrinciplesResultPayload {
+  user: { name: string; company: string };
+  sections: KeyPrinciplesSectionResult[];
+}
+
+export async function getKeyPrinciplesFeedback(payload: KeyPrinciplesResultPayload): Promise<string> {
+  const sectionLines = payload.sections
+    .map(
+      (s) =>
+        `- ${s.titleEn}: คะแนน ${s.sum}/25 (ช่วง ${s.bandRange}) — ${s.bandMeaningTh}`,
+    )
+    .join('\n');
+
+  const systemPrompt = `You are a professional coach for MindDoJo's "Key Principles Assessment".
+The assessment has 5 dimensions (each scored 5–25 from 5 Likert items, scale 1–5):
+Self Esteem, Empathy, Involvement, Support, Share.
+
+Score bands per dimension:
+- 5–15: area to nurture with close attention (frame positively as growth focus, not failure)
+- 16–20: still room to develop further (encouraging)
+- 21–25: strength to leverage (celebrate)
+
+Write feedback in Thai for this one person. CRITICAL TONE RULES:
+- Overall tone must be positive, warm, respectful, and strengths-based — even for lower scores
+- Never shame, blame, or use harsh language; reframe gaps as opportunities
+- Address them naturally by name when appropriate
+- Base only on provided scores; do not invent job history or events
+
+Structure (plain text, use newlines; short bullets OK):
+1) เปิดด้วยสรุปภาพรวมเชิงบวก 2–3 ประโยค
+2) สรุปทีละส่วน (Self Esteem, Empathy, Involvement, Support, Share) — 1–2 ประโยคต่อส่วน เน้นสิ่งที่ทำได้ดีและทิศทางพัฒนาเชิงบวก
+3) จุดแข็งที่ควรใช้ต่อ (อ้างอิงส่วนที่คะแนนสูงหรือแนวโน้มดี)
+4) แนวทางพัฒนาเชิงบวก 3–4 ข้อ (สั้น กระทัดรัด ทำได้จริง)
+5) ปิดท้ายด้วยกำลังใจและ next step ภายใน 1–2 สัปดาห์`;
+
+  const userContent = `ผู้ประเมิน: ${payload.user.name}
+บริษัท: ${payload.user.company}
+
+ผลคะแนนแต่ละส่วน:
+${sectionLines}`;
+
+  try {
+    const content = await callOpenAIProxy(
+      [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userContent },
+      ],
+      0.55,
+    );
+    return content || 'ไม่สามารถสร้าง feedback ได้ในขณะนี้';
+  } catch {
+    return 'ไม่สามารถโหลด feedback จาก AI ได้ กรุณาตรวจสอบการเชื่อมต่อและ Supabase (openai-proxy + OPENAI_API_KEY)';
+  }
+}
+
 export async function getDiscFeedback(payload: DiscFeedbackPayload): Promise<string> {
   const top2 = payload.ranking.slice(0, 2).join(' และ ');
   const bottom2 = payload.ranking.slice(-2).join(' และ ');

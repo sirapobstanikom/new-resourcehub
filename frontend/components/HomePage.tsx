@@ -51,6 +51,14 @@ const ASSESSMENTS = [
     comingSoon: false,
   },
   {
+    id: 'key-principles',
+    title: 'Key Principles Assessment',
+    description:
+      'แบบประเมินออนไลน์ MindDoJo — 25 ข้อ · สเกล 1–5 · สรุป 5 ส่วน: Self Esteem, Empathy, Involvement, Support, Share · ลงทะเบียนชื่อและบริษัท',
+    href: '/assessment/key-principles',
+    comingSoon: false,
+  },
+  {
     id: 'DISC',
     title: 'DISC Assessment',
     description: 'แบบทดสอบประเมินบุคลิกภาพของคุณ',

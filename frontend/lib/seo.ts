@@ -52,6 +52,11 @@ const assessmentSeo: Record<string, Pick<SeoConfig, 'title' | 'description'>> = 
     description:
       'แบบประเมิน MindDoJo 15 ข้อ วัดรูปแบบการจัดการความขัดแย้ง 5 แบบ: หลีกหนี ยอมตาม เอาชนะ ร่วมมือ และประนีประนอม',
   },
+  '/assessment/key-principles': {
+    title: 'Key Principles Assessment | แบบประเมินหลักการสำคัญ MindDoJo',
+    description:
+      'แบบประเมิน Key Principles 25 ข้อ สรุปผล 5 ส่วน Self Esteem, Empathy, Involvement, Support และ Share คะแนนต่อส่วน 5–25',
+  },
   '/assessment/disc': {
     title: 'DISC Assessment | แบบประเมินบุคลิกภาพ DISC',
     description:
