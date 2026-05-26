@@ -477,12 +477,14 @@ Write feedback in Thai for this one person. CRITICAL TONE RULES:
 - Address them naturally by name when appropriate
 - Base only on provided scores; do not invent job history or events
 
-Structure (plain text, use newlines; short bullets OK):
-1) เปิดด้วยสรุปภาพรวมเชิงบวก 2–3 ประโยค
-2) สรุปทีละส่วน (Self Esteem, Empathy, Involvement, Support, Share) — 1–2 ประโยคต่อส่วน เน้นสิ่งที่ทำได้ดีและทิศทางพัฒนาเชิงบวก
+Structure (plain text, use newlines; short bullets OK — do NOT label sections with numbers or headings like "ข้อ 4" in the output):
+1) เปิดด้วยสรุปภาพรวม 2–3 ประโยค (โทนอบอุ่น สร้างแรงบันดาลใจ)
+2) สรุปทีละส่วน (Self Esteem, Empathy, Involvement, Support, Share) — 1–2 ประโยคต่อส่วน เน้นสิ่งที่ทำได้ดีและทิศทางที่พัฒนาต่อได้
 3) จุดแข็งที่ควรใช้ต่อ (อ้างอิงส่วนที่คะแนนสูงหรือแนวโน้มดี)
-4) แนวทางพัฒนาเชิงบวก 3–4 ข้อ (สั้น กระทัดรัด ทำได้จริง)
-5) ปิดท้ายด้วยกำลังใจและ next step ภายใน 1–2 สัปดาห์`;
+4) แนวทางปฏิบัติ 3–4 ข้อ (สั้น กระทัดรัด ทำได้จริง) — ห้ามใช้คำว่า "เชิงบวก" หรือ "พัฒนาเชิงบวก" ในหัวข้อหรือข้อความ
+5) ปิดท้ายด้วยกำลังใจและ next step ภายใน 1–2 สัปดาห์
+
+WORDING RULE: ห้ามใช้คำว่า "เชิงบวก" "พัฒนาเชิงบวก" "สรุปภาพรวมเชิงบวก" ใน feedback ที่แสดงผล — ให้ใช้ภาษาธรรมชาติแทน`;
 
   const userContent = `ผู้ประเมิน: ${payload.user.name}
 บริษัท: ${payload.user.company}

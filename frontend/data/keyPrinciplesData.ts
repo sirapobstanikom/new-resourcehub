@@ -254,6 +254,16 @@ export function getKpTotalScore(answers: Record<number, number>): number {
   return sum;
 }
 
+/** บันทึกลง Supabase — คะแนนแต่ละข้อ "1"–"25" */
+export function getKpAnswersForDb(answers: Record<number, number>): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (let n = 1; n <= KP_TOTAL_QUESTIONS; n++) {
+    const v = answers[n];
+    if (typeof v === 'number' && v >= 1 && v <= 5) out[String(n)] = v;
+  }
+  return out;
+}
+
 /** บันทึกลง Supabase — คะแนนรวมต่อส่วน (5–25) */
 export function getKpSectionScores(answers: Record<number, number>): Record<KpSectionId, number> {
   return Object.fromEntries(KP_SECTIONS.map((s) => [s.id, getKpSectionSum(s.id, answers)])) as Record<

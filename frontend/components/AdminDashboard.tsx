@@ -35,7 +35,7 @@ const COLLECTIONS: { id: CollectionId; label: string; description: string }[] = 
     id: 'key_principles_results',
     label: 'Key Principles',
     description:
-      'ผลแบบประเมิน Key Principles (ชื่อ, บริษัท, total_score รวม 125, principle_scores คะแนนต่อส่วน 5–25: self_esteem, empathy, involvement, support, share)',
+      'ผลแบบประเมิน Key Principles (ชื่อ, บริษัท, answers คะแนนข้อ 1–25, principle_scores ต่อส่วน, total_score รวม 125)',
   },
 ];
 

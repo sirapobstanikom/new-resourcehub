@@ -10,6 +10,7 @@ import {
   KP_SCORE_BANDS,
   KP_TOTAL_QUESTIONS,
   getKpAllSectionResults,
+  getKpAnswersForDb,
   getKpQuestionByNum,
   getKpSectionScores,
   getKpTotalQuestionCount,
@@ -225,6 +226,7 @@ const KeyPrinciplesAssessment: React.FC = () => {
           company: payload.user.company,
           total_score: getKpTotalScore(payload.answers),
           principle_scores: getKpSectionScores(payload.answers),
+          answers: getKpAnswersForDb(payload.answers),
         })
         .then(({ error }) => {
           if (error) console.warn('Key Principles save to DB:', error.message);
@@ -629,7 +631,7 @@ const KeyPrinciplesAssessment: React.FC = () => {
               <div className="rounded-2xl border border-yellow-400/25 bg-white/[0.06] p-6 space-y-4">
                 <h2 className="text-sm font-bold text-yellow-400/90 uppercase tracking-wider">สรุปผลด้วย AI</h2>
                 <p className="text-xs text-gray-500 -mt-2">
-                  วิเคราะห์คะแนนทั้ง 5 ส่วนในเชิงบวก — เน้นจุดแข็งและแนวทางพัฒนาที่เป็นรูปธรรม
+                  วิเคราะห์คะแนนทั้ง 5 ส่วน — เน้นจุดแข็งและแนวทางปฏิบัติที่เป็นรูปธรรม
                 </p>
                 {aiLoading && (
                   <div className="flex items-center gap-3 text-gray-400">

@@ -6,6 +6,7 @@ create table if not exists public.key_principles_results (
   company text not null,
   total_score int not null,
   principle_scores jsonb not null default '{}'::jsonb,
+  answers jsonb not null default '{}'::jsonb,
   created_at timestamptz not null default now()
 );
 
