@@ -16,10 +16,11 @@ import {
   getKpTotalQuestionCount,
   getKpTotalScore,
   isKpComplete,
-  type KpBandId,
   type KpQuestionNum,
 } from '../data/keyPrinciplesData';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import KeyPrinciplesLoginView from './keyPrinciples/KeyPrinciplesLoginView';
+import KeyPrinciplesResultView from './keyPrinciples/KeyPrinciplesResultView';
 
 type Step = 'login' | 'assessment' | 'result';
 
@@ -58,12 +59,6 @@ function canvasToPngBlob(canvas: HTMLCanvasElement): Promise<Blob> {
 }
 const ASSESSMENT_TITLE = 'Key Principles Assessment';
 const SUBTITLE = 'MindDoJo · แบบประเมินออนไลน์';
-
-const BAND_BADGE_CLASS: Record<KpBandId, string> = {
-  develop: 'bg-red-500/15 border-red-400/30 text-red-200',
-  growth: 'bg-amber-500/15 border-amber-400/30 text-amber-200',
-  strength: 'bg-emerald-500/15 border-emerald-400/30 text-emerald-200',
-};
 
 function parseStoredAnswers(raw: Record<string, unknown> | undefined): Record<number, number> {
   const out: Record<number, number> = {};
@@ -123,6 +118,7 @@ const KeyPrinciplesAssessment: React.FC = () => {
   const [aiError, setAiError] = useState<string | null>(null);
   const [pdfLoading, setPdfLoading] = useState(false);
   const [pngLoading, setPngLoading] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
   const resultExportRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -309,75 +305,111 @@ const KeyPrinciplesAssessment: React.FC = () => {
     }
   };
 
-  const captureResultForExport = (): Promise<HTMLCanvasElement> => {
+  const captureResultForExport = async (mode: 'png' | 'pdf' = 'png'): Promise<HTMLCanvasElement> => {
     const el = resultExportRef.current;
-    if (!el) return Promise.reject(new Error('ไม่พบพื้นที่ผลลัพธ์'));
-    const mobileScale = isMobileSafariLike() ? Math.min(2, window.devicePixelRatio || 1.5) : 2;
-    return html2canvas(el, {
-      useCORS: true,
-      allowTaint: true,
-      backgroundColor: '#0a0a0a',
-      scale: mobileScale,
-      logging: false,
-      windowWidth: el.scrollWidth,
-      windowHeight: el.scrollHeight,
-      width: el.scrollWidth,
-      height: el.scrollHeight,
-      ignoreElements: (node) => node.classList?.contains('exclude-from-export') === true,
+    if (!el) throw new Error('ไม่พบพื้นที่ผลลัพธ์');
+
+    el.scrollIntoView({ block: 'start', behavior: 'instant' as ScrollBehavior });
+    window.scrollTo(0, 0);
+    el.setAttribute('data-kp-exporting', 'true');
+    await new Promise<void>((resolve) => {
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
     });
+
+    try {
+      const scale =
+        mode === 'pdf'
+          ? 2
+          : isMobileSafariLike()
+            ? Math.min(2, window.devicePixelRatio || 1.5)
+            : 2;
+
+      const canvas = await html2canvas(el, {
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#0a0a0a',
+        scale,
+        logging: false,
+        scrollX: 0,
+        scrollY: -window.scrollY,
+        ignoreElements: (node) => node.classList?.contains('exclude-from-export') === true,
+        onclone: (doc) => {
+          doc.querySelectorAll('[data-kp-exporting]').forEach((root) => {
+            root.querySelectorAll('*').forEach((node) => {
+              if (!(node instanceof HTMLElement)) return;
+              node.style.animation = 'none';
+              node.style.transition = 'none';
+              node.style.opacity = '1';
+              node.style.transform = 'none';
+            });
+          });
+        },
+      });
+
+      if (canvas.width < 16 || canvas.height < 16) {
+        throw new Error('ไม่สามารถสร้างภาพผลลัพธ์ได้ (ขนาดว่าง)');
+      }
+      return canvas;
+    } finally {
+      el.removeAttribute('data-kp-exporting');
+    }
   };
 
-  const savePngBlob = async (blob: Blob, fileName: string) => {
-    const file = new File([blob], fileName, { type: 'image/png' });
+  const downloadBlob = async (blob: Blob, fileName: string, title: string) => {
     const blobUrl = URL.createObjectURL(blob);
+    const file = new File([blob], fileName, { type: blob.type || 'application/octet-stream' });
 
-    if (typeof navigator.share === 'function' && navigator.canShare?.({ files: [file] })) {
+    if (
+      isMobileSafariLike() &&
+      typeof navigator.share === 'function' &&
+      navigator.canShare?.({ files: [file] })
+    ) {
       try {
-        await navigator.share({ files: [file], title: 'ผล Key Principles Assessment' });
+        await navigator.share({ files: [file], title });
         URL.revokeObjectURL(blobUrl);
         return;
-      } catch {
-        /* fallback */
+      } catch (err) {
+        if ((err as Error)?.name === 'AbortError') {
+          URL.revokeObjectURL(blobUrl);
+          return;
+        }
       }
-    }
-
-    if (isMobileSafariLike()) {
-      window.open(blobUrl, '_blank', 'noopener');
-      setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
-      return;
     }
 
     const link = document.createElement('a');
     link.download = fileName;
     link.href = blobUrl;
+    link.rel = 'noopener';
+    link.style.display = 'none';
+    document.body.appendChild(link);
     link.click();
-    URL.revokeObjectURL(blobUrl);
+    document.body.removeChild(link);
+
+    if (isMobileSafariLike()) {
+      window.open(blobUrl, '_blank', 'noopener,noreferrer');
+    }
+
+    window.setTimeout(() => URL.revokeObjectURL(blobUrl), 2000);
   };
 
   const handleDownloadPdf = async () => {
     if (!resultExportRef.current) return;
     setPdfLoading(true);
+    setExportError(null);
     try {
-      const canvas = await captureResultForExport();
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const pageW = pdf.internal.pageSize.getWidth();
-      const pageH = pdf.internal.pageSize.getHeight();
-      pdf.setFillColor(10, 10, 10);
-      pdf.rect(0, 0, pageW, pageH, 'F');
-      const imgW = pageW;
-      const imgH = (canvas.height * imgW) / canvas.width;
-      const totalPages = Math.max(1, Math.ceil(imgH / pageH));
-      for (let p = 0; p < totalPages; p++) {
-        if (p > 0) {
-          pdf.addPage();
-          pdf.setFillColor(10, 10, 10);
-          pdf.rect(0, 0, pageW, pageH, 'F');
-        }
-        pdf.addImage(imgData, 'PNG', 0, -p * pageH, imgW, imgH);
-      }
-      pdf.save(`${exportBaseName}.pdf`);
+      const canvas = await captureResultForExport('pdf');
+      const imgData = canvas.toDataURL('image/png', 1);
+      const pdf = new jsPDF({
+        orientation: canvas.width > canvas.height ? 'landscape' : 'portrait',
+        unit: 'px',
+        format: [canvas.width, canvas.height],
+      });
+      pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+      const blob = pdf.output('blob');
+      await downloadBlob(blob, `${exportBaseName}.pdf`, 'ผล Key Principles Assessment');
     } catch (e) {
+      const msg = e instanceof Error ? e.message : 'ดาวน์โหลด PDF ไม่สำเร็จ';
+      setExportError(msg);
       console.warn('Export Key Principles PDF:', e);
     } finally {
       setPdfLoading(false);
@@ -387,11 +419,14 @@ const KeyPrinciplesAssessment: React.FC = () => {
   const handleDownloadPng = async () => {
     if (!resultExportRef.current) return;
     setPngLoading(true);
+    setExportError(null);
     try {
-      const canvas = await captureResultForExport();
+      const canvas = await captureResultForExport('png');
       const blob = await canvasToPngBlob(canvas);
-      await savePngBlob(blob, `${exportBaseName}.png`);
+      await downloadBlob(blob, `${exportBaseName}.png`, 'ผล Key Principles Assessment');
     } catch (e) {
+      const msg = e instanceof Error ? e.message : 'ดาวน์โหลด PNG ไม่สำเร็จ';
+      setExportError(msg);
       console.warn('Export Key Principles PNG:', e);
     } finally {
       setPngLoading(false);
@@ -407,7 +442,7 @@ const KeyPrinciplesAssessment: React.FC = () => {
             onClick={handleCloseIntroAndStart}
             aria-hidden="true"
           />
-          <div className="relative w-full max-w-lg rounded-3xl border border-white/20 bg-gradient-to-b from-neutral-900/95 to-black/95 shadow-2xl shadow-yellow-400/10 overflow-hidden max-h-[90vh] overflow-y-auto">
+          <div className="relative w-full max-w-lg rounded-3xl border border-white/20 bg-gradient-to-b from-neutral-900/95 to-black/95 shadow-2xl shadow-yellow-400/10 overflow-hidden max-h-[90vh] overflow-y-auto kp-scale-in">
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(250,204,21,0.12),transparent)] pointer-events-none" />
             <div className="relative p-8 md:p-10 text-center">
               <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-yellow-400/20 border border-yellow-400/35 flex items-center justify-center">
@@ -444,58 +479,23 @@ const KeyPrinciplesAssessment: React.FC = () => {
         )}
       </header>
 
-      <main className="flex-1 px-6 py-8 max-w-3xl mx-auto w-full pb-24">
+      <main
+        className={`flex-1 px-4 sm:px-6 py-4 md:py-8 mx-auto w-full pb-16 ${
+          step === 'login' ? 'max-w-6xl' : 'max-w-3xl'
+        }`}
+      >
         {step === 'login' && (
-          <div className="max-w-md mx-auto">
-            <p className="text-center text-[10px] uppercase tracking-widest text-yellow-400/90 mb-2">{SUBTITLE}</p>
-            <h1 className="text-2xl md:text-3xl font-black tracking-tight mb-2 text-center leading-snug">Key Principles</h1>
-            <p className="text-gray-400 text-sm text-center mb-6 max-w-sm mx-auto leading-relaxed">
-              25 ข้อ · สเกล 1–5 · สรุปผล 5 ส่วน: Self Esteem, Empathy, Involvement, Support, Share
-            </p>
-            <form
-              onSubmit={handleLoginSubmit}
-              className="rounded-2xl border border-white/10 bg-white/5 p-6 md:p-8 space-y-5"
-            >
-              <div>
-                <label htmlFor="kp-name" className="block text-sm font-medium text-gray-400 mb-2">
-                  ชื่อ
-                </label>
-                <input
-                  id="kp-name"
-                  type="text"
-                  value={user.name}
-                  onChange={(e) => setUser((u) => ({ ...u, name: e.target.value }))}
-                  placeholder="กรอกชื่อ"
-                  required
-                  className="w-full px-4 py-3 rounded-xl bg-black/50 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-yellow-400"
-                />
-              </div>
-              <div>
-                <label htmlFor="kp-company" className="block text-sm font-medium text-gray-400 mb-2">
-                  บริษัท / องค์กร
-                </label>
-                <input
-                  id="kp-company"
-                  type="text"
-                  value={user.company}
-                  onChange={(e) => setUser((u) => ({ ...u, company: e.target.value }))}
-                  placeholder="บริษัท"
-                  required
-                  className="w-full px-4 py-3 rounded-xl bg-black/50 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-yellow-400"
-                />
-              </div>
-              <button
-                type="submit"
-                className="w-full py-3 rounded-xl font-bold bg-yellow-400 text-black hover:bg-yellow-300 shadow-lg shadow-yellow-400/20 transition-all"
-              >
-                เข้าสู่แบบประเมิน
-              </button>
-            </form>
-          </div>
+          <KeyPrinciplesLoginView
+            name={user.name}
+            company={user.company}
+            onNameChange={(value) => setUser((u) => ({ ...u, name: value }))}
+            onCompanyChange={(value) => setUser((u) => ({ ...u, company: value }))}
+            onSubmit={handleLoginSubmit}
+          />
         )}
 
         {step === 'assessment' && (
-          <div className="space-y-8">
+          <div key={`page-${pageIndex}`} className="space-y-8 kp-fade-up">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-sm text-gray-500">
               <span className="font-semibold text-yellow-400/90">
                 {KP_PAGE_TITLES[pageIndex]} · ข้อ {currentNums[0]}–{currentNums[currentNums.length - 1]}
@@ -504,22 +504,24 @@ const KeyPrinciplesAssessment: React.FC = () => {
                 หน้า {pageIndex + 1} / {totalPages}
               </span>
             </div>
-            <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
+            <div className="h-2 rounded-full bg-white/10 overflow-hidden ring-1 ring-white/5">
               <div
-                className="h-full bg-gradient-to-r from-yellow-500/90 to-yellow-300 rounded-full transition-all duration-300"
+                className="h-full bg-gradient-to-r from-yellow-600 via-yellow-400 to-yellow-300 rounded-full transition-all duration-500 ease-out shadow-[0_0_12px_rgba(250,204,21,0.35)]"
                 style={{ width: `${progress}%` }}
               />
             </div>
 
-            <div className="space-y-6">
-              {(currentNums as KpQuestionNum[]).map((num) => {
+            <div className="space-y-5">
+              {(currentNums as KpQuestionNum[]).map((num, qi) => {
                 const q = getKpQuestionByNum(num);
                 if (!q) return null;
                 return (
                   <div
                     key={num}
                     id={`kp-question-${num}`}
-                    className="rounded-2xl border border-white/10 bg-white/5 p-5 md:p-6 space-y-4 shadow-lg shadow-black/20 scroll-mt-28"
+                    className={`kp-fade-up rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.06] to-transparent p-5 md:p-6 space-y-4 shadow-lg shadow-black/25 scroll-mt-28 transition-colors hover:border-white/15 ${
+                      qi === 0 ? '' : qi === 1 ? 'kp-delay-1' : qi === 2 ? 'kp-delay-2' : qi === 3 ? 'kp-delay-3' : 'kp-delay-4'
+                    }`}
                   >
                     <p className="text-xs font-bold text-yellow-400/90 uppercase tracking-widest">
                       ข้อที่ {num} / {totalQuestions}
@@ -534,10 +536,10 @@ const KeyPrinciplesAssessment: React.FC = () => {
                             type="button"
                             onClick={() => setScale(num, v)}
                             title={KP_SCALE_LABELS[v]}
-                            className={`min-w-[2.75rem] px-3 py-2 rounded-xl text-sm font-bold border-2 transition-all ${
+                            className={`min-w-[2.75rem] px-3 py-2 rounded-xl text-sm font-bold border-2 transition-all duration-200 hover:scale-105 active:scale-95 ${
                               answers[num] === v
-                                ? 'bg-yellow-400/20 border-yellow-400 text-white'
-                                : 'bg-white/5 border-white/10 text-gray-400 hover:border-white/25'
+                                ? 'kp-rating-pop bg-yellow-400/25 border-yellow-400 text-white shadow-md shadow-yellow-400/20'
+                                : 'bg-white/5 border-white/10 text-gray-400 hover:border-yellow-400/40 hover:text-gray-200'
                             }`}
                           >
                             {v}
@@ -553,7 +555,7 @@ const KeyPrinciplesAssessment: React.FC = () => {
               })}
             </div>
 
-            <div id="kp-assessment-nav" className="flex justify-between pt-6 scroll-mt-8">
+            <div id="kp-assessment-nav" className="flex justify-between pt-6 scroll-mt-8 kp-fade-up kp-delay-3">
               <button
                 type="button"
                 onClick={handlePrevPage}
@@ -575,145 +577,28 @@ const KeyPrinciplesAssessment: React.FC = () => {
         )}
 
         {step === 'result' && isKpComplete(displayAnswers) && (
-          <div className="space-y-10 max-w-xl mx-auto">
-            <div ref={resultExportRef} className="space-y-10">
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-6 md:p-8 space-y-4 text-center">
-                <p className="text-[10px] uppercase tracking-widest text-yellow-400/90">Key Principles</p>
-                <h1 className="text-2xl md:text-3xl font-black text-white">ผลการประเมิน</h1>
-                <p className="text-gray-400 text-sm">{displayUser.name}</p>
-                <p className="text-xs text-gray-500 -mt-2">{displayUser.company}</p>
-              </div>
-
-              <div className="space-y-5">
-                {sectionResults.map(({ section, sum, band }) => (
-                  <div
-                    key={section.id}
-                    className="rounded-2xl border border-white/10 bg-white/5 p-5 md:p-6 space-y-3"
-                  >
-                    <div className="flex flex-wrap items-start justify-between gap-2">
-                      <h2 className="text-lg font-bold text-white">{section.titleEn}</h2>
-                      <p className="text-2xl font-black text-yellow-400 tabular-nums shrink-0">
-                        {sum}
-                        <span className="text-sm text-gray-500 font-semibold"> / 25</span>
-                      </p>
-                    </div>
-                    <div
-                      className={`inline-block text-xs font-semibold px-3 py-1 rounded-full border ${BAND_BADGE_CLASS[band.id]}`}
-                    >
-                      ช่วง {band.min}–{band.max}
-                    </div>
-                    <p className="text-sm text-gray-300 leading-relaxed">{band.meaningTh}</p>
-                    <div className="h-2 rounded-full bg-white/10 overflow-hidden">
-                      <div
-                        className="h-full bg-gradient-to-r from-yellow-500/80 to-yellow-300/90 rounded-full transition-all"
-                        style={{ width: `${Math.round((sum / 25) * 100)}%` }}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-6 space-y-3">
-                <h2 className="text-sm font-bold text-gray-300 uppercase tracking-wider">เกณฑ์การแปลผล (ต่อส่วน)</h2>
-                {KP_SCORE_BANDS.map((b) => (
-                  <div
-                    key={b.id}
-                    className="flex gap-3 border-t border-white/10 first:border-t-0 first:pt-0 pt-2 text-xs text-gray-400"
-                  >
-                    <span className="shrink-0 tabular-nums text-yellow-400/90 font-semibold w-14">
-                      {b.min}–{b.max}
-                    </span>
-                    <span>{b.meaningTh}</span>
-                  </div>
-                ))}
-              </div>
-
-              <div className="rounded-2xl border border-yellow-400/25 bg-white/[0.06] p-6 space-y-4">
-                <h2 className="text-sm font-bold text-yellow-400/90 uppercase tracking-wider">สรุปผลด้วย AI</h2>
-                <p className="text-xs text-gray-500 -mt-2">
-                  วิเคราะห์คะแนนทั้ง 5 ส่วน — เน้นจุดแข็งและแนวทางปฏิบัติที่เป็นรูปธรรม
-                </p>
-                {aiLoading && (
-                  <div className="flex items-center gap-3 text-gray-400">
-                    <div
-                      className="w-5 h-5 border-2 border-yellow-400 border-t-transparent rounded-full animate-spin shrink-0"
-                      aria-hidden
-                    />
-                    <span>กำลังสร้างสรุป Feedback...</span>
-                  </div>
-                )}
-                {!aiLoading && aiFeedback && (
-                  <div className="whitespace-pre-wrap text-gray-200 text-sm leading-relaxed border-t border-white/10 pt-4">
-                    {aiFeedback}
-                  </div>
-                )}
-                {!aiLoading && aiError && <p className="text-sm text-red-300/90">{aiError}</p>}
-                {!aiLoading && (
-                  <button
-                    type="button"
-                    onClick={() => void handleRequestAiFeedback()}
-                    className="exclude-from-export w-full sm:w-auto px-5 py-2.5 rounded-xl text-sm font-bold bg-yellow-400 text-black hover:bg-yellow-300 transition-all"
-                  >
-                    {aiFeedback ? 'สร้างสรุป Feedback ใหม่' : 'รับสรุป Feedback จาก AI'}
-                  </button>
-                )}
-              </div>
-
-              <p className="text-center text-[10px] text-gray-500 pb-2">MindDoJo · Key Principles Assessment</p>
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-3 justify-center flex-wrap">
-              <button
-                type="button"
-                onClick={handleDownloadPng}
-                disabled={pngLoading}
-                className="px-6 py-3 rounded-xl font-bold border border-yellow-400/50 text-yellow-200 hover:bg-yellow-400/10 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
-              >
-                {pngLoading ? (
-                  <>
-                    <span
-                      className="w-4 h-4 border-2 border-yellow-400 border-t-transparent rounded-full animate-spin shrink-0"
-                      aria-hidden
-                    />
-                    กำลังสร้าง PNG…
-                  </>
-                ) : (
-                  'ดาวน์โหลด PNG'
-                )}
-              </button>
-              <button
-                type="button"
-                onClick={handleDownloadPdf}
-                disabled={pdfLoading}
-                className="px-6 py-3 rounded-xl font-bold border border-yellow-400/50 text-yellow-200 hover:bg-yellow-400/10 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
-              >
-                {pdfLoading ? (
-                  <>
-                    <span
-                      className="w-4 h-4 border-2 border-yellow-400 border-t-transparent rounded-full animate-spin shrink-0"
-                      aria-hidden
-                    />
-                    กำลังสร้าง PDF…
-                  </>
-                ) : (
-                  'ดาวน์โหลด PDF'
-                )}
-              </button>
-              <button
-                type="button"
-                onClick={restart}
-                className="px-6 py-3 rounded-xl font-bold border border-white/15 text-gray-300 hover:bg-white/5 transition-all"
-              >
-                ทำแบบประเมินใหม่
-              </button>
-              <Link
-                to="/"
-                className="px-6 py-3 rounded-xl font-bold bg-yellow-400 text-black hover:bg-yellow-300 text-center transition-all"
-              >
-                กลับหน้าหลัก
-              </Link>
-            </div>
-          </div>
+          <>
+            {exportError && (
+              <p className="max-w-2xl mx-auto mb-4 rounded-xl border border-rose-400/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-200 text-center">
+                {exportError}
+              </p>
+            )}
+            <KeyPrinciplesResultView
+              exportRef={resultExportRef}
+              userName={displayUser.name}
+              userCompany={displayUser.company}
+              sectionResults={sectionResults}
+              aiFeedback={aiFeedback}
+              aiLoading={aiLoading}
+              aiError={aiError}
+              onRequestAi={() => void handleRequestAiFeedback()}
+              pngLoading={pngLoading}
+              pdfLoading={pdfLoading}
+              onDownloadPng={() => void handleDownloadPng()}
+              onDownloadPdf={() => void handleDownloadPdf()}
+              onRestart={restart}
+            />
+          </>
         )}
       </main>
     </div>

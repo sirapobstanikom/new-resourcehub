@@ -107,6 +107,147 @@
   animation: discRatingPop 260ms ease-out both;
 }
 
+/* Key Principles Assessment */
+@keyframes kpFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes kpScaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes kpRingDraw {
+  from {
+    stroke-dashoffset: var(--kp-ring-c, 220);
+  }
+  to {
+    stroke-dashoffset: var(--kp-ring-offset, 0);
+  }
+}
+
+@keyframes kpShimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes kpSlideUpBar {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.kp-fade-up {
+  animation: kpFadeUp 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.kp-scale-in {
+  animation: kpScaleIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.kp-ring-progress {
+  animation: kpRingDraw 1s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.kp-rating-pop {
+  animation: discRatingPop 260ms ease-out both;
+}
+
+.kp-shimmer-wrap {
+  position: relative;
+  overflow: hidden;
+}
+
+.kp-shimmer-wrap::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 40%,
+    rgba(250, 204, 21, 0.06) 50%,
+    transparent 60%
+  );
+  animation: kpShimmer 2.8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.kp-mobile-bar {
+  animation: kpSlideUpBar 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.kp-delay-1 {
+  animation-delay: 0.08s;
+}
+.kp-delay-2 {
+  animation-delay: 0.16s;
+}
+.kp-delay-3 {
+  animation-delay: 0.24s;
+}
+.kp-delay-4 {
+  animation-delay: 0.32s;
+}
+.kp-delay-5 {
+  animation-delay: 0.4s;
+}
+.kp-delay-6 {
+  animation-delay: 0.48s;
+}
+.kp-delay-7 {
+  animation-delay: 0.56s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kp-fade-up,
+  .kp-scale-in,
+  .kp-ring-progress,
+  .kp-rating-pop,
+  .kp-mobile-bar,
+  .kp-shimmer-wrap::after {
+    animation: none !important;
+  }
+}
+
+/* html2canvas: บังคับให้มองเห็นเนื้อหาก่อนจับภาพ */
+[data-kp-exporting='true'],
+[data-kp-exporting='true'] * {
+  animation: none !important;
+  transition: none !important;
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+[data-kp-exporting='true'] .kp-shimmer-wrap::after {
+  display: none !important;
+}
+
+[data-kp-exporting='true'] .kp-ring-progress {
+  stroke-dashoffset: var(--kp-ring-offset, 0) !important;
+}
+
 /* iOS Safari: prevent date input from overflowing rounded containers */
 .ios-date-input-fix {
   width: 100%;
