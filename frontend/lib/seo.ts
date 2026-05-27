@@ -1,4 +1,5 @@
 import { getToolById, getUpdateById } from '../constants';
+import { isAdminAuthenticated } from './auth';
 
 const SITE_URL = 'https://www.minddojo.co.th';
 const SITE_NAME = 'MindDoJo Resource Hub';
@@ -176,11 +177,27 @@ function getSeoConfig(pathname: string): SeoConfig {
     };
   }
 
+  if (basePath.startsWith('/admin')) {
+    return {
+      title: isAdminAuthenticated() ? 'Admin Dashboard' : 'เข้าสู่ระบบ',
+      description: DEFAULT_DESCRIPTION,
+      path: basePath,
+      robots: 'noindex, nofollow',
+    };
+  }
+
+  if (basePath === '/course-wheel') {
+    return {
+      title: 'วงล้อหลักสูตร',
+      description: DEFAULT_DESCRIPTION,
+      path: basePath,
+      robots: 'noindex, nofollow',
+    };
+  }
+
   if (
     basePath === '/login' ||
     basePath === '/register' ||
-    basePath === '/course-wheel' ||
-    basePath.startsWith('/admin') ||
     basePath.startsWith('/room') ||
     basePath.startsWith('/evaluation/eva-editor') ||
     basePath.startsWith('/evaluation/dashboard')

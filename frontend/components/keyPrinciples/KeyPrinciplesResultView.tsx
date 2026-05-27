@@ -244,7 +244,7 @@ const KeyPrinciplesResultView: React.FC<KeyPrinciplesResultViewProps> = ({
             <div>
               <h2 className="text-base font-bold text-white">สรุป Feedback จาก AI</h2>
               <p className="text-xs text-gray-500 mt-1 leading-relaxed max-w-md">
-                วิเคราะห์ว่าคำพูดของคุณสร้างหรือทำลาย 5 ด้านการสื่อสารในผู้อื่นมากน้อแค่ไหน
+                วิเคราะห์ว่าคำพูดของคุณ 5 ด้านการสื่อสารในผู้อื่นมากน้อยแค่ไหน
               </p>
             </div>
           </div>
