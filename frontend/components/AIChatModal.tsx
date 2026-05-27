@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { getToolInsights } from '../services/gemini';
+import { getToolInsights } from '../services/openai';
 
 interface AIChatModalProps {
   toolName: string;

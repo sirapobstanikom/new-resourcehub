@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { getDigitalLeadershipFeedback } from '../services/gemini';
+import { getDigitalLeadershipFeedback } from '../services/openai';
 import {
   DLC_SECTIONS,
   DLC_SCALE_LABELS,

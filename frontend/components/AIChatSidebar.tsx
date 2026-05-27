@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { supabaseFunctionsUrl, supabaseAnonKey } from '../lib/supabase';
-import { openaiChatStream } from '../services/gemini';
+import { openaiChatStream } from '../services/openai';
 
 interface Message {
   id: string;

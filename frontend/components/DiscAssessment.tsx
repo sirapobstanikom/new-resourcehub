@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { DISC_DESCRIPTIONS, DISC_LABELS, DISC_QUESTIONS, type DiscRating, type DiscStatement, type DiscType } from '../data/discData';
 import { isSupabaseConfigured, supabase } from '../lib/supabase';
 import { Chart } from 'react-google-charts';
-import { getDiscFeedback } from '../services/gemini';
+import { getDiscFeedback } from '../services/openai';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 

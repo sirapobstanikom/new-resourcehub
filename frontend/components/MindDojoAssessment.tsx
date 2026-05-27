@@ -16,7 +16,7 @@ import {
   getMindDojoStructuredReport,
   type MindDojoProfile,
   type MindDojoScenario,
-} from '../services/gemini';
+} from '../services/openai';
 import { MINDDOJO_REPORT_STORAGE_KEY } from '../data/mindDojoDimensions';
 import {
   PROFILING_SYSTEM,

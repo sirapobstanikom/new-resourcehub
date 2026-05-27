@@ -15,7 +15,7 @@ import {
   type LeadershipQuestion,
   type LeadershipSubItem,
 } from '../data/leadershipWheelData';
-import { getLeadershipFeedback, type LeadershipResultPayload } from '../services/gemini';
+import { getLeadershipFeedback, type LeadershipResultPayload } from '../services/openai';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
 type Step = 'login' | 'assessment' | 'result';

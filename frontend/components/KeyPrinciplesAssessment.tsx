@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
-import { getKeyPrinciplesFeedback } from '../services/gemini';
+import { getKeyPrinciplesFeedback } from '../services/openai';
 import {
   KP_PAGE_QUESTION_NUMS,
   KP_PAGE_TITLES,

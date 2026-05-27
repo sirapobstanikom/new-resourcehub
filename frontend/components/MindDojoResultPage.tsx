@@ -5,7 +5,7 @@ import { isAuthenticated } from '../lib/auth';
 import { isSupabaseConfigured } from '../lib/supabase';
 import { isMindDojoAssessmentLoggedIn } from '../lib/minddojoAssessmentAuth';
 import { MINDDOJO_DIMENSIONS, MINDDOJO_REPORT_STORAGE_KEY } from '../data/mindDojoDimensions';
-import type { MindDojoStoredReportPayload } from '../services/gemini';
+import type { MindDojoStoredReportPayload } from '../services/openai';
 
 function loadStoredReport(): MindDojoStoredReportPayload | null {
   try {
