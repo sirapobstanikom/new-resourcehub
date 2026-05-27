@@ -8,6 +8,10 @@
     -webkit-text-size-adjust: 100%;
     -webkit-tap-highlight-color: transparent;
     color-scheme: dark;
+    overflow-x: hidden;
+    overflow-y: auto;
+    height: auto;
+    min-height: 100%;
   }
   body {
     font-family: "Anuphan", ui-sans-serif, system-ui, sans-serif !important;
@@ -26,8 +30,15 @@
     color: #f4f4f5 !important;
     margin: 0 !important;
     overflow-x: hidden !important;
+    overflow-y: auto !important;
     min-height: 100vh;
     min-height: 100dvh;
+    height: auto;
+  }
+  #root {
+    min-height: 100%;
+    overflow-x: hidden;
+    overflow-y: visible;
   }
 }
 

@@ -187,6 +187,18 @@ const App: React.FC = () => {
     if (!isArPage) cleanupArOverlays();
   }, [pathname]);
 
+  /** คืนค่า scroll หลังออกจากเกม/หน้าที่ lock body (เช่น Hidden Fox CSS เก่า) */
+  useEffect(() => {
+    const lockRoutes = ['/gamification/hidden-fox', '/gamification/game-ar', '/game-ar'];
+    const locksScroll = lockRoutes.some((r) => pathname.startsWith(r) || pathname === r);
+    if (!locksScroll) {
+      document.documentElement.style.overflow = '';
+      document.body.style.overflow = '';
+      const root = document.getElementById('root');
+      if (root) root.style.overflow = '';
+    }
+  }, [pathname]);
+
   if (isLogin) {
     return (
       <Suspense fallback={<RouteFallback />}>
