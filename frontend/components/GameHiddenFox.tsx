@@ -16,10 +16,10 @@ const GameHiddenFox: React.FC = () => {
   }, []);
 
   return (
-    <div className="hidden-fox-shell fixed inset-0 z-50 bg-[#050506] overflow-hidden">
+    <div className="hidden-fox-shell fixed inset-0 z-50 overflow-hidden bg-[#07070f]">
       <Link
         to="/"
-        className="absolute top-3 left-3 z-[10001] flex items-center gap-2 px-3 py-2 rounded-xl bg-black/60 text-white/90 hover:bg-black/80 border border-white/15 text-sm font-medium backdrop-blur-sm"
+        className="hf-back-home absolute top-3 left-3 z-[10001] flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-bold backdrop-blur-md transition-all"
       >
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
