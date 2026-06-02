@@ -407,7 +407,7 @@ const HiddenFoxGame: React.FC = () => {
                   </div>
                   <footer>
                     <button type="button" className="btn-execute-v5" onClick={openRegistration}>
-                      เริ่มเล่น
+                      START GAME
                     </button>
                   </footer>
                 </div>
