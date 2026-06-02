@@ -3,6 +3,8 @@ export type GamePhase = 'idle' | 'registering' | 'playing' | 'submitted' | 'game
 export interface WolfPosition {
   x: number;
   y: number;
+  /** รูปจิ้งจอกแต่ละตัว (V1–V8) */
+  imageUrl?: string;
 }
 
 export interface GuessPosition {

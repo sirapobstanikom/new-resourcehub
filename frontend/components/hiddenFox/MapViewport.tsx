@@ -115,6 +115,7 @@ const MapViewport: React.FC<Props> = ({
           {wolfPositions.map((pos, idx) => {
             const isFound = foundWolfIndices.includes(idx);
             const rotate = FOX_ROTATIONS[idx % FOX_ROTATIONS.length];
+            const foxSrc = pos.imageUrl ?? FOX_IMAGE;
 
             if (isFound) {
               return (
@@ -124,10 +125,11 @@ const MapViewport: React.FC<Props> = ({
                   style={{
                     left: `${pos.x}%`,
                     top: `${pos.y}%`,
+                    transform: `translate(-50%, -50%) rotate(${rotate}deg)`,
                   }}
                 >
                   <div className="fox-marker__ring" aria-hidden />
-                  <img src={FOX_IMAGE} alt="" className="fox-marker__img fox-marker__img--found" draggable={false} />
+                  <img src={foxSrc} alt="" className="fox-marker__img fox-marker__img--found" draggable={false} />
                 </div>
               );
             }
@@ -144,7 +146,7 @@ const MapViewport: React.FC<Props> = ({
                   transform: `translate(-50%, -50%) rotate(${rotate}deg)`,
                 }}
               >
-                <img src={FOX_IMAGE} alt="" className="fox-marker__img fox-marker__img--hidden" draggable={false} />
+                <img src={foxSrc} alt="" className="fox-marker__img fox-marker__img--hidden" draggable={false} />
               </div>
             );
           })}
@@ -190,14 +192,16 @@ const MapViewport: React.FC<Props> = ({
           -webkit-user-drag: none;
           image-rendering: auto;
         }
-        /* ตอนเล่น: จิ้งจอกเล็ก มองเห็นชัดทั้งตัว */
+        /* ตอนเล่น: จิ้งจอกเล็ก (ซ่อนบนแมป) */
         .fox-marker__img--hidden {
-          width: clamp(24px, 3.5vw, 44px);
+          width: clamp(16px, 2.4vw, 32px);
+          max-height: clamp(20px, 3vw, 40px);
           filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.45));
         }
         /* หาเจอแล้ว: ใหญ่ขึ้นเล็กน้อย + วงเหลือง */
         .fox-marker__img--found {
-          width: clamp(36px, 5.5vw, 68px);
+          width: clamp(28px, 4vw, 52px);
+          max-height: clamp(36px, 5vw, 64px);
           position: relative;
           z-index: 1;
           filter: drop-shadow(0 4px 12px rgba(250, 204, 21, 0.45));

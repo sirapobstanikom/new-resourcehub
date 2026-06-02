@@ -14,7 +14,7 @@ import {
   X,
   Settings,
 } from 'lucide-react';
-import { ASSET_BASE } from './constants';
+import { HIDDEN_FOX_MAP_URL } from './constants';
 import type { GameMap, GameSettings, LeaderboardEntry } from './types';
 
 type AdminTab = 'general' | 'maps' | 'leaderboard' | 'system';
@@ -50,7 +50,7 @@ const AdminPanel: React.FC<Props> = ({
     setEditingMap({
       id: `map-${Date.now()}`,
       name: 'New Map',
-      url: `${ASSET_BASE}/map/map.jpeg`,
+      url: HIDDEN_FOX_MAP_URL,
       wolfPositions: [],
     });
   };

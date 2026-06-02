@@ -5,6 +5,8 @@ import LeaderboardPanel from './LeaderboardPanel';
 import MapViewport from './MapViewport';
 import {
   DEFAULT_SETTINGS,
+  generateFoxSpawns,
+  HIDDEN_FOX_COUNT,
   LEADERBOARD_STORAGE_KEY,
   SETTINGS_STORAGE_KEY,
   FOX_IMAGE,
@@ -76,19 +78,9 @@ const HiddenFoxGame: React.FC = () => {
     return () => clearInterval(id);
   }, [phase, timeLeft]);
 
-  const pickWolves = useCallback(
-    (map: GameMap | undefined): WolfPosition[] => {
-      if (!map) return [];
-      return [...map.wolfPositions]
-        .sort(() => 0.5 - Math.random())
-        .slice(0, Math.min(settings.wolfCount, map.wolfPositions.length));
-    },
-    [settings.wolfCount]
-  );
-
   const startRound = useCallback(
     (map: GameMap, round: number) => {
-      setActiveWolves(pickWolves(map));
+      setActiveWolves(generateFoxSpawns(HIDDEN_FOX_COUNT));
       setGuesses([]);
       setRoundResult(null);
       setMissionComplete(false);
@@ -99,8 +91,15 @@ const HiddenFoxGame: React.FC = () => {
       setTimeLeft(settings.timeLimit);
       setFoundWolfIndices([]);
     },
-    [pickWolves, settings.timeLimit]
+    [settings.timeLimit]
   );
+
+  /** สุ่มตำแหน่งใหม่ทุกครั้งที่เปิดหน้าเกม */
+  useEffect(() => {
+    setActiveWolves([]);
+    setGuesses([]);
+    setFoundWolfIndices([]);
+  }, []);
 
   const beginGame = useCallback(() => {
     const firstMap = settings.maps[0];
@@ -132,11 +131,11 @@ const HiddenFoxGame: React.FC = () => {
           return Math.sqrt(dx * dx + dy * dy) < 3;
         });
         if (dup > -1) return prev.filter((_, i) => i !== dup);
-        if (prev.length >= settings.wolfCount) return prev;
+        if (prev.length >= HIDDEN_FOX_COUNT) return prev;
         return [...prev, { x, y, aspect }];
       });
     },
-    [settings.wolfCount]
+    []
   );
 
   const submitFind = useCallback(() => {
