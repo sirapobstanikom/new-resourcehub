@@ -4,7 +4,7 @@ const FOX_ASSET_BASE =
   'https://axaasphuaaadzjoffznj.supabase.co/storage/v1/object/public/images/find%20fox';
 
 /** แมปหลัก */
-export const HIDDEN_FOX_MAP_URL = `${FOX_ASSET_BASE}/BD%20for%20WEB%20nofox.jpg`;
+export const HIDDEN_FOX_MAP_URL = `${FOX_ASSET_BASE}/BD%20for%20WEB%20NOFOX.jpg`;
 
 export const FOX_IMAGES: readonly string[] = [
   `${FOX_ASSET_BASE}/V1_0.png`,
