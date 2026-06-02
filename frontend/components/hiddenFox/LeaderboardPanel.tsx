@@ -36,7 +36,7 @@ const LeaderboardPanel: React.FC<Props> = ({ entries, loading, error }) => {
         </div>
         <div className="header-text">
           <h2>HALL OF FAME</h2>
-          <span>เรียงจากคะแนนสูงสุด · เท่ากันดูเวลา</span>
+          <span>เรียงจากคะแนนสูงสุด และเวลาดีที่สุด</span>
         </div>
       </div>
 

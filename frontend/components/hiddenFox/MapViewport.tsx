@@ -5,8 +5,10 @@ import type { GamePhase, GuessPosition, WolfPosition } from './types';
 
 interface Props {
   mapUrl: string;
+  roundSession: number;
   guessPositions: GuessPosition[];
   onMapClick: (x: number, y: number, aspect: number) => void;
+  onMapReadyChange?: (ready: boolean) => void;
   gameState: GamePhase;
   wolfPositions: WolfPosition[];
   foundWolfIndices?: number[];
@@ -14,31 +16,113 @@ interface Props {
 
 /** Slight rotation per spot so markers do not look identical. */
 const FOX_ROTATIONS = [-6, 4, -3, 7, -5, 3];
+const MAP_FALLBACK_URL = 'https://via.placeholder.com/1920x1080?text=MAP+LOAD+ERROR';
 
 const MapViewport: React.FC<Props> = ({
   mapUrl,
+  roundSession,
   guessPositions,
   onMapClick,
+  onMapReadyChange,
   gameState,
   wolfPositions,
   foundWolfIndices = [],
 }) => {
   const imgRef = useRef<HTMLImageElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
+  const [isMapReady, setIsMapReady] = useState(false);
+  const [naturalSize, setNaturalSize] = useState({ width: 0, height: 0 });
+  const [renderBox, setRenderBox] = useState({ left: 0, top: 0, width: 0, height: 0 });
+  const [mapSrc, setMapSrc] = useState(mapUrl);
   const [isDragging, setIsDragging] = useState(false);
   const [dragStartX, setDragStartX] = useState(0);
   const [scrollStart, setScrollStart] = useState(0);
   const [didDrag, setDidDrag] = useState(false);
 
-  const handleResize = useCallback(() => {}, []);
+  const updateRenderBox = useCallback(() => {
+    if (!viewportRef.current) return;
+    const viewportWidth = viewportRef.current.clientWidth;
+    const viewportHeight = viewportRef.current.clientHeight;
+    if (viewportWidth <= 0 || viewportHeight <= 0) return;
+
+    const imageWidth = naturalSize.width;
+    const imageHeight = naturalSize.height;
+    if (imageWidth <= 0 || imageHeight <= 0) {
+      setRenderBox({ left: 0, top: 0, width: viewportWidth, height: viewportHeight });
+      return;
+    }
+
+    const imageAspect = imageWidth / imageHeight;
+    const viewportAspect = viewportWidth / viewportHeight;
+    let width = viewportWidth;
+    let height = viewportHeight;
+
+    if (imageAspect > viewportAspect) {
+      height = width / imageAspect;
+    } else {
+      width = height * imageAspect;
+    }
+
+    setRenderBox({
+      left: (viewportWidth - width) / 2,
+      top: (viewportHeight - height) / 2,
+      width,
+      height,
+    });
+  }, [naturalSize.height, naturalSize.width]);
 
   useEffect(() => {
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [handleResize]);
+    window.addEventListener('resize', updateRenderBox);
+    return () => window.removeEventListener('resize', updateRenderBox);
+  }, [updateRenderBox]);
 
   const effectiveState = gameState === 'gameover' ? 'submitted' : gameState;
-  const showPeekingFoxes = effectiveState === 'playing';
+  const showPeekingFoxes = effectiveState === 'playing' && isMapReady;
+
+  useEffect(() => {
+    setMapSrc(mapUrl);
+    setIsMapReady(false);
+    onMapReadyChange?.(false);
+  }, [mapUrl]);
+
+  useEffect(() => {
+    if (gameState !== 'playing') return;
+    const img = imgRef.current;
+    if (!img) return;
+
+    // If browser already cached image, skip long loading overlay.
+    if (img.complete && img.naturalWidth > 0 && img.naturalHeight > 0) {
+      setNaturalSize({ width: img.naturalWidth, height: img.naturalHeight });
+      setIsMapReady(true);
+      updateRenderBox();
+      return;
+    }
+
+    setIsMapReady(false);
+    onMapReadyChange?.(false);
+  }, [gameState, mapUrl, onMapReadyChange, roundSession, updateRenderBox]);
+
+  useEffect(() => {
+    if (gameState !== 'playing' || isMapReady) return;
+    const timeoutId = window.setTimeout(() => {
+      setIsMapReady(true);
+      onMapReadyChange?.(true);
+    }, 5000);
+    return () => window.clearTimeout(timeoutId);
+  }, [gameState, isMapReady, onMapReadyChange]);
+
+
+  useEffect(() => {
+    onMapReadyChange?.(isMapReady);
+  }, [isMapReady, onMapReadyChange]);
+
+  useEffect(() => {
+    if (!viewportRef.current || !imgRef.current) return;
+    const observer = new ResizeObserver(() => updateRenderBox());
+    observer.observe(viewportRef.current);
+    observer.observe(imgRef.current);
+    return () => observer.disconnect();
+  }, [updateRenderBox]);
 
   return (
     <div
@@ -54,12 +138,14 @@ const MapViewport: React.FC<Props> = ({
       onMouseLeave={() => setIsDragging(false)}
       onMouseUp={(e) => {
         setIsDragging(false);
-        if (!didDrag && effectiveState === 'playing' && imgRef.current) {
-          const rect = imgRef.current.getBoundingClientRect();
-          const x = ((e.clientX - rect.left) / rect.width) * 100;
-          const y = ((e.clientY - rect.top) / rect.height) * 100;
+        if (!didDrag && isMapReady && effectiveState === 'playing' && viewportRef.current) {
+          const viewportRect = viewportRef.current.getBoundingClientRect();
+          const left = viewportRect.left + renderBox.left;
+          const top = viewportRect.top + renderBox.top;
+          const x = ((e.clientX - left) / renderBox.width) * 100;
+          const y = ((e.clientY - top) / renderBox.height) * 100;
           if (x >= 0 && x <= 100 && y >= 0 && y <= 100) {
-            onMapClick(x, y, rect.width / rect.height);
+            onMapClick(x, y, renderBox.width / renderBox.height);
           }
         }
       }}
@@ -85,24 +171,37 @@ const MapViewport: React.FC<Props> = ({
         style={{
           position: 'relative',
           height: '100%',
-          width: 'max-content',
+          width: '100%',
           display: 'block',
           pointerEvents: 'none',
         }}
       >
         <img
           ref={imgRef}
-          src={mapUrl}
+          src={mapSrc}
           alt="Tactical Map"
-          onLoad={handleResize}
-          onError={(e) => {
-            (e.target as HTMLImageElement).src =
-              'https://via.placeholder.com/1920x1080?text=MAP+LOAD+ERROR';
+          onLoad={(e) => {
+            const target = e.currentTarget;
+            const width = target.naturalWidth || target.width;
+            const height = target.naturalHeight || target.height;
+            setNaturalSize({ width, height });
+            setIsMapReady(true);
+            updateRenderBox();
+            if (target.naturalWidth > 0 && target.naturalHeight > 0) {
+              if (viewportRef.current) viewportRef.current.scrollLeft = 0;
+            }
+          }}
+          onError={() => {
+            if (mapSrc !== MAP_FALLBACK_URL) {
+              setMapSrc(MAP_FALLBACK_URL);
+              return;
+            }
+            setIsMapReady(true);
           }}
           style={{
+            width: '100%',
             height: '100%',
-            width: 'auto',
-            maxWidth: 'none',
+            objectFit: 'contain',
             display: 'block',
             pointerEvents: 'none',
             zIndex: 1,
@@ -110,9 +209,17 @@ const MapViewport: React.FC<Props> = ({
         />
         <div
           className="map-interaction-layer"
-          style={{ position: 'absolute', inset: 0, zIndex: 100, pointerEvents: 'none' }}
+          style={{
+            position: 'absolute',
+            left: renderBox.left,
+            top: renderBox.top,
+            width: renderBox.width,
+            height: renderBox.height,
+            zIndex: 100,
+            pointerEvents: 'none',
+          }}
         >
-          {wolfPositions.map((pos, idx) => {
+          {isMapReady && wolfPositions.map((pos, idx) => {
             const isFound = foundWolfIndices.includes(idx);
             const rotate = FOX_ROTATIONS[idx % FOX_ROTATIONS.length];
             const foxSrc = pos.imageUrl ?? FOX_IMAGE;
@@ -150,7 +257,7 @@ const MapViewport: React.FC<Props> = ({
               </div>
             );
           })}
-          {guessPositions.map((pos, idx) => (
+          {isMapReady && guessPositions.map((pos, idx) => (
             <div
               key={`guess-${idx}`}
               style={{
@@ -168,8 +275,40 @@ const MapViewport: React.FC<Props> = ({
             </div>
           ))}
         </div>
+        {!isMapReady && (
+          <div className="map-loading-overlay" aria-live="polite">
+            <div className="map-loading-spinner" />
+            <span>กำลังโหลดแผนที่...</span>
+          </div>
+        )}
       </div>
       <style>{`
+        .map-loading-overlay {
+          position: absolute;
+          inset: 0;
+          z-index: 300;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 12px;
+          background: radial-gradient(circle at center, rgba(15, 16, 32, 0.82), rgba(7, 7, 15, 0.96));
+          color: #cbd5e1;
+          font-weight: 700;
+          letter-spacing: 0.02em;
+        }
+        .map-loading-spinner {
+          width: 34px;
+          height: 34px;
+          border-radius: 50%;
+          border: 3px solid rgba(250, 204, 21, 0.25);
+          border-top-color: #facc15;
+          animation: map-spin 0.9s linear infinite;
+        }
+        @keyframes map-spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
         .fox-marker {
           position: absolute;
           pointer-events: none;

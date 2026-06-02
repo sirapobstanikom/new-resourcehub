@@ -324,29 +324,50 @@
 .btn-execute-v5 {
   width: 100%;
   max-width: 280px;
-  height: 64px;
-  border: none;
-  border-radius: 18px;
+  height: 70px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 22px;
   cursor: pointer;
   font-family: 'Luckiest Guy', cursive;
-  font-size: 1.85rem;
-  color: #0a0a12;
-  background: linear-gradient(180deg, var(--hf-lime) 0%, #84cc16 100%);
-  border-bottom: 5px solid #4d7c0f;
+  font-size: 1.65rem;
+  letter-spacing: 0.03em;
+  color: #051114;
+  background: linear-gradient(135deg, #22d3ee 0%, #a3e635 48%, #fbbf24 100%);
+  border-bottom: 6px solid #0f766e;
   box-shadow:
-    0 12px 28px rgba(163, 230, 53, 0.35),
-    0 0 0 1px rgba(255, 255, 255, 0.15) inset;
-  transition: transform 0.12s, box-shadow 0.12s;
+    0 14px 32px rgba(34, 211, 238, 0.35),
+    0 0 0 2px rgba(255, 255, 255, 0.2) inset;
+  transition: transform 0.15s, box-shadow 0.15s, filter 0.15s;
+  position: relative;
+  overflow: hidden;
 }
 
 .btn-execute-v5:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 16px 32px rgba(163, 230, 53, 0.45);
+  transform: translateY(-3px) scale(1.01);
+  box-shadow: 0 18px 36px rgba(34, 211, 238, 0.45);
+  filter: saturate(1.08);
+}
+
+.btn-execute-v5::before {
+  content: '';
+  position: absolute;
+  inset: -30% auto -30% -25%;
+  width: 42%;
+  transform: rotate(18deg);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+  animation: hf-start-shine 2.6s ease-in-out infinite;
+}
+
+@keyframes hf-start-shine {
+  0% { left: -40%; opacity: 0; }
+  20% { opacity: 1; }
+  55% { left: 115%; opacity: 0.9; }
+  100% { left: 115%; opacity: 0; }
 }
 
 .btn-execute-v5:active {
   transform: translateY(3px);
-  border-bottom-width: 2px;
+  border-bottom-width: 3px;
 }
 
 /* ─── Registration ─── */
@@ -506,6 +527,10 @@
   background: rgba(248, 113, 113, 0.25);
   border-color: var(--hf-danger);
 }
+.btn-ref-exit:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
 
 .ref-timer-label {
   color: var(--hf-muted);
@@ -597,6 +622,42 @@
   box-shadow:
     0 0 0 1px rgba(139, 92, 246, 0.15),
     0 20px 50px rgba(0, 0, 0, 0.5);
+}
+.hf-loading-lock {
+  position: absolute;
+  inset: 0;
+  z-index: 220;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(7, 7, 15, 0.68);
+  backdrop-filter: blur(2px);
+  pointer-events: all;
+}
+.hf-loading-lock-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 22px;
+  border-radius: 16px;
+  border: 1px solid rgba(34, 211, 238, 0.35);
+  background: rgba(15, 16, 32, 0.92);
+  color: #cbd5e1;
+  font-weight: 800;
+  text-align: center;
+}
+.hf-loading-spinner {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 3px solid rgba(250, 204, 21, 0.22);
+  border-top-color: #facc15;
+  animation: hf-spin 0.85s linear infinite;
+}
+@keyframes hf-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 .map-viewport-wrapper {

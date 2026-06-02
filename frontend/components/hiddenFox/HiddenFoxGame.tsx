@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { RotateCcw } from 'lucide-react';
+import confetti from 'canvas-confetti';
 import LeaderboardPanel from './LeaderboardPanel';
 import MapViewport from './MapViewport';
 import {
@@ -44,10 +45,40 @@ const HiddenFoxGame: React.FC = () => {
   const [resultSaved, setResultSaved] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
+  const [isMapReady, setIsMapReady] = useState(false);
+  const [roundSession, setRoundSession] = useState(0);
   const [returningBestRun, setReturningBestRun] = useState<BestRunSummary | null>(null);
   const [isReturningPlayer, setIsReturningPlayer] = useState(false);
   const lastFoxesFoundRef = useRef(0);
   const savingRunRef = useRef(false);
+
+  useEffect(() => {
+    if (phase !== 'idle') return;
+
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReducedMotion) return;
+
+    const fireAmbient = () => {
+      if (document.visibilityState !== 'visible') return;
+      void confetti({
+        particleCount: 90,
+        spread: 120,
+        startVelocity: 42,
+        gravity: 0.78,
+        ticks: 220,
+        scalar: 1.15,
+        origin: { x: 0.08 + Math.random() * 0.84, y: 0.02 + Math.random() * 0.1 },
+        colors: ['#22d3ee', '#a3e635', '#fbbf24', '#e879f9'],
+      });
+    };
+
+    fireAmbient();
+    const intervalId = window.setInterval(() => {
+      fireAmbient();
+      fireAmbient();
+    }, 650);
+    return () => window.clearInterval(intervalId);
+  }, [phase]);
 
   const loadHallOfFame = useCallback(async () => {
     if (!isSupabaseConfigured) {
@@ -148,7 +179,7 @@ const HiddenFoxGame: React.FC = () => {
   }, [loadHallOfFame]);
 
   useEffect(() => {
-    if (phase !== 'playing' || timeLeft <= 0) return;
+    if (phase !== 'playing' || !isMapReady || timeLeft <= 0) return;
     const id = window.setInterval(() => {
       setTimeLeft((t) => {
         if (t <= 1) {
@@ -159,14 +190,28 @@ const HiddenFoxGame: React.FC = () => {
       });
     }, 1000);
     return () => clearInterval(id);
-  }, [phase, timeLeft]);
+  }, [isMapReady, phase, timeLeft]);
+
+  useEffect(() => {
+    if (phase !== 'playing' || !isMapReady || roundStartMs !== null) return;
+    setRoundStartMs(Date.now());
+  }, [isMapReady, phase, roundStartMs]);
+
+  useEffect(() => {
+    if (phase !== 'playing' || isMapReady) return;
+    const unlockId = window.setTimeout(() => {
+      setIsMapReady(true);
+    }, 2500);
+    return () => window.clearTimeout(unlockId);
+  }, [isMapReady, phase]);
 
   const startRound = useCallback(() => {
+    setRoundSession((s) => s + 1);
     setActiveWolves(generateFoxSpawns(HIDDEN_FOX_COUNT));
     setGuesses([]);
     setRoundResult(null);
     setMissionComplete(false);
-    setRoundStartMs(Date.now());
+    setRoundStartMs(null);
     setPhase('playing');
     setResultSaved(false);
     setSaveError(null);
@@ -174,6 +219,7 @@ const HiddenFoxGame: React.FC = () => {
     savingRunRef.current = false;
     setTimeLeft(GAME_TIME_LIMIT_SEC);
     setFoundWolfIndices([]);
+    setIsMapReady(false);
     lastFoxesFoundRef.current = 0;
     setTotalScore(0);
   }, []);
@@ -218,7 +264,7 @@ const HiddenFoxGame: React.FC = () => {
     return () => clearTimeout(timer);
   }, [phase, registration]);
 
-  const handleRegistration = async (e: React.FormEvent) => {
+  const handleRegistration = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     if (!registration.name || !registration.email || !registration.company) return;
 
@@ -240,7 +286,7 @@ const HiddenFoxGame: React.FC = () => {
     }
 
     beginGame();
-  };
+  }, [beginGame, registration, returningBestRun]);
 
   const handleMapClick = useCallback((x: number, y: number, aspect: number) => {
     setGuesses((prev) => {
@@ -477,7 +523,7 @@ const HiddenFoxGame: React.FC = () => {
             {(phase === 'playing' || phase === 'submitted' || phase === 'gameover') && (
               <div className="gameplay-layout-v5">
                 <div className="gameplay-sidebar">
-                  <button type="button" className="btn-ref-exit" onClick={goHome}>
+                  <button type="button" className="btn-ref-exit" onClick={goHome} disabled={!isMapReady && phase === 'playing'}>
                     EXIT
                   </button>
                   <div className="ref-timer-container">
@@ -501,21 +547,32 @@ const HiddenFoxGame: React.FC = () => {
                     type="button"
                     className="btn-ref-find"
                     onClick={submitFind}
-                    disabled={guesses.length === 0 || phase !== 'playing'}
+                    disabled={guesses.length === 0 || phase !== 'playing' || !isMapReady}
                   >
                     FIND!
                   </button>
                 </div>
                 <div className="map-viewport-wrapper hf-map-frame">
                   <MapViewport
+                    key={roundSession}
                     mapUrl={HIDDEN_FOX_MAP_URL}
+                    roundSession={roundSession}
                     guessPositions={guesses}
                     onMapClick={handleMapClick}
+                    onMapReadyChange={setIsMapReady}
                     gameState={phase}
                     wolfPositions={activeWolves}
                     foundWolfIndices={foundWolfIndices}
                   />
                 </div>
+                {phase === 'playing' && !isMapReady ? (
+                  <div className="hf-loading-lock" aria-live="polite">
+                    <div className="hf-loading-lock-card">
+                      <div className="hf-loading-spinner" />
+                      <p>กำลังโหลดแผนที่ กรุณารอสักครู่...</p>
+                    </div>
+                  </div>
+                ) : null}
               </div>
             )}
           </div>

@@ -203,7 +203,7 @@ function mapRunRow(row: Record<string, unknown>): HallOfFameEntry {
   };
 }
 
-/** Hall of Fame — คะแนนสูงสุดก่อน, คะแนนเท่ากันดูเวลาที่น้อยกว่า */
+/** Hall of Fame — คะแนนสูงสุดก่อน */
 export async function fetchScoreHallOfFame(limit = 10): Promise<HallOfFameEntry[]> {
   requireSupabase();
   const { data, error } = await supabase
