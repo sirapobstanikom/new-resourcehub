@@ -1,68 +1,72 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { RotateCcw } from 'lucide-react';
-import AdminPanel from './AdminPanel';
 import LeaderboardPanel from './LeaderboardPanel';
 import MapViewport from './MapViewport';
 import {
-  DEFAULT_SETTINGS,
+  FOX_IMAGE,
+  GAME_TIME_LIMIT_SEC,
   generateFoxSpawns,
   HIDDEN_FOX_COUNT,
-  LEADERBOARD_STORAGE_KEY,
-  SETTINGS_STORAGE_KEY,
-  FOX_IMAGE,
-  normalizeSettings,
+  HIDDEN_FOX_MAP_URL,
+  HIT_PRECISION,
 } from './constants';
-import type {
-  GameMap,
-  GamePhase,
-  GameSettings,
-  GuessPosition,
-  LeaderboardEntry,
-  RegistrationInfo,
-  RoundResult,
-  WolfPosition,
-} from './types';
+import type { GamePhase, GuessPosition, RegistrationInfo, RoundResult, WolfPosition } from './types';
+import {
+  fetchAccuracyHallOfFame,
+  fetchFastestHallOfFame,
+  registerHiddenFoxPlayer,
+  saveHiddenFoxRun,
+  type HallOfFameEntry,
+} from '../../services/hiddenFoxSupabase';
+import { isSupabaseConfigured } from '../../lib/supabase';
 
 const HiddenFoxGame: React.FC = () => {
   const [phase, setPhase] = useState<GamePhase>('idle');
   const [missionComplete, setMissionComplete] = useState(false);
   const [registration, setRegistration] = useState<RegistrationInfo>({ name: '', email: '', company: '' });
+  const [playerId, setPlayerId] = useState<string | null>(null);
   const [activeWolves, setActiveWolves] = useState<WolfPosition[]>([]);
   const [guesses, setGuesses] = useState<GuessPosition[]>([]);
   const [roundStartMs, setRoundStartMs] = useState<number | null>(null);
   const [roundResult, setRoundResult] = useState<RoundResult | null>(null);
   const [totalScore, setTotalScore] = useState(0);
-  const [currentRound, setCurrentRound] = useState(1);
   const [timeLeft, setTimeLeft] = useState(0);
   const [foundWolfIndices, setFoundWolfIndices] = useState<number[]>([]);
-  const [showAdmin, setShowAdmin] = useState(false);
-  const [settings, setSettings] = useState<GameSettings>(DEFAULT_SETTINGS);
-  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
-  const [savedAgentName, setSavedAgentName] = useState('');
-  const [scoreSaved, setScoreSaved] = useState(false);
+  const [fastestHof, setFastestHof] = useState<HallOfFameEntry[]>([]);
+  const [accuracyHof, setAccuracyHof] = useState<HallOfFameEntry[]>([]);
+  const [hofLoading, setHofLoading] = useState(false);
+  const [hofError, setHofError] = useState<string | null>(null);
+  const [registering, setRegistering] = useState(false);
+  const [registerError, setRegisterError] = useState<string | null>(null);
+  const [resultSaved, setResultSaved] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const lastFoxesFoundRef = useRef(0);
+  const savingRunRef = useRef(false);
 
-  const mapIndex = Math.min(currentRound - 1, settings.maps.length - 1);
-  const currentMapUrl = settings.maps[mapIndex]?.url ?? DEFAULT_SETTINGS.maps[0].url;
-  const isLastRound = currentRound >= settings.maps.length;
-
-  useEffect(() => {
-    const lb = localStorage.getItem(LEADERBOARD_STORAGE_KEY);
-    if (lb) {
-      try {
-        setLeaderboard(JSON.parse(lb) as LeaderboardEntry[]);
-      } catch (e) {
-        console.error('Failed to load leaderboard', e);
-      }
+  const loadHallOfFame = useCallback(async () => {
+    if (!isSupabaseConfigured) {
+      setHofError('ยังไม่ได้ตั้งค่า Supabase');
+      return;
     }
-    const st = localStorage.getItem(SETTINGS_STORAGE_KEY);
-    if (st) {
-      try {
-        setSettings(normalizeSettings(JSON.parse(st) as Partial<GameSettings>));
-      } catch (e) {
-        console.error('Failed to load admin settings', e);
-      }
+    setHofLoading(true);
+    setHofError(null);
+    try {
+      const [fastest, accuracy] = await Promise.all([
+        fetchFastestHallOfFame(10),
+        fetchAccuracyHallOfFame(10),
+      ]);
+      setFastestHof(fastest);
+      setAccuracyHof(accuracy);
+    } catch (e) {
+      setHofError(e instanceof Error ? e.message : 'โหลด Hall of Fame ไม่สำเร็จ');
+    } finally {
+      setHofLoading(false);
     }
   }, []);
+
+  useEffect(() => {
+    void loadHallOfFame();
+  }, [loadHallOfFame]);
 
   useEffect(() => {
     if (phase !== 'playing' || timeLeft <= 0) return;
@@ -78,65 +82,87 @@ const HiddenFoxGame: React.FC = () => {
     return () => clearInterval(id);
   }, [phase, timeLeft]);
 
-  const startRound = useCallback(
-    (map: GameMap, round: number) => {
-      setActiveWolves(generateFoxSpawns(HIDDEN_FOX_COUNT));
-      setGuesses([]);
-      setRoundResult(null);
-      setMissionComplete(false);
-      setRoundStartMs(Date.now());
-      setPhase('playing');
-      setScoreSaved(false);
-      setCurrentRound(round);
-      setTimeLeft(settings.timeLimit);
-      setFoundWolfIndices([]);
+  const persistRun = useCallback(
+    async (payload: {
+      completed: boolean;
+      completionTimeSec: number | null;
+      foxesFound: number;
+      accuracyPercent: number;
+    }) => {
+      if (!isSupabaseConfigured) return;
+      try {
+        await saveHiddenFoxRun({
+          playerId,
+          registration,
+          completionTimeSec: payload.completionTimeSec,
+          accuracyPercent: payload.accuracyPercent,
+          foxesFound: payload.foxesFound,
+          foxesTotal: HIDDEN_FOX_COUNT,
+          completed: payload.completed,
+        });
+        setResultSaved(true);
+        setSaveError(null);
+        await loadHallOfFame();
+      } catch (e) {
+        setSaveError(e instanceof Error ? e.message : 'บันทึกผลไม่สำเร็จ');
+      }
     },
-    [settings.timeLimit]
+    [loadHallOfFame, playerId, registration]
   );
 
-  /** สุ่มตำแหน่งใหม่ทุกครั้งที่เปิดหน้าเกม */
-  useEffect(() => {
-    setActiveWolves([]);
+  const startRound = useCallback(() => {
+    setActiveWolves(generateFoxSpawns(HIDDEN_FOX_COUNT));
     setGuesses([]);
+    setRoundResult(null);
+    setMissionComplete(false);
+    setRoundStartMs(Date.now());
+    setPhase('playing');
+    setResultSaved(false);
+    setSaveError(null);
+    savingRunRef.current = false;
+    setTimeLeft(GAME_TIME_LIMIT_SEC);
     setFoundWolfIndices([]);
+    lastFoxesFoundRef.current = 0;
+    setTotalScore(0);
   }, []);
 
   const beginGame = useCallback(() => {
-    const firstMap = settings.maps[0];
-    if (!firstMap) return;
-    setTotalScore(0);
-    startRound(firstMap, 1);
-  }, [settings.maps, startRound]);
+    startRound();
+  }, [startRound]);
 
-  const handleRegistration = (e: React.FormEvent) => {
+  const handleRegistration = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (registration.name && registration.email && registration.company) {
-      setSavedAgentName(registration.name);
-      beginGame();
+    if (!registration.name || !registration.email || !registration.company) return;
+
+    setRegisterError(null);
+    if (isSupabaseConfigured) {
+      setRegistering(true);
+      try {
+        const player = await registerHiddenFoxPlayer(registration);
+        setPlayerId(player.id);
+      } catch (err) {
+        setRegisterError(err instanceof Error ? err.message : 'ลงทะเบียนไม่สำเร็จ');
+        setRegistering(false);
+        return;
+      }
+      setRegistering(false);
     }
+
+    beginGame();
   };
 
-  const nextLevel = useCallback(() => {
-    const nextRound = currentRound + 1;
-    const map = settings.maps[Math.min(nextRound - 1, settings.maps.length - 1)];
-    if (map) startRound(map, nextRound);
-  }, [currentRound, settings.maps, startRound]);
-
-  const handleMapClick = useCallback(
-    (x: number, y: number, aspect: number) => {
-      setGuesses((prev) => {
-        const dup = prev.findIndex((g) => {
-          const dx = g.x - x;
-          const dy = (g.y - y) / (g.aspect ?? 1);
-          return Math.sqrt(dx * dx + dy * dy) < 3;
-        });
-        if (dup > -1) return prev.filter((_, i) => i !== dup);
-        if (prev.length >= HIDDEN_FOX_COUNT) return prev;
-        return [...prev, { x, y, aspect }];
+  const handleMapClick = useCallback((x: number, y: number, aspect: number) => {
+    setGuesses((prev) => {
+      const dup = prev.findIndex((g) => {
+        const dx = g.x - x;
+        const dy = (g.y - y) / (g.aspect ?? 1);
+        return Math.sqrt(dx * dx + dy * dy) < 3;
       });
-    },
-    []
-  );
+      if (dup > -1) return prev.filter((_, i) => i !== dup);
+      if (prev.length >= HIDDEN_FOX_COUNT) return prev;
+      return [...prev, { x, y, aspect }];
+    });
+  }, []);
 
   const submitFind = useCallback(() => {
     if (guesses.length === 0 || activeWolves.length === 0 || roundStartMs === null) return;
@@ -162,7 +188,7 @@ const HiddenFoxGame: React.FC = () => {
         }
       });
 
-      if (bestIdx !== -1 && bestDist < settings.precision) {
+      if (bestIdx !== -1 && bestDist < HIT_PRECISION) {
         matched.push(bestIdx);
         roundScore += Math.max(10, timeLeft * 5);
         closestDist = bestDist;
@@ -171,6 +197,8 @@ const HiddenFoxGame: React.FC = () => {
         break;
       }
     }
+
+    lastFoxesFoundRef.current = matched.length;
 
     if (allCorrect) {
       setFoundWolfIndices(matched);
@@ -192,46 +220,36 @@ const HiddenFoxGame: React.FC = () => {
     } else {
       setPhase('gameover');
     }
-  }, [activeWolves, foundWolfIndices, guesses, roundStartMs, settings.precision, timeLeft]);
+  }, [activeWolves, foundWolfIndices, guesses, roundStartMs, timeLeft]);
 
-  const saveScore = () => {
-    const name = registration.name || savedAgentName;
-    if (!name.trim() || scoreSaved) return;
-    const entry: LeaderboardEntry = {
-      name: name.trim().toUpperCase(),
-      time: totalScore,
-      date: new Date().toISOString(),
-    };
-    const next = [...leaderboard, entry].sort((a, b) => b.time - a.time).slice(0, 10);
-    setLeaderboard(next);
-    localStorage.setItem(LEADERBOARD_STORAGE_KEY, JSON.stringify(next));
-    setScoreSaved(true);
-  };
+  useEffect(() => {
+    if (phase !== 'gameover' || resultSaved || savingRunRef.current) return;
+    savingRunRef.current = true;
 
-  const updateSettings = (next: GameSettings) => {
-    const normalized = normalizeSettings(next);
-    setSettings(normalized);
-    localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(normalized));
-  };
+    const foxesFound = missionComplete
+      ? HIDDEN_FOX_COUNT
+      : Math.max(foundWolfIndices.length, lastFoxesFoundRef.current);
 
-  const deleteLeaderboardEntry = (index: number) => {
-    const next = leaderboard.filter((_, i) => i !== index);
-    setLeaderboard(next);
-    localStorage.setItem(LEADERBOARD_STORAGE_KEY, JSON.stringify(next));
-  };
+    const accuracyPercent = missionComplete ? 100 : (foxesFound / HIDDEN_FOX_COUNT) * 100;
+    const completionTimeSec =
+      missionComplete && roundResult
+        ? roundResult.time
+        : roundStartMs
+          ? Math.floor((Date.now() - roundStartMs) / 1000)
+          : null;
 
-  const resetLeaderboard = () => {
-    if (!window.confirm('Are you sure you want to clear all leaderboard data?')) return;
-    setLeaderboard([]);
-    localStorage.removeItem(LEADERBOARD_STORAGE_KEY);
-  };
+    void persistRun({
+      completed: missionComplete,
+      completionTimeSec,
+      foxesFound,
+      accuracyPercent,
+    });
+  }, [phase, missionComplete, resultSaved, foundWolfIndices, roundResult, roundStartMs, persistRun]);
 
   const goHome = useCallback(() => {
     if (phase === 'playing' || phase === 'submitted') {
       if (
-        !window.confirm(
-          'Are you sure you want to end the mission? Your current score will be finalized.'
-        )
+        !window.confirm('ต้องการออกจากภารกิจหรือไม่? ผลการเล่นจะถูกบันทึก')
       ) {
         return;
       }
@@ -244,8 +262,11 @@ const HiddenFoxGame: React.FC = () => {
     setRoundResult(null);
     setRoundStartMs(null);
     setTotalScore(0);
-    setCurrentRound(1);
     setTimeLeft(0);
+    setMissionComplete(false);
+    setResultSaved(false);
+    setSaveError(null);
+    savingRunRef.current = false;
   }, [phase]);
 
   return (
@@ -281,25 +302,15 @@ const HiddenFoxGame: React.FC = () => {
                     <button type="button" className="btn-execute-v5" onClick={() => setPhase('registering')}>
                       PLAY
                     </button>
-                    <div style={{ marginTop: 20 }}>
-                      <button
-                        type="button"
-                        style={{
-                          background: 'none',
-                          border: 'none',
-                          color: 'var(--purple-light)',
-                          cursor: 'pointer',
-                          textDecoration: 'underline',
-                        }}
-                        onClick={() => setShowAdmin(true)}
-                      >
-                        SETTINGS
-                      </button>
-                    </div>
                   </footer>
                 </div>
                 <div className="home-right-section">
-                  <LeaderboardPanel entries={leaderboard} />
+                  <LeaderboardPanel
+                    fastest={fastestHof}
+                    accuracy={accuracyHof}
+                    loading={hofLoading}
+                    error={hofError}
+                  />
                 </div>
               </div>
             )}
@@ -334,12 +345,15 @@ const HiddenFoxGame: React.FC = () => {
                         value={registration.company}
                         onChange={(e) => setRegistration({ ...registration, company: e.target.value })}
                       />
+                      {registerError ? (
+                        <p style={{ color: 'var(--red)', fontSize: '0.85rem', margin: 0 }}>{registerError}</p>
+                      ) : null}
                       <div className="registration-actions">
                         <button type="button" className="btn-tactical-v5 secondary" onClick={() => setPhase('idle')}>
                           CANCEL
                         </button>
-                        <button type="submit" className="btn-tactical-v5">
-                          START
+                        <button type="submit" className="btn-tactical-v5" disabled={registering}>
+                          {registering ? 'กำลังลงทะเบียน...' : 'START'}
                         </button>
                       </div>
                     </form>
@@ -380,7 +394,7 @@ const HiddenFoxGame: React.FC = () => {
                       }}
                     >
                       <span style={{ fontSize: '0.7rem', color: 'var(--purple-light)', fontWeight: 'bold' }}>
-                        ROUND: {currentRound}
+                        FOXES: {foundWolfIndices.length}/{HIDDEN_FOX_COUNT}
                       </span>
                       <span style={{ fontSize: '0.7rem', color: 'var(--purple-light)', fontWeight: 'bold' }}>
                         SCORE: {totalScore.toLocaleString()}
@@ -408,7 +422,7 @@ const HiddenFoxGame: React.FC = () => {
                   }}
                 >
                   <MapViewport
-                    mapUrl={currentMapUrl}
+                    mapUrl={HIDDEN_FOX_MAP_URL}
                     guessPositions={guesses}
                     onMapClick={handleMapClick}
                     gameState={phase}
@@ -419,17 +433,6 @@ const HiddenFoxGame: React.FC = () => {
               </div>
             )}
           </div>
-
-          {showAdmin && (
-            <AdminPanel
-              settings={settings}
-              leaderboard={leaderboard}
-              onClose={() => setShowAdmin(false)}
-              onUpdateSettings={updateSettings}
-              onDeleteLeaderboardEntry={deleteLeaderboardEntry}
-              onResetLeaderboard={resetLeaderboard}
-            />
-          )}
 
           {phase === 'submitted' && roundResult && (
             <div className="modal-overlay-v4">
@@ -460,23 +463,17 @@ const HiddenFoxGame: React.FC = () => {
                   </div>
                 </div>
                 <div className="modal-actions-v5">
-                  {isLastRound ? (
-                    <button
-                      type="button"
-                      className="btn-action-v5"
-                      style={{ background: 'var(--neon-green)', borderBottomColor: 'var(--neon-green-dark)', color: '#000' }}
-                      onClick={() => {
-                        setPhase('gameover');
-                        setMissionComplete(true);
-                      }}
-                    >
-                      MISSION ACCOMPLISHED
-                    </button>
-                  ) : (
-                    <button type="button" className="btn-action-v5" onClick={nextLevel}>
-                      NEXT LEVEL
-                    </button>
-                  )}
+                  <button
+                    type="button"
+                    className="btn-action-v5"
+                    style={{ background: 'var(--neon-green)', borderBottomColor: 'var(--neon-green-dark)', color: '#000' }}
+                    onClick={() => {
+                      setPhase('gameover');
+                      setMissionComplete(true);
+                    }}
+                  >
+                    MISSION ACCOMPLISHED
+                  </button>
                   <button type="button" className="btn-action-v5 btn-secondary-v5" onClick={goHome}>
                     HOME
                   </button>
@@ -500,17 +497,19 @@ const HiddenFoxGame: React.FC = () => {
                 <div className="final-score-container">
                   <div className="final-score-label">FINAL SCORE</div>
                   <div className="final-score-value">{totalScore.toLocaleString()}</div>
+                  {missionComplete && roundResult ? (
+                    <p style={{ color: 'var(--purple-light)', marginTop: 10, fontWeight: 700 }}>
+                      เวลา {roundResult.time}s · ความแม่น 100%
+                    </p>
+                  ) : null}
                 </div>
-                {scoreSaved ? (
-                  <div className="score-saved-badge">SCORE SAVED!</div>
+                {resultSaved ? (
+                  <div className="score-saved-badge">บันทึกผลแล้ว!</div>
+                ) : saveError ? (
+                  <p style={{ color: 'var(--red)', textAlign: 'center' }}>{saveError}</p>
                 ) : (
-                  <div className="save-score-section">
-                    <div style={{ color: 'var(--purple-light)', marginBottom: 15, fontWeight: 'bold' }}>
-                      AGENT: {registration.name.toUpperCase()}
-                    </div>
-                    <button type="button" onClick={saveScore} className="btn-save-score">
-                      SAVE SCORE
-                    </button>
+                  <div className="score-saved-badge" style={{ opacity: 0.7 }}>
+                    กำลังบันทึกผล...
                   </div>
                 )}
                 <div className="modal-actions-v5">

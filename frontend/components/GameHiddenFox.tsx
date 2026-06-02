@@ -2,7 +2,6 @@ import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import HiddenFoxGame from './hiddenFox/HiddenFoxGame';
 import './hiddenFox/hiddenFox.css';
-import './hiddenFox/hiddenFoxAdmin.css';
 
 function restorePageScroll(): void {
   document.documentElement.style.overflow = '';
