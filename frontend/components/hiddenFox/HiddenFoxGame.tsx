@@ -304,21 +304,31 @@ const HiddenFoxGame: React.FC = () => {
   const submitFind = useCallback(() => {
     if (guesses.length === 0 || activeWolves.length === 0 || roundStartMs === null) return;
 
+    const distanceToWolf = (guess: GuessPosition, wolf: WolfPosition) => {
+      const aspect = guess.aspect ?? 1;
+      const dx = guess.x - wolf.x;
+      const dy = (guess.y - wolf.y) / aspect;
+      return Math.sqrt(dx * dx + dy * dy);
+    };
+
+    const isGuessOnFoundFox = (guess: GuessPosition) =>
+      foundWolfIndices.some((idx) => distanceToWolf(guess, activeWolves[idx]) < HIT_PRECISION);
+
+    const newGuesses = guesses.filter((guess) => !isGuessOnFoundFox(guess));
+    if (newGuesses.length === 0) return;
+
     const matched = [...foundWolfIndices];
     let roundScore = 0;
     let allCorrect = true;
     let closestDist = 0;
 
-    for (const guess of guesses) {
-      const aspect = guess.aspect ?? 1;
+    for (const guess of newGuesses) {
       let bestIdx = -1;
       let bestDist = Infinity;
 
       activeWolves.forEach((wolf, idx) => {
         if (matched.includes(idx)) return;
-        const dx = guess.x - wolf.x;
-        const dy = (guess.y - wolf.y) / aspect;
-        const dist = Math.sqrt(dx * dx + dy * dy);
+        const dist = distanceToWolf(guess, wolf);
         if (dist < bestDist) {
           bestDist = dist;
           bestIdx = idx;
@@ -340,6 +350,9 @@ const HiddenFoxGame: React.FC = () => {
     if (allCorrect) {
       setFoundWolfIndices(matched);
       setTotalScore((s) => s + roundScore);
+      setGuesses((prev) =>
+        prev.filter((guess) => !matched.some((idx) => distanceToWolf(guess, activeWolves[idx]) < HIT_PRECISION)),
+      );
 
       if (matched.length === activeWolves.length) {
         const elapsedSec = Math.floor((Date.now() - roundStartMs) / 1000);
