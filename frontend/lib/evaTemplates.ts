@@ -87,6 +87,21 @@ export function isEvaPromptRequiredForAnswer(prompt: EvaPrompt): boolean {
   return Boolean(prompt.title?.trim());
 }
 
+/** ข้อย่อยของโจทย์ rating 1-5 ที่มีข้อความ — ว่าง = แสดงแค่ข้อโจทย์หลักกับปุ่ม 1–5 */
+export function getEvaRatingSubItems(prompt: EvaPrompt): string[] {
+  if (prompt.type !== 'rating_1_5') return [];
+  return (prompt.ratingItems ?? []).map((s) => s.trim()).filter(Boolean);
+}
+
+/** คีย์เก็บคำตอบ rating 1-5 ต่อข้อโจทย์ */
+export function getEvaRatingAnswerKeys(prompt: EvaPrompt): string[] {
+  const subItems = getEvaRatingSubItems(prompt);
+  if (subItems.length > 0) {
+    return subItems.map((_, itemIdx) => `${prompt.id}::${itemIdx}`);
+  }
+  return [`${prompt.id}::0`];
+}
+
 /** บรรทัดคำอธิบายที่มีข้อความ — บรรทัดว่างไม่แสดงบนฟอร์ม */
 export function getVisibleDescriptionLines(prompt: EvaPrompt): EvaDescriptionLine[] {
   return getDescriptionLines(prompt).filter((l) => l.text.trim().length > 0);

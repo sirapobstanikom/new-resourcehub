@@ -119,7 +119,7 @@ const EvaEditorPage: React.FC = () => {
   const [newPromptTitle, setNewPromptTitle] = useState('');
   const [newPromptType, setNewPromptType] = useState<EvaPromptType>('text');
   const [newPromptOptions, setNewPromptOptions] = useState<string[]>(['ตัวเลือก 1', 'ตัวเลือก 2']);
-  const [newPromptRatingItems, setNewPromptRatingItems] = useState<string[]>(['คำถาม 1', 'คำถาม 2']);
+  const [newPromptRatingItems, setNewPromptRatingItems] = useState<string[]>([]);
   const [newCommitmentHeaders, setNewCommitmentHeaders] = useState<[string, string, string]>(() => [
     ...EVA_DEFAULT_COMMITMENT_HEADERS,
   ]);
@@ -468,7 +468,7 @@ const EvaEditorPage: React.FC = () => {
       setNewPromptTitle('');
       setNewPromptType('text');
       setNewPromptOptions(['ตัวเลือก 1', 'ตัวเลือก 2']);
-      setNewPromptRatingItems(['คำถาม 1', 'คำถาม 2']);
+      setNewPromptRatingItems([]);
       setNewCommitmentHeaders([...EVA_DEFAULT_COMMITMENT_HEADERS]);
       setNewCommitmentRows(defaultEvaCommitmentRows().map((r) => ({ ...r })));
       setNewFillIntroEn(EVA_DEFAULT_FILL_INTRO_EN);
@@ -506,7 +506,7 @@ const EvaEditorPage: React.FC = () => {
     setNewPromptTitle('');
     setNewPromptType('text');
     setNewPromptOptions(['ตัวเลือก 1', 'ตัวเลือก 2']);
-    setNewPromptRatingItems(['คำถาม 1', 'คำถาม 2']);
+    setNewPromptRatingItems([]);
     setNewCommitmentHeaders([...EVA_DEFAULT_COMMITMENT_HEADERS]);
     setNewCommitmentRows(defaultEvaCommitmentRows().map((r) => ({ ...r })));
     setNewFillIntroEn(EVA_DEFAULT_FILL_INTRO_EN);
@@ -618,7 +618,7 @@ const EvaEditorPage: React.FC = () => {
         next.options = current.options || ['ตัวเลือก 1', 'ตัวเลือก 2'];
       }
       if (type === 'rating_1_5') {
-        next.ratingItems = current.ratingItems || ['คำถาม 1', 'คำถาม 2'];
+        next.ratingItems = Array.isArray(current.ratingItems) ? [...current.ratingItems] : [];
       }
       if (type === 'commitment_table') {
         next.commitmentHeaders = current.commitmentHeaders
@@ -1558,6 +1558,9 @@ const EvaEditorPage: React.FC = () => {
                         )}
                         {prompt.type === 'rating_1_5' && (
                           <div className="space-y-2">
+                            <p className="text-xs text-gray-500 leading-relaxed">
+                              ข้อย่อย (ไม่บังคับ) — ถ้าไม่เพิ่ม ผู้ตอบจะเห็นแค่ข้อโจทย์หลักกับปุ่ม 1–5
+                            </p>
                             {(prompt.ratingItems || []).map((itemText, itemIdx) => (
                               <div key={`${prompt.id}-rating-item-${itemIdx}`} className="flex items-center gap-2">
                                 <input
@@ -1772,6 +1775,9 @@ const EvaEditorPage: React.FC = () => {
                 )}
                 {newPromptType === 'rating_1_5' && (
                   <div className="mt-2 space-y-2">
+                    <p className="text-xs text-gray-500 leading-relaxed">
+                      ข้อย่อย (ไม่บังคับ) — ถ้าไม่เพิ่ม ผู้ตอบจะเห็นแค่ข้อโจทย์หลักกับปุ่ม 1–5
+                    </p>
                     {newPromptRatingItems.map((itemText, idx) => (
                       <div key={`new-rating-item-${idx}`} className="flex items-center gap-2">
                         <input
