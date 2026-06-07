@@ -12,6 +12,7 @@ import {
   evaDescriptionBlockClassName,
   evaDescriptionLineClassName,
   getVisibleDescriptionLines,
+  formatEvaRatingSubItemPrefix,
   getEvaRatingAnswerKeys,
   getEvaRatingSubItems,
   isEvaPromptRequiredForAnswer,
@@ -207,9 +208,9 @@ const EvaPublicFormPage: React.FC = () => {
         if (prompt.type === 'rating_1_5') {
           const subItems = getEvaRatingSubItems(prompt);
           if (subItems.length > 0) {
-            return subItems.map((itemTitle, itemIdx) => ({
+            return subItems.map((subItem, itemIdx) => ({
               prompt: prompt.title,
-              subPrompt: itemTitle,
+              subPrompt: subItem.text,
               promptType: prompt.type,
               answer: (answers[`${prompt.id}::${itemIdx}`] || '').trim(),
             }));
@@ -519,10 +520,11 @@ const EvaPublicFormPage: React.FC = () => {
                 ) : prompt.type === 'rating_1_5' ? (
                   <div className="space-y-4">
                     {getEvaRatingSubItems(prompt).length > 0 ? (
-                      getEvaRatingSubItems(prompt).map((itemTitle, itemIdx) => (
+                      getEvaRatingSubItems(prompt).map((subItem, itemIdx) => (
                         <div key={`${prompt.id}-rating-${itemIdx}`} className="space-y-2.5">
                           <p className="text-base text-gray-200">
-                            {itemIdx + 1}. {itemTitle}
+                            {formatEvaRatingSubItemPrefix(subItem, itemIdx)}
+                            {subItem.text}
                           </p>
                           <div className="flex flex-wrap gap-2">
                             {[1, 2, 3, 4, 5].map((n) => {

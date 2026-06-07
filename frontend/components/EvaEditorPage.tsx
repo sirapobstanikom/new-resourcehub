@@ -25,9 +25,12 @@ import {
   type EvaPromptNumberStyle,
   type EvaPromptType,
   type EvaCommitmentRow,
+  type EvaRatingSubItem,
   descriptionLinesToTitle,
   getDescriptionAlign,
   getDescriptionLines,
+  getEvaRatingSubItems,
+  getRatingSubItemNumberStyle,
   EVA_TEMPLATE_STORAGE_KEY,
   EVA_DEFAULT_COMMITMENT_HEADERS,
   EVA_DEFAULT_FILL_BRIDGE,
@@ -76,6 +79,86 @@ function newEvaBlockId(prefix: string) {
   return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2, 6)}`;
 }
 
+function applyRatingSubItems(prompt: EvaPrompt, subItems: EvaRatingSubItem[]): EvaPrompt {
+  const ratingSubItems = subItems
+    .map((item) => {
+      const text = item.text.trim();
+      if (!text) return null;
+      const style = getRatingSubItemNumberStyle(item);
+      const next: EvaRatingSubItem = { text };
+      if (style !== 'auto') next.numberStyle = style;
+      if (style === 'fixed') next.fixedNumberPrefix = item.fixedNumberPrefix ?? '';
+      return next;
+    })
+    .filter((item): item is EvaRatingSubItem => item !== null);
+  return {
+    ...prompt,
+    ratingSubItems,
+    ratingItems: ratingSubItems.map((item) => item.text),
+  };
+}
+
+function EvaNumberStyleControls({
+  groupName,
+  style,
+  fixedPrefix,
+  onStyleChange,
+  onFixedPrefixChange,
+}: {
+  groupName: string;
+  style: EvaPromptNumberStyle;
+  fixedPrefix: string;
+  onStyleChange: (style: EvaPromptNumberStyle) => void;
+  onFixedPrefixChange: (value: string) => void;
+}) {
+  return (
+    <div className="space-y-2 text-xs text-gray-400">
+      <p className="font-medium text-gray-300">เลข / ข้อความนำหน้า</p>
+      <div className="flex flex-wrap gap-x-4 gap-y-1.5">
+        <label className="inline-flex items-center gap-1.5 cursor-pointer select-none">
+          <input
+            type="radio"
+            name={groupName}
+            checked={style === 'auto'}
+            onChange={() => onStyleChange('auto')}
+            className="border-white/30 bg-black/40 accent-yellow-400"
+          />
+          อัตโนมัติ (1. 2. …)
+        </label>
+        <label className="inline-flex items-center gap-1.5 cursor-pointer select-none">
+          <input
+            type="radio"
+            name={groupName}
+            checked={style === 'none'}
+            onChange={() => onStyleChange('none')}
+            className="border-white/30 bg-black/40 accent-yellow-400"
+          />
+          ไม่มีนำหน้า
+        </label>
+        <label className="inline-flex items-center gap-1.5 cursor-pointer select-none">
+          <input
+            type="radio"
+            name={groupName}
+            checked={style === 'fixed'}
+            onChange={() => onStyleChange('fixed')}
+            className="border-white/30 bg-black/40 accent-yellow-400"
+          />
+          กำหนดเอง
+        </label>
+      </div>
+      {style === 'fixed' && (
+        <input
+          type="text"
+          value={fixedPrefix}
+          onChange={(e) => onFixedPrefixChange(e.target.value)}
+          placeholder="เช่น ก. หรือ Q1a. (ใส่ช่องว่างท้ายได้)"
+          className="w-full max-w-md rounded-lg border border-white/15 bg-black/30 px-2 py-1.5 text-sm text-gray-100 placeholder:text-gray-500"
+        />
+      )}
+    </div>
+  );
+}
+
 function makeNewTextPrompt(): EvaPrompt {
   return { id: newEvaBlockId('prompt'), title: '', type: 'text' };
 }
@@ -119,7 +202,7 @@ const EvaEditorPage: React.FC = () => {
   const [newPromptTitle, setNewPromptTitle] = useState('');
   const [newPromptType, setNewPromptType] = useState<EvaPromptType>('text');
   const [newPromptOptions, setNewPromptOptions] = useState<string[]>(['ตัวเลือก 1', 'ตัวเลือก 2']);
-  const [newPromptRatingItems, setNewPromptRatingItems] = useState<string[]>([]);
+  const [newPromptRatingSubItems, setNewPromptRatingSubItems] = useState<EvaRatingSubItem[]>([]);
   const [newCommitmentHeaders, setNewCommitmentHeaders] = useState<[string, string, string]>(() => [
     ...EVA_DEFAULT_COMMITMENT_HEADERS,
   ]);
@@ -415,8 +498,21 @@ const EvaEditorPage: React.FC = () => {
       newPromptType === 'choice' || newPromptType === 'multi_choice'
         ? newPromptOptions.map((line) => line.trim()).filter(Boolean)
         : undefined;
-    const ratingItems =
-      newPromptType === 'rating_1_5' ? newPromptRatingItems.map((line) => line.trim()).filter(Boolean) : undefined;
+    const ratingSubItems =
+      newPromptType === 'rating_1_5'
+        ? newPromptRatingSubItems
+            .map((item) => {
+              const text = item.text.trim();
+              if (!text) return null;
+              const style = getRatingSubItemNumberStyle(item);
+              const next: EvaRatingSubItem = { text };
+              if (style !== 'auto') next.numberStyle = style;
+              if (style === 'fixed') next.fixedNumberPrefix = item.fixedNumberPrefix ?? '';
+              return next;
+            })
+            .filter((item): item is EvaRatingSubItem => item !== null)
+        : undefined;
+    const ratingItems = ratingSubItems?.map((item) => item.text);
     if ((newPromptType === 'choice' || newPromptType === 'multi_choice') && (!options || options.length < 2)) {
       setMessage('โจทย์แบบตัวเลือกต้องมีอย่างน้อย 2 ข้อ');
       return;
@@ -468,7 +564,7 @@ const EvaEditorPage: React.FC = () => {
       setNewPromptTitle('');
       setNewPromptType('text');
       setNewPromptOptions(['ตัวเลือก 1', 'ตัวเลือก 2']);
-      setNewPromptRatingItems([]);
+      setNewPromptRatingSubItems([]);
       setNewCommitmentHeaders([...EVA_DEFAULT_COMMITMENT_HEADERS]);
       setNewCommitmentRows(defaultEvaCommitmentRows().map((r) => ({ ...r })));
       setNewFillIntroEn(EVA_DEFAULT_FILL_INTRO_EN);
@@ -490,6 +586,7 @@ const EvaEditorPage: React.FC = () => {
       type: newPromptType,
       options,
       ratingItems,
+      ratingSubItems,
       commitmentHeaders,
       commitmentRows,
       fillIntroEn,
@@ -506,7 +603,7 @@ const EvaEditorPage: React.FC = () => {
     setNewPromptTitle('');
     setNewPromptType('text');
     setNewPromptOptions(['ตัวเลือก 1', 'ตัวเลือก 2']);
-    setNewPromptRatingItems([]);
+    setNewPromptRatingSubItems([]);
     setNewCommitmentHeaders([...EVA_DEFAULT_COMMITMENT_HEADERS]);
     setNewCommitmentRows(defaultEvaCommitmentRows().map((r) => ({ ...r })));
     setNewFillIntroEn(EVA_DEFAULT_FILL_INTRO_EN);
@@ -618,7 +715,9 @@ const EvaEditorPage: React.FC = () => {
         next.options = current.options || ['ตัวเลือก 1', 'ตัวเลือก 2'];
       }
       if (type === 'rating_1_5') {
-        next.ratingItems = Array.isArray(current.ratingItems) ? [...current.ratingItems] : [];
+        const subItems = getEvaRatingSubItems(current);
+        next.ratingSubItems = subItems.map((item) => ({ ...item }));
+        next.ratingItems = subItems.map((item) => item.text);
       }
       if (type === 'commitment_table') {
         next.commitmentHeaders = current.commitmentHeaders
@@ -679,28 +778,61 @@ const EvaEditorPage: React.FC = () => {
       return { ...item, prompts, updatedAt: new Date().toISOString() };
     });
 
-  const updatePromptRatingItem = (idx: number, itemIdx: number, value: string) =>
+  const updatePromptRatingSubItemText = (idx: number, itemIdx: number, value: string) =>
     updateSelectedTemplate((item) => {
       const prompts = [...item.prompts];
-      const ratingItems = [...(prompts[idx].ratingItems || [''])];
-      ratingItems[itemIdx] = value;
-      prompts[idx] = { ...prompts[idx], ratingItems };
+      const subItems = [...getEvaRatingSubItems(prompts[idx])];
+      if (!subItems[itemIdx]) return item;
+      subItems[itemIdx] = { ...subItems[itemIdx], text: value };
+      prompts[idx] = applyRatingSubItems(prompts[idx], subItems);
+      return { ...item, prompts, updatedAt: new Date().toISOString() };
+    });
+
+  const setPromptRatingSubItemNumberStyle = (idx: number, itemIdx: number, style: EvaPromptNumberStyle) =>
+    updateSelectedTemplate((item) => {
+      const prompts = [...item.prompts];
+      const subItems = [...getEvaRatingSubItems(prompts[idx])];
+      if (!subItems[itemIdx]) return item;
+      const next: EvaRatingSubItem = { ...subItems[itemIdx] };
+      if (style === 'auto') {
+        delete next.numberStyle;
+        delete next.fixedNumberPrefix;
+      } else if (style === 'none') {
+        next.numberStyle = 'none';
+        delete next.fixedNumberPrefix;
+      } else {
+        next.numberStyle = 'fixed';
+        if (next.fixedNumberPrefix === undefined) next.fixedNumberPrefix = '';
+      }
+      subItems[itemIdx] = next;
+      prompts[idx] = applyRatingSubItems(prompts[idx], subItems);
+      return { ...item, prompts, updatedAt: new Date().toISOString() };
+    });
+
+  const updatePromptRatingSubItemFixedPrefix = (idx: number, itemIdx: number, value: string) =>
+    updateSelectedTemplate((item) => {
+      const prompts = [...item.prompts];
+      const subItems = [...getEvaRatingSubItems(prompts[idx])];
+      if (!subItems[itemIdx]) return item;
+      subItems[itemIdx] = { ...subItems[itemIdx], fixedNumberPrefix: value };
+      prompts[idx] = applyRatingSubItems(prompts[idx], subItems);
       return { ...item, prompts, updatedAt: new Date().toISOString() };
     });
 
   const addPromptRatingItem = (idx: number) =>
     updateSelectedTemplate((item) => {
       const prompts = [...item.prompts];
-      const ratingItems = [...(prompts[idx].ratingItems || [])];
-      prompts[idx] = { ...prompts[idx], ratingItems: [...ratingItems, `คำถาม ${ratingItems.length + 1}`] };
+      const subItems = [...getEvaRatingSubItems(prompts[idx])];
+      subItems.push({ text: `คำถาม ${subItems.length + 1}` });
+      prompts[idx] = applyRatingSubItems(prompts[idx], subItems);
       return { ...item, prompts, updatedAt: new Date().toISOString() };
     });
 
   const removePromptRatingItem = (idx: number, itemIdx: number) =>
     updateSelectedTemplate((item) => {
       const prompts = [...item.prompts];
-      const ratingItems = [...(prompts[idx].ratingItems || [])].filter((_, i) => i !== itemIdx);
-      prompts[idx] = { ...prompts[idx], ratingItems };
+      const subItems = getEvaRatingSubItems(prompts[idx]).filter((_, i) => i !== itemIdx);
+      prompts[idx] = applyRatingSubItems(prompts[idx], subItems);
       return { ...item, prompts, updatedAt: new Date().toISOString() };
     });
 
@@ -1557,24 +1689,39 @@ const EvaEditorPage: React.FC = () => {
                           </div>
                         )}
                         {prompt.type === 'rating_1_5' && (
-                          <div className="space-y-2">
+                          <div className="space-y-3">
                             <p className="text-xs text-gray-500 leading-relaxed">
                               ข้อย่อย (ไม่บังคับ) — ถ้าไม่เพิ่ม ผู้ตอบจะเห็นแค่ข้อโจทย์หลักกับปุ่ม 1–5
                             </p>
-                            {(prompt.ratingItems || []).map((itemText, itemIdx) => (
-                              <div key={`${prompt.id}-rating-item-${itemIdx}`} className="flex items-center gap-2">
-                                <input
-                                  value={itemText}
-                                  onChange={(e) => updatePromptRatingItem(idx, itemIdx, e.target.value)}
-                                  className="flex-1 rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm"
+                            {getEvaRatingSubItems(prompt).map((subItem, itemIdx) => (
+                              <div
+                                key={`${prompt.id}-rating-item-${itemIdx}`}
+                                className="space-y-2 rounded-lg border border-white/10 bg-black/25 p-3"
+                              >
+                                <div className="flex items-start gap-2">
+                                  <input
+                                    value={subItem.text}
+                                    onChange={(e) => updatePromptRatingSubItemText(idx, itemIdx, e.target.value)}
+                                    placeholder="ข้อความข้อย่อย"
+                                    className="flex-1 rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => removePromptRatingItem(idx, itemIdx)}
+                                    className="rounded-lg bg-red-500/20 border border-red-400/40 px-2.5 py-2 text-xs font-semibold text-red-200 hover:bg-red-500/30 transition-colors shrink-0"
+                                  >
+                                    ลบ
+                                  </button>
+                                </div>
+                                <EvaNumberStyleControls
+                                  groupName={`eva-rating-sub-${selectedTemplate.id}-${prompt.id}-${itemIdx}`}
+                                  style={getRatingSubItemNumberStyle(subItem)}
+                                  fixedPrefix={subItem.fixedNumberPrefix ?? ''}
+                                  onStyleChange={(style) => setPromptRatingSubItemNumberStyle(idx, itemIdx, style)}
+                                  onFixedPrefixChange={(value) =>
+                                    updatePromptRatingSubItemFixedPrefix(idx, itemIdx, value)
+                                  }
                                 />
-                                <button
-                                  type="button"
-                                  onClick={() => removePromptRatingItem(idx, itemIdx)}
-                                  className="rounded-lg bg-red-500/20 border border-red-400/40 px-2.5 py-2 text-xs font-semibold text-red-200 hover:bg-red-500/30 transition-colors"
-                                >
-                                  ลบ
-                                </button>
                               </div>
                             ))}
                             <button
@@ -1774,31 +1921,67 @@ const EvaEditorPage: React.FC = () => {
                   </div>
                 )}
                 {newPromptType === 'rating_1_5' && (
-                  <div className="mt-2 space-y-2">
+                  <div className="mt-2 space-y-3">
                     <p className="text-xs text-gray-500 leading-relaxed">
                       ข้อย่อย (ไม่บังคับ) — ถ้าไม่เพิ่ม ผู้ตอบจะเห็นแค่ข้อโจทย์หลักกับปุ่ม 1–5
                     </p>
-                    {newPromptRatingItems.map((itemText, idx) => (
-                      <div key={`new-rating-item-${idx}`} className="flex items-center gap-2">
-                        <input
-                          value={itemText}
-                          onChange={(e) =>
-                            setNewPromptRatingItems((prev) => prev.map((item, i) => (i === idx ? e.target.value : item)))
+                    {newPromptRatingSubItems.map((subItem, idx) => (
+                      <div key={`new-rating-item-${idx}`} className="space-y-2 rounded-lg border border-white/10 bg-black/25 p-3">
+                        <div className="flex items-start gap-2">
+                          <input
+                            value={subItem.text}
+                            onChange={(e) =>
+                              setNewPromptRatingSubItems((prev) =>
+                                prev.map((item, i) => (i === idx ? { ...item, text: e.target.value } : item))
+                              )
+                            }
+                            placeholder="ข้อความข้อย่อย"
+                            className="flex-1 rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setNewPromptRatingSubItems((prev) => prev.filter((_, i) => i !== idx))}
+                            className="rounded-lg bg-red-500/20 border border-red-400/40 px-2.5 py-2 text-xs font-semibold text-red-200 hover:bg-red-500/30 transition-colors shrink-0"
+                          >
+                            ลบ
+                          </button>
+                        </div>
+                        <EvaNumberStyleControls
+                          groupName={`eva-new-rating-sub-${idx}`}
+                          style={getRatingSubItemNumberStyle(subItem)}
+                          fixedPrefix={subItem.fixedNumberPrefix ?? ''}
+                          onStyleChange={(style) =>
+                            setNewPromptRatingSubItems((prev) =>
+                              prev.map((item, i) => {
+                                if (i !== idx) return item;
+                                const next: EvaRatingSubItem = { ...item };
+                                if (style === 'auto') {
+                                  delete next.numberStyle;
+                                  delete next.fixedNumberPrefix;
+                                } else if (style === 'none') {
+                                  next.numberStyle = 'none';
+                                  delete next.fixedNumberPrefix;
+                                } else {
+                                  next.numberStyle = 'fixed';
+                                  if (next.fixedNumberPrefix === undefined) next.fixedNumberPrefix = '';
+                                }
+                                return next;
+                              })
+                            )
                           }
-                          className="flex-1 rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm"
+                          onFixedPrefixChange={(value) =>
+                            setNewPromptRatingSubItems((prev) =>
+                              prev.map((item, i) => (i === idx ? { ...item, fixedNumberPrefix: value } : item))
+                            )
+                          }
                         />
-                        <button
-                          type="button"
-                          onClick={() => setNewPromptRatingItems((prev) => prev.filter((_, i) => i !== idx))}
-                          className="rounded-lg bg-red-500/20 border border-red-400/40 px-2.5 py-2 text-xs font-semibold text-red-200 hover:bg-red-500/30 transition-colors"
-                        >
-                          ลบ
-                        </button>
                       </div>
                     ))}
                     <button
                       type="button"
-                      onClick={() => setNewPromptRatingItems((prev) => [...prev, `คำถาม ${prev.length + 1}`])}
+                      onClick={() =>
+                        setNewPromptRatingSubItems((prev) => [...prev, { text: `คำถาม ${prev.length + 1}` }])
+                      }
                       className="rounded-lg bg-emerald-400/20 border border-emerald-300/40 px-3 py-2 text-xs font-semibold text-emerald-100 hover:bg-emerald-400/30 transition-colors"
                     >
                       + เพิ่มข้อย่อย
