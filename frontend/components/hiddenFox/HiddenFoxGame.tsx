@@ -25,6 +25,53 @@ import {
 } from '../../services/hiddenFoxSupabase';
 import { isSupabaseConfigured } from '../../lib/supabase';
 
+function distanceToWolf(guess: GuessPosition, wolf: WolfPosition) {
+  const aspect = guess.aspect ?? 1;
+  const dx = guess.x - wolf.x;
+  const dy = (guess.y - wolf.y) / aspect;
+  return Math.sqrt(dx * dx + dy * dy);
+}
+
+function evaluateGuesses(
+  foundWolfIndices: number[],
+  guesses: GuessPosition[],
+  activeWolves: WolfPosition[],
+) {
+  const isGuessOnFoundFox = (guess: GuessPosition) =>
+    foundWolfIndices.some((idx) => distanceToWolf(guess, activeWolves[idx]) < HIT_PRECISION);
+
+  const newGuesses = guesses.filter((guess) => !isGuessOnFoundFox(guess));
+  const matched = [...foundWolfIndices];
+  let allCorrect = true;
+  let closestDist = 0;
+
+  for (const guess of newGuesses) {
+    let bestIdx = -1;
+    let bestDist = Infinity;
+
+    activeWolves.forEach((wolf, idx) => {
+      if (matched.includes(idx)) return;
+      const dist = distanceToWolf(guess, wolf);
+      if (dist < bestDist) {
+        bestDist = dist;
+        bestIdx = idx;
+      }
+    });
+
+    if (bestIdx !== -1 && bestDist < HIT_PRECISION) {
+      matched.push(bestIdx);
+      closestDist = bestDist;
+    } else {
+      allCorrect = false;
+      break;
+    }
+  }
+
+  return { matched, allCorrect, newGuesses, closestDist };
+}
+
+type CountdownStep = 3 | 2 | 1 | 'go';
+
 const HiddenFoxGame: React.FC = () => {
   const [phase, setPhase] = useState<GamePhase>('idle');
   const [missionComplete, setMissionComplete] = useState(false);
@@ -49,8 +96,12 @@ const HiddenFoxGame: React.FC = () => {
   const [roundSession, setRoundSession] = useState(0);
   const [returningBestRun, setReturningBestRun] = useState<BestRunSummary | null>(null);
   const [isReturningPlayer, setIsReturningPlayer] = useState(false);
+  const [countdown, setCountdown] = useState<CountdownStep | null>(null);
   const lastFoxesFoundRef = useRef(0);
   const savingRunRef = useRef(false);
+  const completingMissionRef = useRef(false);
+  const timeLeftRef = useRef(timeLeft);
+  timeLeftRef.current = timeLeft;
 
   useEffect(() => {
     if (phase !== 'idle') return;
@@ -179,7 +230,23 @@ const HiddenFoxGame: React.FC = () => {
   }, [loadHallOfFame]);
 
   useEffect(() => {
-    if (phase !== 'playing' || !isMapReady || timeLeft <= 0) return;
+    if (countdown === null) return;
+
+    if (countdown === 'go') {
+      const id = window.setTimeout(() => setCountdown(null), 750);
+      return () => clearTimeout(id);
+    }
+
+    const id = window.setTimeout(() => {
+      setCountdown((step) => (step === 3 ? 2 : step === 2 ? 1 : 'go'));
+    }, 1000);
+    return () => clearTimeout(id);
+  }, [countdown]);
+
+  const isGameplayLocked = countdown !== null;
+
+  useEffect(() => {
+    if (phase !== 'playing' || !isMapReady || timeLeft <= 0 || isGameplayLocked) return;
     const id = window.setInterval(() => {
       setTimeLeft((t) => {
         if (t <= 1) {
@@ -190,12 +257,12 @@ const HiddenFoxGame: React.FC = () => {
       });
     }, 1000);
     return () => clearInterval(id);
-  }, [isMapReady, phase, timeLeft]);
+  }, [isGameplayLocked, isMapReady, phase, timeLeft]);
 
   useEffect(() => {
-    if (phase !== 'playing' || !isMapReady || roundStartMs !== null) return;
+    if (phase !== 'playing' || !isMapReady || roundStartMs !== null || isGameplayLocked) return;
     setRoundStartMs(Date.now());
-  }, [isMapReady, phase, roundStartMs]);
+  }, [isGameplayLocked, isMapReady, phase, roundStartMs]);
 
   useEffect(() => {
     if (phase !== 'playing' || isMapReady) return;
@@ -221,6 +288,8 @@ const HiddenFoxGame: React.FC = () => {
     setFoundWolfIndices([]);
     setIsMapReady(false);
     lastFoxesFoundRef.current = 0;
+    completingMissionRef.current = false;
+    setCountdown(3);
     setTotalScore(0);
   }, []);
 
@@ -289,6 +358,7 @@ const HiddenFoxGame: React.FC = () => {
   }, [beginGame, registration, returningBestRun]);
 
   const handleMapClick = useCallback((x: number, y: number, aspect: number) => {
+    if (countdown !== null) return;
     setGuesses((prev) => {
       const dup = prev.findIndex((g) => {
         const dx = g.x - x;
@@ -299,79 +369,91 @@ const HiddenFoxGame: React.FC = () => {
       if (prev.length >= HIDDEN_FOX_COUNT) return prev;
       return [...prev, { x, y, aspect }];
     });
-  }, []);
+  }, [countdown]);
+
+  const completeMission = useCallback(
+    (matched: number[], closestDist: number, roundScore: number) => {
+      if (roundStartMs === null || completingMissionRef.current) return;
+      completingMissionRef.current = true;
+
+      const remainingTime = timeLeftRef.current;
+      const elapsedSec = Math.floor((Date.now() - roundStartMs) / 1000);
+      const bonus = remainingTime * 10;
+      const finalRoundScore = roundScore + bonus;
+
+      lastFoxesFoundRef.current = matched.length;
+      setFoundWolfIndices(matched);
+      setTotalScore((s) => s + roundScore + bonus);
+      setGuesses([]);
+      setRoundResult({
+        isCorrect: true,
+        distance: closestDist,
+        time: elapsedSec,
+        score: finalRoundScore,
+      });
+      setPhase('submitted');
+    },
+    [roundStartMs],
+  );
 
   const submitFind = useCallback(() => {
+    if (countdown !== null) return;
     if (guesses.length === 0 || activeWolves.length === 0 || roundStartMs === null) return;
 
-    const distanceToWolf = (guess: GuessPosition, wolf: WolfPosition) => {
-      const aspect = guess.aspect ?? 1;
-      const dx = guess.x - wolf.x;
-      const dy = (guess.y - wolf.y) / aspect;
-      return Math.sqrt(dx * dx + dy * dy);
-    };
-
-    const isGuessOnFoundFox = (guess: GuessPosition) =>
-      foundWolfIndices.some((idx) => distanceToWolf(guess, activeWolves[idx]) < HIT_PRECISION);
-
-    const newGuesses = guesses.filter((guess) => !isGuessOnFoundFox(guess));
+    const { matched, allCorrect, newGuesses, closestDist } = evaluateGuesses(
+      foundWolfIndices,
+      guesses,
+      activeWolves,
+    );
     if (newGuesses.length === 0) return;
 
-    const matched = [...foundWolfIndices];
+    const newlyFound = matched.length - foundWolfIndices.length;
     let roundScore = 0;
-    let allCorrect = true;
-    let closestDist = 0;
-
-    for (const guess of newGuesses) {
-      let bestIdx = -1;
-      let bestDist = Infinity;
-
-      activeWolves.forEach((wolf, idx) => {
-        if (matched.includes(idx)) return;
-        const dist = distanceToWolf(guess, wolf);
-        if (dist < bestDist) {
-          bestDist = dist;
-          bestIdx = idx;
-        }
-      });
-
-      if (bestIdx !== -1 && bestDist < HIT_PRECISION) {
-        matched.push(bestIdx);
-        roundScore += Math.max(10, timeLeft * 5);
-        closestDist = bestDist;
-      } else {
-        allCorrect = false;
-        break;
-      }
+    for (let i = 0; i < newlyFound; i++) {
+      roundScore += Math.max(10, timeLeft * 5);
     }
 
     lastFoxesFoundRef.current = matched.length;
 
     if (allCorrect) {
+      if (matched.length === activeWolves.length) {
+        completeMission(matched, closestDist, roundScore);
+        return;
+      }
+
       setFoundWolfIndices(matched);
       setTotalScore((s) => s + roundScore);
       setGuesses((prev) =>
         prev.filter((guess) => !matched.some((idx) => distanceToWolf(guess, activeWolves[idx]) < HIT_PRECISION)),
       );
-
-      if (matched.length === activeWolves.length) {
-        const elapsedSec = Math.floor((Date.now() - roundStartMs) / 1000);
-        const bonus = timeLeft * 10;
-        const finalRoundScore = roundScore + bonus;
-        setTotalScore((s) => s + bonus);
-        setRoundResult({
-          isCorrect: true,
-          distance: closestDist,
-          time: elapsedSec,
-          score: finalRoundScore,
-        });
-        setPhase('submitted');
-      }
     } else {
       setFoundWolfIndices(matched);
       setPhase('gameover');
     }
-  }, [activeWolves, foundWolfIndices, guesses, roundStartMs, timeLeft]);
+  }, [activeWolves, completeMission, countdown, foundWolfIndices, guesses, roundStartMs, timeLeft]);
+
+  /** วางหมุดครบ 8 ตัวถูกต้องแล้วจบเกมทันที ไม่ต้องกด FIND */
+  useEffect(() => {
+    if (countdown !== null) return;
+    if (phase !== 'playing' || !isMapReady || guesses.length === 0) return;
+    if (activeWolves.length === 0 || roundStartMs === null) return;
+
+    const { matched, allCorrect, newGuesses, closestDist } = evaluateGuesses(
+      foundWolfIndices,
+      guesses,
+      activeWolves,
+    );
+    if (newGuesses.length === 0 || !allCorrect || matched.length !== activeWolves.length) return;
+
+    const remainingTime = timeLeftRef.current;
+    const newlyFound = matched.length - foundWolfIndices.length;
+    let roundScore = 0;
+    for (let i = 0; i < newlyFound; i++) {
+      roundScore += Math.max(10, remainingTime * 5);
+    }
+
+    completeMission(matched, closestDist, roundScore);
+  }, [activeWolves, completeMission, countdown, foundWolfIndices, guesses, isMapReady, phase, roundStartMs]);
 
   /** บันทึกผลทุกครั้งที่จบรอบ (ชนะ / แพ้ / หมดเวลา / ออกกลางเกม) */
   useEffect(() => {
@@ -392,6 +474,8 @@ const HiddenFoxGame: React.FC = () => {
     setSaveError(null);
     setSaveMessage(null);
     savingRunRef.current = false;
+    completingMissionRef.current = false;
+    setCountdown(null);
   }, []);
 
   const goHome = useCallback(async () => {
@@ -560,7 +644,7 @@ const HiddenFoxGame: React.FC = () => {
                     type="button"
                     className="btn-ref-find"
                     onClick={submitFind}
-                    disabled={guesses.length === 0 || phase !== 'playing' || !isMapReady}
+                    disabled={guesses.length === 0 || phase !== 'playing' || !isMapReady || isGameplayLocked}
                   >
                     FIND!
                   </button>
@@ -578,7 +662,20 @@ const HiddenFoxGame: React.FC = () => {
                     foundWolfIndices={foundWolfIndices}
                   />
                 </div>
-                {phase === 'playing' && !isMapReady ? (
+                {phase === 'playing' && countdown !== null ? (
+                  <div className="hf-countdown-lock" aria-live="assertive">
+                    <div className="hf-countdown-card">
+                      <p className="hf-countdown-label">เตรียมตัว!</p>
+                      <div
+                        key={countdown}
+                        className={`hf-countdown-value${countdown === 'go' ? ' hf-countdown-value--go' : ''}`}
+                      >
+                        {countdown === 'go' ? 'Go!' : countdown}
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
+                {phase === 'playing' && !isMapReady && countdown === null ? (
                   <div className="hf-loading-lock" aria-live="polite">
                     <div className="hf-loading-lock-card">
                       <div className="hf-loading-spinner" />
