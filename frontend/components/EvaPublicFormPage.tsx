@@ -12,6 +12,9 @@ import {
   evaDescriptionBlockClassName,
   evaDescriptionLineClassName,
   getVisibleDescriptionLines,
+  formatEvaRatingSubItemPrefix,
+  getEvaRatingAnswerKeys,
+  getEvaRatingSubItems,
   isEvaPromptRequiredForAnswer,
   getPromptNumberStyle,
   loadStoredEvaTemplates,
@@ -106,9 +109,8 @@ const EvaPublicFormPage: React.FC = () => {
       if (!isEvaPromptRequiredForAnswer(prompt)) return true;
       const value = (answers[prompt.id] || '').trim();
       if (prompt.type === 'rating_1_5') {
-        const items = prompt.ratingItems && prompt.ratingItems.length > 0 ? prompt.ratingItems : [prompt.title];
-        return items.every((_, itemIdx) => {
-          const subValue = (answers[`${prompt.id}::${itemIdx}`] || '').trim();
+        return getEvaRatingAnswerKeys(prompt).every((key) => {
+          const subValue = (answers[key] || '').trim();
           return ['1', '2', '3', '4', '5'].includes(subValue);
         });
       }
@@ -147,9 +149,8 @@ const EvaPublicFormPage: React.FC = () => {
         if (!isEvaPromptRequiredForAnswer(prompt)) return false;
         const value = (answers[prompt.id] || '').trim();
         if (prompt.type === 'rating_1_5') {
-          const items = prompt.ratingItems && prompt.ratingItems.length > 0 ? prompt.ratingItems : [prompt.title];
-          return items.some((_, itemIdx) => {
-            const subValue = (answers[`${prompt.id}::${itemIdx}`] || '').trim();
+          return getEvaRatingAnswerKeys(prompt).some((key) => {
+            const subValue = (answers[key] || '').trim();
             return !['1', '2', '3', '4', '5'].includes(subValue);
           });
         }
@@ -205,13 +206,22 @@ const EvaPublicFormPage: React.FC = () => {
       answers: template.prompts.flatMap((prompt) => {
         if (prompt.type === 'description') return [];
         if (prompt.type === 'rating_1_5') {
-          const items = prompt.ratingItems && prompt.ratingItems.length > 0 ? prompt.ratingItems : [prompt.title];
-          return items.map((itemTitle, itemIdx) => ({
-            prompt: prompt.title,
-            subPrompt: itemTitle,
-            promptType: prompt.type,
-            answer: (answers[`${prompt.id}::${itemIdx}`] || '').trim(),
-          }));
+          const subItems = getEvaRatingSubItems(prompt);
+          if (subItems.length > 0) {
+            return subItems.map((subItem, itemIdx) => ({
+              prompt: prompt.title,
+              subPrompt: subItem.text,
+              promptType: prompt.type,
+              answer: (answers[`${prompt.id}::${itemIdx}`] || '').trim(),
+            }));
+          }
+          return [
+            {
+              prompt: prompt.title,
+              promptType: prompt.type,
+              answer: (answers[`${prompt.id}::0`] || '').trim(),
+            },
+          ];
         }
         if (prompt.type === 'commitment_table') {
           const rows = prompt.commitmentRows?.length ? prompt.commitmentRows : defaultEvaCommitmentRows();
@@ -509,32 +519,59 @@ const EvaPublicFormPage: React.FC = () => {
                   </div>
                 ) : prompt.type === 'rating_1_5' ? (
                   <div className="space-y-4">
-                    {(prompt.ratingItems && prompt.ratingItems.length > 0 ? prompt.ratingItems : [prompt.title]).map((itemTitle, itemIdx) => (
-                      <div key={`${prompt.id}-rating-${itemIdx}`} className="space-y-2.5">
-                        <p className="text-base text-gray-200">{itemIdx + 1}. {itemTitle}</p>
-                        <div className="flex flex-wrap gap-2">
-                          {[1, 2, 3, 4, 5].map((n) => {
-                            const selected = (answers[`${prompt.id}::${itemIdx}`] || '') === String(n);
-                            return (
-                              <button
-                                key={n}
-                                type="button"
-                                onClick={() =>
-                                  setAnswers((prev) => ({ ...prev, [`${prompt.id}::${itemIdx}`]: String(n) }))
-                                }
-                                className={`w-11 h-11 md:w-12 md:h-12 rounded-xl border text-base font-semibold transition-colors ${
-                                  selected
-                                    ? 'border-yellow-300 bg-yellow-400/20 text-yellow-100'
-                                    : 'border-white/20 bg-black/30 text-gray-200 hover:bg-white/10'
-                                }`}
-                              >
-                                {n}
-                              </button>
-                            );
-                          })}
+                    {getEvaRatingSubItems(prompt).length > 0 ? (
+                      getEvaRatingSubItems(prompt).map((subItem, itemIdx) => (
+                        <div key={`${prompt.id}-rating-${itemIdx}`} className="space-y-2.5">
+                          <p className="text-base text-gray-200">
+                            {formatEvaRatingSubItemPrefix(subItem, itemIdx)}
+                            {subItem.text}
+                          </p>
+                          <div className="flex flex-wrap gap-2">
+                            {[1, 2, 3, 4, 5].map((n) => {
+                              const selected = (answers[`${prompt.id}::${itemIdx}`] || '') === String(n);
+                              return (
+                                <button
+                                  key={n}
+                                  type="button"
+                                  onClick={() =>
+                                    setAnswers((prev) => ({ ...prev, [`${prompt.id}::${itemIdx}`]: String(n) }))
+                                  }
+                                  className={`w-11 h-11 md:w-12 md:h-12 rounded-xl border text-base font-semibold transition-colors ${
+                                    selected
+                                      ? 'border-yellow-300 bg-yellow-400/20 text-yellow-100'
+                                      : 'border-white/20 bg-black/30 text-gray-200 hover:bg-white/10'
+                                  }`}
+                                >
+                                  {n}
+                                </button>
+                              );
+                            })}
+                          </div>
                         </div>
+                      ))
+                    ) : (
+                      <div className="flex flex-wrap gap-2">
+                        {[1, 2, 3, 4, 5].map((n) => {
+                          const selected = (answers[`${prompt.id}::0`] || '') === String(n);
+                          return (
+                            <button
+                              key={n}
+                              type="button"
+                              onClick={() =>
+                                setAnswers((prev) => ({ ...prev, [`${prompt.id}::0`]: String(n) }))
+                              }
+                              className={`w-11 h-11 md:w-12 md:h-12 rounded-xl border text-base font-semibold transition-colors ${
+                                selected
+                                  ? 'border-yellow-300 bg-yellow-400/20 text-yellow-100'
+                                  : 'border-white/20 bg-black/30 text-gray-200 hover:bg-white/10'
+                              }`}
+                            >
+                              {n}
+                            </button>
+                          );
+                        })}
                       </div>
-                    ))}
+                    )}
                   </div>
                 ) : prompt.type === 'commitment_table' ? (
                   <div className="space-y-3">

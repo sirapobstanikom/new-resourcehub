@@ -40,6 +40,14 @@ export type EvaCommitmentRow = {
 /** รูปแบบเลข / ข้อความนำหน้าหัวข้อโจทย์บนฟอร์มผู้ตอบ */
 export type EvaPromptNumberStyle = 'auto' | 'none' | 'fixed';
 
+/** ข้อย่อยของโจทย์ rating 1-5 */
+export type EvaRatingSubItem = {
+  text: string;
+  numberStyle?: EvaPromptNumberStyle;
+  /** เมื่อ numberStyle === 'fixed' */
+  fixedNumberPrefix?: string;
+};
+
 export type EvaPrompt = {
   id: string;
   title: string;
@@ -51,7 +59,9 @@ export type EvaPrompt = {
   /** @deprecated อ่านแล้วแปลงเป็น promptNumberStyle ใน normalize */
   showNumberPrefix?: boolean;
   options?: string[];
+  /** @deprecated อ่านผ่าน getEvaRatingSubItems — เก็บซ้ำเพื่อ backward compat */
   ratingItems?: string[];
+  ratingSubItems?: EvaRatingSubItem[];
   commitmentHeaders?: [string, string, string];
   commitmentRows?: EvaCommitmentRow[];
   /** บรรทัดนำภาษาอังกฤษ (เช่น ONE SENTENCE — ...) */
@@ -85,6 +95,53 @@ export function descriptionLinesToTitle(lines: EvaDescriptionLine[]): string {
 export function isEvaPromptRequiredForAnswer(prompt: EvaPrompt): boolean {
   if (prompt.type === 'description') return false;
   return Boolean(prompt.title?.trim());
+}
+
+/** ข้อย่อยของโจทย์ rating 1-5 ที่มีข้อความ — ว่าง = แสดงแค่ข้อโจทย์หลักกับปุ่ม 1–5 */
+export function getRatingSubItemNumberStyle(item: EvaRatingSubItem): EvaPromptNumberStyle {
+  if (item.numberStyle === 'auto' || item.numberStyle === 'none' || item.numberStyle === 'fixed') {
+    return item.numberStyle;
+  }
+  return 'auto';
+}
+
+export function formatEvaRatingSubItemPrefix(item: EvaRatingSubItem, itemIdx: number): string {
+  if (!item.text.trim()) return '';
+  const style = getRatingSubItemNumberStyle(item);
+  if (style === 'none') return '';
+  if (style === 'fixed') return item.fixedNumberPrefix ?? '';
+  return `${itemIdx + 1}. `;
+}
+
+export function getEvaRatingSubItems(prompt: EvaPrompt): EvaRatingSubItem[] {
+  if (prompt.type !== 'rating_1_5') return [];
+  if (Array.isArray(prompt.ratingSubItems)) {
+    const items = prompt.ratingSubItems
+      .map((item) => {
+        const text = item.text.trim();
+        if (!text) return null;
+        const style = getRatingSubItemNumberStyle(item);
+        const next: EvaRatingSubItem = { text };
+        if (style !== 'auto') next.numberStyle = style;
+        if (style === 'fixed') next.fixedNumberPrefix = item.fixedNumberPrefix ?? '';
+        return next;
+      })
+      .filter((item): item is EvaRatingSubItem => item !== null);
+    if (items.length > 0) return items;
+  }
+  return (prompt.ratingItems ?? [])
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .map((text) => ({ text }));
+}
+
+/** คีย์เก็บคำตอบ rating 1-5 ต่อข้อโจทย์ */
+export function getEvaRatingAnswerKeys(prompt: EvaPrompt): string[] {
+  const subItems = getEvaRatingSubItems(prompt);
+  if (subItems.length > 0) {
+    return subItems.map((_, itemIdx) => `${prompt.id}::${itemIdx}`);
+  }
+  return [`${prompt.id}::0`];
 }
 
 /** บรรทัดคำอธิบายที่มีข้อความ — บรรทัดว่างไม่แสดงบนฟอร์ม */
@@ -243,6 +300,30 @@ function parseCommitmentRows(raw: unknown): EvaCommitmentRow[] | undefined {
   return rows.length > 0 ? rows : undefined;
 }
 
+function parseRatingSubItems(obj: Partial<EvaPrompt>): EvaRatingSubItem[] {
+  if (Array.isArray(obj.ratingSubItems)) {
+    const out: EvaRatingSubItem[] = [];
+    for (const row of obj.ratingSubItems) {
+      if (!row || typeof row !== 'object') continue;
+      const r = row as Partial<EvaRatingSubItem>;
+      const text = typeof r.text === 'string' ? r.text.trim() : '';
+      if (!text) continue;
+      const item: EvaRatingSubItem = { text };
+      if (r.numberStyle === 'none') item.numberStyle = 'none';
+      else if (r.numberStyle === 'fixed') {
+        item.numberStyle = 'fixed';
+        item.fixedNumberPrefix = typeof r.fixedNumberPrefix === 'string' ? r.fixedNumberPrefix : '';
+      } else if (r.numberStyle === 'auto') item.numberStyle = 'auto';
+      out.push(item);
+    }
+    return out;
+  }
+  if (Array.isArray(obj.ratingItems)) {
+    return obj.ratingItems.map((s) => String(s).trim()).filter(Boolean).map((text) => ({ text }));
+  }
+  return [];
+}
+
 function parseCommitmentHeaders(raw: unknown): [string, string, string] | undefined {
   if (!Array.isArray(raw) || raw.length < 3) return undefined;
   const a = String(raw[0] ?? '').trim();
@@ -276,8 +357,9 @@ function normalizePrompt(raw: unknown, idx: number): EvaPrompt {
       type === 'choice' || type === 'multi_choice'
         ? (Array.isArray(obj.options) ? obj.options.filter(Boolean) : [])
         : undefined;
+    const ratingSubItems = type === 'rating_1_5' ? parseRatingSubItems(obj) : undefined;
     const ratingItems =
-      type === 'rating_1_5' ? (Array.isArray(obj.ratingItems) ? obj.ratingItems.filter(Boolean) : []) : undefined;
+      ratingSubItems && ratingSubItems.length > 0 ? ratingSubItems.map((item) => item.text) : undefined;
     const commitmentHeaders =
       type === 'commitment_table'
         ? parseCommitmentHeaders(obj.commitmentHeaders) ?? EVA_DEFAULT_COMMITMENT_HEADERS
@@ -344,6 +426,7 @@ function normalizePrompt(raw: unknown, idx: number): EvaPrompt {
       ...numberingExtra,
       options,
       ratingItems,
+      ratingSubItems,
       commitmentHeaders,
       commitmentRows,
       fillIntroEn,
