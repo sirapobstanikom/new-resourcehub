@@ -15,58 +15,74 @@ type Selection = { type: string | null; data: Item | WheelCategory | null; quadr
 const WHEEL_DATA: WheelCategory[] = [
   { id: 'strategic-value', name: 'Strategic Value Creation', intermediateName: 'Creativity and Problem Solving', color: 'black', description: 'Focuses on creating long-term value through strategic thinking and foresight.',
     topics: [
-      { name: 'Critical Thinking', description: 'เป็นการอบรมที่มุ่งเน้นการพัฒนาทักษะการคิดเชิงวิพากษ์ ซึ่งเป็นทักษะที่ช่วยให้ผู้เข้าอบรมสามารถวิเคราะห์และประเมินข้อมูล สถานการณ์ และการตัดสินใจต่างๆ อย่างมีเหตุผลและเป็นระบบ' },
-      { name: 'Creative Thinking and Ideation', description: 'Thinking outside the box to find new solutions.' },
-      { name: 'Creative Problem Solving & Decision Making', description: 'เป็นการอบรมที่มุ่งเน้นการพัฒนาทักษะในการแก้ปัญหาและการตัดสินใจอย่างมีประสิทธิภาพ' }
+      { name: 'Critical Thinking', description: 'เป็นการอบรมที่มุ่งเน้นการพัฒนาทักษะการคิดเชิงวิพากษ์ ซึ่งเป็นทักษะที่ช่วยให้ผู้เข้าอบรมสามารถวิเคราะห์และประเมินข้อมูล สถานการณ์ และการตัดสินใจต่างๆ อย่างมีเหตุผลและเป็นระบบ', courseUrl: 'https://www.minddojo.co.th/workshop?course=Critical Thinking' },
+      { name: 'Creative Thinking and Ideation', description: 'Thinking outside the box to find new solutions.', courseUrl: 'https://www.minddojo.co.th/workshop?course=Creative Thinking and Ideation' },
+      { name: 'Creative Problem Solving & Decision Making', description: 'เป็นการอบรมที่มุ่งเน้นการพัฒนาทักษะในการแก้ปัญหาและการตัดสินใจอย่างมีประสิทธิภาพ' , courseUrl: 'https://www.minddojo.co.th/workshop?course=Creative Thinking and Ideation'}
     ],
     subCategories: [
-      { name: 'Strategic Foresight', description: 'เป็นหลักสูตรที่เน้นการพัฒนาทักษะและความรู้ในการพยากรณ์อนาคตและการวางแผนกลยุทธ์ผ่านการสร้างฉากทัศน์ต่างๆ' },
-      { name: 'Practical Strategy', description: 'เป็นการอบรมที่มุ่งเน้นการพัฒนาทักษะและความรู้ในการวิเคราะห์เชิงกลยุทธ์' },
-      { name: 'Aligning Your Strategy', description: 'เป็นการอบรมที่มุ่งเน้นการปรับให้กลยุทธ์ต่าง ๆ ขององค์กรสอดคล้องกันอย่างเป็นระบบ' }
+      { name: 'Strategic Foresight', description: 'เป็นหลักสูตรที่เน้นการพัฒนาทักษะและความรู้ในการพยากรณ์อนาคตและการวางแผนกลยุทธ์ผ่านการสร้างฉากทัศน์ต่างๆ', courseUrl: 'https://www.minddojo.co.th/family-course/strategic-foresight' },
+      { name: 'Practical Strategy', description: 'เป็นการอบรมที่มุ่งเน้นการพัฒนาทักษะและความรู้ในการวิเคราะห์เชิงกลยุทธ์', courseUrl: 'https://www.minddojo.co.th/family-course/practical-strategies' },
+      { name: 'Aligning Your Strategy', description: 'เป็นการอบรมที่มุ่งเน้นการปรับให้กลยุทธ์ต่าง ๆ ขององค์กรสอดคล้องกันอย่างเป็นระบบ' , courseUrl: 'https://www.minddojo.co.th/family-course/aligning-your-strategies'}
     ]
   },
   { id: 'resilient-leadership', name: 'Resilient Leadership', intermediateName: 'Emotional Intelligence', color: 'yellow', description: 'Developing the ability to lead effectively through change and uncertainty.',
     topics: [
-      { name: 'People Intelligence with MBTI/DISC', description: 'ในปัจจุบันนี้หลายองค์กรกำลังประสบปัญหาการเปลี่ยนแปลงที่ไม่ประสบผลสำเร็จเท่าที่ควร' },
-      { name: 'Emotional Intelligence & Mindfulness', description: 'เป็นการอบรมที่มุ่งเน้นการพัฒนาความฉลาดทางอารมณ์' },
-      { name: 'Conflict Resolution', description: 'มุ่งเน้นที่การเรียนรู้วิธีการจัดการและแก้ไขข้อขัดแย้งในที่ทำงานหรือในชีวิตประจำวัน' }
+      { name: 'People Intelligence with MBTI/DISC', description: 'ในปัจจุบันนี้หลายองค์กรกำลังประสบปัญหาการเปลี่ยนแปลงที่ไม่ประสบผลสำเร็จเท่าที่ควร', courseUrl: 'https://www.minddojo.co.th/family-course/people-intelligence' },
+      { name: 'Emotional Intelligence & Mindfulness', description: 'เป็นการอบรมที่มุ่งเน้นการพัฒนาความฉลาดทางอารมณ์', courseUrl: 'https://www.minddojo.co.th/family-course/emotional-intelligence' },
+      { name: 'Conflict Resolution', description: 'มุ่งเน้นที่การเรียนรู้วิธีการจัดการและแก้ไขข้อขัดแย้งในที่ทำงานหรือในชีวิตประจำวัน', courseUrl: 'https://www.minddojo.co.th/family-course/conflict-resolution' }
     ],
     subCategories: [
-      { name: 'Leadership Challenge', description: 'เป็นการอบรมที่มุ่งเน้นการพัฒนาทักษะสำคัญสำหรับการเป็นผู้นำที่มีประสิทธิภาพ' },
-      { name: 'Resilience Leadership', description: 'เป็นการอบรมที่มุ่งเน้นการพัฒนาทักษะการขายและการรับมือกับการถูกปฏิเสธ' },
-      { name: 'High Performing Team', description: 'มุ่งเน้นที่การพัฒนาทีมให้มีประสิทธิภาพสูงสุดและทำงานร่วมกันได้อย่างมีประสิทธิผล' }
+      { name: 'Leadership Challenge', description: 'เป็นการอบรมที่มุ่งเน้นการพัฒนาทักษะสำคัญสำหรับการเป็นผู้นำที่มีประสิทธิภาพ' , courseUrl: 'https://www.minddojo.co.th/family-course/leadership-challenge'},
+      { name: 'Resilience Leadership', description: 'เป็นการอบรมที่มุ่งเน้นการพัฒนาทักษะการขายและการรับมือกับการถูกปฏิเสธ', courseUrl: 'https://www.minddojo.co.th/workshop?course=Resilience Leadership' },
+      { name: 'High Performing Team', description: 'มุ่งเน้นที่การพัฒนาทีมให้มีประสิทธิภาพสูงสุดและทำงานร่วมกันได้อย่างมีประสิทธิผล' , courseUrl: 'https://www.minddojo.co.th/workshop?course=High Performing Team'}
     ]
   },
   { id: 'succeeding-stakeholders', name: 'Succeeding with Stakeholder', intermediateName: 'Collaboration and Communication', color: 'black', description: 'Mastering the art of influence and relationship management with key stakeholders.',
     topics: [
-      { name: 'Effective and Empathetic Communication', description: 'ปลดปล่อยศักยภาพความคิดสร้างสรรค์ สู่พลังขับเคลื่อนการสร้างนวัตกรรม' },
-      { name: 'Leadership Essential Skills', description: 'เป็นการอบรมที่มุ่งเน้นการพัฒนาทักษะสำคัญสำหรับการเป็นผู้นำที่มีประสิทธิภาพ' },
-      { name: 'Negotiation & Persuasion Skills', description: 'มุ่งเน้นการพัฒนาทักษะการชักจูงและการเจรจาต่อรอง' }
+      { name: 'Effective and Empathetic Communication', description: 'ปลดปล่อยศักยภาพความคิดสร้างสรรค์ สู่พลังขับเคลื่อนการสร้างนวัตกรรม', courseUrl: 'https://www.minddojo.co.th/workshop?course=Effective and Empathetic Communication' },
+      { name: 'Leadership Essential Skills', description: 'เป็นการอบรมที่มุ่งเน้นการพัฒนาทักษะสำคัญสำหรับการเป็นผู้นำที่มีประสิทธิภาพ', courseUrl: 'https://www.minddojo.co.th/workshop?course=Leadership Essential Skills' },
+      { name: 'Negotiation & Persuasion Skills', description: 'มุ่งเน้นการพัฒนาทักษะการชักจูงและการเจรจาต่อรอง', courseUrl: 'https://www.minddojo.co.th/family-course/negotiation-%26-persuasion-for-sales-pitching' }
     ],
     subCategories: [
-      { name: 'Stakeholder Management & Influence', description: 'เพื่อให้โครงการของคุณประสบความสำเร็จ สิ่งสำคัญคือต้องตระหนักว่าผู้มีส่วนได้ส่วนเสียแต่ละคนมีมุมมองที่แตกต่างกัน' },
-      { name: 'Data Storytelling with Confidence', description: 'เพื่อการสื่อสารข้อมูลและการวิเคราะห์ข้อมูลอย่างมีประสิทธิภาพ' },
-      { name: 'Sustainability in Action', description: 'เป็นการอบรมที่มุ่งเน้นการจัดการการเปลี่ยนแปลงภายในองค์กรเพื่อสนับสนุนความยั่งยืน' }
+      { name: 'Stakeholder Management & Influence', description: 'เพื่อให้โครงการของคุณประสบความสำเร็จ สิ่งสำคัญคือต้องตระหนักว่าผู้มีส่วนได้ส่วนเสียแต่ละคนมีมุมมองที่แตกต่างกัน' , courseUrl: 'https://www.minddojo.co.th/family-course/stakeholder-management'},
+      { name: 'Data Storytelling with Confidence', description: 'เพื่อการสื่อสารข้อมูลและการวิเคราะห์ข้อมูลอย่างมีประสิทธิภาพ' , courseUrl: 'https://www.minddojo.co.th/family-course/data-storytelling'},
+      { name: 'Sustainability in Action', description: 'เป็นการอบรมที่มุ่งเน้นการจัดการการเปลี่ยนแปลงภายในองค์กรเพื่อสนับสนุนความยั่งยืน' , courseUrl: 'https://www.minddojo.co.th/workshop?course=Sustainability in Action'}
     ]
   },
   { id: 'innovation-transformation', name: 'Innovation & Transformation', intermediateName: 'Learning and Growth', color: 'yellow', description: 'Driving growth through innovative practices and organizational transformation.',
     topics: [
-      { name: 'Coaching and Mentoring', description: 'เป็นการอบรมที่มุ่งเน้นการพัฒนาทักษะในการโค้ชและการให้คำปรึกษาแก่พนักงานหรือทีมงาน' },
-      { name: 'Psychological Safety in Practice', description: 'มุ่งเน้นที่การสร้างและส่งเสริมวัฒนธรรมความปลอดภัยทางจิตใจในที่ทำงาน' },
-      { name: 'Train the Professional Trainer', description: 'หลักสูตรเทรนเนอร์ในองค์กร พัฒนาทักษะการออกแบบและถ่ายทอดการเรียนรู้ พร้อม AI' }
+      { name: 'Coaching and Mentoring', description: 'เป็นการอบรมที่มุ่งเน้นการพัฒนาทักษะในการโค้ชและการให้คำปรึกษาแก่พนักงานหรือทีมงาน' , courseUrl: 'https://www.minddojo.co.th/family-course/performance-coaching'},
+      { name: 'Psychological Safety in Practice', description: 'มุ่งเน้นที่การสร้างและส่งเสริมวัฒนธรรมความปลอดภัยทางจิตใจในที่ทำงาน', courseUrl: 'https://www.minddojo.co.th/family-course/psychological-safety-culture' },
+      { name: 'Train the Professional Trainer', description: 'หลักสูตรเทรนเนอร์ในองค์กร พัฒนาทักษะการออกแบบและถ่ายทอดการเรียนรู้ พร้อม AI' , courseUrl: 'https://www.minddojo.co.th/family-course/train-the-trainer-certification-program'}
     ],
     subCategories: [
-      { name: 'Agile Project Management', description: 'การบริหารจัดการโครงการแบบ Agile เพื่อเห็นความเสี่ยงและปรับตัวได้เร็ว' },
-      { name: 'Change Maker', description: 'การเปลี่ยนแปลงองค์กรด้วยการเปลี่ยนความคิด พฤติกรรม และการลงมือทำ' },
-      { name: 'Practical Design Thinking', description: 'เน้นการพัฒนาทักษะและวิธีคิดเพื่อการแก้ไขปัญหาและการสร้างนวัตกรรม' }
+      { name: 'Agile Project Management', description: 'การบริหารจัดการโครงการแบบ Agile เพื่อเห็นความเสี่ยงและปรับตัวได้เร็ว' , courseUrl: 'https://www.minddojo.co.th/family-course/real-innovation-through-agile-project'},
+      { name: 'Change Maker', description: 'การเปลี่ยนแปลงองค์กรด้วยการเปลี่ยนความคิด พฤติกรรม และการลงมือทำ' , courseUrl: 'https://www.minddojo.co.th/change-maker'},
+      { name: 'Practical Design Thinking', description: 'เน้นการพัฒนาทักษะและวิธีคิดเพื่อการแก้ไขปัญหาและการสร้างนวัตกรรม' , courseUrl: 'https://www.minddojo.co.th/family-course/practical-innovation'}
     ]
   }
 ];
 
 const FOUNDATION_SKILLS = {
   title: 'Foundation Skills',
-  subtitle: 'AI for Everyone: How to Work Smarter with AI Tools',
-  bullets: ['AI Powered Data Analytics & Visualization', 'Analyst Tools: Scalable Analytics with Power BI', 'Prompt Engineering for Business Leaders']
+  subtitle: 'AI for Everyone...',
+  bullets: [
+    {
+      name: 'AI Powered Data Analytics & Visualization',
+      description: 'ใช้ AI วิเคราะห์ข้อมูลจาก Excel/CSV ค้นหา Insight ที่สำคัญ และสื่อสารผลลัพธ์ผ่าน Visualization ที่เข้าใจง่าย เพื่อช่วยให้ตัดสินใจทางธุรกิจได้แม่นยำขึ้น',
+      courseUrl: 'https://www.minddojo.co.th/family-course/ai-powered-data-analytics-%26-visualization'
+    },
+    {
+      name: 'Analyst Tools: Scalable Analytics with Power BI',
+      description: 'พัฒนาทักษะ Power BI ตั้งแต่การเตรียมข้อมูล สร้าง Data Model เขียน DAX ไปจนถึงการสร้าง Dashboard แบบ Interactive เพื่อการวิเคราะห์ข้อมูลระดับองค์กร',
+      courseUrl: 'https://www.minddojo.co.th/family-course/analyst-tools%3A-scalable-analytics-with-power-bi'
+    },
+    {
+      name: 'Prompt Engineering for Business Leaders',
+      description: 'เรียนรู้การออกแบบ Prompt อย่างเป็นระบบ เพื่อใช้ AI ช่วยคิด วิเคราะห์ วางแผน และเพิ่มประสิทธิภาพการทำงานของทีมและองค์กรอย่างมีประสิทธิผล',
+      courseUrl: 'https://www.minddojo.co.th/family-course/-prompt-engineering-for-business-leaders'
+    }
+  ]
 };
 
 const WHEEL_COLORS = {
@@ -416,23 +432,102 @@ const Wheel = memo(({
         </g>
       );
     })}
-    <g transform="translate(500, 500)" >
-      <circle r="165" fill="#111" stroke="rgba(0,0,0,0.3)" strokeWidth="1" />
-      <foreignObject x="-140" y="-140" width="280" height="280">
-        <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: 16, pointerEvents: 'none' }}>
-          <h3 style={{ fontSize: 15, fontWeight: 900, color: '#fed201', textTransform: 'uppercase', letterSpacing: '0.2em', margin: '0 0 8px 0' }}>{FOUNDATION_SKILLS.title}</h3>
-          <p style={{ fontSize: 12, fontWeight: 700, color: '#9ca3af', marginBottom: 16, lineHeight: 1.2, textTransform: 'uppercase', letterSpacing: '0.1em' }}>{FOUNDATION_SKILLS.subtitle}</p>
-          <ul style={{ fontSize: 12, textAlign: 'left', margin: 0, padding: 0, listStyle: 'none' }}>
-            {FOUNDATION_SKILLS.bullets.map((b, i) => (
-              <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 8 }}>
-                <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#fed201', marginTop: 4, flexShrink: 0 }} />
-                <span style={{ fontWeight: 500, color: '#d1d5db' }}>{b}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </foreignObject>
-    </g>
+  <g transform="translate(500, 500)">
+    <circle r="165" fill="#111" stroke="rgba(0,0,0,0.3)" strokeWidth="1" />
+
+    <foreignObject x="-140" y="-140" width="280" height="280">
+      <div
+        style={{
+          width: '100%',
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          textAlign: 'center',
+          padding: 16,
+          pointerEvents: 'auto'
+        }}
+      >
+        <h3
+          style={{
+            fontSize: 15,
+            fontWeight: 900,
+            color: '#fed201',
+            textTransform: 'uppercase',
+            letterSpacing: '0.2em',
+            margin: '0 0 8px 0'
+          }}
+        >
+          {FOUNDATION_SKILLS.title}
+        </h3>
+
+        <p
+          style={{
+            fontSize: 12,
+            fontWeight: 700,
+            color: '#9ca3af',
+            marginBottom: 16,
+            lineHeight: 1.2,
+            textTransform: 'uppercase',
+            letterSpacing: '0.1em'
+          }}
+        >
+          {FOUNDATION_SKILLS.subtitle}
+        </p>
+
+        <ul
+          style={{
+            fontSize: 12,
+            textAlign: 'left',
+            margin: 0,
+            padding: 0,
+            listStyle: 'none'
+          }}
+        >
+          {FOUNDATION_SKILLS.bullets.map((b, i) => (
+            <li
+              key={i}
+              onClick={() =>
+                onSelect(
+                  'foundation',
+                  b,
+                  'foundation'
+                )
+              }
+              style={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: 8,
+                marginBottom: 8,
+                cursor: 'pointer'
+              }}
+            >
+              <span
+                style={{
+                  width: 6,
+                  height: 6,
+                  borderRadius: '50%',
+                  background: '#fed201',
+                  marginTop: 4,
+                  flexShrink: 0
+                }}
+              />
+
+              <span
+                style={{
+                  fontWeight: 500,
+                  color: '#d1d5db'
+                }}
+              >
+                {b.name}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </foreignObject>
+  </g>
   </svg>
 ));
 
@@ -517,8 +612,8 @@ const AdminCourseWheelPage: React.FC = () => {
         .wheel-segment{cursor:pointer}.wheel-segment:hover{stroke:rgba(255,255,255,.4);stroke-width:1.5px}.wheel-segment.active{stroke:rgba(255,255,255,.5);stroke-width:2px}
         .glass-panel{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);box-shadow:0 25px 50px -12px rgba(0,0,0,.25)}
         .main-content{flex-direction:column}.wheel-wrap{margin-bottom:64px}@media(min-width:1024px){.main-content{flex-direction:row}.wheel-wrap{margin-bottom:0}}
-        .wheel-popup-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:100;display:flex;align-items:center;justify-content:center;padding:24px}
-        .wheel-popup-box{background: rgba(17, 17, 17, 0.9);border:1px solid rgba(255,255,255,.1);border-radius:24px;box-shadow:0 25px 50px -12px rgba(0,0,0,.5);max-width:480px;width:100%;max-height:85vh;overflow-y:auto}
+        .wheel-popup-overlay{position:fixed;inset:0;background:transparent;z-index:100;display:flex;align-items:center;justify-content:center;padding:24px}
+        .wheel-popup-box{background: rgba(17, 17, 17, 1);border:1px solid rgba(255,255,255,.1);border-radius:24px;box-shadow:0 25px 50px -12px rgba(0,0,0,.5);max-width:480px;width:100%;max-height:85vh;overflow-y:auto}
         html:has(.course-wheel-page), 
         body:has(.course-wheel-page) {
           background-color: transparent !important;
@@ -561,7 +656,11 @@ const AdminCourseWheelPage: React.FC = () => {
               </div>
               <h2 style={{ fontSize: 28, fontWeight: 900, marginBottom: 12 }}>{(selection.data as any)?.name}</h2>
               <p style={{ color: '#9ca3af', marginBottom: 16 }}>{(selection.data as any)?.description}</p>
-              {(selection.type === 'subcategory' || selection.type === 'topic') && (
+              {(
+                selection.type === 'subcategory' ||
+                selection.type === 'topic' ||
+                selection.type === 'foundation'
+              ) && (
                 <button onClick={handleOpenCourse} style={{ width: '100%', padding: '12px 14px', borderRadius: 14, border: '1px solid rgba(254,210,1,.25)', background: '#fed201', color: '#111', fontWeight: 900 }}>เปิดหลักสูตร</button>
               )}
               {selection.type === 'main-category' && (
