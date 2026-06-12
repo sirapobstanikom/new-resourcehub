@@ -34,7 +34,7 @@ const WHEEL_DATA: WheelCategory[] = [
     subCategories: [
       { name: 'Leadership Challenge', description: 'เป็นการอบรมที่มุ่งเน้นการพัฒนาทักษะสำคัญสำหรับการเป็นผู้นำที่มีประสิทธิภาพ' , courseUrl: 'https://www.minddojo.co.th/family-course/leadership-challenge'},
       { name: 'Resilience Leadership', description: 'เป็นการอบรมที่มุ่งเน้นการพัฒนาทักษะการขายและการรับมือกับการถูกปฏิเสธ', courseUrl: 'https://www.minddojo.co.th/workshop?course=Resilience Leadership' },
-      { name: 'High Performing Team', description: 'มุ่งเน้นที่การพัฒนาทีมให้มีประสิทธิภาพสูงสุดและทำงานร่วมกันได้อย่างมีประสิทธิผล' , courseUrl: 'https://www.minddojo.co.th/workshop?course=High Performing Team'}
+      { name: 'High Performing Team', description: 'มุ่งเน้นที่การพัฒนาทีมให้มีประสิทธิภาพสูงสุดและทำงานร่วมกันได้อย่างมีประสิทธิผล' , courseUrl: 'https://www.minddojo.co.th/family-course/unleashing-high-performing-team'}
     ]
   },
   { id: 'succeeding-stakeholders', name: 'Succeeding with Stakeholder', intermediateName: 'Collaboration and Communication', color: 'black', description: 'Mastering the art of influence and relationship management with key stakeholders.',
@@ -65,7 +65,7 @@ const WHEEL_DATA: WheelCategory[] = [
 
 const FOUNDATION_SKILLS = {
   title: 'Foundation Skills',
-  subtitle: 'AI for Everyone...',
+  subtitle: 'AI for Everyone',
   bullets: [
     {
       name: 'AI Powered Data Analytics & Visualization',
@@ -93,6 +93,7 @@ const WHEEL_COLORS = {
 const ICONS = {
   Info: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>,
   RotateCcw: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>,
+  ChevronLeft: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m15 18-6-6 6-6"/></svg>,
   ChevronRight: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6"/></svg>,
   X: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>,
   Target: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>,
@@ -101,8 +102,14 @@ const ICONS = {
   Lightbulb: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/></svg>
 };
 
-const LINE_GAP = 14;
+const LINE_GAP = 18;
 function splitTextMultiLine(text: string): string[] | null {
+  if (text === 'Strategic Value Creation') {
+    return [
+      'Strategic Value',
+      'Creation'
+    ];
+  }
   const normalized = String(text)
     .replace(/\//g, ' / ')
     .replace(/&/g, ' & ')
@@ -149,7 +156,7 @@ const ArcText = memo(({
   startAngle,
   endAngle,
   color = 'currentColor',
-  fontSize = '12px'
+  fontSize = '17px'
 }: {
   id: string;
   text: string;
@@ -307,6 +314,7 @@ const SegmentGroup = memo((props: {
     <g
       onClick={() => onSelect(selectionType, selectionData, quadrantId)}
       onMouseEnter={() => onHoverStart(id)}
+      onMouseLeave={() => onHoverStart(null)}
       className="cursor-pointer"
       style={{ transformOrigin: '500px 500px', transform: `scale(${scale})`, opacity, filter, transition: 'transform 180ms ease, opacity 180ms ease, filter 180ms ease' }}
     >
@@ -333,7 +341,7 @@ const Wheel = memo(({
   onWheelLeave: () => void;
 }) => (
   <svg ref={svgRef} viewBox="0 0 1000 1000" onMouseLeave={onWheelLeave} style={{ width: '100%', height: '100%', borderRadius: '50%' }}>
-    <circle cx="500" cy="500" r="495" fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
+    <circle cx="500" cy="500" r="429" fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
     {WHEEL_DATA.map((quad, i) => {
       const qs = i * 90;
       const qe = (i + 1) * 90;
@@ -344,11 +352,11 @@ const Wheel = memo(({
             text={quad.name}
             startAngle={qs}
             endAngle={qe}
-            innerRadius={325}
-            outerRadius={395}
+            innerRadius={284}
+            outerRadius={429}
+            textRadius={357}
             fill={quad.color === 'yellow' ? WHEEL_COLORS.accent.main : WHEEL_COLORS.dark.main}
             textColor={quad.color === 'yellow' ? WHEEL_COLORS.accent.text : WHEEL_COLORS.dark.text}
-            textRadius={360}
             isActive={selection.data === quad}
             isHovered={hoveredSegmentId === `text-main-${quad.id}`}
             isDimmed={Boolean(hoveredSegmentId) && hoveredSegmentId !== `text-main-${quad.id}`}
@@ -358,28 +366,6 @@ const Wheel = memo(({
             selectionData={quad}
             quadrantId={quad.id}
           />
-          {quad.subCategories.map((sub, j) => (
-            <SegmentGroup
-              key={`${quad.id}-sub-${j}`}
-              id={`text-sub-${quad.id}-${j}`}
-              text={sub.name}
-              startAngle={qs + j * 30}
-              endAngle={qs + (j + 1) * 30}
-              innerRadius={395}
-              outerRadius={495}
-              fill={quad.color === 'yellow' ? WHEEL_COLORS.accent.outer : WHEEL_COLORS.dark.outer}
-              textColor={quad.color === 'yellow' ? WHEEL_COLORS.accent.text : WHEEL_COLORS.dark.text}
-              textRadius={445}
-              isActive={selection.data === sub}
-              isHovered={hoveredSegmentId === `text-sub-${quad.id}-${j}`}
-              isDimmed={Boolean(hoveredSegmentId) && hoveredSegmentId !== `text-sub-${quad.id}-${j}`}
-              onHoverStart={onHoverStart}
-              onSelect={onSelect}
-              selectionType="subcategory"
-              selectionData={sub}
-              quadrantId={quad.id}
-            />
-          ))}
         </g>
       );
     })}
@@ -393,11 +379,12 @@ const Wheel = memo(({
             text={quad.intermediateName}
             startAngle={qs}
             endAngle={qe}
-            innerRadius={175}
-            outerRadius={250}
+            innerRadius={167}
+            outerRadius={282}
+            textRadius={225}
+
             fill={quad.color === 'yellow' ? WHEEL_COLORS.accent.middle : WHEEL_COLORS.dark.middle}
             textColor={quad.color === 'yellow' ? WHEEL_COLORS.accent.text : WHEEL_COLORS.dark.text}
-            textRadius={212}
             isActive={selection.type === 'intermediate' && selection.quadrantId === quad.id}
             isHovered={hoveredSegmentId === `text-inter-${quad.id}`}
             isDimmed={Boolean(hoveredSegmentId) && hoveredSegmentId !== `text-inter-${quad.id}`}
@@ -407,127 +394,104 @@ const Wheel = memo(({
             selectionData={{ name: quad.intermediateName, description: `Core competency area within ${quad.name}.` }}
             quadrantId={quad.id}
           />
-          {quad.topics.map((topic, k) => (
-            <SegmentGroup
-              key={`${quad.id}-topic-${k}`}
-              id={`text-topic-${quad.id}-${k}`}
-              text={topic.name}
-              startAngle={qs + k * 30}
-              endAngle={qs + (k + 1) * 30}
-              innerRadius={250}
-              outerRadius={325}
-              fill={quad.color === 'yellow' ? '#FACC15' : '#475569'}
-              textColor={quad.color === 'yellow' ? WHEEL_COLORS.accent.text : WHEEL_COLORS.dark.text}
-              textRadius={287}
-              isActive={selection.data === topic}
-              isHovered={hoveredSegmentId === `text-topic-${quad.id}-${k}`}
-              isDimmed={Boolean(hoveredSegmentId) && hoveredSegmentId !== `text-topic-${quad.id}-${k}`}
-              onHoverStart={onHoverStart}
-              onSelect={onSelect}
-              selectionType="topic"
-              selectionData={topic}
-              quadrantId={quad.id}
-            />
-          ))}
         </g>
       );
     })}
-  <g transform="translate(500, 500)">
-    <circle r="165" fill="#111" stroke="rgba(0,0,0,0.3)" strokeWidth="1" />
+  {(() => {
+    const isCenterHovered = hoveredSegmentId === 'foundation-center';
+    const isCenterDimmed = Boolean(hoveredSegmentId) && hoveredSegmentId !== 'foundation-center';
+    const isCenterActive = selection.quadrantId === 'foundation';
+    const centerScale = isCenterHovered ? 1.04 : isCenterActive ? 1.02 : 1;
+    const centerOpacity = isCenterDimmed ? 0.28 : 1;
 
-    <foreignObject x="-140" y="-140" width="280" height="280">
-      <div
+    return (
+      <g
         style={{
-          width: '100%',
-          height: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          textAlign: 'center',
-          padding: 16,
-          pointerEvents: 'auto'
+          transformOrigin: '500px 500px',
+          transform: `scale(${centerScale})`,
+          opacity: centerOpacity,
+          transition: 'transform 180ms ease, opacity 180ms ease',
         }}
       >
-        <h3
-          style={{
-            fontSize: 15,
-            fontWeight: 900,
-            color: '#fed201',
-            textTransform: 'uppercase',
-            letterSpacing: '0.2em',
-            margin: '0 0 8px 0'
-          }}
-        >
-          {FOUNDATION_SKILLS.title}
-        </h3>
+        <g transform="translate(500, 500)">
+          <circle
+            r="165"
+            fill="#111"
+            stroke={isCenterHovered || isCenterActive ? 'rgba(254,210,1,0.6)' : 'rgba(0,0,0,0.3)'}
+            strokeWidth={isCenterHovered || isCenterActive ? 2 : 1}
+            className="wheel-segment cursor-pointer"
+            style={{
+              filter: isCenterHovered ? 'drop-shadow(0 0 18px rgba(254,210,1,0.35)) brightness(1.08)' : 'none',
+              transition: 'filter 180ms ease, stroke 180ms ease',
+            }}
+            onClick={() =>
+              onSelect(
+                'foundation-category',
+                {
+                  name: FOUNDATION_SKILLS.title,
+                  description: FOUNDATION_SKILLS.subtitle,
+                },
+                'foundation'
+              )
+            }
+            onMouseEnter={() => onHoverStart('foundation-center')}
+            onMouseLeave={() => onHoverStart(null)}
+          />
 
-        <p
-          style={{
-            fontSize: 12,
-            fontWeight: 700,
-            color: '#9ca3af',
-            marginBottom: 16,
-            lineHeight: 1.2,
-            textTransform: 'uppercase',
-            letterSpacing: '0.1em'
-          }}
-        >
-          {FOUNDATION_SKILLS.subtitle}
-        </p>
-
-        <ul
-          style={{
-            fontSize: 12,
-            textAlign: 'left',
-            margin: 0,
-            padding: 0,
-            listStyle: 'none'
-          }}
-        >
-          {FOUNDATION_SKILLS.bullets.map((b, i) => (
-            <li
-              key={i}
-              onClick={() =>
-                onSelect(
-                  'foundation',
-                  b,
-                  'foundation'
-                )
-              }
+          <foreignObject
+            xmlns="http://www.w3.org/1999/xhtml"
+            x="-180"
+            y="-140"
+            width="360"
+            height="280"
+            style={{ pointerEvents: 'none' }}
+          >
+            <div
+              xmlns="http://www.w3.org/1999/xhtml"
               style={{
+                width: '100%',
+                height: '100%',
                 display: 'flex',
-                alignItems: 'flex-start',
-                gap: 8,
-                marginBottom: 8,
-                cursor: 'pointer'
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                textAlign: 'center',
+                padding: 16,
+                pointerEvents: 'none',
               }}
             >
-              <span
+              <h3
                 style={{
-                  width: 6,
-                  height: 6,
-                  borderRadius: '50%',
-                  background: '#fed201',
-                  marginTop: 4,
-                  flexShrink: 0
-                }}
-              />
-
-              <span
-                style={{
-                  fontWeight: 500,
-                  color: '#d1d5db'
+                  fontSize: 22,
+                  fontWeight: 900,
+                  color: '#fed201',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.2em',
+                  margin: '0 0 8px 0',
                 }}
               >
-                {b.name}
-              </span>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </foreignObject>
-  </g>
+                {FOUNDATION_SKILLS.title}
+              </h3>
+
+              <p
+                style={{
+                  fontSize: 16,
+                  fontWeight: 700,
+                  color: '#9ca3af',
+                  margin: 0,
+                  lineHeight: 1.2,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.1em',
+                }}
+              >
+                {FOUNDATION_SKILLS.subtitle}
+              </p>
+            </div>
+          </foreignObject>
+        </g>
+      </g>
+    );
+  })()}
   </svg>
 ));
 
@@ -581,6 +545,35 @@ const AdminCourseWheelPage: React.FC = () => {
   }, []);
   const handleReset = useCallback(() => setSelection({ type: null, data: null, quadrantId: null }), []);
   const handleSelection = useCallback((type: string, data: any, quadrantId: string) => setSelection({ type, data, quadrantId }), []);
+  const canGoBack =
+    selection.type === 'subcategory' ||
+    selection.type === 'topic' ||
+    selection.type === 'foundation';
+  const handleBack = useCallback(() => {
+    if (selection.type === 'foundation') {
+      setSelection({
+        type: 'foundation-category',
+        data: { name: FOUNDATION_SKILLS.title, description: FOUNDATION_SKILLS.subtitle },
+        quadrantId: 'foundation',
+      });
+      return;
+    }
+    if (!selectedQuadrant) return;
+    if (selection.type === 'subcategory') {
+      setSelection({ type: 'main-category', data: selectedQuadrant, quadrantId: selectedQuadrant.id });
+      return;
+    }
+    if (selection.type === 'topic') {
+      setSelection({
+        type: 'intermediate',
+        data: {
+          name: selectedQuadrant.intermediateName,
+          description: `Core competency area within ${selectedQuadrant.name}.`,
+        },
+        quadrantId: selectedQuadrant.id,
+      });
+    }
+  }, [selection.type, selectedQuadrant]);
   const handleHoverStart = useCallback((hoverId: string | null) => setHoveredSegmentId(hoverId), []);
   const handleWheelLeave = useCallback(() => setHoveredSegmentId(null), []);
   const handleOpenCourse = useCallback(() => {
@@ -608,7 +601,7 @@ const AdminCourseWheelPage: React.FC = () => {
   return (
     <div className="course-wheel-page" style={{width: '100vw',height: '100vh',overflow: 'hidden',display: 'flex',justifyContent: 'center',alignItems: 'center',background: 'white' }}>
       <style>{`
-        *{box-sizing:border-box}.arc-text{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.02em;paint-order:stroke;stroke-linejoin:round;text-shadow:0 1px 2px rgba(0,0,0,.2)}
+        *{box-sizing:border-box}.arc-text{font-size:17px;font-weight:700;text-transform:uppercase;letter-spacing:.02em;paint-order:stroke;stroke-linejoin:round;text-shadow:0 1px 2px rgba(0,0,0,.2)}
         .wheel-segment{cursor:pointer}.wheel-segment:hover{stroke:rgba(255,255,255,.4);stroke-width:1.5px}.wheel-segment.active{stroke:rgba(255,255,255,.5);stroke-width:2px}
         .glass-panel{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);box-shadow:0 25px 50px -12px rgba(0,0,0,.25)}
         .main-content{flex-direction:column}.wheel-wrap{margin-bottom:64px}@media(min-width:1024px){.main-content{flex-direction:row}.wheel-wrap{margin-bottom:0}}
@@ -647,33 +640,61 @@ const AdminCourseWheelPage: React.FC = () => {
         <div className="wheel-popup-overlay" onClick={handleReset}>
           <div className="wheel-popup-box" onClick={(e) => e.stopPropagation()}>
             <div style={{ padding: 28 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  {canGoBack && (
+                    <button
+                      onClick={handleBack}
+                      aria-label="ย้อนกลับ"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: 40,
+                        height: 40,
+                        background: 'rgba(255,255,255,.08)',
+                        border: '1px solid rgba(255,255,255,.12)',
+                        borderRadius: 12,
+                        color: '#fff',
+                        cursor: 'pointer',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <ICONS.ChevronLeft />
+                    </button>
+                  )}
                   <div style={{ padding: 10, background: '#fed201', borderRadius: 12, color: '#111' }}>{selection.quadrantId ? getCategoryIcon(selection.quadrantId) : <ICONS.Info />}</div>
-                  <span style={{ fontSize: 11, color: '#fed201', fontWeight: 800, textTransform: 'uppercase' }}>{String(selection.type).replace('-', ' ')}</span>
+                  <span style={{ fontSize: 14, color: '#fed201', fontWeight: 800, textTransform: 'uppercase' }}>{String(selection.type).replace('-', ' ')}</span>
                 </div>
-                <button onClick={handleReset} style={{ background: 'transparent', border: 'none', color: '#9ca3af' }}><ICONS.X /></button>
+                <button onClick={handleReset} style={{ background: 'transparent', border: 'none', color: '#9ca3af', cursor: 'pointer' }}><ICONS.X /></button>
               </div>
-              <h2 style={{ fontSize: 28, fontWeight: 900, marginBottom: 12 }}>{(selection.data as any)?.name}</h2>
-              <p style={{ color: '#9ca3af', marginBottom: 16 }}>{(selection.data as any)?.description}</p>
+              <h2 style={{ fontSize: 32, fontWeight: 900, marginBottom: 12 }}>{(selection.data as any)?.name}</h2>
+              <p style={{ fontSize: 16, color: '#9ca3af', marginBottom: 16, lineHeight: 1.5 }}>{(selection.data as any)?.description}</p>
               {(
                 selection.type === 'subcategory' ||
                 selection.type === 'topic' ||
                 selection.type === 'foundation'
               ) && (
-                <button onClick={handleOpenCourse} style={{ width: '100%', padding: '12px 14px', borderRadius: 14, border: '1px solid rgba(254,210,1,.25)', background: '#fed201', color: '#111', fontWeight: 900 }}>เปิดหลักสูตร</button>
+                <button onClick={handleOpenCourse} style={{ width: '100%', padding: '14px 16px', borderRadius: 14, border: '1px solid rgba(254,210,1,.25)', background: '#fed201', color: '#111', fontWeight: 900, fontSize: 16 }}>เปิดหลักสูตร</button>
               )}
               {selection.type === 'main-category' && (
                 <div style={{ marginTop: 14 }}>
                   {(selection.data as WheelCategory).subCategories.map((s, i) => (
-                    <button key={i} onClick={() => setSelection({ type: 'subcategory', data: s, quadrantId: (selection.data as WheelCategory).id })} style={{ width: '100%', display: 'flex', justifyContent: 'space-between', padding: 14, background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.08)', borderRadius: 14, marginBottom: 8, color: '#fff' }}>{s.name}<ICONS.ChevronRight /></button>
+                    <button key={i} onClick={() => setSelection({ type: 'subcategory', data: s, quadrantId: (selection.data as WheelCategory).id })} style={{ width: '100%', display: 'flex', justifyContent: 'space-between', padding: 16, background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.08)', borderRadius: 14, marginBottom: 8, color: '#fff', fontSize: 16 }}>{s.name}<ICONS.ChevronRight /></button>
                   ))}
                 </div>
               )}
               {selection.type === 'intermediate' && (
                 <div style={{ marginTop: 14 }}>
                   {(selectedQuadrant?.topics || []).map((t, i) => (
-                    <button key={i} onClick={() => setSelection({ type: 'topic', data: t, quadrantId: selection.quadrantId })} style={{ width: '100%', display: 'flex', justifyContent: 'space-between', padding: 14, background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.08)', borderRadius: 14, marginBottom: 8, color: '#fff' }}>{t.name}<ICONS.ChevronRight /></button>
+                    <button key={i} onClick={() => setSelection({ type: 'topic', data: t, quadrantId: selection.quadrantId })} style={{ width: '100%', display: 'flex', justifyContent: 'space-between', padding: 16, background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.08)', borderRadius: 14, marginBottom: 8, color: '#fff', fontSize: 16 }}>{t.name}<ICONS.ChevronRight /></button>
+                  ))}
+                </div>
+              )}
+              {selection.type === 'foundation-category' && (
+                <div style={{ marginTop: 14 }}>
+                  {FOUNDATION_SKILLS.bullets.map((b, i) => (
+                    <button key={i} onClick={() => setSelection({ type: 'foundation', data: b, quadrantId: 'foundation' })} style={{ width: '100%', display: 'flex', justifyContent: 'space-between', padding: 16, background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.08)', borderRadius: 14, marginBottom: 8, color: '#fff', fontSize: 16 }}>{b.name}<ICONS.ChevronRight /></button>
                   ))}
                 </div>
               )}
