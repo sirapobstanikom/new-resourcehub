@@ -132,6 +132,7 @@ const DiscAssessment: React.FC = () => {
 
   const [aiFeedback, setAiFeedback] = useState<string | null>(null);
   const [aiDisplayText, setAiDisplayText] = useState('');
+  const [aiFeedbackVisible, setAiFeedbackVisible] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
   const [pdfLoading, setPdfLoading] = useState(false);
@@ -165,8 +166,13 @@ const DiscAssessment: React.FC = () => {
       setAnswers(resultPayload.answers ?? {});
       setCurrentIndex(0);
       setStep('result');
-      setAiFeedback(resultPayload.ai_feedback ?? null);
-      didGenerateAiRef.current = Boolean(resultPayload.ai_feedback);
+      const savedFeedback = resultPayload.ai_feedback ?? null;
+      setAiFeedback(savedFeedback);
+      if (savedFeedback) {
+        setAiFeedbackVisible(true);
+        setAiDisplayText(savedFeedback);
+      }
+      didGenerateAiRef.current = Boolean(savedFeedback);
       didSubmitResultRef.current = true;
       return;
     }
@@ -402,62 +408,45 @@ const DiscAssessment: React.FC = () => {
     return [...order].sort((a, b) => (scores[b] ?? 0) - (scores[a] ?? 0));
   }, [scores]);
 
-  const feedbackInputKey = useMemo(
-    () => JSON.stringify({
-      step,
-      name: user.name.trim(),
-      email: user.email.trim(),
-      company: user.company.trim(),
+  const handleRequestAiFeedback = useCallback(async () => {
+    setAiFeedbackVisible(true);
+
+    if (aiFeedback) return;
+    if (aiLoading) return;
+
+    didGenerateAiRef.current = true;
+    setAiLoading(true);
+    setAiError(null);
+
+    const payload = {
+      user: {
+        name: user.name.trim(),
+        email: user.email.trim(),
+        company: user.company.trim(),
+      },
       scores,
       primaryType,
       ranking,
-    }),
-    [step, user.name, user.email, user.company, scores, primaryType, ranking],
-  );
-
-  useEffect(() => {
-    const run = async () => {
-      didGenerateAiRef.current = true;
-      setAiLoading(true);
-      setAiError(null);
-
-      const payload = {
-        user: {
-          name: user.name.trim(),
-          email: user.email.trim(),
-          company: user.company.trim(),
-        },
-        scores,
-        primaryType,
-        ranking,
-      };
-
-      try {
-        const text = await getDiscFeedback(payload);
-        setAiFeedback(text);
-
-        // อัปเดต localStorage ให้ AI feedback อยู่ต่อเมื่อรีเฟรช
-        try {
-          const raw = localStorage.getItem(DISC_RESULT_KEY);
-          if (raw) {
-            const parsed = JSON.parse(raw) as DiscResultPayload;
-            localStorage.setItem(DISC_RESULT_KEY, JSON.stringify({ ...parsed, ai_feedback: text }));
-          }
-        } catch (_) {}
-      } catch (e) {
-        setAiError((e as Error).message || 'ไม่สามารถโหลด feedback จาก AI ได้');
-        didGenerateAiRef.current = false;
-      } finally {
-        setAiLoading(false);
-      }
     };
 
-    if (step !== 'result') return;
-    if (aiFeedback) return;
-    if (didGenerateAiRef.current) return;
+    try {
+      const text = await getDiscFeedback(payload);
+      setAiFeedback(text);
 
-    void run();
-  }, [aiFeedback, feedbackInputKey]);
+      try {
+        const raw = localStorage.getItem(DISC_RESULT_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw) as DiscResultPayload;
+          localStorage.setItem(DISC_RESULT_KEY, JSON.stringify({ ...parsed, ai_feedback: text }));
+        }
+      } catch (_) {}
+    } catch (e) {
+      setAiError((e as Error).message || 'ไม่สามารถโหลด feedback จาก AI ได้');
+      didGenerateAiRef.current = false;
+    } finally {
+      setAiLoading(false);
+    }
+  }, [aiFeedback, aiLoading, primaryType, ranking, scores, user.company, user.email, user.name]);
 
   const typeStyle: Record<DiscType, string> = {
     D: 'bg-rose-400/15 border-rose-300/30 text-rose-200',
@@ -523,12 +512,14 @@ const DiscAssessment: React.FC = () => {
     };
   }, [DISC_PIE_COLORS, pieTypes, primaryType]);
 
-  // เอฟเฟกต์พิมพ์ข้อความ AI แบบเร็ว
+  // เอฟเฟกต์พิมพ์ข้อความ AI แบบเร็ว (เมื่อผู้ใช้กดเปิดดูครั้งแรกเท่านั้น)
   useEffect(() => {
-    if (!aiFeedback) {
-      setAiDisplayText('');
+    if (!aiFeedbackVisible || !aiFeedback) {
+      if (!aiFeedback) setAiDisplayText('');
       return;
     }
+
+    if (aiDisplayText === aiFeedback) return;
 
     setAiDisplayText('');
     let i = 0;
@@ -540,7 +531,7 @@ const DiscAssessment: React.FC = () => {
     }, 10);
 
     return () => window.clearInterval(timer);
-  }, [aiFeedback]);
+  }, [aiFeedback, aiFeedbackVisible]);
 
   useEffect(() => {
     if (step !== 'result') {
@@ -703,13 +694,6 @@ const DiscAssessment: React.FC = () => {
     setExportError('ไม่สามารถเปิดเมนูแชร์ได้ — กดค้างที่ภาพด้านบน แล้วเลือก «บันทึกรูปภาพ»');
   }, [closePngPreview, user.name]);
 
-  const handleOpenPngInNewTab = useCallback(() => {
-    if (!pngPreviewUrl) return;
-    const opened = window.open(pngPreviewUrl, '_blank', 'noopener,noreferrer');
-    if (!opened) window.location.assign(pngPreviewUrl);
-    setExportError('เปิดภาพแล้ว — กดค้างที่ภาพ → เลือก «บันทึกรูปภาพ»');
-  }, [pngPreviewUrl]);
-
   const handleDownloadPng = async () => {
     if (!exportActionsEnabled) return;
     setPngLoading(true);
@@ -749,6 +733,7 @@ const DiscAssessment: React.FC = () => {
     didGenerateAiRef.current = false;
     setAiFeedback(null);
     setAiDisplayText('');
+    setAiFeedbackVisible(false);
     setAiLoading(false);
     setAiError(null);
     try {
@@ -774,6 +759,7 @@ const DiscAssessment: React.FC = () => {
     didGenerateAiRef.current = false;
     setAiFeedback(null);
     setAiDisplayText('');
+    setAiFeedbackVisible(false);
     setAiLoading(false);
     setAiError(null);
     setAnswers({});
@@ -1225,18 +1211,33 @@ const DiscAssessment: React.FC = () => {
               <p className="text-sm font-bold text-white/90">AI Feedback</p>
               <p className="text-xs text-zinc-500 mt-1">สรุปจากผล DISC: {primaryType} (คะแนนสูงสุด {scores[primaryType]})</p>
               <div className="mt-4">
-                {aiLoading ? (
+                {!aiFeedbackVisible ? (
+                  <button
+                    type="button"
+                    onClick={() => void handleRequestAiFeedback()}
+                    className="w-full sm:w-auto px-5 py-3 rounded-xl font-bold border border-yellow-400/40 bg-yellow-400/10 text-yellow-300 hover:bg-yellow-400/20 transition-all text-sm"
+                  >
+                    ดู AI Feedback
+                  </button>
+                ) : aiLoading ? (
                   <div className="text-sm text-zinc-400">กำลังสร้าง feedback...</div>
                 ) : aiError ? (
-                  <div className="text-sm text-red-300/90">{aiError}</div>
+                  <div className="space-y-3">
+                    <div className="text-sm text-red-300/90">{aiError}</div>
+                    <button
+                      type="button"
+                      onClick={() => void handleRequestAiFeedback()}
+                      className="px-4 py-2 rounded-xl text-sm font-bold border border-white/10 hover:bg-white/5 transition-all"
+                    >
+                      ลองอีกครั้ง
+                    </button>
+                  </div>
                 ) : aiFeedback ? (
                   <div className="whitespace-pre-wrap text-sm text-zinc-300 leading-relaxed break-words">
                     {aiDisplayText}
                     {aiDisplayText.length < aiFeedback.length ? <span className="text-zinc-500">▋</span> : null}
                   </div>
-                ) : (
-                  <div className="text-sm text-zinc-400">รอการสร้าง feedback...</div>
-                )}
+                ) : null}
               </div>
             </section>
 
@@ -1331,13 +1332,6 @@ const DiscAssessment: React.FC = () => {
                 className="w-full py-3 rounded-xl font-bold bg-yellow-400 text-black hover:bg-yellow-300 transition-all text-sm"
               >
                 แชร์ / บันทึกรูปภาพ
-              </button>
-              <button
-                type="button"
-                onClick={handleOpenPngInNewTab}
-                className="w-full py-3 rounded-xl font-bold border border-white/10 text-zinc-200 hover:bg-white/5 transition-all text-sm"
-              >
-                เปิดภาพในแท็บใหม่
               </button>
             </div>
           </div>
