@@ -18,12 +18,102 @@ type AnswersState = Record<number, QuestionAnswer>;
 
 const RATING_VALUES: DiscRating[] = [1, 2, 3, 4];
 
-function isMobileSafariLike(): boolean {
+function isDesktopLike(): boolean {
+  if (typeof window === 'undefined') return false;
+  return window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+}
+
+/** มือถือจริง (ไม่รวมโน้ตบุ๊กทัชสกรีนที่ใช้เมาส์) */
+function isMobileExportDevice(): boolean {
+  if (isDesktopLike()) return false;
   if (typeof navigator === 'undefined') return false;
-  return (
-    /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ||
-    (typeof navigator.maxTouchPoints === 'number' && navigator.maxTouchPoints > 0)
-  );
+  return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+}
+
+function readDiscJson<T>(key: string): T | null {
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return null;
+    return JSON.parse(raw) as T;
+  } catch {
+    return null;
+  }
+}
+
+const DISC_RESULT_KEY = 'disc_result';
+const DISC_DRAFT_KEY = 'disc_draft';
+
+type DiscResultPayload = {
+  user: UserInfo;
+  answers: AnswersState;
+  scores: Record<DiscType, number>;
+  primary_type: DiscType;
+  ranking: DiscType[];
+  completed_at: string;
+  ai_feedback?: string;
+};
+
+type DiscDraftPayload = {
+  step: Step;
+  currentIndex: number;
+  user: UserInfo;
+  answers: AnswersState;
+};
+
+type DiscBootstrap = {
+  step: Step;
+  currentIndex: number;
+  user: UserInfo;
+  answers: AnswersState;
+  aiFeedback: string | null;
+  aiFeedbackVisible: boolean;
+  aiDisplayText: string;
+  didSubmitResult: boolean;
+  didGenerateAi: boolean;
+};
+
+function loadDiscBootstrap(): DiscBootstrap {
+  const emptyUser: UserInfo = { name: '', email: '', company: '' };
+  const defaults: DiscBootstrap = {
+    step: 'login',
+    currentIndex: 0,
+    user: emptyUser,
+    answers: {},
+    aiFeedback: null,
+    aiFeedbackVisible: false,
+    aiDisplayText: '',
+    didSubmitResult: false,
+    didGenerateAi: false,
+  };
+
+  const resultPayload = readDiscJson<DiscResultPayload>(DISC_RESULT_KEY);
+  if (resultPayload?.user && resultPayload?.answers) {
+    const savedFeedback = resultPayload.ai_feedback ?? null;
+    return {
+      step: 'result',
+      currentIndex: 0,
+      user: resultPayload.user,
+      answers: resultPayload.answers,
+      aiFeedback: savedFeedback,
+      aiFeedbackVisible: Boolean(savedFeedback),
+      aiDisplayText: savedFeedback ?? '',
+      didSubmitResult: true,
+      didGenerateAi: Boolean(savedFeedback),
+    };
+  }
+
+  const draftPayload = readDiscJson<DiscDraftPayload>(DISC_DRAFT_KEY);
+  if (draftPayload) {
+    return {
+      ...defaults,
+      step: draftPayload.step ?? 'login',
+      currentIndex: draftPayload.currentIndex ?? 0,
+      user: draftPayload.user ?? emptyUser,
+      answers: draftPayload.answers ?? {},
+    };
+  }
+
+  return defaults;
 }
 
 function safeExportFilePart(name: string): string {
@@ -79,26 +169,6 @@ async function savePngBlobDesktop(blob: Blob, fileName: string): Promise<void> {
   window.setTimeout(() => URL.revokeObjectURL(blobUrl), 2000);
 }
 
-const DISC_RESULT_KEY = 'disc_result';
-const DISC_DRAFT_KEY = 'disc_draft';
-
-type DiscResultPayload = {
-  user: UserInfo;
-  answers: AnswersState;
-  scores: Record<DiscType, number>;
-  primary_type: DiscType;
-  ranking: DiscType[];
-  completed_at: string;
-  ai_feedback?: string;
-};
-
-type DiscDraftPayload = {
-  step: Step;
-  currentIndex: number;
-  user: UserInfo;
-  answers: AnswersState;
-};
-
 // Mapping ตาม spec: หมายเลข 1–40 -> D / I / S / C
 const DISC_TYPE_BY_QUESTION_NUMBER: Record<DiscType, Set<number>> = {
   D: new Set<number>([3, 7, 11, 13, 20, 22, 25, 31, 33, 39]),
@@ -108,94 +178,44 @@ const DISC_TYPE_BY_QUESTION_NUMBER: Record<DiscType, Set<number>> = {
 };
 
 const DiscAssessment: React.FC = () => {
+  const bootstrapRef = useRef(loadDiscBootstrap());
+  const bootstrap = bootstrapRef.current;
+
   const totalBigQuestions = DISC_QUESTIONS.length;
   const totalStatements = DISC_QUESTIONS.reduce((acc, q) => acc + q.statements.length, 0);
-  const [step, setStep] = useState<Step>('login');
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [step, setStep] = useState<Step>(bootstrap.step);
+  const [currentIndex, setCurrentIndex] = useState(bootstrap.currentIndex);
   const [showIntroModal, setShowIntroModal] = useState(false);
 
-  const [user, setUser] = useState<UserInfo>({
-    name: '',
-    email: '',
-    company: '',
-  });
+  const [user, setUser] = useState<UserInfo>(bootstrap.user);
 
-  const [answers, setAnswers] = useState<AnswersState>({});
+  const [answers, setAnswers] = useState<AnswersState>(bootstrap.answers);
   const [lastRatingPop, setLastRatingPop] = useState<{
     questionId: number;
     statementIndex: 0 | 1 | 2 | 3;
     rating: DiscRating;
   } | null>(null);
   const [ratingPopNonce, setRatingPopNonce] = useState(0);
-  const didSubmitResultRef = useRef(false);
-  const didGenerateAiRef = useRef(false);
+  const didSubmitResultRef = useRef(bootstrap.didSubmitResult);
+  const didGenerateAiRef = useRef(bootstrap.didGenerateAi);
+  const aiTypingDoneRef = useRef(bootstrap.didGenerateAi);
 
-  const [aiFeedback, setAiFeedback] = useState<string | null>(null);
-  const [aiDisplayText, setAiDisplayText] = useState('');
-  const [aiFeedbackVisible, setAiFeedbackVisible] = useState(false);
+  const [aiFeedback, setAiFeedback] = useState<string | null>(bootstrap.aiFeedback);
+  const [aiDisplayText, setAiDisplayText] = useState(bootstrap.aiDisplayText);
+  const [aiFeedbackVisible, setAiFeedbackVisible] = useState(bootstrap.aiFeedbackVisible);
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
   const [pdfLoading, setPdfLoading] = useState(false);
   const [pngLoading, setPngLoading] = useState(false);
-  const [exportActionsEnabled, setExportActionsEnabled] = useState(false);
+  const [exportActionsEnabled, setExportActionsEnabled] = useState(
+    bootstrap.step === 'result' && isDesktopLike(),
+  );
   const [exportError, setExportError] = useState<string | null>(null);
   const [pngPreviewUrl, setPngPreviewUrl] = useState<string | null>(null);
   const pngPreviewBlobRef = useRef<Blob | null>(null);
   const resultCardRef = useRef<HTMLDivElement | null>(null);
 
   const currentQuestion = DISC_QUESTIONS[currentIndex];
-
-  // โหลดค่าจาก localStorage เพื่อให้รีเฟรช/กลับมาหน้าเดิมแล้วข้อมูลยังอยู่
-  useEffect(() => {
-    const readJson = <T,>(key: string): T | null => {
-      try {
-        const raw = localStorage.getItem(key);
-        if (!raw) return null;
-        return JSON.parse(raw) as T;
-      } catch {
-        return null;
-      }
-    };
-
-    const resultPayload = readJson<DiscResultPayload>(DISC_RESULT_KEY);
-    if (resultPayload?.user && resultPayload?.answers) {
-      setShowIntroModal(false);
-      setLastRatingPop(null);
-      setRatingPopNonce(0);
-      setUser(resultPayload.user ?? { name: '', email: '', company: '' });
-      setAnswers(resultPayload.answers ?? {});
-      setCurrentIndex(0);
-      setStep('result');
-      const savedFeedback = resultPayload.ai_feedback ?? null;
-      setAiFeedback(savedFeedback);
-      if (savedFeedback) {
-        setAiFeedbackVisible(true);
-        setAiDisplayText(savedFeedback);
-      }
-      didGenerateAiRef.current = Boolean(savedFeedback);
-      didSubmitResultRef.current = true;
-      return;
-    }
-
-    const draftPayload = readJson<DiscDraftPayload>(DISC_DRAFT_KEY);
-    if (draftPayload) {
-      setShowIntroModal(false);
-      setLastRatingPop(null);
-      setRatingPopNonce(0);
-      setUser(draftPayload.user ?? { name: '', email: '', company: '' });
-      setAnswers(draftPayload.answers ?? {});
-      setCurrentIndex(draftPayload.currentIndex ?? 0);
-      setStep(draftPayload.step ?? 'login');
-      didSubmitResultRef.current = false;
-      setAiFeedback(null);
-      didGenerateAiRef.current = false;
-      return;
-    }
-
-    didSubmitResultRef.current = false;
-    setAiFeedback(null);
-    didGenerateAiRef.current = false;
-  }, []);
 
   // range เฉพาะ “ข้อย่อย” (statement) เพื่อให้สอดคล้องกับ mapping 1–40
   const statementRange = useMemo(() => {
@@ -411,9 +431,14 @@ const DiscAssessment: React.FC = () => {
   const handleRequestAiFeedback = useCallback(async () => {
     setAiFeedbackVisible(true);
 
-    if (aiFeedback) return;
+    if (aiFeedback) {
+      setAiDisplayText(aiFeedback);
+      aiTypingDoneRef.current = true;
+      return;
+    }
     if (aiLoading) return;
 
+    aiTypingDoneRef.current = false;
     didGenerateAiRef.current = true;
     setAiLoading(true);
     setAiError(null);
@@ -515,19 +540,28 @@ const DiscAssessment: React.FC = () => {
   // เอฟเฟกต์พิมพ์ข้อความ AI แบบเร็ว (เมื่อผู้ใช้กดเปิดดูครั้งแรกเท่านั้น)
   useEffect(() => {
     if (!aiFeedbackVisible || !aiFeedback) {
-      if (!aiFeedback) setAiDisplayText('');
+      if (!aiFeedback) {
+        setAiDisplayText('');
+        aiTypingDoneRef.current = false;
+      }
       return;
     }
 
-    if (aiDisplayText === aiFeedback) return;
+    if (aiTypingDoneRef.current) {
+      setAiDisplayText(aiFeedback);
+      return;
+    }
 
     setAiDisplayText('');
     let i = 0;
-    const chunkSize = 3; // เร็วขึ้น: ทีละ 3 ตัวอักษร
+    const chunkSize = 3;
     const timer = window.setInterval(() => {
       i = Math.min(aiFeedback.length, i + chunkSize);
       setAiDisplayText(aiFeedback.slice(0, i));
-      if (i >= aiFeedback.length) window.clearInterval(timer);
+      if (i >= aiFeedback.length) {
+        aiTypingDoneRef.current = true;
+        window.clearInterval(timer);
+      }
     }, 10);
 
     return () => window.clearInterval(timer);
@@ -540,8 +574,12 @@ const DiscAssessment: React.FC = () => {
       return;
     }
 
-    const delayMs = isMobileSafariLike() ? 700 : 0;
-    const timer = window.setTimeout(() => setExportActionsEnabled(true), delayMs);
+    if (isDesktopLike()) {
+      setExportActionsEnabled(true);
+      return;
+    }
+
+    const timer = window.setTimeout(() => setExportActionsEnabled(true), 700);
     return () => window.clearTimeout(timer);
   }, [step]);
 
@@ -572,42 +610,55 @@ const DiscAssessment: React.FC = () => {
     const el = resultCardRef.current;
     if (!el) throw new Error('ไม่พบพื้นที่ผลลัพธ์');
 
-    el.scrollIntoView({ block: 'start', behavior: 'instant' as ScrollBehavior });
-    window.scrollTo(0, 0);
+    const desktop = isDesktopLike();
+    if (desktop) {
+      el.scrollIntoView({ block: 'start', behavior: 'instant' as ScrollBehavior });
+      window.scrollTo(0, 0);
+    }
+
     el.setAttribute('data-disc-exporting', 'true');
     await new Promise<void>((resolve) => {
       requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
     });
 
+    const onclone = (doc: Document) => {
+      doc.querySelectorAll('[data-disc-exporting]').forEach((root) => {
+        root.querySelectorAll('*').forEach((node) => {
+          if (!(node instanceof HTMLElement)) return;
+          node.style.animation = 'none';
+          node.style.transition = 'none';
+          node.style.opacity = '1';
+          node.style.transform = 'none';
+        });
+      });
+    };
+
     try {
       const { default: html2canvas } = await import('html2canvas');
-      const mobileScale = isMobileSafariLike() ? Math.min(2, window.devicePixelRatio || 1.5) : 2;
 
-      const canvas = await html2canvas(el, {
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: '#0a0a0a',
-        scale: mobileScale,
-        logging: false,
-        scrollX: 0,
-        scrollY: -window.scrollY,
-        windowWidth: el.scrollWidth,
-        windowHeight: el.scrollHeight,
-        width: el.scrollWidth,
-        height: el.scrollHeight,
-        ignoreElements: (node) => node.classList?.contains('exclude-from-export') === true,
-        onclone: (doc) => {
-          doc.querySelectorAll('[data-disc-exporting]').forEach((root) => {
-            root.querySelectorAll('*').forEach((node) => {
-              if (!(node instanceof HTMLElement)) return;
-              node.style.animation = 'none';
-              node.style.transition = 'none';
-              node.style.opacity = '1';
-              node.style.transform = 'none';
-            });
+      const canvas = desktop
+        ? await html2canvas(el, {
+            useCORS: true,
+            allowTaint: true,
+            backgroundColor: '#0a0a0a',
+            scale: 2,
+            logging: false,
+            scrollX: 0,
+            scrollY: 0,
+            ignoreElements: (node) => node.classList?.contains('exclude-from-export') === true,
+            onclone,
+          })
+        : await html2canvas(el, {
+            useCORS: true,
+            allowTaint: true,
+            backgroundColor: '#0a0a0a',
+            scale: Math.min(2, window.devicePixelRatio || 1.5),
+            logging: false,
+            windowHeight: el.scrollHeight,
+            height: el.scrollHeight,
+            ignoreElements: (node) => node.classList?.contains('exclude-from-export') === true,
+            onclone,
           });
-        },
-      });
 
       if (canvas.width < 16 || canvas.height < 16) {
         throw new Error('ไม่สามารถสร้างภาพผลลัพธ์ได้ (ขนาดว่าง)');
@@ -647,22 +698,33 @@ const DiscAssessment: React.FC = () => {
 
       const { jsPDF } = await import('jspdf');
       const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF({ orientation: 'portrait', unit: 'px', format: 'a4' });
-      const pageW = pdf.internal.pageSize.getWidth();
-      const pageH = pdf.internal.pageSize.getHeight();
-
-      pdf.setFillColor(10, 10, 10);
-      pdf.rect(0, 0, pageW, pageH, 'F');
-
-      const scale = Math.min(pageW / canvas.width, pageH / canvas.height);
-      const drawW = canvas.width * scale;
-      const drawH = canvas.height * scale;
-      const x = (pageW - drawW) / 2;
-      const y = (pageH - drawH) / 2;
-      pdf.addImage(imgData, 'PNG', x, y, drawW, drawH);
-
       const exportBaseName = `ผลแบบทดสอบ-DISC_${safeExportFilePart(user.name)}_${new Date().toISOString().slice(0, 10)}`;
-      pdf.save(`${exportBaseName}.pdf`);
+
+      if (isDesktopLike()) {
+        const orientation = canvas.width > canvas.height ? 'landscape' : 'portrait';
+        const pdf = new jsPDF({
+          orientation,
+          unit: 'px',
+          format: [canvas.width, canvas.height],
+        });
+        pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+        pdf.save(`${exportBaseName}.pdf`);
+      } else {
+        const pdf = new jsPDF({ orientation: 'portrait', unit: 'px', format: 'a4' });
+        const pageW = pdf.internal.pageSize.getWidth();
+        const pageH = pdf.internal.pageSize.getHeight();
+
+        pdf.setFillColor(10, 10, 10);
+        pdf.rect(0, 0, pageW, pageH, 'F');
+
+        const scale = Math.min(pageW / canvas.width, pageH / canvas.height);
+        const drawW = canvas.width * scale;
+        const drawH = canvas.height * scale;
+        const x = (pageW - drawW) / 2;
+        const y = (pageH - drawH) / 2;
+        pdf.addImage(imgData, 'PNG', x, y, drawW, drawH);
+        pdf.save(`${exportBaseName}.pdf`);
+      }
     } catch (e) {
       console.warn('Export PDF:', e);
     } finally {
@@ -707,7 +769,7 @@ const DiscAssessment: React.FC = () => {
       const blob = await canvasToPngBlob(canvas);
       const fileName = asciiPngFileName(user.name);
 
-      if (isMobileSafariLike()) {
+      if (isMobileExportDevice()) {
         const shareOutcome = await trySharePngFile(blob, fileName, 'ผลแบบทดสอบ DISC');
         if (shareOutcome === 'shared') return;
         openPngPreview(blob);
@@ -731,6 +793,7 @@ const DiscAssessment: React.FC = () => {
     setRatingPopNonce(0);
     didSubmitResultRef.current = false;
     didGenerateAiRef.current = false;
+    aiTypingDoneRef.current = false;
     setAiFeedback(null);
     setAiDisplayText('');
     setAiFeedbackVisible(false);
@@ -757,6 +820,7 @@ const DiscAssessment: React.FC = () => {
     setRatingPopNonce(0);
     didSubmitResultRef.current = false;
     didGenerateAiRef.current = false;
+    aiTypingDoneRef.current = false;
     setAiFeedback(null);
     setAiDisplayText('');
     setAiFeedbackVisible(false);
@@ -1258,15 +1322,15 @@ const DiscAssessment: React.FC = () => {
                     disabled={!exportActionsEnabled || pdfLoading || pngLoading}
                     className="w-full sm:w-auto px-5 py-3 rounded-xl font-bold bg-yellow-400 text-black hover:bg-yellow-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm"
                   >
-                    {pngLoading ? 'กำลังสร้าง PNG...' : isMobileSafariLike() ? 'บันทึกเป็นรูปภาพ' : 'ดาวน์โหลด PNG'}
+                    {pngLoading ? 'กำลังสร้าง PNG...' : isMobileExportDevice() ? 'บันทึกเป็นรูปภาพ' : 'ดาวน์โหลด PNG'}
                   </button>
                 </div>
                 {exportError ? (
                   <p className="mt-2 text-center text-xs text-amber-300/90">{exportError}</p>
                 ) : null}
-                {isMobileSafariLike() && !exportActionsEnabled ? (
+                {isMobileExportDevice() && !exportActionsEnabled ? (
                   <p className="mt-2 text-center text-[11px] text-zinc-500">กำลังเตรียมปุ่มบันทึกผลลัพธ์...</p>
-                ) : isMobileSafariLike() ? (
+                ) : isMobileExportDevice() ? (
                   <p className="mt-2 text-center text-[11px] text-zinc-500">
                     บนมือถือ: กดบันทึกเป็นรูปภาพ → เลือก «บันทึกรูปภาพ» หรือกดค้างที่ภาพเพื่อบันทึก
                   </p>
