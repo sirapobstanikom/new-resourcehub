@@ -4,8 +4,6 @@ import { DISC_DESCRIPTIONS, DISC_LABELS, DISC_QUESTIONS, type DiscRating, type D
 import { isSupabaseConfigured, supabase } from '../lib/supabase';
 import { Chart } from 'react-google-charts';
 import { getDiscFeedback } from '../services/openai';
-import html2canvas from 'html2canvas';
-import { jsPDF } from 'jspdf';
 
 type Step = 'login' | 'assessment' | 'result';
 
@@ -19,6 +17,66 @@ type QuestionAnswer = Record<0 | 1 | 2 | 3, DiscRating | null>;
 type AnswersState = Record<number, QuestionAnswer>;
 
 const RATING_VALUES: DiscRating[] = [1, 2, 3, 4];
+
+function isMobileSafariLike(): boolean {
+  if (typeof navigator === 'undefined') return false;
+  return (
+    /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ||
+    (typeof navigator.maxTouchPoints === 'number' && navigator.maxTouchPoints > 0)
+  );
+}
+
+function safeExportFilePart(name: string): string {
+  const t = name.trim() || 'ผู้ประเมิน';
+  return t.replace(/[\\/:*?"<>|]/g, '_').slice(0, 48);
+}
+
+function canvasToPngBlob(canvas: HTMLCanvasElement): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => {
+        if (blob) resolve(blob);
+        else reject(new Error('ไม่สามารถสร้างไฟล์ PNG ได้'));
+      },
+      'image/png',
+      1,
+    );
+  });
+}
+
+async function savePngBlob(blob: Blob, fileName: string, title: string): Promise<void> {
+  const file = new File([blob], fileName, { type: 'image/png' });
+  const blobUrl = URL.createObjectURL(blob);
+
+  if (typeof navigator.share === 'function' && navigator.canShare?.({ files: [file] })) {
+    try {
+      await navigator.share({ files: [file], title });
+      URL.revokeObjectURL(blobUrl);
+      return;
+    } catch (err) {
+      if ((err as Error)?.name === 'AbortError') {
+        URL.revokeObjectURL(blobUrl);
+        return;
+      }
+    }
+  }
+
+  if (isMobileSafariLike()) {
+    window.open(blobUrl, '_blank', 'noopener,noreferrer');
+    window.setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
+    return;
+  }
+
+  const link = document.createElement('a');
+  link.download = fileName;
+  link.href = blobUrl;
+  link.rel = 'noopener';
+  link.style.display = 'none';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  window.setTimeout(() => URL.revokeObjectURL(blobUrl), 2000);
+}
 
 const DISC_RESULT_KEY = 'disc_result';
 const DISC_DRAFT_KEY = 'disc_draft';
@@ -77,6 +135,7 @@ const DiscAssessment: React.FC = () => {
   const [aiError, setAiError] = useState<string | null>(null);
   const [pdfLoading, setPdfLoading] = useState(false);
   const [pngLoading, setPngLoading] = useState(false);
+  const [exportActionsEnabled, setExportActionsEnabled] = useState(false);
   const resultCardRef = useRef<HTMLDivElement | null>(null);
 
   const currentQuestion = DISC_QUESTIONS[currentIndex];
@@ -479,14 +538,29 @@ const DiscAssessment: React.FC = () => {
     return () => window.clearInterval(timer);
   }, [aiFeedback]);
 
-  const captureResultCard = (): Promise<HTMLCanvasElement> => {
+  useEffect(() => {
+    if (step !== 'result') {
+      setExportActionsEnabled(false);
+      return;
+    }
+
+    const delayMs = isMobileSafariLike() ? 700 : 0;
+    const timer = window.setTimeout(() => setExportActionsEnabled(true), delayMs);
+    return () => window.clearTimeout(timer);
+  }, [step]);
+
+  const captureResultCard = async (): Promise<HTMLCanvasElement> => {
     const el = resultCardRef.current;
-    if (!el) return Promise.reject(new Error('ไม่พบพื้นที่ผลลัพธ์'));
+    if (!el) throw new Error('ไม่พบพื้นที่ผลลัพธ์');
+
+    const { default: html2canvas } = await import('html2canvas');
+    const mobileScale = isMobileSafariLike() ? Math.min(2, window.devicePixelRatio || 1.5) : 2;
+
     return html2canvas(el, {
       useCORS: true,
       allowTaint: true,
       backgroundColor: '#0a0a0a',
-      scale: 2,
+      scale: mobileScale,
       logging: false,
       windowHeight: el.scrollHeight,
       height: el.scrollHeight,
@@ -511,6 +585,7 @@ const DiscAssessment: React.FC = () => {
   };
 
   const handleDownloadPdf = async () => {
+    if (!exportActionsEnabled) return;
     setPdfLoading(true);
     let restore = () => {};
     try {
@@ -518,6 +593,7 @@ const DiscAssessment: React.FC = () => {
       const canvas = await captureResultCard();
       restore();
 
+      const { jsPDF } = await import('jspdf');
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF({ orientation: 'portrait', unit: 'px', format: 'a4' });
       const pageW = pdf.internal.pageSize.getWidth();
@@ -532,7 +608,9 @@ const DiscAssessment: React.FC = () => {
       const x = (pageW - drawW) / 2;
       const y = (pageH - drawH) / 2;
       pdf.addImage(imgData, 'PNG', x, y, drawW, drawH);
-      pdf.save('ผลแบบทดสอบ-DISC.pdf');
+
+      const exportBaseName = `ผลแบบทดสอบ-DISC_${safeExportFilePart(user.name)}_${new Date().toISOString().slice(0, 10)}`;
+      pdf.save(`${exportBaseName}.pdf`);
     } catch (e) {
       console.warn('Export PDF:', e);
     } finally {
@@ -542,16 +620,17 @@ const DiscAssessment: React.FC = () => {
   };
 
   const handleDownloadPng = async () => {
+    if (!exportActionsEnabled) return;
     setPngLoading(true);
     let restore = () => {};
     try {
       restore = hideExportUiForCapture();
       const canvas = await captureResultCard();
       restore();
-      const link = document.createElement('a');
-      link.download = 'ผลแบบทดสอบ-DISC.png';
-      link.href = canvas.toDataURL('image/png');
-      link.click();
+
+      const blob = await canvasToPngBlob(canvas);
+      const exportBaseName = `ผลแบบทดสอบ-DISC_${safeExportFilePart(user.name)}_${new Date().toISOString().slice(0, 10)}`;
+      await savePngBlob(blob, `${exportBaseName}.png`, 'ผลแบบทดสอบ DISC');
     } catch (e) {
       console.warn('Export PNG:', e);
     } finally {
@@ -936,7 +1015,7 @@ const DiscAssessment: React.FC = () => {
         )}
 
         {step === 'result' && (
-          <div ref={resultCardRef} className="w-full space-y-4 sm:space-y-6 pb-24 sm:pb-0">
+          <div ref={resultCardRef} className="w-full space-y-4 sm:space-y-6">
             <section className="rounded-2xl sm:rounded-3xl border border-white/10 bg-gradient-to-br from-zinc-900/95 via-zinc-900/85 to-black/85 p-4 sm:p-8 shadow-2xl shadow-black/30 backdrop-blur-xl">
               <p className="text-xs sm:text-sm font-semibold uppercase tracking-widest text-zinc-500">DISC Assessment Result</p>
               <div className="mt-2 sm:mt-3 flex flex-col gap-3 sm:gap-4 sm:flex-row sm:items-end sm:justify-between">
@@ -1060,12 +1139,12 @@ const DiscAssessment: React.FC = () => {
             </section>
 
             <div className="pt-1 space-y-3" data-no-capture="true">
-              <div className="fixed bottom-0 left-0 right-0 z-30 sm:static border-t border-white/10 sm:border-none bg-black/70 sm:bg-transparent backdrop-blur-xl sm:backdrop-blur-0 p-3 sm:p-0">
+              <div className="border-t border-white/10 pt-3">
                 <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 justify-center">
                   <button
                     type="button"
                     onClick={handleDownloadPdf}
-                    disabled={pdfLoading || pngLoading}
+                    disabled={!exportActionsEnabled || pdfLoading || pngLoading}
                     className="w-full sm:w-auto px-5 py-3 rounded-xl font-bold border border-white/10 hover:bg-white/5 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm"
                   >
                     {pdfLoading ? 'กำลังสร้าง PDF...' : 'ดาวน์โหลด PDF'}
@@ -1073,12 +1152,17 @@ const DiscAssessment: React.FC = () => {
                   <button
                     type="button"
                     onClick={handleDownloadPng}
-                    disabled={pdfLoading || pngLoading}
+                    disabled={!exportActionsEnabled || pdfLoading || pngLoading}
                     className="w-full sm:w-auto px-5 py-3 rounded-xl font-bold bg-yellow-400 text-black hover:bg-yellow-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm"
                   >
-                    {pngLoading ? 'กำลังสร้าง PNG...' : 'ดาวน์โหลด PNG'}
+                    {pngLoading ? 'กำลังสร้าง PNG...' : isMobileSafariLike() ? 'บันทึก/แชร์ PNG' : 'ดาวน์โหลด PNG'}
                   </button>
                 </div>
+                {isMobileSafariLike() && !exportActionsEnabled ? (
+                  <p className="mt-2 text-center text-[11px] text-zinc-500">กำลังเตรียมปุ่มบันทึกผลลัพธ์...</p>
+                ) : isMobileSafariLike() ? (
+                  <p className="mt-2 text-center text-[11px] text-zinc-500">บนมือถือ: กดบันทึก/แชร์ แล้วเลือก &quot;บันทึกรูปภาพ&quot; หรือ &quot;Save Image&quot;</p>
+                ) : null}
               </div>
 
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
