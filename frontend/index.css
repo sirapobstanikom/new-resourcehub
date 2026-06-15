@@ -259,6 +259,14 @@
   stroke-dashoffset: var(--kp-ring-offset, 0) !important;
 }
 
+[data-disc-exporting='true'],
+[data-disc-exporting='true'] * {
+  animation: none !important;
+  transition: none !important;
+  opacity: 1 !important;
+  transform: none !important;
+}
+
 /* iOS Safari: prevent date input from overflowing rounded containers */
 .ios-date-input-fix {
   width: 100%;

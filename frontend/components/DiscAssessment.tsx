@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { DISC_DESCRIPTIONS, DISC_LABELS, DISC_QUESTIONS, type DiscRating, type DiscStatement, type DiscType } from '../data/discData';
 import { isSupabaseConfigured, supabase } from '../lib/supabase';
@@ -44,29 +44,30 @@ function canvasToPngBlob(canvas: HTMLCanvasElement): Promise<Blob> {
   });
 }
 
-async function savePngBlob(blob: Blob, fileName: string, title: string): Promise<void> {
+function asciiPngFileName(name: string): string {
+  const safe = name.trim().replace(/[^\w\-]+/g, '_').replace(/_+/g, '_').slice(0, 32) || 'user';
+  return `DISC_result_${safe}_${new Date().toISOString().slice(0, 10)}.png`;
+}
+
+async function trySharePngFile(
+  blob: Blob,
+  fileName: string,
+  title: string,
+): Promise<'shared' | 'cancelled' | 'failed'> {
+  if (typeof navigator.share !== 'function') return 'failed';
+
   const file = new File([blob], fileName, { type: 'image/png' });
+  try {
+    await navigator.share({ files: [file], title });
+    return 'shared';
+  } catch (err) {
+    if ((err as Error)?.name === 'AbortError') return 'cancelled';
+    return 'failed';
+  }
+}
+
+async function savePngBlobDesktop(blob: Blob, fileName: string): Promise<void> {
   const blobUrl = URL.createObjectURL(blob);
-
-  if (typeof navigator.share === 'function' && navigator.canShare?.({ files: [file] })) {
-    try {
-      await navigator.share({ files: [file], title });
-      URL.revokeObjectURL(blobUrl);
-      return;
-    } catch (err) {
-      if ((err as Error)?.name === 'AbortError') {
-        URL.revokeObjectURL(blobUrl);
-        return;
-      }
-    }
-  }
-
-  if (isMobileSafariLike()) {
-    window.open(blobUrl, '_blank', 'noopener,noreferrer');
-    window.setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
-    return;
-  }
-
   const link = document.createElement('a');
   link.download = fileName;
   link.href = blobUrl;
@@ -136,6 +137,9 @@ const DiscAssessment: React.FC = () => {
   const [pdfLoading, setPdfLoading] = useState(false);
   const [pngLoading, setPngLoading] = useState(false);
   const [exportActionsEnabled, setExportActionsEnabled] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
+  const [pngPreviewUrl, setPngPreviewUrl] = useState<string | null>(null);
+  const pngPreviewBlobRef = useRef<Blob | null>(null);
   const resultCardRef = useRef<HTMLDivElement | null>(null);
 
   const currentQuestion = DISC_QUESTIONS[currentIndex];
@@ -541,6 +545,7 @@ const DiscAssessment: React.FC = () => {
   useEffect(() => {
     if (step !== 'result') {
       setExportActionsEnabled(false);
+      setExportError(null);
       return;
     }
 
@@ -549,22 +554,78 @@ const DiscAssessment: React.FC = () => {
     return () => window.clearTimeout(timer);
   }, [step]);
 
+  useEffect(() => {
+    return () => {
+      if (pngPreviewUrl) URL.revokeObjectURL(pngPreviewUrl);
+    };
+  }, [pngPreviewUrl]);
+
+  useEffect(() => {
+    if (!pngPreviewUrl) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [pngPreviewUrl]);
+
+  const closePngPreview = useCallback(() => {
+    setPngPreviewUrl((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return null;
+    });
+    pngPreviewBlobRef.current = null;
+  }, []);
+
   const captureResultCard = async (): Promise<HTMLCanvasElement> => {
     const el = resultCardRef.current;
     if (!el) throw new Error('ไม่พบพื้นที่ผลลัพธ์');
 
-    const { default: html2canvas } = await import('html2canvas');
-    const mobileScale = isMobileSafariLike() ? Math.min(2, window.devicePixelRatio || 1.5) : 2;
-
-    return html2canvas(el, {
-      useCORS: true,
-      allowTaint: true,
-      backgroundColor: '#0a0a0a',
-      scale: mobileScale,
-      logging: false,
-      windowHeight: el.scrollHeight,
-      height: el.scrollHeight,
+    el.scrollIntoView({ block: 'start', behavior: 'instant' as ScrollBehavior });
+    window.scrollTo(0, 0);
+    el.setAttribute('data-disc-exporting', 'true');
+    await new Promise<void>((resolve) => {
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
     });
+
+    try {
+      const { default: html2canvas } = await import('html2canvas');
+      const mobileScale = isMobileSafariLike() ? Math.min(2, window.devicePixelRatio || 1.5) : 2;
+
+      const canvas = await html2canvas(el, {
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#0a0a0a',
+        scale: mobileScale,
+        logging: false,
+        scrollX: 0,
+        scrollY: -window.scrollY,
+        windowWidth: el.scrollWidth,
+        windowHeight: el.scrollHeight,
+        width: el.scrollWidth,
+        height: el.scrollHeight,
+        ignoreElements: (node) => node.classList?.contains('exclude-from-export') === true,
+        onclone: (doc) => {
+          doc.querySelectorAll('[data-disc-exporting]').forEach((root) => {
+            root.querySelectorAll('*').forEach((node) => {
+              if (!(node instanceof HTMLElement)) return;
+              node.style.animation = 'none';
+              node.style.transition = 'none';
+              node.style.opacity = '1';
+              node.style.transform = 'none';
+            });
+          });
+        },
+      });
+
+      if (canvas.width < 16 || canvas.height < 16) {
+        throw new Error('ไม่สามารถสร้างภาพผลลัพธ์ได้ (ขนาดว่าง)');
+      }
+
+      return canvas;
+    } finally {
+      el.removeAttribute('data-disc-exporting');
+    }
   };
 
   const hideExportUiForCapture = (): (() => void) => {
@@ -619,9 +680,40 @@ const DiscAssessment: React.FC = () => {
     }
   };
 
+  const openPngPreview = useCallback((blob: Blob) => {
+    setPngPreviewUrl((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return URL.createObjectURL(blob);
+    });
+    pngPreviewBlobRef.current = blob;
+  }, []);
+
+  const handleSharePngPreview = useCallback(async () => {
+    const blob = pngPreviewBlobRef.current;
+    if (!blob) return;
+
+    setExportError(null);
+    const fileName = asciiPngFileName(user.name);
+    const outcome = await trySharePngFile(blob, fileName, 'ผลแบบทดสอบ DISC');
+    if (outcome === 'shared') {
+      closePngPreview();
+      return;
+    }
+    if (outcome === 'cancelled') return;
+    setExportError('ไม่สามารถเปิดเมนูแชร์ได้ — กดค้างที่ภาพด้านบน แล้วเลือก «บันทึกรูปภาพ»');
+  }, [closePngPreview, user.name]);
+
+  const handleOpenPngInNewTab = useCallback(() => {
+    if (!pngPreviewUrl) return;
+    const opened = window.open(pngPreviewUrl, '_blank', 'noopener,noreferrer');
+    if (!opened) window.location.assign(pngPreviewUrl);
+    setExportError('เปิดภาพแล้ว — กดค้างที่ภาพ → เลือก «บันทึกรูปภาพ»');
+  }, [pngPreviewUrl]);
+
   const handleDownloadPng = async () => {
     if (!exportActionsEnabled) return;
     setPngLoading(true);
+    setExportError(null);
     let restore = () => {};
     try {
       restore = hideExportUiForCapture();
@@ -629,9 +721,19 @@ const DiscAssessment: React.FC = () => {
       restore();
 
       const blob = await canvasToPngBlob(canvas);
-      const exportBaseName = `ผลแบบทดสอบ-DISC_${safeExportFilePart(user.name)}_${new Date().toISOString().slice(0, 10)}`;
-      await savePngBlob(blob, `${exportBaseName}.png`, 'ผลแบบทดสอบ DISC');
+      const fileName = asciiPngFileName(user.name);
+
+      if (isMobileSafariLike()) {
+        const shareOutcome = await trySharePngFile(blob, fileName, 'ผลแบบทดสอบ DISC');
+        if (shareOutcome === 'shared') return;
+        openPngPreview(blob);
+        return;
+      }
+
+      await savePngBlobDesktop(blob, fileName);
     } catch (e) {
+      const message = e instanceof Error ? e.message : 'บันทึกรูปภาพไม่สำเร็จ';
+      setExportError(message);
       console.warn('Export PNG:', e);
     } finally {
       restore();
@@ -1155,13 +1257,18 @@ const DiscAssessment: React.FC = () => {
                     disabled={!exportActionsEnabled || pdfLoading || pngLoading}
                     className="w-full sm:w-auto px-5 py-3 rounded-xl font-bold bg-yellow-400 text-black hover:bg-yellow-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm"
                   >
-                    {pngLoading ? 'กำลังสร้าง PNG...' : isMobileSafariLike() ? 'บันทึก/แชร์ PNG' : 'ดาวน์โหลด PNG'}
+                    {pngLoading ? 'กำลังสร้าง PNG...' : isMobileSafariLike() ? 'บันทึกเป็นรูปภาพ' : 'ดาวน์โหลด PNG'}
                   </button>
                 </div>
+                {exportError ? (
+                  <p className="mt-2 text-center text-xs text-amber-300/90">{exportError}</p>
+                ) : null}
                 {isMobileSafariLike() && !exportActionsEnabled ? (
                   <p className="mt-2 text-center text-[11px] text-zinc-500">กำลังเตรียมปุ่มบันทึกผลลัพธ์...</p>
                 ) : isMobileSafariLike() ? (
-                  <p className="mt-2 text-center text-[11px] text-zinc-500">บนมือถือ: กดบันทึก/แชร์ แล้วเลือก &quot;บันทึกรูปภาพ&quot; หรือ &quot;Save Image&quot;</p>
+                  <p className="mt-2 text-center text-[11px] text-zinc-500">
+                    บนมือถือ: กดบันทึกเป็นรูปภาพ → เลือก «บันทึกรูปภาพ» หรือกดค้างที่ภาพเพื่อบันทึก
+                  </p>
                 ) : null}
               </div>
 
@@ -1184,6 +1291,58 @@ const DiscAssessment: React.FC = () => {
           </div>
         )}
       </main>
+
+      {pngPreviewUrl ? (
+        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4" role="dialog" aria-modal="true">
+          <button
+            type="button"
+            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+            onClick={closePngPreview}
+            aria-label="ปิด"
+          />
+          <div className="relative z-10 w-full max-w-lg max-h-[92dvh] flex flex-col rounded-t-3xl sm:rounded-3xl border border-white/15 bg-gradient-to-b from-zinc-900 to-black shadow-2xl overflow-hidden">
+            <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-bold text-white">บันทึกผลลัพธ์เป็นรูปภาพ</p>
+                <p className="text-[11px] text-zinc-500 mt-0.5">กดค้างที่ภาพ → เลือก «บันทึกรูปภาพ»</p>
+              </div>
+              <button
+                type="button"
+                onClick={closePngPreview}
+                className="shrink-0 rounded-lg border border-white/10 px-3 py-1.5 text-xs font-semibold text-zinc-300 hover:bg-white/5"
+              >
+                ปิด
+              </button>
+            </div>
+            <div className="flex-1 overflow-auto p-3 bg-black/40">
+              <img
+                src={pngPreviewUrl}
+                alt="ผลแบบทดสอบ DISC"
+                className="w-full h-auto rounded-xl border border-white/10 bg-black"
+              />
+            </div>
+            <div className="p-3 border-t border-white/10 space-y-2">
+              {exportError ? (
+                <p className="text-xs text-amber-300/90 text-center">{exportError}</p>
+              ) : null}
+              <button
+                type="button"
+                onClick={() => void handleSharePngPreview()}
+                className="w-full py-3 rounded-xl font-bold bg-yellow-400 text-black hover:bg-yellow-300 transition-all text-sm"
+              >
+                แชร์ / บันทึกรูปภาพ
+              </button>
+              <button
+                type="button"
+                onClick={handleOpenPngInNewTab}
+                className="w-full py-3 rounded-xl font-bold border border-white/10 text-zinc-200 hover:bg-white/5 transition-all text-sm"
+              >
+                เปิดภาพในแท็บใหม่
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       <footer className="py-6 border-t border-white/5">
         <div className="max-w-4xl mx-auto px-6 text-center text-gray-500 text-sm">
