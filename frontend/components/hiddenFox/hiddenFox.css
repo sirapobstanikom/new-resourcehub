@@ -612,6 +612,19 @@
   align-items: center;
 }
 
+.hf-wrong-hint {
+  margin: 12px 8px 0;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.45);
+  color: #fca5a5;
+  font-size: 0.72rem;
+  font-weight: 800;
+  line-height: 1.35;
+  text-align: center;
+}
+
 .hf-map-frame {
   flex: 1;
   position: relative;

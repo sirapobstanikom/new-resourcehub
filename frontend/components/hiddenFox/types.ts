@@ -10,6 +10,7 @@ export interface GuessPosition {
   x: number;
   y: number;
   aspect?: number;
+  isWrong?: boolean;
 }
 
 export interface RegistrationInfo {

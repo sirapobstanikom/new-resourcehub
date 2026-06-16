@@ -32,6 +32,13 @@ function distanceToWolf(guess: GuessPosition, wolf: WolfPosition) {
   return Math.sqrt(dx * dx + dy * dy);
 }
 
+function isSameGuess(a: GuessPosition, b: GuessPosition) {
+  const aspect = a.aspect ?? 1;
+  const dx = a.x - b.x;
+  const dy = (a.y - b.y) / aspect;
+  return Math.sqrt(dx * dx + dy * dy) < 0.5;
+}
+
 function evaluateGuesses(
   foundWolfIndices: number[],
   guesses: GuessPosition[],
@@ -42,7 +49,9 @@ function evaluateGuesses(
 
   const newGuesses = guesses.filter((guess) => !isGuessOnFoundFox(guess));
   const matched = [...foundWolfIndices];
-  let allCorrect = true;
+  const correctGuesses: GuessPosition[] = [];
+  const wrongGuesses: GuessPosition[] = [];
+  const claimedWolves = new Set(foundWolfIndices);
   let closestDist = 0;
 
   for (const guess of newGuesses) {
@@ -50,7 +59,7 @@ function evaluateGuesses(
     let bestDist = Infinity;
 
     activeWolves.forEach((wolf, idx) => {
-      if (matched.includes(idx)) return;
+      if (claimedWolves.has(idx)) return;
       const dist = distanceToWolf(guess, wolf);
       if (dist < bestDist) {
         bestDist = dist;
@@ -59,15 +68,16 @@ function evaluateGuesses(
     });
 
     if (bestIdx !== -1 && bestDist < HIT_PRECISION) {
+      claimedWolves.add(bestIdx);
       matched.push(bestIdx);
+      correctGuesses.push(guess);
       closestDist = bestDist;
     } else {
-      allCorrect = false;
-      break;
+      wrongGuesses.push(guess);
     }
   }
 
-  return { matched, allCorrect, newGuesses, closestDist };
+  return { matched, correctGuesses, wrongGuesses, newGuesses, closestDist };
 }
 
 type CountdownStep = 3 | 2 | 1 | 'go';
@@ -400,7 +410,7 @@ const HiddenFoxGame: React.FC = () => {
     if (countdown !== null) return;
     if (guesses.length === 0 || activeWolves.length === 0 || roundStartMs === null) return;
 
-    const { matched, allCorrect, newGuesses, closestDist } = evaluateGuesses(
+    const { matched, correctGuesses, wrongGuesses, newGuesses, closestDist } = evaluateGuesses(
       foundWolfIndices,
       guesses,
       activeWolves,
@@ -413,47 +423,30 @@ const HiddenFoxGame: React.FC = () => {
       roundScore += Math.max(10, timeLeft * 5);
     }
 
+    let penalty = 0;
+    for (let i = 0; i < wrongGuesses.length; i++) {
+      penalty += Math.max(5, timeLeft * 2);
+    }
+
+    const netRoundScore = roundScore - penalty;
     lastFoxesFoundRef.current = matched.length;
 
-    if (allCorrect) {
-      if (matched.length === activeWolves.length) {
-        completeMission(matched, closestDist, roundScore);
-        return;
-      }
-
-      setFoundWolfIndices(matched);
-      setTotalScore((s) => s + roundScore);
-      setGuesses((prev) =>
-        prev.filter((guess) => !matched.some((idx) => distanceToWolf(guess, activeWolves[idx]) < HIT_PRECISION)),
-      );
-    } else {
-      setFoundWolfIndices(matched);
-      setPhase('gameover');
+    if (matched.length === activeWolves.length) {
+      completeMission(matched, closestDist, netRoundScore);
+      return;
     }
-  }, [activeWolves, completeMission, countdown, foundWolfIndices, guesses, roundStartMs, timeLeft]);
 
-  /** วางหมุดครบ 8 ตัวถูกต้องแล้วจบเกมทันที ไม่ต้องกด FIND */
-  useEffect(() => {
-    if (countdown !== null) return;
-    if (phase !== 'playing' || !isMapReady || guesses.length === 0) return;
-    if (activeWolves.length === 0 || roundStartMs === null) return;
-
-    const { matched, allCorrect, newGuesses, closestDist } = evaluateGuesses(
-      foundWolfIndices,
-      guesses,
-      activeWolves,
+    setFoundWolfIndices(matched);
+    setTotalScore((s) => Math.max(0, s + netRoundScore));
+    setGuesses((prev) =>
+      prev
+        .filter((guess) => !correctGuesses.some((correct) => isSameGuess(correct, guess)))
+        .map((guess) => ({
+          ...guess,
+          isWrong: wrongGuesses.some((wrong) => isSameGuess(wrong, guess)),
+        })),
     );
-    if (newGuesses.length === 0 || !allCorrect || matched.length !== activeWolves.length) return;
-
-    const remainingTime = timeLeftRef.current;
-    const newlyFound = matched.length - foundWolfIndices.length;
-    let roundScore = 0;
-    for (let i = 0; i < newlyFound; i++) {
-      roundScore += Math.max(10, remainingTime * 5);
-    }
-
-    completeMission(matched, closestDist, roundScore);
-  }, [activeWolves, completeMission, countdown, foundWolfIndices, guesses, isMapReady, phase, roundStartMs]);
+  }, [activeWolves, completeMission, countdown, foundWolfIndices, guesses, roundStartMs, timeLeft]);
 
   /** บันทึกผลทุกครั้งที่จบรอบ (ชนะ / แพ้ / หมดเวลา / ออกกลางเกม) */
   useEffect(() => {
@@ -639,6 +632,9 @@ const HiddenFoxGame: React.FC = () => {
                         หมุด <strong>{guesses.length}/{HIDDEN_FOX_COUNT}</strong>
                       </span>
                     </div>
+                    {guesses.some((g) => g.isWrong) ? (
+                      <p className="hf-wrong-hint">มีจุดผิด (สีแดง) — แก้ไขแล้วกด FIND อีกครั้ง</p>
+                    ) : null}
                   </div>
                   <button
                     type="button"

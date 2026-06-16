@@ -269,8 +269,12 @@ const MapViewport: React.FC<Props> = ({
                 pointerEvents: 'none',
               }}
             >
-              <div className="friendly-marker">
-                <Target size={40} color="#facc15" strokeWidth={4} />
+              <div className={`friendly-marker${pos.isWrong ? ' friendly-marker--wrong' : ''}`}>
+                <Target
+                  size={40}
+                  color={pos.isWrong ? '#ef4444' : '#facc15'}
+                  strokeWidth={4}
+                />
               </div>
             </div>
           ))}
@@ -376,6 +380,16 @@ const MapViewport: React.FC<Props> = ({
           border-radius: 50%;
           box-shadow: 0 0 15px rgba(250, 204, 21, 0.45);
           animation: pulse-marker 1.5s infinite;
+        }
+        .friendly-marker--wrong {
+          background: rgba(239, 68, 68, 0.25);
+          border-color: #ef4444;
+          box-shadow: 0 0 18px rgba(239, 68, 68, 0.55);
+          animation: pulse-marker-wrong 1s infinite;
+        }
+        @keyframes pulse-marker-wrong {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.08); }
         }
         @keyframes pulse-marker {
           0%, 100% { transform: scale(1); }
