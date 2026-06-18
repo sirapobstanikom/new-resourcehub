@@ -34,18 +34,177 @@ type Phase =
   | 'simulation'
   | 'awaiting_result';
 
-type ChatMsg = { id: string; role: 'user' | 'assistant'; content: string };
+type ChatMsg = { id: string; role: 'user' | 'assistant' | 'event'; content: string };
 
 type ScenarioOption = MindDojoScenario & { shortTitle: string };
+
+type SimulationPersona = {
+  name: string;
+  position: string;
+  mbti: string;
+  title: string;
+  style: string;
+  emotionStyle: string;
+  avatarUrl: string;
+};
 
 const MINDDOJO_CHATBOT_AVATAR_URL =
   'https://static.wixstatic.com/media/8f9517_2b5ddf78e35a4604a6eb0b28dde240af~mv2.jpg';
 
 /** จำนวนสถานการณ์ที่สุ่มจาก AI ให้ผู้ใช้เลือก */
 const RANDOM_SCENARIO_COUNT = 10;
+/** จำนวนคำตอบขั้นต่ำใน simulation ก่อนอนุญาตให้ AI จบบทสนทนา */
+const MIN_SIMULATION_USER_TURNS = 4;
 
 const WELCOME_ASSISTANT =
   'สวัสดีค่ะ/ครับ ยินดีต้อนรับสู่ **MindDoJo AI Assessment** — เราจะคุยกันแบบสบาย ๆ เพื่อรู้จักคุณ แล้วเข้าสู่การจำลองสถานการณ์การทำงาน\n\nเมื่อจบการจำลอง คุณจะได้ **Dashboard คะแนน 6 ด้านการสื่อสาร** (ชัดเจน โครงสร้างการพูด การเห็นใจ การฟังอย่างตั้งใจ การโน้มน้าว และน้ำเสียงมืออาชีพ)\n\nขอทราบ**ชื่อ**ที่อยากให้เรียกก่อนได้ไหมคะ/ครับ?';
+
+const MBTI_PERSONAS: Omit<SimulationPersona, 'name' | 'position' | 'avatarUrl'>[] = [
+  { mbti: 'ISTJ', title: 'นักตรวจสอบรายละเอียด', style: 'สุขุม จริงจัง เน้นข้อเท็จจริงและขั้นตอน', emotionStyle: 'กังวลแบบเก็บอาการ พูดตรงเมื่อเห็นความเสี่ยง' },
+  { mbti: 'ISFJ', title: 'ผู้ดูแลทีม', style: 'อบอุ่น ระมัดระวัง ห่วงผลกระทบต่อคนรอบข้าง', emotionStyle: 'แสดงความเป็นห่วงและลังเลเมื่อต้องกดดันผู้อื่น' },
+  { mbti: 'INFJ', title: 'ที่ปรึกษาเชิงลึก', style: 'มองภาพรวม เข้าใจความรู้สึก และถามด้วยน้ำเสียงจริงจัง', emotionStyle: 'นิ่งแต่มีความรู้สึกชัดเมื่อเรื่องกระทบคุณค่าหรือความไว้ใจ' },
+  { mbti: 'INTJ', title: 'นักวางกลยุทธ์', style: 'คม ชัด ต้องการเหตุผลและแผนที่เป็นระบบ', emotionStyle: 'ไม่ค่อยแสดงอารมณ์ แต่กดดันเมื่อแผนไม่ชัด' },
+  { mbti: 'ISTP', title: 'นักแก้ปัญหาเฉพาะหน้า', style: 'สั้น ตรง ชอบข้อมูลจริงและทางออกที่ลงมือได้', emotionStyle: 'ใจเย็นแต่หงุดหงิดกับคำตอบที่ยืดเยื้อหรือไม่มี action' },
+  { mbti: 'ISFP', title: 'ผู้รักษาบรรยากาศ', style: 'นุ่มนวล ให้พื้นที่ แต่รับรู้อารมณ์ไว', emotionStyle: 'ผิดหวังหรือไม่สบายใจเมื่อรู้สึกว่าถูกมองข้าม' },
+  { mbti: 'INFP', title: 'ผู้ยึดคุณค่า', style: 'จริงใจ คิดถึงความหมายและผลกระทบต่อคน', emotionStyle: 'อ่อนไหวต่อความไม่เป็นธรรมและต้องการการรับฟัง' },
+  { mbti: 'INTP', title: 'นักวิเคราะห์ระบบ', style: 'ตั้งคำถามเชิงเหตุผล ชอบความชัดของสมมติฐาน', emotionStyle: 'สงสัยและท้าทายเมื่อข้อมูลไม่ครบหรือเหตุผลยังหลวม' },
+  { mbti: 'ESTP', title: 'ผู้ลงมือเร็ว', style: 'มั่นใจ ตรงไปตรงมา เน้นผลลัพธ์ทันที', emotionStyle: 'เร่งและกดดันเมื่อสถานการณ์ช้าเกินไป' },
+  { mbti: 'ESFP', title: 'ผู้ขับเคลื่อนบรรยากาศ', style: 'พูดเป็นธรรมชาติ มีพลัง สนใจความรู้สึกของคนในห้อง', emotionStyle: 'แสดงความกังวลหรือผิดหวังอย่างเห็นได้ชัด' },
+  { mbti: 'ENFP', title: 'นักเชื่อมโยงโอกาส', style: 'เปิดกว้าง มีไอเดียเยอะ ชอบชวนหาทางออกใหม่', emotionStyle: 'ตื่นตัวและกังวลเมื่อทีมเสียแรงจูงใจ' },
+  { mbti: 'ENTP', title: 'นักท้าทายไอเดีย', style: 'ถามคม ท้าทายสมมติฐาน ชอบถกทางเลือก', emotionStyle: 'สนุกกับการกดดันเชิงความคิด แต่ไม่โจมตีส่วนตัว' },
+  { mbti: 'ESTJ', title: 'ผู้จัดการผลลัพธ์', style: 'ชัดเจน เด็ดขาด เน้นความรับผิดชอบและ timeline', emotionStyle: 'กดดันตรง ๆ เมื่อเห็นว่างานเสี่ยงหลุดเป้า' },
+  { mbti: 'ESFJ', title: 'ผู้ประสานความร่วมมือ', style: 'ใส่ใจความสัมพันธ์ ต้องการให้ทุกฝ่ายเข้าใจตรงกัน', emotionStyle: 'กังวลเมื่อคนในทีมสับสนหรือเสียความเชื่อมั่น' },
+  { mbti: 'ENFJ', title: 'ผู้นำที่ใส่ใจคน', style: 'อบอุ่นแต่คาดหวังสูง ชวนรับผิดชอบต่อคนอื่น', emotionStyle: 'จริงจังเมื่อผลกระทบกระทบความไว้วางใจของทีม' },
+  { mbti: 'ENTJ', title: 'ผู้นำเชิงกลยุทธ์', style: 'เด็ดขาด มองผลลัพธ์ ต้องการการตัดสินใจที่ชัด', emotionStyle: 'กดดันสูงเมื่อคำตอบไม่เป็นแผนหรือไม่มี owner' },
+];
+
+const SIMULATION_PERSONA_NAMES = [
+  'คุณอร',
+  'คุณนนท์',
+  'คุณมิน',
+  'คุณธาม',
+  'คุณแพรว',
+  'คุณกานต์',
+  'คุณบีม',
+  'คุณพิม',
+  'คุณวิน',
+  'คุณเมย์',
+  'คุณเรย์',
+  'คุณฟ้า',
+];
+
+const SIMULATION_PERSONA_POSITIONS = [
+  'หัวหน้าทีม',
+  'ผู้จัดการฝ่าย',
+  'Project Lead',
+  'Product Owner',
+  'ลูกค้าหลัก',
+  'Stakeholder',
+  'ผู้บริหาร',
+  'เพื่อนร่วมงานต่างทีม',
+];
+
+const SIMULATION_EVENT_CUES = {
+  urgent: [
+    'หยิบโทรศัพท์ขึ้นมาดูข้อความจากทีม/ผู้บริหาร แล้วถอนหายใจเบาๆ',
+    'เคาะนิ้วบนโต๊ะถี่ขึ้น เหมือนเริ่มหมดความอดทนกับสถานการณ์',
+    'มีข้อความแจ้งเตือนเข้ามาเพิ่ม ทำให้แรงกดดันของสถานการณ์สูงขึ้น',
+  ],
+  dissatisfied: [
+    'สีหน้าดูไม่พอใจมากขึ้น และเริ่มกอดอกระหว่างรอฟังคำตอบ',
+    'ลุกขึ้นยืนเหมือนกำลังจะเดินออกจากห้อง ถ้ายังไม่ได้คำตอบที่ชัดเจน',
+    'ส่ายหน้าเบาๆ เหมือนคำตอบก่อนหน้ายังไม่ลดความกังวล',
+  ],
+  skeptical: [
+    'เอนหลังและเงียบไปครู่หนึ่ง เหมือนกำลังประเมินว่าคำตอบน่าเชื่อถือพอหรือไม่',
+    'สีหน้าเปลี่ยนจากกังวลเป็นจริงจัง และเริ่มจดประเด็นที่ยังไม่ชัด',
+    'ถามทีมข้างๆ ด้วยน้ำเสียงเบาๆ ว่า "เรายังไว้ใจแผนนี้ได้ไหม"',
+  ],
+  withdrawn: [
+    'ทำเป็นไม่สนใจ มองไปทางอื่น และตอบสั้นลงอย่างเห็นได้ชัด',
+    'เริ่มพูดน้อยลง แต่จ้องรอคำตอบที่เป็นแผนชัดเจนมากกว่าเดิม',
+    'ก้มดูเอกสารตรงหน้าแทนการสบตา เหมือนยังไม่มั่นใจกับคำอธิบาย',
+  ],
+  supportive: [
+    'พยักหน้าเล็กน้อย แต่ยังรอฟังแผนที่เป็นรูปธรรมกว่านี้',
+    'สีหน้าผ่อนลงเล็กน้อย แต่ยังจดประเด็นที่ต้องตามต่อ',
+    'ขยับตัวเข้ามาฟังใกล้ขึ้น เหมือนเปิดรับทางออกถัดไป',
+  ],
+  seniorRespectful: [
+    'จดประเด็นเงียบๆ ด้วยสีหน้าจริงจัง และรอคำตอบที่ชัดเจนกว่าเดิม',
+    'ปรับน้ำเสียงให้สุภาพขึ้น แต่ยังแสดงความกังวลผ่านสีหน้าอย่างเห็นได้ชัด',
+    'เว้นจังหวะเงียบสั้นๆ เหมือนกำลังประเมินความเสี่ยง ก่อนรอฟังแนวทางต่อ',
+    'มองเอกสารประกอบแล้วพยักหน้าเล็กน้อย แต่ยังไม่คลายความกังวล',
+    'ประสานมือบนโต๊ะอย่างสุภาพ และรอฟังแผนที่มีข้อเท็จจริงกับผลกระทบชัดเจน',
+  ],
+};
+
+const MBTI_EVENT_CUES: Record<string, string[]> = {
+  ISTJ: [
+    'ก้มดูรายการข้อเท็จจริงที่จดไว้ และชี้ไปที่จุดที่ยังไม่ตรงกับแผนเดิม',
+    'เปิดเอกสาร timeline ขึ้นมาเทียบทีละข้อด้วยสีหน้าจริงจัง',
+  ],
+  ISFJ: [
+    'สีหน้ากังวลชัดขึ้น เหมือนห่วงว่าทีมและลูกค้าจะได้รับผลกระทบ',
+    'พยักหน้าเบาๆ แต่ยังมองหาคำตอบที่ช่วยลดความกังวลของทุกฝ่าย',
+  ],
+  INFJ: [
+    'นิ่งไปครู่หนึ่ง เหมือนกำลังชั่งน้ำหนักผลกระทบต่อความไว้วางใจของทุกคน',
+    'สบตาอย่างจริงจัง รอฟังว่าคุณจะรับรู้ความกังวลของอีกฝ่ายอย่างไร',
+  ],
+  INTJ: [
+    'มองแผนรวมด้วยสีหน้านิ่ง และรอฟังลำดับเหตุผลที่เป็นระบบกว่าเดิม',
+    'จดช่องว่างของแผนอย่างเงียบๆ เหมือนกำลังประเมินความเสี่ยงเชิงกลยุทธ์',
+  ],
+  ISTP: [
+    'เหลือบดูขั้นตอนปฏิบัติจริง แล้วรอฟัง action ที่ทำได้ทันที',
+    'นิ่งฟังแบบสั้นๆ แต่สายตาบอกว่าต้องการทางออกที่ลงมือได้จริง',
+  ],
+  ISFP: [
+    'สีหน้าอึดอัดเล็กน้อย เหมือนรู้สึกว่าบรรยากาศในทีมเริ่มตึงเกินไป',
+    'หลบสายตาชั่วครู่ แล้วกลับมารอฟังคำตอบที่นุ่มนวลขึ้น',
+  ],
+  INFP: [
+    'สีหน้าสะท้อนความไม่สบายใจ เหมือนเรื่องนี้กระทบความยุติธรรมบางอย่าง',
+    'เงียบลงเล็กน้อย รอดูว่าคุณจะให้ความสำคัญกับความรู้สึกของคนเกี่ยวข้องไหม',
+  ],
+  INTP: [
+    'ขมวดคิ้วเล็กน้อย เหมือนยังเห็นช่องว่างในเหตุผลหรือสมมติฐาน',
+    'หยุดคิดครู่หนึ่ง แล้วจดคำถามเพิ่มเกี่ยวกับข้อมูลที่ยังไม่ครบ',
+  ],
+  ESTP: [
+    'ขยับตัวไปข้างหน้าอย่างพร้อมลงมือ และรอฟังคำตอบที่เร็วและชัด',
+    'แตะโทรศัพท์บนโต๊ะเหมือนพร้อมโทรตามคนที่เกี่ยวข้องทันที',
+  ],
+  ESFP: [
+    'สีหน้าแสดงความกังวลชัดเจน และมองไปรอบๆ เหมือนจับบรรยากาศทีม',
+    'ถอนหายใจเบาๆ แต่ยังพยายามเปิดพื้นที่ให้คุยต่ออย่างเป็นกันเอง',
+  ],
+  ENFP: [
+    'ดวงตาดูตื่นตัวขึ้น เหมือนกำลังมองหาทางเลือกใหม่ที่ยังไม่ถูกพูดถึง',
+    'เอนตัวเข้ามาฟังด้วยความสนใจ แต่สีหน้ายังบอกว่าทีมกำลังเสียแรงจูงใจ',
+  ],
+  ENTP: [
+    'ยิ้มมุมปากเล็กน้อย เหมือนกำลังเตรียมท้าทายสมมติฐานของแผนนี้',
+    'ยกคิ้วขึ้นและรอฟังเหตุผลที่แข็งแรงกว่านี้',
+  ],
+  ESTJ: [
+    'มอง timeline ด้วยสีหน้าจริงจัง และรอฟังว่าใครรับผิดชอบอะไรภายในเมื่อไร',
+    'จัดเอกสารตรงหน้าให้เป็นระเบียบ เหมือนต้องการแผนที่ชัดและวัดผลได้',
+  ],
+  ESFJ: [
+    'มองรายชื่อคนที่เกี่ยวข้องด้วยความกังวล เหมือนห่วงว่าทุกฝ่ายจะเข้าใจไม่ตรงกัน',
+    'พยักหน้าเล็กน้อย แต่ยังรอฟังว่าคุณจะประสานทีมอย่างไรให้ไม่เสียความเชื่อมั่น',
+  ],
+  ENFJ: [
+    'สบตาอย่างตั้งใจ เหมือนคาดหวังให้คุณรับผิดชอบต่อผลกระทบกับทีม',
+    'น้ำเสียงและสีหน้าจริงจังขึ้น เหมือนอยากเห็นการนำทีมที่ชัดเจนกว่าเดิม',
+  ],
+  ENTJ: [
+    'วางปากกาลงอย่างชัดเจน และรอฟังการตัดสินใจที่มีเจ้าของงานชัดเจน',
+    'สีหน้านิ่งและกดดันขึ้น เหมือนต้องการแผนที่ตัดสินใจได้ทันที',
+  ],
+};
 
 function uid() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
@@ -69,6 +228,86 @@ function parseJsonSafe<T>(raw: string): T | null {
   } catch {
     return null;
   }
+}
+
+function buildScenarioTitle(shortTitle: string | undefined, summary: string | undefined, index: number): string {
+  const title = (shortTitle || '').trim();
+  const genericCategories = /^(conflict|negotiation|crisis|feedback|stakeholder|timeline|communication|leadership)$/i;
+  if (title && !genericCategories.test(title)) return title;
+
+  const cleanSummary = (summary || '')
+    .replace(/^[\wก-ฮ]+ ต้อง/, 'ต้อง')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (cleanSummary) return cleanSummary.slice(0, 52);
+  return `สถานการณ์ที่ ${index + 1}`;
+}
+
+function countUserTurns(messages: ChatMsg[]): number {
+  return messages.filter((m) => m.role === 'user' && m.content.trim().length > 0).length;
+}
+
+function hasUserClosingIntent(messages: ChatMsg[]): boolean {
+  const lastUser = [...messages].reverse().find((m) => m.role === 'user')?.content.toLowerCase() || '';
+  return /ขอบคุณ|ขอบคุน|โอเค|ok|พอ|จบ|ไม่มีแล้ว|ไม่มีอะไร|เรียบร้อย/.test(lastUser);
+}
+
+function chatMsgToTranscriptLine(m: ChatMsg): string {
+  if (m.role === 'user') return `ผู้ใช้: ${m.content}`;
+  if (m.role === 'event') return `เหตุการณ์แทรกระหว่างจำลอง: ${m.content}`;
+  return `คู่สนทนา (AI): ${m.content}`;
+}
+
+function toSimulationApiMessages(messages: ChatMsg[]) {
+  return messages.map((m) =>
+    m.role === 'event'
+      ? { role: 'system', content: `เหตุการณ์แทรกระหว่างจำลองที่ต้องคำนึงถึง: ${m.content}` }
+      : { role: m.role, content: m.content },
+  );
+}
+
+function inferCueToneFromAssistantText(text: string): keyof typeof SIMULATION_EVENT_CUES {
+  const t = text.toLowerCase();
+  if (/ด่วน|เร่ง|ทันที|deadline|กำหนด|เวลา|สายแล้ว|ภายใน|วันนี้|พรุ่งนี้/.test(t)) return 'urgent';
+  if (/ไม่พอใจ|ผิดหวัง|รับไม่ได้|เสียหาย|ไม่โอเค|ยกเลิก|complain|ร้องเรียน/.test(t)) return 'dissatisfied';
+  if (/แน่ใจ|หลักฐาน|ข้อมูล|ชัดเจน|เชื่อถือ|แผน|รับประกัน|ทำไม/.test(t)) return 'skeptical';
+  if (/ไม่อยาก|ไม่มั่นใจ|ขอคิด|ยังไม่พร้อม|เงียบ|ไม่ตอบ|ไม่สนใจ/.test(t)) return 'withdrawn';
+  if (/เข้าใจ|โอเค|เห็นด้วย|ขอบคุณ|ดีขึ้น|พอได้|รับฟัง/.test(t)) return 'supportive';
+  return 'skeptical';
+}
+
+function isSeniorUserRole(roleText: string): boolean {
+  return /ceo|chief|founder|owner|กรรมการ|ผู้บริหาร|ประธาน|เจ้าของ|ผู้อำนวยการ|director|vp|c-level/i.test(roleText);
+}
+
+function createSimulationEventCue(persona: SimulationPersona, assistantText: string, userRole: string): ChatMsg {
+  const tone = isSeniorUserRole(userRole) ? 'seniorRespectful' : inferCueToneFromAssistantText(assistantText);
+  const toneCues = SIMULATION_EVENT_CUES[tone];
+  const mbtiCues = isSeniorUserRole(userRole) ? [] : MBTI_EVENT_CUES[persona.mbti] || [];
+  const cue = pickRandom([...mbtiCues, ...toneCues]);
+  return {
+    id: uid(),
+    role: 'event',
+    content: `${persona.name} (${persona.position}) ${cue}`,
+  };
+}
+
+function pickRandom<T>(items: T[]): T {
+  return items[Math.floor(Math.random() * items.length)] || items[0];
+}
+
+function createSimulationPersona(seedText = '', counterpart = ''): SimulationPersona {
+  const index = Math.floor(Math.random() * MBTI_PERSONAS.length);
+  const base = MBTI_PERSONAS[index] || MBTI_PERSONAS[0];
+  const name = pickRandom(SIMULATION_PERSONA_NAMES);
+  const position = counterpart.trim() || pickRandom(SIMULATION_PERSONA_POSITIONS);
+  const seed = encodeURIComponent(`${name}-${position}-${base.mbti}-${base.title}-${seedText || uid()}`);
+  return {
+    ...base,
+    name,
+    position,
+    avatarUrl: `https://api.dicebear.com/9.x/adventurer/svg?seed=${seed}&backgroundColor=ffd43b,ffdf80,ffec99`,
+  };
 }
 
 /** แบ่งเป็นตัวอักษรที่มองเห็นได้ (รองรับไทย / emoji) */
@@ -146,6 +385,8 @@ const MindDojoAssessment: React.FC = () => {
   const [profile, setProfile] = useState<MindDojoProfile | null>(null);
   const [scenario, setScenario] = useState<MindDojoScenario | null>(null);
   const [randomOptions, setRandomOptions] = useState<ScenarioOption[]>([]);
+  const [simPersona, setSimPersona] = useState<SimulationPersona | null>(null);
+  const [showScenarioBriefing, setShowScenarioBriefing] = useState(false);
 
   const chatScrollRef = useRef<HTMLDivElement>(null);
 
@@ -163,6 +404,8 @@ const MindDojoAssessment: React.FC = () => {
     setProfile(null);
     setScenario(null);
     setRandomOptions([]);
+    setSimPersona(null);
+    setShowScenarioBriefing(false);
     setSimMessages([]);
     setError(null);
   }, [loggedIn, mainMessages.length]);
@@ -290,7 +533,9 @@ const MindDojoAssessment: React.FC = () => {
       if (jsonRaw) {
         const s = parseJsonSafe<MindDojoScenario>(jsonRaw);
         if (s?.userRole && s?.counterpart && s?.context && s?.situationSummary) {
+          const persona = createSimulationPersona(s.situationSummary, s.counterpart);
           setScenario(s);
+          setSimPersona(persona);
           setPhase('confirm');
         }
       }
@@ -326,8 +571,8 @@ const MindDojoAssessment: React.FC = () => {
       const jsonRaw = extractBlock(raw, '[[SCENARIOS_JSON]]', '[[/SCENARIOS_JSON]]');
       const arr = jsonRaw ? parseJsonSafe<ScenarioOption[]>(jsonRaw) : null;
       if (Array.isArray(arr) && arr.length >= 1) {
-        const normalized = arr.slice(0, RANDOM_SCENARIO_COUNT).map((o) => ({
-          shortTitle: o.shortTitle || 'สถานการณ์',
+        const normalized = arr.slice(0, RANDOM_SCENARIO_COUNT).map((o, index) => ({
+          shortTitle: buildScenarioTitle(o.shortTitle, o.situationSummary, index),
           userRole: o.userRole,
           counterpart: o.counterpart,
           context: o.context,
@@ -354,9 +599,44 @@ const MindDojoAssessment: React.FC = () => {
     }
   }, [profile]);
 
+  const loadFinalReport = useCallback(
+    async (messagesForReport = simMessages) => {
+      if (!profile || !scenario) return false;
+      setBusy(true);
+      setError(null);
+      try {
+        const lines = messagesForReport.map(chatMsgToTranscriptLine);
+        const transcript = lines.join('\n\n');
+        const report = await getMindDojoStructuredReport({ profile, scenario, simulationTranscript: transcript });
+        if (!report) {
+          setError('สร้างรายงานไม่สำเร็จ — ลองอีกครั้งหรือตรวจสอบการเชื่อมต่อ AI');
+          return false;
+        }
+        const payload = {
+          savedAt: Date.now(),
+          profile,
+          scenario,
+          report,
+        };
+        sessionStorage.setItem(MINDDOJO_REPORT_STORAGE_KEY, JSON.stringify(payload));
+        navigate('/assessment/minddojo/result', { replace: true });
+        return true;
+      } catch {
+        setError('โหลดผลการประเมินไม่สำเร็จ');
+        return false;
+      } finally {
+        setBusy(false);
+      }
+    },
+    [profile, scenario, simMessages, navigate],
+  );
+
   const startSimulation = useCallback(async () => {
     if (!profile || !scenario) return;
+    const persona = simPersona || createSimulationPersona(scenario.situationSummary, scenario.counterpart);
+    if (!simPersona) setSimPersona(persona);
     setPhase('simulation');
+    setShowScenarioBriefing(true);
     setSimMessages([]);
     setBusy(true);
     setError(null);
@@ -368,6 +648,12 @@ const MindDojoAssessment: React.FC = () => {
         context: scenario.context,
         situationSummary: scenario.situationSummary,
         profileSummary,
+        personaName: persona.name,
+        personaPosition: persona.position,
+        personaMbti: persona.mbti,
+        personaTitle: persona.title,
+        personaStyle: persona.style,
+        personaEmotionStyle: persona.emotionStyle,
       });
 
       setSimStreamingId(assistantId);
@@ -379,7 +665,22 @@ const MindDojoAssessment: React.FC = () => {
           {
             role: 'user',
             content:
-              'เริ่มจำลองสถานการณ์ — เปิดฉากจากฝั่งคุณในฐานะคู่สนทนาตามบทบาท (พูดเป็นตัวละครจริง ไม่ต้องอธิบายกติกา)',
+              `เริ่มจำลองสถานการณ์ทันที
+
+คุณต้องเป็นฝ่ายเปิดฉากเองทั้งหมดในบทบาทคู่สนทนา ห้ามให้ผู้ใช้อธิบายสถานการณ์แทน
+
+ข้อความแรกต้องเป็นแชทที่คนจริงพิมพ์หาผู้ใช้โดยตรง ไม่ใช่บทบรรยายฉาก เพราะ UI แสดงกล่องบริบทสถานการณ์ให้ผู้ใช้เห็นแล้ว
+
+ข้อความแรกควร:
+- พูดจากมุมของตัวละครด้วยชื่อ/ตำแหน่งที่กำหนด
+- อ้างถึงปัญหาและผลกระทบแบบสั้น ๆ
+- แสดงอารมณ์ตามบุคลิก เช่น กังวล เร่ง ดุดัน ลังเล หรือผิดหวังพอประมาณ
+- ปิดท้ายด้วยคำถามให้ผู้ใช้ตัดสินใจ/ตอบสนอง
+
+หลังจากผู้ใช้ตอบแล้ว ต้องคุยต่อให้มีหลักฐานครบทั้ง 6 ด้านและอย่างน้อย ${MIN_SIMULATION_USER_TURNS} คำตอบจากผู้ใช้ก่อนจบ ห้ามส่ง [[SIM_END]] ในข้อความแรก
+ห้ามบรรยายท่าทางหรือฉาก เช่น "เดินเข้ามา", "หยุดนิดหนึ่ง", "สีหน้ากังวล" และห้ามเขียนแบบนิยาย
+ห้ามใช้ประโยคแนว "ช่วยอธิบายสถานการณ์ให้ฟังหน่อย", "ตอนนี้เกิดอะไรขึ้น", "คุณอยากเริ่มอย่างไร" หรือ "ช่วยบอกบริบทเพิ่มเติม"
+พูดเป็นตัวละครจริงเท่านั้น ไม่ต้องอธิบายกติกา`,
           },
         ],
         0.7,
@@ -390,7 +691,7 @@ const MindDojoAssessment: React.FC = () => {
         },
       );
 
-      const ended = raw.includes('[[SIM_END]]');
+      const ended = false;
       const visible = raw.replace(/\[\[SIM_END\]\]/g, '').trim();
       const first: ChatMsg = { id: assistantId, role: 'assistant', content: visible };
       const doneMsg: ChatMsg = {
@@ -410,11 +711,13 @@ const MindDojoAssessment: React.FC = () => {
       setSimStreamingId(null);
       setBusy(false);
     }
-  }, [profile, scenario, profileSummary]);
+  }, [profile, scenario, profileSummary, simPersona]);
 
   const runSimulationReply = useCallback(
     async (history: ChatMsg[]) => {
       if (!profile || !scenario) return;
+      const persona = simPersona || createSimulationPersona(scenario.situationSummary, scenario.counterpart);
+      if (!simPersona) setSimPersona(persona);
 
       const assistantId = uid();
       setSimStreamingId(assistantId);
@@ -426,12 +729,25 @@ const MindDojoAssessment: React.FC = () => {
         context: scenario.context,
         situationSummary: scenario.situationSummary,
         profileSummary,
+        personaName: persona.name,
+        personaPosition: persona.position,
+        personaMbti: persona.mbti,
+        personaTitle: persona.title,
+        personaStyle: persona.style,
+        personaEmotionStyle: persona.emotionStyle,
       });
-      const historyForApi = history.map((m) => ({ role: m.role, content: m.content }));
+      const userTurnCount = countUserTurns(history);
+      const canEndSimulation =
+        userTurnCount >= MIN_SIMULATION_USER_TURNS || (userTurnCount >= 2 && hasUserClosingIntent(history));
+      const completionGuard =
+        !canEndSimulation
+          ? `ตอนนี้ผู้ใช้ตอบใน simulation แล้ว ${userTurnCount}/${MIN_SIMULATION_USER_TURNS} รอบ ยังห้ามจบและห้ามส่ง [[SIM_END]] ให้ถามต่อเพื่อเก็บหลักฐานครบทั้ง 6 ด้านอย่างเป็นธรรมชาติ`
+          : `ตอนนี้ผู้ใช้ตอบใน simulation แล้ว ${userTurnCount} รอบ ถ้าบทสนทนาลงเอยแล้วหรือผู้ใช้ส่งสัญญาณปิดบทสนทนา ให้ปิดฉากอย่างเป็นธรรมชาติแล้วส่ง [[SIM_END]] เพื่อแสดงปุ่มดูผลลัพธ์`;
+      const historyForApi = toSimulationApiMessages(history);
 
       try {
         const raw = await openaiChatStream(
-          [{ role: 'system', content: sys }, ...historyForApi],
+          [{ role: 'system', content: sys }, { role: 'system', content: completionGuard }, ...historyForApi],
           0.7,
           (delta) => {
             setSimMessages((prev) =>
@@ -440,18 +756,18 @@ const MindDojoAssessment: React.FC = () => {
           },
         );
 
-        const ended = raw.includes('[[SIM_END]]');
+        const ended = raw.includes('[[SIM_END]]') && canEndSimulation;
         const visible = raw.replace(/\[\[SIM_END\]\]/g, '').trim();
         const assistantMsg: ChatMsg = { id: assistantId, role: 'assistant', content: visible || raw };
-        const doneMsg: ChatMsg = {
-          id: uid(),
-          role: 'assistant',
-          content:
-            'การประเมินเสร็จสิ้นแล้ว พิมพ์คำว่า **result** เพื่อเปิดหน้า Dashboard ผลการประเมิน (คะแนน 6 ด้านการสื่อสาร)',
-        };
-
-        setSimMessages(ended ? [...history, assistantMsg, doneMsg] : [...history, assistantMsg]);
-        if (ended) setPhase('awaiting_result');
+        const eventMsg =
+          !ended && userTurnCount >= 1
+            ? createSimulationEventCue(persona, assistantMsg.content, `${profile.position} ${scenario.userRole}`)
+            : null;
+        const finalMessages = eventMsg ? [...history, assistantMsg, eventMsg] : [...history, assistantMsg];
+        setSimMessages(finalMessages);
+        if (ended) {
+          setPhase('awaiting_result');
+        }
       } catch (e) {
         // revert to user history (remove empty assistant placeholder)
         setSimMessages(history);
@@ -460,45 +776,12 @@ const MindDojoAssessment: React.FC = () => {
         setSimStreamingId(null);
       }
     },
-    [profile, scenario, profileSummary],
+    [profile, scenario, profileSummary, simPersona, loadFinalReport],
   );
-
-  const loadFinalReport = useCallback(async () => {
-    if (!profile || !scenario) return;
-    setBusy(true);
-    setError(null);
-    try {
-      const lines = simMessages.map((m) => `${m.role === 'user' ? 'ผู้ใช้' : 'คู่สนทนา (AI)'}: ${m.content}`);
-      const transcript = lines.join('\n\n');
-      const report = await getMindDojoStructuredReport({ profile, scenario, simulationTranscript: transcript });
-      if (!report) {
-        setError('สร้างรายงานไม่สำเร็จ — ลองอีกครั้งหรือตรวจสอบการเชื่อมต่อ AI');
-        return;
-      }
-      const payload = {
-        savedAt: Date.now(),
-        profile,
-        scenario,
-        report,
-      };
-      sessionStorage.setItem(MINDDOJO_REPORT_STORAGE_KEY, JSON.stringify(payload));
-      navigate('/assessment/minddojo/result', { replace: true });
-    } catch {
-      setError('โหลดผลการประเมินไม่สำเร็จ');
-    } finally {
-      setBusy(false);
-    }
-  }, [profile, scenario, simMessages, navigate]);
 
   const onSend = async () => {
     const text = input.trim();
     if (!text || busy) return;
-
-    if (phase === 'awaiting_result' && text.toLowerCase() === 'result') {
-      setInput('');
-      await loadFinalReport();
-      return;
-    }
 
     if (phase === 'pick_random') {
       const choice = parseInt(text.trim(), 10);
@@ -510,6 +793,7 @@ const MindDojoAssessment: React.FC = () => {
         const idx = choice - 1;
         const opt = randomOptions[idx];
         if (opt) {
+          const persona = createSimulationPersona(`${opt.shortTitle}-${opt.situationSummary}`, opt.counterpart);
           setInput('');
           setScenario({
             userRole: opt.userRole,
@@ -517,6 +801,7 @@ const MindDojoAssessment: React.FC = () => {
             context: opt.context,
             situationSummary: opt.situationSummary,
           });
+          setSimPersona(persona);
           setPhase('confirm');
           setMainMessages((prev) => [
             ...prev,
@@ -524,7 +809,7 @@ const MindDojoAssessment: React.FC = () => {
             {
               id: uid(),
               role: 'assistant',
-              content: `เลือกสถานการณ์: **${opt.shortTitle}** — กดยืนยันด้านล่างเมื่อพร้อมเริ่มจำลองค่ะ/ครับ`,
+              content: `เลือกสถานการณ์: **${opt.shortTitle}**\n\nคู่สนทนาที่สุ่มให้: **${persona.name} • ${persona.position} • ${persona.mbti}**\nบุคลิก: ${persona.title} — ${persona.style}\n\nกดยืนยันด้านล่างเมื่อพร้อมเริ่มจำลองค่ะ/ครับ`,
             },
           ]);
         }
@@ -564,8 +849,6 @@ const MindDojoAssessment: React.FC = () => {
           setBusy(true);
         });
         await runSimulationReply(historyAfterUser);
-      } else if (phase === 'awaiting_result') {
-        setSimMessages((prev) => [...prev, { id: uid(), role: 'user', content: text }]);
       }
     } catch {
       setError('ส่งข้อความไม่สำเร็จ');
@@ -785,7 +1068,7 @@ const MindDojoAssessment: React.FC = () => {
                               MindDoJo
                             </span>
                             {m.id === lastMainMessageId ? (
-                              <TypewriterText text={m.content} resetOnTextChange={m.id !== mainStreamingId} />
+                              <TypewriterText text={m.content} resetOnTextChange={false} />
                             ) : (
                               <div className="whitespace-pre-wrap break-words">{m.content}</div>
                             )}
@@ -823,7 +1106,7 @@ const MindDojoAssessment: React.FC = () => {
                         }}
                         className="flex-1 py-2.5 sm:py-3 px-3 sm:px-4 rounded-xl font-bold bg-yellow-400 text-black hover:bg-yellow-300 disabled:opacity-50 text-sm touch-manipulation"
                       >
-                        สุ่มสถานการณ์ (10 ตัวเลือก)
+                        {busy ? 'กำลังสุ่มสถานการณ์...' : 'สุ่มสถานการณ์ (10 ตัวเลือก)'}
                       </button>
                       <button
                         type="button"
@@ -845,6 +1128,19 @@ const MindDojoAssessment: React.FC = () => {
                         สร้างสถานการณ์เอง
                       </button>
                     </div>
+                    {busy && (
+                      <div
+                        role="status"
+                        aria-live="polite"
+                        className="mt-3 flex items-center gap-3 rounded-xl border border-yellow-400/20 bg-yellow-400/10 px-4 py-3 text-xs sm:text-sm text-yellow-100"
+                      >
+                        <span className="relative flex h-3 w-3 shrink-0">
+                          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-yellow-400 opacity-60" />
+                          <span className="relative inline-flex h-3 w-3 rounded-full bg-yellow-300" />
+                        </span>
+                        <span>กำลังสร้างสถานการณ์ 10 แบบจากบริบทของคุณ กรุณารอสักครู่...</span>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -857,7 +1153,9 @@ const MindDojoAssessment: React.FC = () => {
                         disabled={busy}
                         onClick={() => {
                           const { shortTitle, ...sc } = opt;
+                          const persona = createSimulationPersona(`${shortTitle}-${sc.situationSummary}`, sc.counterpart);
                           setScenario(sc);
+                          setSimPersona(persona);
                           setPhase('confirm');
                           setMainMessages((prev) => [
                             ...prev,
@@ -869,15 +1167,20 @@ const MindDojoAssessment: React.FC = () => {
                             {
                               id: uid(),
                               role: 'assistant',
-                              content: `สรุปสถานการณ์ที่เลือก:\n\n• **${shortTitle}**\n• บทบาทคุณ: ${sc.userRole}\n• คู่สนทนา: ${sc.counterpart}\n• บริบท: ${sc.context}\n• ${sc.situationSummary}\n\nกด «ยืนยันและเริ่มจำลอง» เมื่อพร้อม`,
+                              content: `สรุปสถานการณ์ที่เลือก:\n\n• **${shortTitle}**\n• บทบาทคุณ: ${sc.userRole}\n• คู่สนทนา: ${sc.counterpart}\n• บริบท: ${sc.context}\n• ${sc.situationSummary}\n\nคู่สนทนาที่สุ่มให้: **${persona.name} • ${persona.position} • ${persona.mbti}**\nบุคลิก: ${persona.title} — ${persona.style}\n\nกด «ยืนยันและเริ่มจำลอง» เมื่อพร้อม`,
                             },
                           ]);
                         }}
                         className="text-left rounded-xl border border-white/15 bg-white/5 hover:border-yellow-400/40 hover:bg-white/[0.08] p-3 sm:p-4 transition-colors disabled:opacity-50 touch-manipulation"
                       >
-                        <span className="text-yellow-400 font-bold text-xs sm:text-sm">
-                          {i + 1}. {opt.shortTitle}
-                        </span>
+                        <div className="flex items-start justify-between gap-2">
+                          <span className="text-yellow-400 font-bold text-xs sm:text-sm">
+                            {i + 1}. {opt.shortTitle}
+                          </span>
+                          <span className="shrink-0 rounded-full bg-white/10 px-2 py-0.5 text-[10px] uppercase tracking-wide text-gray-400">
+                            {opt.context}
+                          </span>
+                        </div>
                         <p className="text-gray-400 text-[11px] sm:text-xs mt-1.5 line-clamp-4">
                           {opt.situationSummary}
                         </p>
@@ -895,6 +1198,26 @@ const MindDojoAssessment: React.FC = () => {
                       <li>บริบท: {scenario.context}</li>
                       <li>{scenario.situationSummary}</li>
                     </ul>
+                    {simPersona && (
+                      <div className="mb-3 sm:mb-4 flex items-center gap-3 rounded-xl border border-amber-400/20 bg-amber-400/10 p-3">
+                        <img
+                          src={simPersona.avatarUrl}
+                          alt={`${simPersona.mbti} avatar`}
+                          className="h-12 w-12 rounded-full bg-white/90 object-cover ring-2 ring-amber-300/50"
+                          loading="lazy"
+                          decoding="async"
+                          referrerPolicy="no-referrer"
+                        />
+                        <div className="min-w-0">
+                          <p className="text-xs sm:text-sm font-bold text-amber-100">
+                            {simPersona.name} • {simPersona.position} • {simPersona.mbti}
+                          </p>
+                          <p className="text-[11px] sm:text-xs text-amber-100/75">
+                            {simPersona.title} — {simPersona.style}
+                          </p>
+                        </div>
+                      </div>
+                    )}
                     <p className="text-gray-500 text-xs sm:text-sm mb-3 sm:mb-4">ต้องการเริ่มสถานการณ์นี้เลยไหม?</p>
                     <button
                       type="button"
@@ -912,26 +1235,100 @@ const MindDojoAssessment: React.FC = () => {
                     <p className="text-[10px] sm:text-xs lg:text-sm text-amber-400/90 uppercase tracking-wider pt-1 border-t border-white/10 mt-1">
                       จำลองสถานการณ์
                     </p>
+                    {scenario && !showScenarioBriefing && (
+                      <button
+                        type="button"
+                        onClick={() => setShowScenarioBriefing(true)}
+                        className="self-start rounded-xl border border-amber-400/25 bg-amber-400/10 px-3 py-2 text-xs sm:text-sm font-semibold text-amber-100 hover:bg-amber-400/15 touch-manipulation"
+                      >
+                        แสดงบริบทสถานการณ์
+                      </button>
+                    )}
+                    {scenario && showScenarioBriefing && (
+                      <div className="rounded-xl sm:rounded-2xl border border-amber-400/25 bg-zinc-950/90 p-4 sm:p-5 shadow-xl shadow-black/25 ring-1 ring-amber-400/10">
+                        <div className="flex items-start justify-between gap-3 mb-3">
+                          <div>
+                            <p className="text-[10px] sm:text-xs uppercase tracking-wider text-amber-300 font-bold">
+                              บริบทสถานการณ์
+                            </p>
+                            <h3 className="text-sm sm:text-base font-bold text-white mt-1">
+                              อ่านภาพรวมก่อนตอบในแชท
+                            </h3>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setShowScenarioBriefing(false)}
+                            className="shrink-0 rounded-lg border border-white/10 px-2 py-1 text-[11px] text-gray-400 hover:text-white hover:bg-white/10"
+                          >
+                            ซ่อน
+                          </button>
+                        </div>
+                        {simPersona && (
+                          <div className="mb-3 flex items-center gap-3 rounded-xl bg-amber-400/10 p-3">
+                            <img
+                              src={simPersona.avatarUrl}
+                              alt={`${simPersona.mbti} avatar`}
+                              className="h-11 w-11 rounded-full bg-white object-cover ring-2 ring-amber-300/50"
+                              loading="lazy"
+                              decoding="async"
+                              referrerPolicy="no-referrer"
+                            />
+                            <div className="min-w-0">
+                              <p className="text-xs sm:text-sm font-bold text-amber-100">
+                                {simPersona.name} • {simPersona.position} • {simPersona.mbti}
+                              </p>
+                              <p className="text-[11px] sm:text-xs text-amber-100/75">
+                                {simPersona.title} — {simPersona.style}
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                        <div className="grid gap-2 text-xs sm:text-sm text-gray-300">
+                          <p>
+                            <span className="text-gray-500">บทบาทคุณ:</span> {scenario.userRole}
+                          </p>
+                          <p>
+                            <span className="text-gray-500">คู่สนทนา:</span> {scenario.counterpart}
+                          </p>
+                          <p>
+                            <span className="text-gray-500">บริบท:</span> {scenario.context}
+                          </p>
+                          <p className="leading-relaxed">
+                            <span className="text-gray-500">เหตุการณ์:</span> {scenario.situationSummary}
+                          </p>
+                        </div>
+                      </div>
+                    )}
                     {simMessages.map((m) =>
-                      m.role === 'assistant' ? (
+                      m.role === 'event' ? (
+                        <div
+                          key={m.id}
+                          className="mx-auto max-w-[min(100%,40rem)] rounded-2xl border border-amber-400/30 bg-amber-400/10 px-4 py-3 text-xs sm:text-sm text-amber-50 shadow-lg shadow-black/20"
+                        >
+                          <div className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-amber-300 mb-1">
+                            {simPersona ? `ท่าทางของ ${simPersona.name}` : 'ท่าทางของคู่สนทนา'}
+                          </div>
+                          <div className="leading-relaxed">{m.content}</div>
+                        </div>
+                      ) : m.role === 'assistant' ? (
                         <div
                           key={m.id}
                           className="flex w-full justify-start gap-2 sm:gap-3 items-start"
                         >
                           <img
-                            src={MINDDOJO_CHATBOT_AVATAR_URL}
-                            alt="MindDoJo"
-                            className="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover shrink-0 ring-2 ring-amber-400/25 shadow-md shadow-black/20 mt-0.5"
+                            src={simPersona?.avatarUrl || MINDDOJO_CHATBOT_AVATAR_URL}
+                            alt={simPersona ? `${simPersona.mbti} avatar` : 'MindDoJo'}
+                            className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white object-cover shrink-0 ring-2 ring-amber-400/25 shadow-md shadow-black/20 mt-0.5"
                             loading="lazy"
                             decoding="async"
                             referrerPolicy="no-referrer"
                           />
                           <div className="min-w-0 max-w-[min(100%,42rem)] rounded-2xl px-3 py-2.5 sm:px-4 sm:py-3 lg:px-5 lg:py-3.5 text-sm lg:text-base leading-relaxed bg-white/5">
                             <span className="text-[10px] lg:text-xs font-semibold text-gray-500 block mb-1">
-                              สถานการณ์
+                              {simPersona ? `${simPersona.name} • ${simPersona.position} • ${simPersona.mbti}` : 'สถานการณ์'}
                             </span>
                             {m.id === lastSimMessageId ? (
-                              <TypewriterText text={m.content} resetOnTextChange={m.id !== simStreamingId} />
+                              <TypewriterText text={m.content} resetOnTextChange={false} />
                             ) : (
                               <div className="whitespace-pre-wrap break-words">{m.content}</div>
                             )}
@@ -945,6 +1342,24 @@ const MindDojoAssessment: React.FC = () => {
                           </div>
                         </div>
                       ),
+                    )}
+                    {phase === 'awaiting_result' && (
+                      <div className="rounded-xl sm:rounded-2xl border border-yellow-400/25 bg-yellow-400/10 p-4 sm:p-5">
+                        <p className="text-sm sm:text-base font-semibold text-yellow-100 mb-2">
+                          การจำลองเสร็จแล้ว
+                        </p>
+                        <p className="text-xs sm:text-sm text-yellow-100/80 mb-3 sm:mb-4">
+                          กดปุ่มด้านล่างเพื่อสร้าง Dashboard ผลการประเมิน 6 ด้านการสื่อสาร
+                        </p>
+                        <button
+                          type="button"
+                          disabled={busy}
+                          onClick={() => void loadFinalReport()}
+                          className="w-full sm:w-auto py-2.5 sm:py-3 px-5 sm:px-6 rounded-xl font-bold bg-yellow-400 text-black hover:bg-yellow-300 disabled:opacity-50 text-sm touch-manipulation"
+                        >
+                          {busy ? 'กำลังสร้างผลลัพธ์...' : 'ดูผลลัพธ์'}
+                        </button>
+                      </div>
                     )}
                   </>
                 )}
@@ -960,7 +1375,7 @@ const MindDojoAssessment: React.FC = () => {
             <div className="shrink-0 pt-1 border-t border-white/10">
               {phase === 'awaiting_result' && (
                 <p className="text-[10px] sm:text-xs text-gray-500 mb-1.5 px-0.5">
-                  พิมพ์ <strong className="text-yellow-400">result</strong> เพื่อไปหน้า Dashboard ผลการประเมิน
+                  การจำลองเสร็จแล้ว กดปุ่มเพื่อสร้าง Dashboard ผลการประเมิน
                 </p>
               )}
               <div className="flex gap-2 items-end">
@@ -968,10 +1383,10 @@ const MindDojoAssessment: React.FC = () => {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={onKeyDown}
-                  disabled={busy || phase === 'scenario_choice' || phase === 'confirm'}
+                  disabled={busy || phase === 'scenario_choice' || phase === 'confirm' || phase === 'awaiting_result'}
                   placeholder={
                     phase === 'awaiting_result'
-                      ? 'พิมพ์ result'
+                      ? 'พร้อมดูผลลัพธ์'
                       : phase === 'simulation'
                         ? 'ตอบในสถานการณ์...'
                         : 'พิมพ์ข้อความ...'
@@ -982,7 +1397,7 @@ const MindDojoAssessment: React.FC = () => {
                 <button
                   type="button"
                   disabled={
-                    busy || !input.trim() || phase === 'scenario_choice' || phase === 'confirm'
+                    busy || !input.trim() || phase === 'scenario_choice' || phase === 'confirm' || phase === 'awaiting_result'
                   }
                   onClick={() => void onSend()}
                   className="shrink-0 min-h-[44px] min-w-[4.5rem] px-4 rounded-xl font-bold bg-yellow-400 text-black hover:bg-yellow-300 disabled:opacity-50 text-sm sm:text-base touch-manipulation"

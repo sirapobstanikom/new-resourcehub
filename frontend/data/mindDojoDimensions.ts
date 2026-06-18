@@ -24,7 +24,7 @@ export const MINDDOJO_DIMENSIONS: {
     key: 'structure',
     labelEn: 'Structure',
     labelTh: 'โครงสร้างการพูด / การเรียบเรียง',
-    descriptionTh: 'ลำดับความคิด หัวข้อ–เหตุผล–ข้อเสนอ ชัดเจนและตามได้',
+    descriptionTh: 'ลำดับข้อเท็จจริง ผลกระทบที่เกิดขึ้น เหตุผล และข้อเสนอชัดเจน ตามได้',
   },
   {
     key: 'empathy',
