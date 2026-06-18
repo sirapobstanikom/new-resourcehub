@@ -280,16 +280,47 @@ function isSeniorUserRole(roleText: string): boolean {
   return /ceo|chief|founder|owner|กรรมการ|ผู้บริหาร|ประธาน|เจ้าของ|ผู้อำนวยการ|director|vp|c-level/i.test(roleText);
 }
 
-function createSimulationEventCue(persona: SimulationPersona, assistantText: string, userRole: string): ChatMsg {
-  const tone = isSeniorUserRole(userRole) ? 'seniorRespectful' : inferCueToneFromAssistantText(assistantText);
-  const toneCues = SIMULATION_EVENT_CUES[tone];
-  const mbtiCues = isSeniorUserRole(userRole) ? [] : MBTI_EVENT_CUES[persona.mbti] || [];
-  const cue = pickRandom([...mbtiCues, ...toneCues]);
-  return {
-    id: uid(),
-    role: 'event',
-    content: `${persona.name} (${persona.position}) ${cue}`,
-  };
+async function createSimulationEventCue(
+  persona: SimulationPersona,
+  assistantText: string,
+  userRole: string,
+): Promise<ChatMsg | null> {
+  const seniorUser = isSeniorUserRole(userRole);
+  try {
+    const cue = await openaiChat(
+      [
+        {
+          role: 'system',
+          content:
+            'คุณเป็นผู้กำกับฉาก roleplay ในแชทองค์กร สร้างเฉพาะข้อความท่าทาง/สีหน้า/ภาษากาย 1 ประโยค ภาษาไทย ไม่เกิน 120 ตัวอักษร ห้ามใส่ markdown ห้ามใส่เครื่องหมายคำพูด ห้ามเล่าบทสนทนาใหม่',
+        },
+        {
+          role: 'user',
+          content: `ตัวละคร: ${persona.name} (${persona.position})
+MBTI: ${persona.mbti} — ${persona.title}
+บุคลิกการพูด: ${persona.style}
+อารมณ์ที่แสดงได้: ${persona.emotionStyle}
+ตำแหน่ง/บทบาทผู้ใช้: ${userRole}
+ข้อจำกัด: ${seniorUser ? 'ผู้ใช้เป็นผู้บริหารหรือบทบาทอาวุโส จึงต้องเป็นท่าทางสุภาพ ให้เกียรติ ไม่เคาะโต๊ะ ไม่ลุกเดินออก ไม่ทำเป็นไม่สนใจ' : 'ท่าทางต้องเหมาะกับบริบทองค์กร ไม่เกินจริง'}
+
+คำตอบล่าสุดของตัวละคร:
+${assistantText}
+
+สร้างท่าทางใหม่ที่สอดคล้องกับคำตอบล่าสุดและ MBTI นี้โดยตรง:`,
+        },
+      ],
+      0.55,
+    );
+    const cleanCue = cue.replace(/\s+/g, ' ').trim();
+    if (!cleanCue) return null;
+    return {
+      id: uid(),
+      role: 'event',
+      content: `${persona.name} (${persona.position}) ${cleanCue}`,
+    };
+  } catch {
+    return null;
+  }
 }
 
 function pickRandom<T>(items: T[]): T {
@@ -761,7 +792,7 @@ const MindDojoAssessment: React.FC = () => {
         const assistantMsg: ChatMsg = { id: assistantId, role: 'assistant', content: visible || raw };
         const eventMsg =
           !ended && userTurnCount >= 1
-            ? createSimulationEventCue(persona, assistantMsg.content, `${profile.position} ${scenario.userRole}`)
+            ? await createSimulationEventCue(persona, assistantMsg.content, `${profile.position} ${scenario.userRole}`)
             : null;
         const finalMessages = eventMsg ? [...history, assistantMsg, eventMsg] : [...history, assistantMsg];
         setSimMessages(finalMessages);
