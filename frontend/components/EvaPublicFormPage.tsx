@@ -55,6 +55,7 @@ const EvaPublicFormPage: React.FC = () => {
   const getOtherText = (promptId: string) => answers[`${promptId}${OTHER_TEXT_KEY_SUFFIX}`] || '';
 
   const [submitted, setSubmitted] = useState(false);
+  const [scoreResult, setScoreResult] = useState<{ score: number; total: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [missingPromptIds, setMissingPromptIds] = useState<string[]>([]);
   const promptRefs = useRef<Record<string, HTMLDivElement | null>>({});
@@ -114,7 +115,8 @@ const EvaPublicFormPage: React.FC = () => {
           return ['1', '2', '3', '4', '5'].includes(subValue);
         });
       }
-      if (prompt.type === 'choice') {
+      if (prompt.type === 'choice' || prompt.type === 'scored_choice') {
+        if (prompt.type === 'scored_choice') return value.length > 0;
         if (isOtherOption(value)) return getOtherText(prompt.id).trim().length > 0;
         return value.length > 0;
       }
@@ -154,7 +156,8 @@ const EvaPublicFormPage: React.FC = () => {
             return !['1', '2', '3', '4', '5'].includes(subValue);
           });
         }
-        if (prompt.type === 'choice') {
+        if (prompt.type === 'choice' || prompt.type === 'scored_choice') {
+          if (prompt.type === 'scored_choice') return value.length === 0;
           if (isOtherOption(value)) return getOtherText(prompt.id).trim().length === 0;
           return value.length === 0;
         }
@@ -199,6 +202,14 @@ const EvaPublicFormPage: React.FC = () => {
     }
     setError(null);
     setMissingPromptIds([]);
+    const scoredPrompts = template.prompts.filter((prompt) => prompt.type === 'scored_choice');
+    const nextScoreResult =
+      scoredPrompts.length > 0
+        ? {
+            score: scoredPrompts.filter((prompt) => (answers[prompt.id] || '').trim() === (prompt.correctOption || '')).length,
+            total: scoredPrompts.length,
+          }
+        : null;
     const payload = {
       id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
       templateId: template.id,
@@ -281,6 +292,7 @@ const EvaPublicFormPage: React.FC = () => {
             promptType: prompt.type,
             answer: (() => {
               const value = (answers[prompt.id] || '').trim();
+              if (prompt.type === 'scored_choice') return value;
               if (prompt.type === 'choice' && isOtherOption(value)) {
                 return `${getOtherOptionLabel(value)}: ${getOtherText(prompt.id).trim()}`;
               }
@@ -293,6 +305,11 @@ const EvaPublicFormPage: React.FC = () => {
               }
               return value;
             })(),
+            correctAnswer: prompt.type === 'scored_choice' ? prompt.correctOption || '' : undefined,
+            isCorrect:
+              prompt.type === 'scored_choice'
+                ? (answers[prompt.id] || '').trim() === (prompt.correctOption || '')
+                : undefined,
           },
         ];
       }),
@@ -331,7 +348,10 @@ const EvaPublicFormPage: React.FC = () => {
         // ignore local cache failures
       }
     }
-    if (!hasSupabaseError) setSubmitted(true);
+    if (!hasSupabaseError) {
+      setScoreResult(nextScoreResult);
+      setSubmitted(true);
+    }
   };
 
   if (loadingTemplate) {
@@ -364,6 +384,17 @@ const EvaPublicFormPage: React.FC = () => {
         <div className="max-w-3xl mx-auto rounded-2xl border border-emerald-400/30 bg-emerald-500/10 p-6 text-center">
           <h1 className="text-2xl font-bold text-emerald-200">ส่งคำตอบเรียบร้อย</h1>
           <p className="text-emerald-100/90 mt-3">ขอบคุณสำหรับการทำแบบประเมิน</p>
+          {scoreResult && (
+            <div className="mt-5 rounded-2xl border border-yellow-400/30 bg-yellow-400/10 p-5">
+              <p className="text-sm text-yellow-100/80">คะแนนของคุณ</p>
+              <p className="mt-1 text-3xl font-black text-yellow-300">
+                {scoreResult.score} / {scoreResult.total}
+              </p>
+              <p className="mt-1 text-sm text-yellow-100/70">
+                คิดจากข้อที่เป็นช้อยส์แบบมีคำตอบถูก
+              </p>
+            </div>
+          )}
           <Link to="/" className="inline-block mt-5 rounded-lg bg-yellow-400 px-4 py-2 font-semibold text-black hover:bg-yellow-300 transition-colors">
             กลับหน้าหลัก
           </Link>
@@ -460,7 +491,7 @@ const EvaPublicFormPage: React.FC = () => {
                         {prompt.title}
                       </p>
                     )}
-                    {prompt.type === 'choice' ? (
+                    {prompt.type === 'choice' || prompt.type === 'scored_choice' ? (
                   <div className="space-y-2.5">
                     {(prompt.options || []).map((option) => (
                       <label

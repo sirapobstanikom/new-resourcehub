@@ -21,6 +21,7 @@ export type EvaDescriptionLine = {
 export type EvaPromptType =
   | 'text'
   | 'choice'
+  | 'scored_choice'
   | 'multi_choice'
   | 'rating_1_5'
   | 'commitment_table'
@@ -59,6 +60,8 @@ export type EvaPrompt = {
   /** @deprecated อ่านแล้วแปลงเป็น promptNumberStyle ใน normalize */
   showNumberPrefix?: boolean;
   options?: string[];
+  /** ใช้เมื่อ type === 'scored_choice' */
+  correctOption?: string;
   /** @deprecated อ่านผ่าน getEvaRatingSubItems — เก็บซ้ำเพื่อ backward compat */
   ratingItems?: string[];
   ratingSubItems?: EvaRatingSubItem[];
@@ -345,6 +348,7 @@ function normalizePrompt(raw: unknown, idx: number): EvaPrompt {
     const obj = raw as Partial<EvaPrompt>;
     const type: EvaPromptType =
       obj.type === 'choice' ||
+      obj.type === 'scored_choice' ||
       obj.type === 'multi_choice' ||
       obj.type === 'rating_1_5' ||
       obj.type === 'text' ||
@@ -354,9 +358,11 @@ function normalizePrompt(raw: unknown, idx: number): EvaPrompt {
         ? obj.type
         : 'text';
     const options =
-      type === 'choice' || type === 'multi_choice'
+      type === 'choice' || type === 'scored_choice' || type === 'multi_choice'
         ? (Array.isArray(obj.options) ? obj.options.filter(Boolean) : [])
         : undefined;
+    const correctOption =
+      type === 'scored_choice' && typeof obj.correctOption === 'string' ? obj.correctOption : undefined;
     const ratingSubItems = type === 'rating_1_5' ? parseRatingSubItems(obj) : undefined;
     const ratingItems =
       ratingSubItems && ratingSubItems.length > 0 ? ratingSubItems.map((item) => item.text) : undefined;
@@ -425,6 +431,7 @@ function normalizePrompt(raw: unknown, idx: number): EvaPrompt {
       type,
       ...numberingExtra,
       options,
+      correctOption,
       ratingItems,
       ratingSubItems,
       commitmentHeaders,

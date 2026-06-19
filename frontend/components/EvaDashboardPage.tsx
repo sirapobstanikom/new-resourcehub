@@ -25,6 +25,8 @@ type ResponseAnswer = {
   subPrompt?: string;
   answer?: string;
   promptType?: string;
+  correctAnswer?: string;
+  isCorrect?: boolean;
   tableRow?: number;
   commitmentColumn?: 'commitment' | 'by_when' | 'how_know';
   commitmentHeaders?: [string, string, string];
@@ -862,6 +864,19 @@ const EvaDashboardPage: React.FC = () => {
                   <p className="text-xs text-gray-400 mb-2">
                     ส่งเมื่อ: {formatThaiDateTime(submission.createdAt)}
                   </p>
+                  {submission.answers.some((answer) => answer.promptType === 'scored_choice') && (
+                    <div className="mb-3 rounded-lg border border-yellow-400/25 bg-yellow-400/10 px-3 py-2">
+                      <p className="text-sm font-semibold text-yellow-100">
+                        คะแนน:{' '}
+                        {
+                          submission.answers.filter(
+                            (answer) => answer.promptType === 'scored_choice' && answer.isCorrect === true
+                          ).length
+                        }{' '}
+                        / {submission.answers.filter((answer) => answer.promptType === 'scored_choice').length}
+                      </p>
+                    </div>
+                  )}
                   <div className="space-y-3">
                     {buildAnswerDisplayBlocks(submission.answers).map((block, bi) => (
                       <Fragment key={`${submission.createdAt}-block-${bi}`}>
@@ -876,6 +891,17 @@ const EvaDashboardPage: React.FC = () => {
                             <p className="text-yellow-100/95 mt-2 whitespace-pre-wrap leading-relaxed">
                               {block.answer.answer ?? '-'}
                             </p>
+                            {block.answer.promptType === 'scored_choice' && (
+                              <p
+                                className={`mt-2 inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${
+                                  block.answer.isCorrect
+                                    ? 'bg-emerald-400/15 text-emerald-200'
+                                    : 'bg-red-400/15 text-red-200'
+                                }`}
+                              >
+                                {block.answer.isCorrect ? 'ตอบถูก' : `ตอบผิด · เฉลย: ${block.answer.correctAnswer || '-'}`}
+                              </p>
+                            )}
                           </div>
                         )}
                         {block.kind === 'commitment_table' && (

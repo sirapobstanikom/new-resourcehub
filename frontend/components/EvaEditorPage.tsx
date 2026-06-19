@@ -202,6 +202,7 @@ const EvaEditorPage: React.FC = () => {
   const [newPromptTitle, setNewPromptTitle] = useState('');
   const [newPromptType, setNewPromptType] = useState<EvaPromptType>('text');
   const [newPromptOptions, setNewPromptOptions] = useState<string[]>(['ตัวเลือก 1', 'ตัวเลือก 2']);
+  const [newPromptCorrectOption, setNewPromptCorrectOption] = useState('ตัวเลือก 1');
   const [newPromptRatingSubItems, setNewPromptRatingSubItems] = useState<EvaRatingSubItem[]>([]);
   const [newCommitmentHeaders, setNewCommitmentHeaders] = useState<[string, string, string]>(() => [
     ...EVA_DEFAULT_COMMITMENT_HEADERS,
@@ -495,7 +496,7 @@ const EvaEditorPage: React.FC = () => {
       }
     } else if (!title && newPromptType !== 'text') return;
     const options =
-      newPromptType === 'choice' || newPromptType === 'multi_choice'
+      newPromptType === 'choice' || newPromptType === 'scored_choice' || newPromptType === 'multi_choice'
         ? newPromptOptions.map((line) => line.trim()).filter(Boolean)
         : undefined;
     const ratingSubItems =
@@ -513,8 +514,15 @@ const EvaEditorPage: React.FC = () => {
             .filter((item): item is EvaRatingSubItem => item !== null)
         : undefined;
     const ratingItems = ratingSubItems?.map((item) => item.text);
-    if ((newPromptType === 'choice' || newPromptType === 'multi_choice') && (!options || options.length < 2)) {
+    if (
+      (newPromptType === 'choice' || newPromptType === 'scored_choice' || newPromptType === 'multi_choice') &&
+      (!options || options.length < 2)
+    ) {
       setMessage('โจทย์แบบตัวเลือกต้องมีอย่างน้อย 2 ข้อ');
+      return;
+    }
+    if (newPromptType === 'scored_choice' && options && !options.includes(newPromptCorrectOption)) {
+      setMessage('กรุณาเลือกคำตอบที่ถูกต้อง');
       return;
     }
     if (newPromptType === 'commitment_table') {
@@ -564,6 +572,7 @@ const EvaEditorPage: React.FC = () => {
       setNewPromptTitle('');
       setNewPromptType('text');
       setNewPromptOptions(['ตัวเลือก 1', 'ตัวเลือก 2']);
+      setNewPromptCorrectOption('ตัวเลือก 1');
       setNewPromptRatingSubItems([]);
       setNewCommitmentHeaders([...EVA_DEFAULT_COMMITMENT_HEADERS]);
       setNewCommitmentRows(defaultEvaCommitmentRows().map((r) => ({ ...r })));
@@ -585,6 +594,7 @@ const EvaEditorPage: React.FC = () => {
       title,
       type: newPromptType,
       options,
+      correctOption: newPromptType === 'scored_choice' ? newPromptCorrectOption : undefined,
       ratingItems,
       ratingSubItems,
       commitmentHeaders,
@@ -603,6 +613,7 @@ const EvaEditorPage: React.FC = () => {
     setNewPromptTitle('');
     setNewPromptType('text');
     setNewPromptOptions(['ตัวเลือก 1', 'ตัวเลือก 2']);
+    setNewPromptCorrectOption('ตัวเลือก 1');
     setNewPromptRatingSubItems([]);
     setNewCommitmentHeaders([...EVA_DEFAULT_COMMITMENT_HEADERS]);
     setNewCommitmentRows(defaultEvaCommitmentRows().map((r) => ({ ...r })));
@@ -711,8 +722,9 @@ const EvaEditorPage: React.FC = () => {
         next.promptNumberStyle = 'fixed';
         next.fixedNumberPrefix = current.fixedNumberPrefix ?? '';
       }
-      if (type === 'choice' || type === 'multi_choice') {
+      if (type === 'choice' || type === 'scored_choice' || type === 'multi_choice') {
         next.options = current.options || ['ตัวเลือก 1', 'ตัวเลือก 2'];
+        if (type === 'scored_choice') next.correctOption = current.correctOption || next.options[0] || '';
       }
       if (type === 'rating_1_5') {
         const subItems = getEvaRatingSubItems(current);
@@ -748,7 +760,16 @@ const EvaEditorPage: React.FC = () => {
       } else {
         options[optionIdx] = isOtherOption(options[optionIdx]) ? buildOtherOptionValue(value) : value;
       }
-      prompts[idx] = { ...prompts[idx], options };
+      const current = prompts[idx];
+      const nextPrompt: EvaPrompt = { ...current, options };
+      if (current.type === 'scored_choice') {
+        if ((current.correctOption || '') === (current.options || [])[optionIdx]) {
+          nextPrompt.correctOption = options[optionIdx] || '';
+        } else if (!options.includes(current.correctOption || '')) {
+          nextPrompt.correctOption = options[0] || '';
+        }
+      }
+      prompts[idx] = nextPrompt;
       return { ...item, prompts, updatedAt: new Date().toISOString() };
     });
 
@@ -764,7 +785,12 @@ const EvaEditorPage: React.FC = () => {
     updateSelectedTemplate((item) => {
       const prompts = [...item.prompts];
       const options = [...(prompts[idx].options || [])].filter((_, i) => i !== optionIdx);
-      prompts[idx] = { ...prompts[idx], options };
+      const current = prompts[idx];
+      const nextPrompt: EvaPrompt = { ...current, options };
+      if (current.type === 'scored_choice' && !options.includes(current.correctOption || '')) {
+        nextPrompt.correctOption = options[0] || '';
+      }
+      prompts[idx] = nextPrompt;
       return { ...item, prompts, updatedAt: new Date().toISOString() };
     });
 
@@ -775,6 +801,15 @@ const EvaEditorPage: React.FC = () => {
       if (!options.some((opt) => isOtherOption(opt))) {
         prompts[idx] = { ...prompts[idx], options: [...options, buildOtherOptionValue('Other:')] };
       }
+      return { ...item, prompts, updatedAt: new Date().toISOString() };
+    });
+
+  const updatePromptCorrectOption = (idx: number, value: string) =>
+    updateSelectedTemplate((item) => {
+      const prompts = [...item.prompts];
+      const p = prompts[idx];
+      if (p.type !== 'scored_choice') return item;
+      prompts[idx] = { ...p, correctOption: value };
       return { ...item, prompts, updatedAt: new Date().toISOString() };
     });
 
@@ -1641,6 +1676,7 @@ const EvaEditorPage: React.FC = () => {
                         >
                           <option value="text">คำตอบแบบข้อความ</option>
                           <option value="choice">คำตอบแบบช้อยส์</option>
+                          <option value="scored_choice">ช้อยส์แบบมีคำตอบถูก / คิดคะแนน</option>
                           <option value="multi_choice">คำตอบแบบเลือกได้หลายอัน</option>
                           <option value="rating_1_5">เลือกระดับ 1-5</option>
                           <option value="commitment_table">ตาราง COMMITMENT / BY WHEN / HOW</option>
@@ -1654,10 +1690,22 @@ const EvaEditorPage: React.FC = () => {
                         )}
                         {prompt.type !== 'description' && (
                           <>
-                        {(prompt.type === 'choice' || prompt.type === 'multi_choice') && (
+                        {(prompt.type === 'choice' || prompt.type === 'scored_choice' || prompt.type === 'multi_choice') && (
                           <div className="space-y-2">
                             {(prompt.options || []).map((option, optionIdx) => (
                               <div key={`${prompt.id}-option-${optionIdx}`} className="flex items-center gap-2">
+                                {prompt.type === 'scored_choice' && (
+                                  <label className="inline-flex items-center gap-1.5 text-xs text-emerald-200">
+                                    <input
+                                      type="radio"
+                                      name={`correct-${prompt.id}`}
+                                      checked={(prompt.correctOption || '') === option}
+                                      onChange={() => updatePromptCorrectOption(idx, option)}
+                                      className="accent-emerald-400"
+                                    />
+                                    ถูก
+                                  </label>
+                                )}
                                 <input
                                   value={isOtherOption(option) ? getOtherOptionLabel(option) : option}
                                   onChange={(e) => updatePromptOptionItem(idx, optionIdx, e.target.value)}
@@ -1679,13 +1727,20 @@ const EvaEditorPage: React.FC = () => {
                             >
                               + เพิ่มตัวเลือก
                             </button>
-                            <button
-                              type="button"
-                              onClick={() => addOtherOptionItem(idx)}
-                              className="ml-2 rounded-lg bg-amber-400/20 border border-amber-300/40 px-3 py-2 text-xs font-semibold text-amber-100 hover:bg-amber-400/30 transition-colors"
-                            >
-                              + เพิ่ม Other:
-                            </button>
+                            {prompt.type !== 'scored_choice' && (
+                              <button
+                                type="button"
+                                onClick={() => addOtherOptionItem(idx)}
+                                className="ml-2 rounded-lg bg-amber-400/20 border border-amber-300/40 px-3 py-2 text-xs font-semibold text-amber-100 hover:bg-amber-400/30 transition-colors"
+                              >
+                                + เพิ่ม Other:
+                              </button>
+                            )}
+                            {prompt.type === 'scored_choice' && (
+                              <p className="text-xs text-emerald-300">
+                                เลือก radio “ถูก” ด้านหน้าตัวเลือกที่เป็นคำตอบถูก
+                              </p>
+                            )}
                           </div>
                         )}
                         {prompt.type === 'rating_1_5' && (
@@ -1842,6 +1897,7 @@ const EvaEditorPage: React.FC = () => {
                 >
                   <option value="text">คำตอบแบบข้อความ</option>
                   <option value="choice">คำตอบแบบช้อยส์</option>
+                  <option value="scored_choice">ช้อยส์แบบมีคำตอบถูก / คิดคะแนน</option>
                   <option value="multi_choice">คำตอบแบบเลือกได้หลายอัน</option>
                   <option value="rating_1_5">เลือกระดับ 1-5</option>
                   <option value="commitment_table">ตาราง COMMITMENT / BY WHEN / HOW</option>
@@ -1868,30 +1924,58 @@ const EvaEditorPage: React.FC = () => {
                     className="mt-1 w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm resize-y"
                   />
                 )}
-                {(newPromptType === 'choice' || newPromptType === 'multi_choice') && (
+                {(newPromptType === 'choice' || newPromptType === 'scored_choice' || newPromptType === 'multi_choice') && (
                   <div className="mt-2 space-y-2">
                     {newPromptOptions.map((option, idx) => (
                       <div key={`new-option-${idx}`} className="flex items-center gap-2">
+                        {newPromptType === 'scored_choice' && (
+                          <label className="inline-flex items-center gap-1.5 text-xs text-emerald-200">
+                            <input
+                              type="radio"
+                              name="new-scored-correct"
+                              checked={newPromptCorrectOption === option}
+                              onChange={() => setNewPromptCorrectOption(option)}
+                              className="accent-emerald-400"
+                            />
+                            ถูก
+                          </label>
+                        )}
                         <input
                           value={isOtherOption(option) ? getOtherOptionLabel(option) : option}
                           onChange={(e) =>
-                            setNewPromptOptions((prev) =>
-                              prev
+                            setNewPromptOptions((prev) => {
+                              const oldOption = prev[idx];
+                              const nextOption = isOtherOption(oldOption)
+                                ? buildOtherOptionValue(e.target.value)
+                                : e.target.value;
+                              const next = prev
                                 .map((item, i) => {
                                   if (i !== idx) return item;
                                   if (isOtherOption(item) && e.target.value.trim() === '') return '';
-                                  return isOtherOption(item)
-                                    ? buildOtherOptionValue(e.target.value)
-                                    : e.target.value;
+                                  return nextOption;
                                 })
-                                .filter((item) => item !== '')
-                            )
+                                .filter((item) => item !== '');
+                              if (newPromptCorrectOption === oldOption) {
+                                setNewPromptCorrectOption(nextOption);
+                              } else if (!next.includes(newPromptCorrectOption)) {
+                                setNewPromptCorrectOption(next[0] || '');
+                              }
+                              return next;
+                            })
                           }
                           className="flex-1 rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm"
                         />
                         <button
                           type="button"
-                          onClick={() => setNewPromptOptions((prev) => prev.filter((_, i) => i !== idx))}
+                          onClick={() =>
+                            setNewPromptOptions((prev) => {
+                              const next = prev.filter((_, i) => i !== idx);
+                              if (!next.includes(newPromptCorrectOption)) {
+                                setNewPromptCorrectOption(next[0] || '');
+                              }
+                              return next;
+                            })
+                          }
                           className="rounded-lg bg-red-500/20 border border-red-400/40 px-2.5 py-2 text-xs font-semibold text-red-200 hover:bg-red-500/30 transition-colors"
                         >
                           ลบ
@@ -1905,19 +1989,26 @@ const EvaEditorPage: React.FC = () => {
                     >
                       + เพิ่มตัวเลือก
                     </button>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setNewPromptOptions((prev) =>
-                          prev.some((item) => isOtherOption(item))
-                            ? prev
-                            : [...prev, buildOtherOptionValue('Other:')]
-                        )
-                      }
-                      className="ml-2 rounded-lg bg-amber-400/20 border border-amber-300/40 px-3 py-2 text-xs font-semibold text-amber-100 hover:bg-amber-400/30 transition-colors"
-                    >
-                      + เพิ่ม Other:
-                    </button>
+                    {newPromptType !== 'scored_choice' && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setNewPromptOptions((prev) =>
+                            prev.some((item) => isOtherOption(item))
+                              ? prev
+                              : [...prev, buildOtherOptionValue('Other:')]
+                          )
+                        }
+                        className="ml-2 rounded-lg bg-amber-400/20 border border-amber-300/40 px-3 py-2 text-xs font-semibold text-amber-100 hover:bg-amber-400/30 transition-colors"
+                      >
+                        + เพิ่ม Other:
+                      </button>
+                    )}
+                    {newPromptType === 'scored_choice' && (
+                      <p className="text-xs text-emerald-300">
+                        เลือก radio “ถูก” ด้านหน้าตัวเลือกที่เป็นคำตอบถูก ระบบจะคิดคะแนนหลังส่ง
+                      </p>
+                    )}
                   </div>
                 )}
                 {newPromptType === 'rating_1_5' && (
