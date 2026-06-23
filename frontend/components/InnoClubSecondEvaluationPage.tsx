@@ -13,32 +13,31 @@ type VoteOption = {
 const MAX_UPLOAD_SOURCE_BYTES = 8 * 1024 * 1024;
 const MAX_IMAGE_SIDE = 900;
 
-const compressImageToDataUrl = (file: File) =>
+const cropImageToDataUrl = (previewUrl: string, zoom: number) =>
   new Promise<string>((resolve, reject) => {
     const image = new Image();
-    const objectUrl = URL.createObjectURL(file);
 
     image.onload = () => {
-      URL.revokeObjectURL(objectUrl);
-      const scale = Math.min(1, MAX_IMAGE_SIDE / Math.max(image.width, image.height));
       const canvas = document.createElement('canvas');
-      canvas.width = Math.max(1, Math.round(image.width * scale));
-      canvas.height = Math.max(1, Math.round(image.height * scale));
+      canvas.width = MAX_IMAGE_SIDE;
+      canvas.height = MAX_IMAGE_SIDE;
       const context = canvas.getContext('2d');
 
       if (!context) {
-        reject(new Error('Cannot resize image'));
+        reject(new Error('Cannot crop image'));
         return;
       }
 
-      context.drawImage(image, 0, 0, canvas.width, canvas.height);
+      const sourceSize = Math.min(image.width, image.height) / zoom;
+      const sourceX = (image.width - sourceSize) / 2;
+      const sourceY = (image.height - sourceSize) / 2;
+      context.drawImage(image, sourceX, sourceY, sourceSize, sourceSize, 0, 0, MAX_IMAGE_SIDE, MAX_IMAGE_SIDE);
       resolve(canvas.toDataURL('image/jpeg', 0.82));
     };
     image.onerror = () => {
-      URL.revokeObjectURL(objectUrl);
       reject(new Error('Cannot load image'));
     };
-    image.src = objectUrl;
+    image.src = previewUrl;
   });
 
 type VoteCategoryId = 'best_storytelling' | 'most_creative_product_launch' | 'most_market_impact';
@@ -49,6 +48,12 @@ type VoteRow = {
   best_storytelling_option_id: string | null;
   most_creative_product_launch_option_id: string | null;
   most_market_impact_option_id: string | null;
+};
+
+type CropDraft = {
+  option: VoteOption;
+  previewUrl: string;
+  zoom: number;
 };
 
 const REFLECTION_QUESTIONS = [
@@ -153,6 +158,7 @@ const InnoClubSecondEvaluationPage: React.FC = () => {
   const [submittingReflection, setSubmittingReflection] = useState(false);
   const [submittingVote, setSubmittingVote] = useState(false);
   const [uploadingImageId, setUploadingImageId] = useState<string | null>(null);
+  const [cropDraft, setCropDraft] = useState<CropDraft | null>(null);
   const [voteSubmitted, setVoteSubmitted] = useState(false);
   const [voteResults, setVoteResults] = useState<VoteResults>({});
   const [error, setError] = useState<string | null>(null);
@@ -279,7 +285,7 @@ const InnoClubSecondEvaluationPage: React.FC = () => {
     setVoteSubmitted(true);
   };
 
-  const handleImageUpload = async (option: VoteOption, file: File | undefined) => {
+  const prepareImageCrop = (option: VoteOption, file: File | undefined) => {
     if (!file) return;
     if (!isSupabaseConfigured) {
       setError('ยังไม่ได้ตั้งค่า Supabase กรุณาติดต่อผู้ดูแล');
@@ -294,18 +300,37 @@ const InnoClubSecondEvaluationPage: React.FC = () => {
       return;
     }
     setError(null);
-    setUploadingImageId(option.id);
+    setCropDraft((prev) => {
+      if (prev) URL.revokeObjectURL(prev.previewUrl);
+      return { option, previewUrl: URL.createObjectURL(file), zoom: 1 };
+    });
+  };
+
+  const closeCropDraft = () => {
+    setCropDraft((prev) => {
+      if (prev) URL.revokeObjectURL(prev.previewUrl);
+      return null;
+    });
+  };
+
+  const saveCroppedImage = async () => {
+    if (!cropDraft) return;
+    setUploadingImageId(cropDraft.option.id);
+    setError(null);
     try {
-      const imageUrl = await compressImageToDataUrl(file);
+      const imageUrl = await cropImageToDataUrl(cropDraft.previewUrl, cropDraft.zoom);
       const { error: uploadError } = await supabase
         .from('innoclub_second_vote_options')
         .update({ image_url: imageUrl, updated_at: new Date().toISOString() })
-        .eq('id', option.id);
+        .eq('id', cropDraft.option.id);
       if (uploadError) {
         setError(uploadError.message);
         return;
       }
-      setVoteOptions((prev) => prev.map((item) => (item.id === option.id ? { ...item, image_url: imageUrl } : item)));
+      setVoteOptions((prev) =>
+        prev.map((item) => (item.id === cropDraft.option.id ? { ...item, image_url: imageUrl } : item))
+      );
+      closeCropDraft();
     } catch (uploadError) {
       setError(uploadError instanceof Error ? uploadError.message : 'อัปโหลดรูปไม่สำเร็จ');
     } finally {
@@ -457,10 +482,21 @@ const InnoClubSecondEvaluationPage: React.FC = () => {
                     </div>
                   </div>
                   <div className="relative grid grid-cols-2 gap-x-4 gap-y-8 sm:gap-x-8 sm:gap-y-10">
-                    {voteOptions.map((option) => {
+                    {(voteSubmitted
+                      ? [...voteOptions].sort((a, b) => {
+                          const resultA = getVoteResult(category.id, a.id);
+                          const resultB = getVoteResult(category.id, b.id);
+                          if (resultB.count !== resultA.count) return resultB.count - resultA.count;
+                          return (a.sort_order ?? 9999) - (b.sort_order ?? 9999);
+                        })
+                      : voteOptions
+                    ).map((option, rankIndex) => {
                       const selected = votes[category.id] === option.id;
                       const isUploading = uploadingImageId === option.id;
                       const result = getVoteResult(category.id, option.id);
+                      const rank = rankIndex + 1;
+                      const isWinner = voteSubmitted && rank === 1 && result.total > 0;
+                      const isTopRank = voteSubmitted && rank <= 3 && result.total > 0;
                       return (
                         <div
                           key={option.id}
@@ -476,11 +512,54 @@ const InnoClubSecondEvaluationPage: React.FC = () => {
                             }
                           }}
                           className={`group relative cursor-pointer rounded-[2rem] px-2 pb-3 pt-2 text-center transition-all hover:-translate-y-1 ${
-                            selected
-                              ? 'scale-[1.03]'
-                              : 'hover:scale-[1.02]'
+                            isTopRank && rank === 1
+                              ? 'col-span-2 mx-auto w-full max-w-sm scale-[1.04] rounded-[2.5rem] bg-yellow-100/10 py-5 shadow-[0_0_54px_rgba(250,204,21,0.34)]'
+                              : isTopRank && rank === 2
+                                ? 'rounded-[2.5rem] bg-slate-100/10 py-4 shadow-[0_0_42px_rgba(226,232,240,0.28)]'
+                                : isTopRank && rank === 3
+                                  ? 'rounded-[2.5rem] bg-orange-500/12 py-4 shadow-[0_0_42px_rgba(194,65,12,0.28)]'
+                                  : selected
+                                    ? 'scale-[1.03]'
+                                    : 'hover:scale-[1.02]'
                           }`}
                         >
+                          {voteSubmitted && (
+                            <div
+                              className={`relative mx-auto mb-2 w-fit rounded-full border px-4 py-1 text-xs font-black ${
+                                rank === 1
+                                  ? 'border-yellow-100 bg-gradient-to-r from-yellow-100 via-amber-300 to-yellow-500 text-black shadow-[0_0_22px_rgba(250,204,21,0.35)]'
+                                  : rank === 2
+                                    ? 'border-slate-100 bg-gradient-to-r from-white via-slate-300 to-slate-500 text-slate-950 shadow-[0_0_22px_rgba(226,232,240,0.35)]'
+                                    : rank === 3
+                                      ? 'border-orange-100 bg-gradient-to-r from-orange-100 via-amber-600 to-red-800 text-white shadow-[0_0_22px_rgba(194,65,12,0.38)]'
+                                  : 'border-yellow-100/25 bg-black/35 text-yellow-100'
+                              }`}
+                            >
+                              {rank === 1 && (
+                                <span className="absolute -top-9 left-1/2 flex h-10 w-12 -translate-x-1/2 items-center justify-center drop-shadow-[0_0_16px_rgba(250,204,21,0.75)]">
+                                  <svg viewBox="0 0 64 48" className="h-full w-full" aria-label={`มงกุฎอันดับ ${rank}`}>
+                                    <path
+                                      d="M8 18 22 30 32 8 42 30 56 18 50 42H14L8 18Z"
+                                      fill="#facc15"
+                                      stroke="#fff7c2"
+                                      strokeWidth="3"
+                                      strokeLinejoin="round"
+                                    />
+                                    <path
+                                      d="M15 42h34"
+                                      stroke="#92400e"
+                                      strokeWidth="5"
+                                      strokeLinecap="round"
+                                    />
+                                    <circle cx="32" cy="8" r="4" fill="#fff7c2" />
+                                    <circle cx="8" cy="18" r="3" fill="#fff7c2" />
+                                    <circle cx="56" cy="18" r="3" fill="#fff7c2" />
+                                  </svg>
+                                </span>
+                              )}
+                              อันดับ {rank}
+                            </div>
+                          )}
                           <input
                             type="radio"
                             name={category.id}
@@ -493,7 +572,13 @@ const InnoClubSecondEvaluationPage: React.FC = () => {
                             className="relative mx-auto aspect-square w-full max-w-[12rem] rounded-full p-[6px] shadow-[0_0_34px_rgba(250,204,21,0.28)] transition-all duration-700"
                             style={{
                               background: voteSubmitted
-                                ? `conic-gradient(#fde68a 0% ${result.percent}%, rgba(255,255,255,0.16) ${result.percent}% 100%)`
+                                ? rank === 1
+                                  ? `conic-gradient(#fde68a 0% ${result.percent}%, rgba(255,255,255,0.16) ${result.percent}% 100%)`
+                                  : rank === 2
+                                    ? `conic-gradient(#e2e8f0 0% ${result.percent}%, rgba(255,255,255,0.16) ${result.percent}% 100%)`
+                                    : rank === 3
+                                      ? `conic-gradient(#c2410c 0% ${result.percent}%, rgba(255,255,255,0.16) ${result.percent}% 100%)`
+                                      : `conic-gradient(#fde68a 0% ${result.percent}%, rgba(255,255,255,0.16) ${result.percent}% 100%)`
                                 : selected
                                   ? 'conic-gradient(from 0deg, #fff7c2, #facc15, #7c2d12, #fff7c2)'
                                   : 'conic-gradient(from 0deg, rgba(255,247,194,0.8), rgba(250,204,21,0.45), rgba(124,45,18,0.65), rgba(255,247,194,0.8))',
@@ -516,11 +601,23 @@ const InnoClubSecondEvaluationPage: React.FC = () => {
                               </div>
                             )}
                             {voteSubmitted && (
-                              <div className="absolute -right-3 top-1/2 flex -translate-y-1/2 items-center sm:-right-5">
-                                <div className="h-0 w-0 border-y-[8px] border-r-[10px] border-y-transparent border-r-[#5b140b]" />
-                                <div className="rounded-2xl border border-yellow-100/50 bg-[#5b140b]/95 px-2.5 py-2 text-yellow-100 shadow-[0_0_24px_rgba(0,0,0,0.65)] backdrop-blur">
+                              <div className="absolute -right-12 top-1/2 flex -translate-y-1/2 items-center sm:-right-16">
+                                <div
+                                  className={`h-0 w-0 border-y-[8px] border-r-[10px] border-y-transparent ${
+                                    rank === 2 ? 'border-r-slate-500' : rank === 3 ? 'border-r-red-900' : 'border-r-[#5b140b]'
+                                  }`}
+                                />
+                                <div
+                                  className={`rounded-2xl border px-2.5 py-2 shadow-[0_0_24px_rgba(0,0,0,0.65)] backdrop-blur ${
+                                    rank === 2
+                                      ? 'border-slate-100/60 bg-slate-500/95 text-white'
+                                      : rank === 3
+                                        ? 'border-orange-100/60 bg-red-900/95 text-orange-100'
+                                        : 'border-yellow-100/50 bg-[#5b140b]/95 text-yellow-100'
+                                  }`}
+                                >
                                   <span className="block text-lg font-black leading-none">{result.percent}%</span>
-                                  <span className="mt-0.5 block text-[9px] font-bold text-yellow-100/75">{result.count} คะแนน</span>
+                                  <span className="mt-0.5 block text-[9px] font-bold opacity-80">{result.count} คะแนน</span>
                                 </div>
                               </div>
                             )}
@@ -530,7 +627,7 @@ const InnoClubSecondEvaluationPage: React.FC = () => {
                           </div>
                           {voteSubmitted ? (
                             <div className="mx-auto mt-3 w-fit rounded-full border border-yellow-100/30 bg-black/35 px-3 py-1 text-[11px] font-black text-yellow-100">
-                              {result.percent}% · {result.count}/{result.total} คะแนน
+                              {result.count} คะแนนโหวต
                             </div>
                           ) : (
                             <button
@@ -559,7 +656,7 @@ const InnoClubSecondEvaluationPage: React.FC = () => {
                               className="sr-only"
                               disabled={isUploading}
                               onChange={(e) => {
-                                handleImageUpload(option, e.target.files?.[0]);
+                                prepareImageCrop(option, e.target.files?.[0]);
                                 e.currentTarget.value = '';
                               }}
                             />
@@ -606,6 +703,57 @@ const InnoClubSecondEvaluationPage: React.FC = () => {
             >
               ไปยังการโหวต
             </button>
+          </div>
+        </div>
+      )}
+
+      {cropDraft && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 px-4">
+          <div className="w-full max-w-md rounded-[2rem] border border-yellow-200/30 bg-[#140504] p-5 text-center shadow-2xl">
+            <p className="text-xs font-black uppercase tracking-[0.24em] text-yellow-100/70">Crop Nominee Photo</p>
+            <h2 className="mt-2 text-2xl font-black text-yellow-100">{cropDraft.option.label}</h2>
+            <div className="mx-auto mt-5 aspect-square w-full max-w-[17rem] overflow-hidden rounded-full border-[6px] border-yellow-100 bg-black shadow-[0_0_35px_rgba(250,204,21,0.28)]">
+              <img
+                src={cropDraft.previewUrl}
+                alt={cropDraft.option.label}
+                className="h-full w-full object-cover transition-transform duration-150"
+                style={{ transform: `scale(${cropDraft.zoom})` }}
+              />
+            </div>
+            <div className="mt-5 rounded-2xl border border-yellow-100/20 bg-black/30 p-4">
+              <div className="mb-2 flex items-center justify-between text-xs font-bold text-yellow-100/80">
+                <span>ซูมออก</span>
+                <span>{Math.round(cropDraft.zoom * 100)}%</span>
+                <span>ซูมเข้า</span>
+              </div>
+              <input
+                type="range"
+                min="1"
+                max="2.6"
+                step="0.05"
+                value={cropDraft.zoom}
+                onChange={(e) => setCropDraft((prev) => (prev ? { ...prev, zoom: Number(e.target.value) } : prev))}
+                className="w-full accent-yellow-300"
+              />
+              <p className="mt-2 text-xs text-yellow-100/55">จัดรูปให้อยู่ในวงกลม แล้วกดบันทึกรูป</p>
+            </div>
+            <div className="mt-5 grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={closeCropDraft}
+                className="rounded-full border border-white/15 bg-white/10 px-4 py-3 font-bold text-white hover:bg-white/20"
+              >
+                ยกเลิก
+              </button>
+              <button
+                type="button"
+                onClick={saveCroppedImage}
+                disabled={uploadingImageId === cropDraft.option.id}
+                className="rounded-full bg-gradient-to-r from-yellow-100 via-amber-300 to-yellow-500 px-4 py-3 font-black text-black disabled:opacity-60"
+              >
+                {uploadingImageId === cropDraft.option.id ? 'กำลังบันทึก...' : 'บันทึกรูป'}
+              </button>
+            </div>
           </div>
         </div>
       )}
