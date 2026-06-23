@@ -481,7 +481,11 @@ const InnoClubSecondEvaluationPage: React.FC = () => {
                       <p className="mt-1 text-amber-50/75">{category.description}</p>
                     </div>
                   </div>
-                  <div className="relative grid grid-cols-2 gap-x-4 gap-y-8 sm:gap-x-8 sm:gap-y-10">
+                  <div
+                    className={`relative grid gap-x-4 gap-y-8 sm:gap-x-8 sm:gap-y-10 ${
+                      voteSubmitted ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-2'
+                    }`}
+                  >
                     {(voteSubmitted
                       ? [...voteOptions].sort((a, b) => {
                           const resultA = getVoteResult(category.id, a.id);
@@ -513,7 +517,7 @@ const InnoClubSecondEvaluationPage: React.FC = () => {
                           }}
                           className={`group relative cursor-pointer rounded-[2rem] px-2 pb-3 pt-2 text-center transition-all hover:-translate-y-1 ${
                             isTopRank && rank === 1
-                              ? 'col-span-2 mx-auto w-full max-w-sm scale-[1.04] rounded-[2.5rem] bg-yellow-100/10 py-5 shadow-[0_0_54px_rgba(250,204,21,0.34)]'
+                              ? 'col-span-1 mx-auto w-full max-w-sm scale-[1.02] rounded-[2.5rem] bg-yellow-100/10 py-5 shadow-[0_0_54px_rgba(250,204,21,0.34)] sm:col-span-2 sm:scale-[1.04]'
                               : isTopRank && rank === 2
                                 ? 'rounded-[2.5rem] bg-slate-100/10 py-4 shadow-[0_0_42px_rgba(226,232,240,0.28)]'
                                 : isTopRank && rank === 3
@@ -601,14 +605,14 @@ const InnoClubSecondEvaluationPage: React.FC = () => {
                               </div>
                             )}
                             {voteSubmitted && (
-                              <div className="absolute -right-12 top-1/2 flex -translate-y-1/2 items-center sm:-right-16">
+                              <div className="absolute -right-10 top-1/2 flex -translate-y-1/2 items-center sm:-right-16">
                                 <div
                                   className={`h-0 w-0 border-y-[8px] border-r-[10px] border-y-transparent ${
                                     rank === 2 ? 'border-r-slate-500' : rank === 3 ? 'border-r-red-900' : 'border-r-[#5b140b]'
                                   }`}
                                 />
                                 <div
-                                  className={`rounded-2xl border px-2.5 py-2 shadow-[0_0_24px_rgba(0,0,0,0.65)] backdrop-blur ${
+                                  className={`rounded-2xl border px-2 py-1.5 shadow-[0_0_24px_rgba(0,0,0,0.65)] backdrop-blur sm:px-2.5 sm:py-2 ${
                                     rank === 2
                                       ? 'border-slate-100/60 bg-slate-500/95 text-white'
                                       : rank === 3
@@ -616,7 +620,7 @@ const InnoClubSecondEvaluationPage: React.FC = () => {
                                         : 'border-yellow-100/50 bg-[#5b140b]/95 text-yellow-100'
                                   }`}
                                 >
-                                  <span className="block text-lg font-black leading-none">{result.percent}%</span>
+                                  <span className="block text-base font-black leading-none sm:text-lg">{result.percent}%</span>
                                   <span className="mt-0.5 block text-[9px] font-bold opacity-80">{result.count} คะแนน</span>
                                 </div>
                               </div>
