@@ -626,7 +626,7 @@ const InnoClubSecondEvaluationPage: React.FC = () => {
                               </div>
                             )}
                           </div>
-                          <div className="mx-auto -mt-2 w-fit max-w-full rounded-full border border-yellow-100/50 bg-[#5b140b]/90 px-4 py-1.5 text-sm sm:text-base font-black text-yellow-50 shadow-[0_8px_20px_rgba(0,0,0,0.35)]">
+                          <div className="mx-auto mt-3 w-fit max-w-full rounded-full border border-yellow-100/50 bg-[#5b140b]/90 px-4 py-1.5 text-sm font-black text-yellow-50 shadow-[0_8px_20px_rgba(0,0,0,0.35)] sm:-mt-2 sm:text-base">
                             {option.label}
                           </div>
                           {voteSubmitted ? (
