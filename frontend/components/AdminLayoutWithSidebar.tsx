@@ -35,6 +35,7 @@ const AdminLayoutWithSidebar: React.FC = () => {
   const isAdminLeavePage = isLeave;
   const isStickycloud = location.pathname === '/admin/rooms';
   const isMinddojoUsers = location.pathname === '/admin/minddojo-users';
+  const isInnoClubSecondVote = location.pathname === '/admin/innoclub-2-vote';
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const showLeaveManageLink = user?.email != null && ADMIN_LEAVE_MANAGER_EMAILS.includes(user.email);
   type AdminUserRow = {
@@ -348,7 +349,7 @@ const AdminLayoutWithSidebar: React.FC = () => {
       <nav className="flex-1 pt-4 space-y-1">
         <Link
           to="/admin"
-          className={`block py-2.5 px-3 rounded-lg text-sm font-medium transition-colors ${!isLeave && !isStickycloud && !isMinddojoUsers ? 'bg-yellow-400/20 text-yellow-400' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
+          className={`block py-2.5 px-3 rounded-lg text-sm font-medium transition-colors ${!isLeave && !isStickycloud && !isMinddojoUsers && !isInnoClubSecondVote ? 'bg-yellow-400/20 text-yellow-400' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
         >
           ดูข้อมูล Database
         </Link>
@@ -394,6 +395,20 @@ const AdminLayoutWithSidebar: React.FC = () => {
             >
               แบบประเมิน InnoClub
             </a>
+            <a
+              href="/evaluation/innoclub-2"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block py-2 px-3 rounded-lg text-sm font-medium text-gray-400 hover:bg-white/5 hover:text-white transition-colors"
+            >
+              แบบประเมิน InnoClub ครั้งที่ 2
+            </a>
+            <Link
+              to="/admin/innoclub-2-vote"
+              className={`block py-2 px-3 rounded-lg text-sm font-medium transition-colors ${isInnoClubSecondVote ? 'bg-yellow-400/20 text-yellow-400' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
+            >
+              Admin โหวต InnoClub ครั้งที่ 2
+            </Link>
             <a
               href="/evaluation/eva-editor"
               target="_blank"

@@ -40,6 +40,8 @@ const GameAr = lazy(() => import('./components/GameAr'));
 const GameHiddenFox = lazy(() => import('./components/GameHiddenFox'));
 const WhaleDoneRolePlayPage = lazy(() => import('./components/WhaleDoneRolePlayPage'));
 const InnoClubEvaluationPage = lazy(() => import('./components/InnoClubEvaluationPage'));
+const InnoClubSecondEvaluationPage = lazy(() => import('./components/InnoClubSecondEvaluationPage'));
+const AdminInnoClubSecondVotePage = lazy(() => import('./components/AdminInnoClubSecondVotePage'));
 const HogwartsInnoclubPage = lazy(() => import('./components/HogwartsInnoclubPage'));
 const EvaEditorPage = lazy(() => import('./components/EvaEditorPage'));
 const EvaPublicFormPage = lazy(() => import('./components/EvaPublicFormPage'));
@@ -240,6 +242,7 @@ const App: React.FC = () => {
               <Route path="leave/manage" element={<AdminLeaveManagePage />} />
               <Route path="rooms" element={<AdminStickycloudPage />} />
               <Route path="minddojo-users" element={<AdminMindDojoAssessmentUsersPage />} />
+              <Route path="innoclub-2-vote" element={<AdminInnoClubSecondVotePage />} />
             </Route>
           </Routes>
         </Suspense>
@@ -301,6 +304,7 @@ const App: React.FC = () => {
       <Suspense fallback={<RouteFallback />}>
         <Routes>
           <Route path="/evaluation/innoclub" element={<InnoClubEvaluationPage />} />
+          <Route path="/evaluation/innoclub-2" element={<InnoClubSecondEvaluationPage />} />
           <Route path="/evaluation/eva-editor" element={<EvaEditorPage />} />
           <Route path="/evaluation/dashboard/login" element={<EvaDashboardLoginPage />} />
           <Route path="/evaluation/dashboard" element={<EvaDashboardPage />} />

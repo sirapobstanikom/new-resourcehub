@@ -6,6 +6,9 @@ import { supabase, isSupabaseConfigured } from '../lib/supabase';
 export type CollectionId =
   | 'leadership_entries'
   | 'innoclub_evaluation_responses'
+  | 'innoclub_second_reflections'
+  | 'innoclub_second_votes'
+  | 'innoclub_second_vote_options'
   | 'leave_requests'
   | 'persuasion_results'
   | 'reactive_proactive_mindset_results'
@@ -15,6 +18,21 @@ export type CollectionId =
 const COLLECTIONS: { id: CollectionId; label: string; description: string }[] = [
   { id: 'leadership_entries', label: 'Leadership Entries', description: 'ผลแบบประเมินสมรรถนะภาวะผู้นำ' },
   { id: 'innoclub_evaluation_responses', label: 'แบบประเมิน INNO Club', description: 'ความพึงพอใจ PTT GROUP INNO Club' },
+  {
+    id: 'innoclub_second_reflections',
+    label: 'InnoClub ครั้งที่ 2 — Reflection',
+    description: 'คำตอบ Post-Activity Reflection Questions',
+  },
+  {
+    id: 'innoclub_second_votes',
+    label: 'InnoClub ครั้งที่ 2 — Vote',
+    description: 'ผลโหวต Stop Motion & AI Video Creation Vote',
+  },
+  {
+    id: 'innoclub_second_vote_options',
+    label: 'InnoClub ครั้งที่ 2 — Vote Options',
+    description: 'รายชื่อทีม/ผลงานที่เปิดให้โหวต',
+  },
   { id: 'leave_requests', label: 'คำขอลา (Leave Requests)', description: 'คำขอลาทุกประเภท รวมลากิจ ลาป่วย Work from Home ลาพักร้อน ลาไม่รับเงิน' },
   {
     id: 'persuasion_results',
