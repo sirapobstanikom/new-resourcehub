@@ -75,3 +75,11 @@ create policy "Allow read innoclub second votes for authenticated"
   on public.innoclub_second_votes for select
   to authenticated
   using (true);
+
+grant select on public.innoclub_second_votes to anon;
+grant select on public.innoclub_second_votes to authenticated;
+
+drop policy if exists "Allow public read innoclub second votes" on public.innoclub_second_votes;
+create policy "Allow public read innoclub second votes"
+  on public.innoclub_second_votes for select
+  using (true);

@@ -10,15 +10,46 @@ type VoteOption = {
   sort_order: number | null;
 };
 
-const fileToDataUrl = (file: File) =>
+const MAX_UPLOAD_SOURCE_BYTES = 8 * 1024 * 1024;
+const MAX_IMAGE_SIDE = 900;
+
+const compressImageToDataUrl = (file: File) =>
   new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result || ''));
-    reader.onerror = () => reject(reader.error);
-    reader.readAsDataURL(file);
+    const image = new Image();
+    const objectUrl = URL.createObjectURL(file);
+
+    image.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+      const scale = Math.min(1, MAX_IMAGE_SIDE / Math.max(image.width, image.height));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.max(1, Math.round(image.width * scale));
+      canvas.height = Math.max(1, Math.round(image.height * scale));
+      const context = canvas.getContext('2d');
+
+      if (!context) {
+        reject(new Error('Cannot resize image'));
+        return;
+      }
+
+      context.drawImage(image, 0, 0, canvas.width, canvas.height);
+      resolve(canvas.toDataURL('image/jpeg', 0.82));
+    };
+    image.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error('Cannot load image'));
+    };
+    image.src = objectUrl;
   });
 
 type VoteCategoryId = 'best_storytelling' | 'most_creative_product_launch' | 'most_market_impact';
+
+type VoteResults = Partial<Record<VoteCategoryId, { total: number; counts: Record<string, number> }>>;
+
+type VoteRow = {
+  best_storytelling_option_id: string | null;
+  most_creative_product_launch_option_id: string | null;
+  most_market_impact_option_id: string | null;
+};
 
 const REFLECTION_QUESTIONS = [
   {
@@ -55,6 +86,12 @@ const VOTE_CATEGORIES: { id: VoteCategoryId; title: string; description: string 
     description: 'สื่อสารสินค้าได้ตรงใจที่สุด',
   },
 ];
+
+const VOTE_RESULT_COLUMNS: Record<VoteCategoryId, keyof VoteRow> = {
+  best_storytelling: 'best_storytelling_option_id',
+  most_creative_product_launch: 'most_creative_product_launch_option_id',
+  most_market_impact: 'most_market_impact_option_id',
+};
 
 const THEATER_PAGE_CLASS =
   'min-h-screen bg-[#090100] text-white flex flex-col selection:bg-yellow-300 selection:text-black innoclub-angsana';
@@ -117,6 +154,7 @@ const InnoClubSecondEvaluationPage: React.FC = () => {
   const [submittingVote, setSubmittingVote] = useState(false);
   const [uploadingImageId, setUploadingImageId] = useState<string | null>(null);
   const [voteSubmitted, setVoteSubmitted] = useState(false);
+  const [voteResults, setVoteResults] = useState<VoteResults>({});
   const [error, setError] = useState<string | null>(null);
 
   const answeredCount = useMemo(
@@ -125,6 +163,14 @@ const InnoClubSecondEvaluationPage: React.FC = () => {
   );
   const canSubmitReflection = answeredCount === REFLECTION_QUESTIONS.length;
   const canSubmitVote = VOTE_CATEGORIES.every((category) => votes[category.id]);
+
+  const getVoteResult = (categoryId: VoteCategoryId, optionId: string) => {
+    const categoryResult = voteResults[categoryId];
+    const total = categoryResult?.total ?? 0;
+    const count = categoryResult?.counts[optionId] ?? 0;
+    const percent = total > 0 ? Math.round((count / total) * 100) : 0;
+    return { count, total, percent };
+  };
 
   useEffect(() => {
     if (!reflectionSubmitted || !isSupabaseConfigured) return;
@@ -149,6 +195,35 @@ const InnoClubSecondEvaluationPage: React.FC = () => {
 
   const setAnswer = (id: string, value: string) => {
     setAnswers((prev) => ({ ...prev, [id]: value }));
+  };
+
+  const loadVoteResults = async () => {
+    const { data, error: loadError } = await supabase
+      .from('innoclub_second_votes')
+      .select('best_storytelling_option_id, most_creative_product_launch_option_id, most_market_impact_option_id');
+
+    if (loadError) {
+      setError(loadError.message);
+      return false;
+    }
+
+    const nextResults: Record<VoteCategoryId, { total: number; counts: Record<string, number> }> = {
+      best_storytelling: { total: 0, counts: {} },
+      most_creative_product_launch: { total: 0, counts: {} },
+      most_market_impact: { total: 0, counts: {} },
+    };
+
+    ((data as VoteRow[]) || []).forEach((row) => {
+      VOTE_CATEGORIES.forEach((category) => {
+        const optionId = row[VOTE_RESULT_COLUMNS[category.id]];
+        if (!optionId) return;
+        nextResults[category.id].total += 1;
+        nextResults[category.id].counts[optionId] = (nextResults[category.id].counts[optionId] || 0) + 1;
+      });
+    });
+
+    setVoteResults(nextResults);
+    return true;
   };
 
   const handleReflectionSubmit = async (e: React.FormEvent) => {
@@ -194,11 +269,13 @@ const InnoClubSecondEvaluationPage: React.FC = () => {
       most_creative_product_launch_option_id: votes.most_creative_product_launch,
       most_market_impact_option_id: votes.most_market_impact,
     });
-    setSubmittingVote(false);
     if (submitError) {
+      setSubmittingVote(false);
       setError(submitError.message);
       return;
     }
+    await loadVoteResults();
+    setSubmittingVote(false);
     setVoteSubmitted(true);
   };
 
@@ -212,14 +289,14 @@ const InnoClubSecondEvaluationPage: React.FC = () => {
       setError('กรุณาเลือกไฟล์รูปภาพ');
       return;
     }
-    if (file.size > 900 * 1024) {
-      setError('รูปใหญ่เกินไป กรุณาใช้รูปไม่เกิน 900KB');
+    if (file.size > MAX_UPLOAD_SOURCE_BYTES) {
+      setError('รูปใหญ่เกินไป กรุณาใช้รูปไม่เกิน 8MB');
       return;
     }
     setError(null);
     setUploadingImageId(option.id);
     try {
-      const imageUrl = await fileToDataUrl(file);
+      const imageUrl = await compressImageToDataUrl(file);
       const { error: uploadError } = await supabase
         .from('innoclub_second_vote_options')
         .update({ image_url: imageUrl, updated_at: new Date().toISOString() })
@@ -229,8 +306,8 @@ const InnoClubSecondEvaluationPage: React.FC = () => {
         return;
       }
       setVoteOptions((prev) => prev.map((item) => (item.id === option.id ? { ...item, image_url: imageUrl } : item)));
-    } catch {
-      setError('อัปโหลดรูปไม่สำเร็จ');
+    } catch (uploadError) {
+      setError(uploadError instanceof Error ? uploadError.message : 'อัปโหลดรูปไม่สำเร็จ');
     } finally {
       setUploadingImageId(null);
     }
@@ -383,16 +460,19 @@ const InnoClubSecondEvaluationPage: React.FC = () => {
                     {voteOptions.map((option) => {
                       const selected = votes[category.id] === option.id;
                       const isUploading = uploadingImageId === option.id;
+                      const result = getVoteResult(category.id, option.id);
                       return (
                         <div
                           key={option.id}
                           role="button"
                           tabIndex={0}
-                          onClick={() => setVotes((prev) => ({ ...prev, [category.id]: option.id }))}
+                          onClick={() => {
+                            if (!voteSubmitted) setVotes((prev) => ({ ...prev, [category.id]: option.id }));
+                          }}
                           onKeyDown={(e) => {
                             if (e.key === 'Enter' || e.key === ' ') {
                               e.preventDefault();
-                              setVotes((prev) => ({ ...prev, [category.id]: option.id }));
+                              if (!voteSubmitted) setVotes((prev) => ({ ...prev, [category.id]: option.id }));
                             }
                           }}
                           className={`group relative cursor-pointer rounded-[2rem] px-2 pb-3 pt-2 text-center transition-all hover:-translate-y-1 ${
@@ -410,11 +490,14 @@ const InnoClubSecondEvaluationPage: React.FC = () => {
                             className="sr-only"
                           />
                           <div
-                            className={`relative mx-auto aspect-square w-full max-w-[12rem] rounded-full p-[5px] shadow-[0_0_34px_rgba(250,204,21,0.28)] ${
-                              selected
-                                ? 'bg-[conic-gradient(from_0deg,#fff7c2,#facc15,#7c2d12,#fff7c2)]'
-                                : 'bg-[conic-gradient(from_0deg,rgba(255,247,194,0.8),rgba(250,204,21,0.45),rgba(124,45,18,0.65),rgba(255,247,194,0.8))]'
-                            }`}
+                            className="relative mx-auto aspect-square w-full max-w-[12rem] rounded-full p-[6px] shadow-[0_0_34px_rgba(250,204,21,0.28)] transition-all duration-700"
+                            style={{
+                              background: voteSubmitted
+                                ? `conic-gradient(#fde68a 0% ${result.percent}%, rgba(255,255,255,0.16) ${result.percent}% 100%)`
+                                : selected
+                                  ? 'conic-gradient(from 0deg, #fff7c2, #facc15, #7c2d12, #fff7c2)'
+                                  : 'conic-gradient(from 0deg, rgba(255,247,194,0.8), rgba(250,204,21,0.45), rgba(124,45,18,0.65), rgba(255,247,194,0.8))',
+                            }}
                           >
                             <div className="absolute inset-[-10px] rounded-full border border-yellow-100/20" />
                             <div className="absolute inset-[-18px] rounded-full border border-yellow-100/10" />
@@ -427,18 +510,44 @@ const InnoClubSecondEvaluationPage: React.FC = () => {
                                 </div>
                               )}
                             </div>
-                            {selected && (
+                            {selected && !voteSubmitted && (
                               <div className="absolute right-0 top-1/2 flex h-14 w-14 -translate-y-1/2 items-center justify-center rounded-full border-2 border-yellow-100 bg-[#6d170c] text-xs font-black text-yellow-100 shadow-[0_0_22px_rgba(250,204,21,0.45)]">
                                 เลือก
+                              </div>
+                            )}
+                            {voteSubmitted && (
+                              <div className="absolute -right-3 top-1/2 flex -translate-y-1/2 items-center sm:-right-5">
+                                <div className="h-0 w-0 border-y-[8px] border-r-[10px] border-y-transparent border-r-[#5b140b]" />
+                                <div className="rounded-2xl border border-yellow-100/50 bg-[#5b140b]/95 px-2.5 py-2 text-yellow-100 shadow-[0_0_24px_rgba(0,0,0,0.65)] backdrop-blur">
+                                  <span className="block text-lg font-black leading-none">{result.percent}%</span>
+                                  <span className="mt-0.5 block text-[9px] font-bold text-yellow-100/75">{result.count} คะแนน</span>
+                                </div>
                               </div>
                             )}
                           </div>
                           <div className="mx-auto -mt-2 w-fit max-w-full rounded-full border border-yellow-100/50 bg-[#5b140b]/90 px-4 py-1.5 text-sm sm:text-base font-black text-yellow-50 shadow-[0_8px_20px_rgba(0,0,0,0.35)]">
                             {option.label}
                           </div>
-                          <div className="mx-auto mt-2 w-fit rounded-full bg-gradient-to-r from-yellow-100 via-amber-300 to-yellow-500 px-4 py-1 text-xs font-black uppercase tracking-wide text-black shadow-[0_8px_20px_rgba(250,204,21,0.22)]">
-                            {selected ? 'VOTED' : 'VOTE'}
-                          </div>
+                          {voteSubmitted ? (
+                            <div className="mx-auto mt-3 w-fit rounded-full border border-yellow-100/30 bg-black/35 px-3 py-1 text-[11px] font-black text-yellow-100">
+                              {result.percent}% · {result.count}/{result.total} คะแนน
+                            </div>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setVotes((prev) => ({ ...prev, [category.id]: option.id }));
+                              }}
+                              className={`mx-auto mt-2 block w-fit rounded-full px-4 py-1 text-xs font-black uppercase tracking-wide shadow-[0_8px_20px_rgba(250,204,21,0.22)] transition-all ${
+                                selected
+                                  ? 'bg-white text-[#58130b]'
+                                  : 'bg-gradient-to-r from-yellow-100 via-amber-300 to-yellow-500 text-black hover:scale-105'
+                              }`}
+                            >
+                              {selected ? 'เลือกแล้ว' : 'กดโหวต'}
+                            </button>
+                          )}
                           <label
                             className="mx-auto mt-2 block w-fit rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[11px] font-bold text-yellow-100 hover:bg-white/20"
                             onClick={(e) => e.stopPropagation()}
@@ -449,7 +558,10 @@ const InnoClubSecondEvaluationPage: React.FC = () => {
                               accept="image/*"
                               className="sr-only"
                               disabled={isUploading}
-                              onChange={(e) => handleImageUpload(option, e.target.files?.[0])}
+                              onChange={(e) => {
+                                handleImageUpload(option, e.target.files?.[0]);
+                                e.currentTarget.value = '';
+                              }}
                             />
                           </label>
                         </div>
@@ -464,16 +576,19 @@ const InnoClubSecondEvaluationPage: React.FC = () => {
               <div className="rounded-[2rem] border border-yellow-200/30 bg-[radial-gradient(circle_at_50%_0%,rgba(255,238,190,0.22),transparent_36%),linear-gradient(135deg,rgba(17,5,3,0.95),rgba(78,11,8,0.78))] p-7 text-center shadow-[0_24px_70px_rgba(0,0,0,0.45)]">
                 <p className="text-xs font-bold uppercase tracking-[0.28em] text-yellow-100/80">Ballot Submitted</p>
                 <h2 className="mt-2 text-2xl font-black text-[#ffe8a8]">ส่งผลโหวตแล้ว</h2>
-                <p className="mt-2 text-amber-50/80">ขอบคุณที่ร่วมโหวตในค่ำคืนรางวัล InnoClub</p>
+                <p className="mt-2 text-amber-50/80">เปอร์เซ็นต์ด้านบนคำนวณแยกตามแต่ละหมวดรางวัล</p>
               </div>
             ) : (
-              <button
-                type="submit"
-                disabled={submittingVote || !canSubmitVote || voteOptions.length === 0}
-                className="w-full sm:w-auto sm:min-w-56 px-8 py-4 rounded-full font-black text-base bg-gradient-to-r from-yellow-100 via-amber-300 to-yellow-600 text-black hover:from-white hover:to-amber-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-[0_16px_40px_rgba(250,204,21,0.28)]"
-              >
-                {submittingVote ? 'กำลังส่งผลโหวต...' : 'ยืนยันผลโหวตบนเวที'}
-              </button>
+              <div className="sticky bottom-0 z-20 -mx-4 border-t border-yellow-200/20 bg-[#120302]/95 px-4 pt-3 pb-4 backdrop-blur sm:mx-0 sm:rounded-[2rem] sm:border sm:bg-black/55 sm:p-4">
+                <button
+                  type="submit"
+                  disabled={submittingVote || !canSubmitVote || voteOptions.length === 0}
+                  className="w-full px-8 py-4 rounded-full font-black text-base bg-gradient-to-r from-yellow-100 via-amber-300 to-yellow-600 text-black hover:from-white hover:to-amber-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-[0_16px_40px_rgba(250,204,21,0.28)]"
+                >
+                  {submittingVote ? 'กำลังส่งผลโหวต...' : 'กดโหวต'}
+                </button>
+                <p className="mt-2 text-center text-xs text-yellow-100/60">เลือกให้ครบทั้ง 3 หมวด แล้วกดโหวตด้านล่าง</p>
+              </div>
             )}
           </form>
         )}
