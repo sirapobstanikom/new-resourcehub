@@ -137,11 +137,11 @@ const InnoClubEvaluationPage: React.FC = () => {
             </svg>
             หน้าหลัก
           </Link>
-          <div className="flex items-center gap-2 rounded-xl border border-yellow-300/20 bg-gradient-to-r from-[#3a225f]/80 via-[#1f1238]/80 to-[#5a3a17]/80 px-2 py-1.5 lg:px-3 lg:py-2">
-            <div className="w-8 h-8 lg:w-9 lg:h-9 bg-yellow-400 rounded-lg flex items-center justify-center shadow-[0_0_16px_rgba(250,204,21,0.35)]">
+          <div className="flex items-center gap-2 rounded-xl border border-yellow-200 bg-yellow-400 px-2 py-1.5 text-black shadow-[0_0_16px_rgba(250,204,21,0.35)] lg:px-3 lg:py-2">
+            <div className="w-8 h-8 lg:w-9 lg:h-9 bg-yellow-300 rounded-lg flex items-center justify-center border border-yellow-100">
               <span className="text-black font-bold text-sm lg:text-base">M</span>
             </div>
-            <span className="font-semibold tracking-tight text-sm lg:text-base text-yellow-100">MindDoJo</span>
+            <span className="font-semibold tracking-tight text-sm lg:text-base text-black">MindDoJo</span>
           </div>
         </div>
       </header>
@@ -275,16 +275,6 @@ const InnoClubEvaluationPage: React.FC = () => {
                 <textarea
                   value={form.networking_collaboration}
                   onChange={(e) => setText('networking_collaboration', e.target.value)}
-                  rows={4}
-                  placeholder="กรุณาตอบคำถาม..."
-                  className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/20 text-white placeholder-gray-500 text-base focus:outline-none focus:border-yellow-400 resize-none"
-                />
-              </div>
-              <div>
-                <p className="text-white font-medium text-base lg:text-xl 2xl:text-2xl leading-relaxed mb-3">4. กิจกรรมนี้ช่วยให้ท่าน ได้เเลกเปลี่ยนไอเดีย และรู้จัก/เชื่อมต่อกับผู้อื่นเพื่อทำงานร่วมกันด้านนวัตกรรมได้มากน้อยเพียงใด?</p>
-                <textarea
-                  value={form.improvement_suggestions}
-                  onChange={(e) => setText('improvement_suggestions', e.target.value)}
                   rows={4}
                   placeholder="กรุณาตอบคำถาม..."
                   className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/20 text-white placeholder-gray-500 text-base focus:outline-none focus:border-yellow-400 resize-none"
