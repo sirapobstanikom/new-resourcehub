@@ -284,9 +284,6 @@ const InnoClubEvaluationPage: React.FC = () => {
           </section>
 
           <div className="sticky bottom-0 z-20 -mx-4 border-t border-yellow-300/20 bg-[#101010]/95 px-4 pt-3 pb-4 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0">
-            <div className="mb-3 text-xs lg:text-sm text-yellow-100/80 sm:hidden">
-              เลือกคะแนนครบ 5 ข้อก่อนจึงจะกดส่งได้
-            </div>
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 lg:gap-5 justify-center pt-0 sm:pt-4">
             <button
               type="submit"
