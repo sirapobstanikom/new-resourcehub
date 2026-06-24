@@ -258,7 +258,7 @@ const InnoClubEvaluationPage: React.FC = () => {
             <h2 className="text-lg lg:text-2xl 2xl:text-3xl font-bold text-yellow-400 mb-7">ข้อเสนอแนะและแนวทางการนำไปใช้</h2>
             <div className="space-y-7">
               <div>
-                <p className="text-white font-medium text-base lg:text-xl 2xl:text-2xl leading-relaxed mb-3">1. จากกิจกรรม Innoclub ในครั้งนี้ท่านเข้าใจแนวคิด SIT (Systematic Innovation Thinking) ชัดเจนขึ้นเพียงใด?</p>
+                <p className="text-white font-medium text-base lg:text-xl 2xl:text-2xl leading-relaxed mb-3">1. จากกิจกรรมในวันนี้ ท่านได้เรียนรู้อะไรเกี่ยวกับการสื่อสารสินค้า บริการ หรือไอเดียใหม่ให้ผู้ฟังเข้าใจและสนใจมากขึ้น?</p>
                 <textarea
                   value={form.learn_apply}
                   onChange={(e) => setText('learn_apply', e.target.value)}
@@ -268,7 +268,7 @@ const InnoClubEvaluationPage: React.FC = () => {
                 />
               </div>
               <div>
-                <p className="text-white font-medium text-base lg:text-xl 2xl:text-2xl leading-relaxed mb-3">2. ท่านคิดว่าท่านสามารถนำไปประยุกต์ใช้กับงานของท่านได้มากน้อยเพียงใด?</p>
+                <p className="text-white font-medium text-base lg:text-xl 2xl:text-2xl leading-relaxed mb-3">2. ท่านค้นพบโอกาสหรือแนวทางใหม่ในการใช้ AI เพื่อสนับสนุนงานด้านการสื่อสาร การนำเสนอ หรือการสร้างสรรค์ผลงานอย่างไรบ้าง?</p>
                 <textarea
                   value={form.ai_plan_6months}
                   onChange={(e) => setText('ai_plan_6months', e.target.value)}
@@ -278,7 +278,7 @@ const InnoClubEvaluationPage: React.FC = () => {
                 />
               </div>
               <div>
-                <p className="text-white font-medium text-base lg:text-xl 2xl:text-2xl leading-relaxed mb-3">3. ท่านพึงพอใจต่อรูปแบบการเรียนรู้ผ่านกิจกรรม (Activity Based Learning) ในครั้งนี้เพียงใด?</p>
+                <p className="text-white font-medium text-base lg:text-xl 2xl:text-2xl leading-relaxed mb-3">3. หากมีโอกาสพัฒนาผลงานของทีมต่อไป ท่านคิดว่าจะปรับปรุงหรือเพิ่มเติมอะไร เพื่อให้การสื่อสารมีประสิทธิภาพและสร้างผลกระทบได้มากยิ่งขึ้น?</p>
                 <textarea
                   value={form.networking_collaboration}
                   onChange={(e) => setText('networking_collaboration', e.target.value)}
