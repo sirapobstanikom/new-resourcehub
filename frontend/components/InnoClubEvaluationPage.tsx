@@ -152,7 +152,7 @@ const InnoClubEvaluationPage: React.FC = () => {
             แบบประเมินความพึงพอใจในการร่วมกิจกรรม
           </h1>
           <p className="text-center text-white text-sm sm:text-base lg:text-lg 2xl:text-xl mb-5 lg:mb-6 leading-relaxed">
-            PTT GROUP INNO Club #1 — วันที่ 23 เมษายน 2569 เวลา 09.00-12.00 น.
+            PTT GROUP INNO Club #2 — วันที่ 30 มิถุนายน 2569 เวลา 09.00-12.00 น.
             <br />
             ห้อง The Enterprise ชั้น 8 ตึก ENTER
           </p>
