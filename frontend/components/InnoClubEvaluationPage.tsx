@@ -16,7 +16,6 @@ const InnoClubEvaluationPage: React.FC = () => {
     overall_score: 0 as number,
     atmosphere_score: 0 as number,
     sharing_score: 0 as number,
-    decision_score: 0 as number,
     overall_comment: '',
     learn_apply: '',
     ai_plan_6months: '',
@@ -38,7 +37,6 @@ const InnoClubEvaluationPage: React.FC = () => {
     form.overall_score,
     form.atmosphere_score,
     form.sharing_score,
-    form.decision_score,
   ];
   const allRequiredFilled = requiredScores.every((s) => s >= 1 && s <= 5);
   const answeredRequiredCount = requiredScores.filter((s) => s >= 1 && s <= 5).length;
@@ -91,7 +89,6 @@ const InnoClubEvaluationPage: React.FC = () => {
       overall_score: form.overall_score,
       atmosphere_score: form.atmosphere_score,
       sharing_score: form.sharing_score,
-      decision_score: form.decision_score,
       overall_comment: form.overall_comment || null,
       learn_apply: form.learn_apply || null,
       ai_plan_6months: form.ai_plan_6months || null,
@@ -168,7 +165,7 @@ const InnoClubEvaluationPage: React.FC = () => {
           <div className="flex items-center justify-between gap-3 text-sm lg:text-base 2xl:text-lg">
             <p className="text-yellow-100 font-medium">ความคืบหน้าแบบประเมิน</p>
             <p className="text-white font-medium">
-              {answeredRequiredCount}/6 <span className="text-gray-400">ข้อบังคับ</span>
+              {answeredRequiredCount}/5 <span className="text-gray-400">ข้อบังคับ</span>
             </p>
           </div>
           <div className="mt-2 h-2 lg:h-2.5 2xl:h-3 rounded-full bg-white/10 overflow-hidden">
@@ -237,11 +234,7 @@ const InnoClubEvaluationPage: React.FC = () => {
                 {renderScoreGroup('sharing_score', 'sharing_score')}
               </div>
               <div>
-                <p className="text-white font-medium text-base lg:text-xl 2xl:text-2xl leading-relaxed mb-3">4. PTT GROUP INNO Club ครั้งนี้มีการรับมือกับสถานการณ์ต่าง ๆ หรือมีการตัดสินใจได้อย่างรวดเร็ว มากน้อยเพียงใด *</p>
-                {renderScoreGroup('decision_score', 'decision_score')}
-              </div>
-              <div>
-                <p className="text-gray-500 text-sm mb-3">5. ข้อเสนอแนะเพิ่มเติม</p>
+                <p className="text-gray-500 text-sm mb-3">4. ข้อเสนอแนะเพิ่มเติม</p>
                 <textarea
                   value={form.overall_comment}
                   onChange={(e) => setText('overall_comment', e.target.value)}
@@ -302,7 +295,7 @@ const InnoClubEvaluationPage: React.FC = () => {
 
           <div className="sticky bottom-0 z-20 -mx-4 border-t border-yellow-300/20 bg-[#101010]/95 px-4 pt-3 pb-4 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0">
             <div className="mb-3 text-xs lg:text-sm text-yellow-100/80 sm:hidden">
-              เลือกคะแนนครบ 6 ข้อก่อนจึงจะกดส่งได้
+              เลือกคะแนนครบ 5 ข้อก่อนจึงจะกดส่งได้
             </div>
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 lg:gap-5 justify-center pt-0 sm:pt-4">
             <button
