@@ -99,29 +99,18 @@ const VOTE_RESULT_COLUMNS: Record<VoteCategoryId, keyof VoteRow> = {
 };
 
 const THEATER_PAGE_CLASS =
-  'min-h-screen bg-[#090100] text-white flex flex-col selection:bg-yellow-300 selection:text-black innoclub-angsana';
+  'min-h-screen bg-transparent text-white flex flex-col selection:bg-yellow-300 selection:text-black innoclub-angsana';
+
+const INNOCLUB_SECOND_BACKGROUND_URL =
+  'https://axaasphuaaadzjoffznj.supabase.co/storage/v1/object/public/images/Background%20PTT%20Group.png';
 
 function TheaterBackdrop() {
   return (
     <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,244,196,0.22),transparent_24%),radial-gradient(circle_at_14%_18%,rgba(255,210,120,0.16),transparent_18%),radial-gradient(circle_at_86%_20%,rgba(255,210,120,0.16),transparent_18%),linear-gradient(90deg,rgba(72,0,0,0.88),rgba(11,1,0,0.94)_22%,rgba(20,4,1,0.95)_50%,rgba(11,1,0,0.94)_78%,rgba(72,0,0,0.88))]" />
-      <div className="absolute inset-x-0 top-0 h-44 bg-[repeating-linear-gradient(90deg,rgba(88,0,0,0.82)_0_26px,rgba(138,13,13,0.76)_26px_52px)] opacity-80 blur-[1px]" />
-      <div className="absolute inset-x-0 top-0 h-3 bg-[repeating-linear-gradient(90deg,rgba(255,240,190,0.95)_0_10px,transparent_10px_22px)] opacity-70" />
-      <div className="absolute left-0 top-0 h-full w-1/4 bg-[radial-gradient(ellipse_at_left,rgba(255,225,150,0.22),transparent_56%)]" />
-      <div className="absolute right-0 top-0 h-full w-1/4 bg-[radial-gradient(ellipse_at_right,rgba(255,225,150,0.20),transparent_56%)]" />
-      <div className="absolute left-[8%] top-0 h-[72vh] w-24 -rotate-12 bg-gradient-to-b from-yellow-100/25 via-yellow-100/6 to-transparent blur-xl" />
-      <div className="absolute right-[8%] top-0 h-[72vh] w-24 rotate-12 bg-gradient-to-b from-yellow-100/22 via-yellow-100/6 to-transparent blur-xl" />
-      <div className="absolute bottom-0 left-1/2 h-[44vh] w-[88vw] -translate-x-1/2 rounded-t-[100%] bg-[radial-gradient(ellipse_at_center,rgba(170,18,18,0.72),rgba(56,2,2,0.48)_54%,transparent_72%)]" />
-      <div className="absolute bottom-0 left-1/2 h-[34vh] w-[58vw] -translate-x-1/2 bg-[linear-gradient(90deg,transparent,rgba(255,222,150,0.12),transparent)] blur-xl" />
-      <div className="absolute left-6 bottom-8 hidden h-28 w-44 -rotate-6 rounded-xl border border-yellow-100/20 bg-black/35 shadow-[0_20px_50px_rgba(0,0,0,0.55)] md:block">
-        <div className="h-8 rounded-t-xl bg-[repeating-linear-gradient(135deg,#f8e7b0_0_14px,#111_14px_28px)]" />
-        <div className="p-3 text-[10px] font-black uppercase tracking-[0.18em] text-yellow-100/70">Scene: Vote Night</div>
-      </div>
-      <div className="absolute right-8 bottom-10 hidden h-32 w-28 rotate-6 md:block">
-        <div className="absolute left-1/2 top-0 h-12 w-12 -translate-x-1/2 rounded-full border-[10px] border-yellow-100/18" />
-        <div className="absolute left-1/2 top-10 h-12 w-20 -translate-x-1/2 rounded-lg border border-yellow-100/15 bg-black/38" />
-        <div className="absolute bottom-0 left-1/2 h-16 w-2 -translate-x-1/2 bg-yellow-100/15" />
-      </div>
+      <div
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: `url("${INNOCLUB_SECOND_BACKGROUND_URL}")` }}
+      />
     </div>
   );
 }
@@ -368,13 +357,8 @@ const InnoClubSecondEvaluationPage: React.FC = () => {
           <div className="absolute inset-x-0 bottom-0 h-2 bg-[repeating-linear-gradient(90deg,rgba(255,240,190,0.8)_0_9px,transparent_9px_20px)] opacity-70" />
           <EventTitle eyebrow={reflectionSubmitted ? 'Stop Motion & AI Video Creation Vote' : 'Post-Activity Reflection Questions'} />
           <p className="mx-auto mt-6 max-w-2xl text-center text-yellow-50/80 text-sm sm:text-base leading-relaxed">
-            ตอบคำถามวัดผลจากกิจกรรม Stop Motion & AI Video Creation แล้วไปยังหน้าลงคะแนนรางวัลผลงาน
+            ตอบคำถามวัดผลจากกิจกรรม Stop Motion & AI Video Creation
           </p>
-          <div className="mx-auto mt-5 flex max-w-xl flex-wrap justify-center gap-2 text-[11px] font-black uppercase tracking-[0.18em] text-yellow-100/70">
-            <span className="rounded-full border border-yellow-100/20 bg-black/30 px-3 py-1">Red Carpet</span>
-            <span className="rounded-full border border-yellow-100/20 bg-black/30 px-3 py-1">Live Vote</span>
-            <span className="rounded-full border border-yellow-100/20 bg-black/30 px-3 py-1">Awards Night</span>
-          </div>
         </section>
 
         {error && (
@@ -435,10 +419,8 @@ const InnoClubSecondEvaluationPage: React.FC = () => {
 
         {reflectionSubmitted && (
           <form onSubmit={handleVoteSubmit} className="space-y-7">
-            <section className="relative overflow-hidden rounded-[2rem] border border-yellow-200/30 bg-[radial-gradient(circle_at_50%_0%,rgba(255,236,190,0.26),transparent_36%),linear-gradient(135deg,rgba(91,7,5,0.92),rgba(11,2,1,0.96)_48%,rgba(58,22,4,0.9))] p-5 sm:p-8 shadow-[0_24px_90px_rgba(0,0,0,0.62)]">
-              <div className="absolute inset-x-10 top-0 h-28 bg-gradient-to-b from-yellow-100/24 to-transparent blur-2xl" />
-              <div className="absolute left-4 bottom-4 hidden h-24 w-24 rounded-full border border-yellow-200/20 bg-black/20 sm:block" />
-              <div className="absolute right-6 bottom-5 hidden h-28 w-16 rounded-full border border-yellow-200/15 bg-black/25 sm:block" />
+            <section className="relative overflow-hidden rounded-[2rem] border border-yellow-200/25 bg-[linear-gradient(145deg,rgba(49,8,5,0.9),rgba(12,2,1,0.92)_52%,rgba(35,13,3,0.95))] p-5 shadow-[0_18px_60px_rgba(0,0,0,0.44)] sm:p-8">
+              <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-yellow-100/80 to-transparent" />
               <div className="relative">
                 <div className="mx-auto mb-5 h-1.5 max-w-sm rounded-full bg-gradient-to-r from-transparent via-yellow-100 to-transparent" />
                 <p className="text-center text-xs sm:text-sm font-black uppercase tracking-[0.32em] text-yellow-100/90">
@@ -448,7 +430,6 @@ const InnoClubSecondEvaluationPage: React.FC = () => {
                   Stop Motion & AI Video Creation Vote
                 </h2>
                 <p className="mx-auto mt-4 max-w-2xl text-center text-sm sm:text-lg text-amber-50/80">
-                  เลือกผลงานที่สมควรขึ้นรับรางวัลบนเวทีค่ำคืนนี้
                 </p>
               </div>
             </section>
