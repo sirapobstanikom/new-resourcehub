@@ -12,7 +12,8 @@ type VoteOption = {
 
 type VoteCategoryId = 'best_storytelling' | 'most_creative_product_launch' | 'most_market_impact';
 
-type VoteResults = Partial<Record<VoteCategoryId, { total: number; counts: Record<string, number> }>>;
+type VoteResultBucket = { total: number; counts: Record<string, number> };
+type VoteResults = Partial<Record<VoteCategoryId, VoteResultBucket>>;
 
 type VoteRow = {
   best_storytelling_option_id: string | null;
@@ -164,21 +165,115 @@ const InnoClubSecondEvaluationPage: React.FC = () => {
     setAnswers((prev) => ({ ...prev, [id]: value }));
   };
 
-  const loadVoteResults = async () => {
+  const createEmptyVoteResults = (): Record<VoteCategoryId, VoteResultBucket> => ({
+    best_storytelling: { total: 0, counts: {} },
+    most_creative_product_launch: { total: 0, counts: {} },
+    most_market_impact: { total: 0, counts: {} },
+  });
+
+  const applyFallbackVotes = (
+    results: Record<VoteCategoryId, VoteResultBucket>,
+    fallbackVotes?: Record<VoteCategoryId, string>
+  ) => {
+    if (!fallbackVotes) return;
+
+    VOTE_CATEGORIES.forEach((category) => {
+      const optionId = fallbackVotes[category.id];
+      if (!optionId || results[category.id].counts[optionId]) return;
+      results[category.id].total += 1;
+      results[category.id].counts[optionId] = 1;
+    });
+  };
+
+  const getOptionLabel = (optionId: string) => {
+    return voteOptions.find((option) => option.id === optionId)?.label || '';
+  };
+
+  const saveVoteDataSnapshot = async (results: Record<VoteCategoryId, VoteResultBucket>) => {
+    const submissionId =
+      typeof crypto !== 'undefined' && crypto.randomUUID
+        ? crypto.randomUUID()
+        : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+
+    const selectedVotes = VOTE_CATEGORIES.reduce<Record<string, unknown>>((summary, category) => {
+      const optionId = votes[category.id];
+      summary[category.id] = {
+        category_title: category.title,
+        category_description: category.description,
+        option_id: optionId,
+        team_name: getOptionLabel(optionId),
+      };
+      return summary;
+    }, {});
+
+    const selectedPayload = {
+      submission_id: submissionId,
+      selected_votes: selectedVotes,
+      best_storytelling_option_id: votes.best_storytelling,
+      best_storytelling_team_name: getOptionLabel(votes.best_storytelling),
+      most_creative_product_launch_option_id: votes.most_creative_product_launch,
+      most_creative_product_launch_team_name: getOptionLabel(votes.most_creative_product_launch),
+      most_market_impact_option_id: votes.most_market_impact,
+      most_market_impact_team_name: getOptionLabel(votes.most_market_impact),
+    };
+
+    const { error: submissionSnapshotError } = await supabase
+      .from('innoclub_second_vote_submissions')
+      .insert(selectedPayload);
+
+    if (submissionSnapshotError) {
+      console.warn('Cannot save InnoClub vote submission snapshot', submissionSnapshotError.message);
+    }
+
+    const resultRows = VOTE_CATEGORIES.flatMap((category) => {
+      const categoryResult = results[category.id];
+      return [...voteOptions]
+        .sort((a, b) => {
+          const countA = categoryResult.counts[a.id] || 0;
+          const countB = categoryResult.counts[b.id] || 0;
+          if (countB !== countA) return countB - countA;
+          return (a.sort_order ?? 9999) - (b.sort_order ?? 9999);
+        })
+        .map((option, index) => {
+          const voteCount = categoryResult.counts[option.id] || 0;
+          return {
+            submission_id: submissionId,
+            category_id: category.id,
+            category_title: category.title,
+            category_description: category.description,
+            option_id: option.id,
+            team_name: option.label,
+            vote_count: voteCount,
+            total_votes: categoryResult.total,
+            vote_percent: categoryResult.total > 0 ? Math.round((voteCount / categoryResult.total) * 100) : 0,
+            rank: index + 1,
+          };
+        });
+    });
+
+    const { error: resultSnapshotError } = await supabase
+      .from('innoclub_second_vote_result_snapshots')
+      .insert(resultRows);
+
+    if (resultSnapshotError) {
+      console.warn('Cannot save InnoClub vote result snapshot', resultSnapshotError.message);
+    }
+  };
+
+  const loadVoteResults = async (fallbackVotes?: Record<VoteCategoryId, string>) => {
     const { data, error: loadError } = await supabase
       .from('innoclub_second_votes')
       .select('best_storytelling_option_id, most_creative_product_launch_option_id, most_market_impact_option_id');
 
     if (loadError) {
       setError(loadError.message);
-      return false;
+      const fallbackResults = createEmptyVoteResults();
+      applyFallbackVotes(fallbackResults, fallbackVotes);
+      setVoteResults(fallbackResults);
+      return fallbackVotes ? fallbackResults : null;
     }
 
-    const nextResults: Record<VoteCategoryId, { total: number; counts: Record<string, number> }> = {
-      best_storytelling: { total: 0, counts: {} },
-      most_creative_product_launch: { total: 0, counts: {} },
-      most_market_impact: { total: 0, counts: {} },
-    };
+    const nextResults = createEmptyVoteResults();
 
     ((data as VoteRow[]) || []).forEach((row) => {
       VOTE_CATEGORIES.forEach((category) => {
@@ -189,8 +284,10 @@ const InnoClubSecondEvaluationPage: React.FC = () => {
       });
     });
 
+    applyFallbackVotes(nextResults, fallbackVotes);
+
     setVoteResults(nextResults);
-    return true;
+    return nextResults;
   };
 
   const handleReflectionSubmit = async (e: React.FormEvent) => {
@@ -241,7 +338,10 @@ const InnoClubSecondEvaluationPage: React.FC = () => {
       setError(submitError.message);
       return;
     }
-    await loadVoteResults();
+    const nextResults = await loadVoteResults(votes);
+    if (nextResults) {
+      await saveVoteDataSnapshot(nextResults);
+    }
     setSubmittingVote(false);
     setVoteSubmitted(true);
     scrollToTop();
