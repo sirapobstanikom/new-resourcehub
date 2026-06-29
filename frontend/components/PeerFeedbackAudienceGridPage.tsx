@@ -88,11 +88,13 @@ function ScorePicker({
   value,
   onChange,
   description,
+  disabled = false,
 }: {
   field: ScoreField;
   value: number;
   onChange: (value: number) => void;
   description?: string;
+  disabled?: boolean;
 }) {
   return (
     <section className="rounded-3xl border border-white/10 bg-white/[0.06] p-4 shadow-[0_18px_50px_rgba(0,0,0,0.25)]">
@@ -108,11 +110,12 @@ function ScorePicker({
               key={score}
               type="button"
               onClick={() => onChange(score)}
+              disabled={disabled}
               className={`min-h-[48px] rounded-2xl border text-base font-black transition-all ${
                 selected
                   ? 'border-yellow-300 bg-yellow-400 text-black shadow-[0_0_22px_rgba(250,204,21,0.26)]'
                   : 'border-white/10 bg-black/35 text-zinc-200 hover:border-yellow-300/50'
-              }`}
+              } disabled:cursor-not-allowed disabled:opacity-45`}
               aria-pressed={selected}
             >
               {score}
@@ -137,8 +140,10 @@ function PeerFeedbackFormPage() {
   const [form, setForm] = useState<FeedbackForm>(emptyForm);
   const [participantNames, setParticipantNames] = useState<string[]>([]);
   const [savedEvaluatorName, setSavedEvaluatorName] = useState('');
+  const [editingOriginalName, setEditingOriginalName] = useState('');
   const [saving, setSaving] = useState(false);
   const [savingName, setSavingName] = useState(false);
+  const [nameDropdownOpen, setNameDropdownOpen] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
@@ -175,12 +180,43 @@ function PeerFeedbackFormPage() {
   }, [loadParticipantNames]);
 
   const isValid =
+    Boolean(savedEvaluatorName) &&
     Boolean(form.presenter_team) &&
     SCORE_FIELDS.every((field) => form[field] >= 1 && form[field] <= 5);
   const isEvaluatorNameLocked = Boolean(savedEvaluatorName) && form.evaluator_name === savedEvaluatorName;
+  const matchingParticipantNames = useMemo(() => {
+    const keyword = form.evaluator_name.trim().toLowerCase();
+    if (!nameDropdownOpen || isEvaluatorNameLocked) return [];
+    const matches = keyword
+      ? participantNames.filter((name) => name.toLowerCase().includes(keyword))
+      : participantNames;
+    return matches.slice(0, 8);
+  }, [form.evaluator_name, isEvaluatorNameLocked, nameDropdownOpen, participantNames]);
 
   const setScore = (field: ScoreField, value: number) => {
     setForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const deleteEditedOriginalName = async (nextName: string) => {
+    const originalName = editingOriginalName.trim();
+    if (!originalName || originalName.toLowerCase() === nextName.trim().toLowerCase()) return null;
+
+    const { error: deleteError } = await supabase
+      .from('peer_feedback_participants')
+      .delete()
+      .eq('name', originalName);
+
+    if (deleteError) return deleteError.message;
+
+    setParticipantNames((prev) =>
+      prev.filter((name) => name.trim().toLowerCase() !== originalName.toLowerCase())
+    );
+    setForm((prev) => ({
+      ...prev,
+      presenter_team: prev.presenter_team.trim().toLowerCase() === originalName.toLowerCase() ? '' : prev.presenter_team,
+    }));
+    setEditingOriginalName('');
+    return null;
   };
 
   const saveEvaluatorName = async () => {
@@ -196,8 +232,18 @@ function PeerFeedbackFormPage() {
       setError('ยังไม่ได้ตั้งค่า Supabase กรุณาติดต่อผู้ดูแล');
       return;
     }
-    if (participantNames.some((name) => name.trim().toLowerCase() === trimmedName.toLowerCase())) {
-      setError('ชื่อนี้มีแล้ว');
+    const existingName = participantNames.find((name) => name.trim().toLowerCase() === trimmedName.toLowerCase());
+    if (existingName) {
+      setSavingName(true);
+      const deleteError = await deleteEditedOriginalName(existingName);
+      setSavingName(false);
+      if (deleteError) {
+        setError(deleteError);
+        return;
+      }
+      setForm((prev) => ({ ...prev, evaluator_name: existingName }));
+      setSavedEvaluatorName(existingName);
+      setMessage(`ใช้ชื่อ "${existingName}" แล้ว สามารถเริ่มประเมินได้`);
       return;
     }
 
@@ -205,10 +251,16 @@ function PeerFeedbackFormPage() {
     const { error: saveError } = await supabase
       .from('peer_feedback_participants')
       .upsert({ name: trimmedName }, { onConflict: 'name', ignoreDuplicates: true });
-    setSavingName(false);
 
     if (saveError) {
+      setSavingName(false);
       setError(saveError.message);
+      return;
+    }
+    const deleteError = await deleteEditedOriginalName(trimmedName);
+    setSavingName(false);
+    if (deleteError) {
+      setError(deleteError);
       return;
     }
 
@@ -219,16 +271,75 @@ function PeerFeedbackFormPage() {
   };
 
   const editEvaluatorName = () => {
+    setEditingOriginalName(savedEvaluatorName);
     setSavedEvaluatorName('');
     setMessage('');
     setError('');
   };
 
   const startNewEvaluatorName = () => {
+    setEditingOriginalName('');
     setSavedEvaluatorName('');
     setForm((prev) => ({ ...prev, evaluator_name: '', presenter_team: '' }));
     setMessage('');
     setError('');
+  };
+
+  const deleteSavedEvaluatorName = async () => {
+    const nameToDelete = savedEvaluatorName.trim();
+    if (!nameToDelete) return;
+    if (!window.confirm(`ลบชื่อ "${nameToDelete}" และข้อมูลประเมินที่เกี่ยวข้องออกจาก Dashboard?`)) return;
+
+    setError('');
+    setMessage('');
+    setSavingName(true);
+    const { error: deleteParticipantError } = await supabase
+      .from('peer_feedback_participants')
+      .delete()
+      .eq('name', nameToDelete);
+
+    if (deleteParticipantError) {
+      setSavingName(false);
+      setError(deleteParticipantError.message);
+      return;
+    }
+
+    const { error: deletePresenterFeedbackError } = await supabase
+      .from('peer_feedback_audience_grid')
+      .delete()
+      .eq('presenter_team', nameToDelete);
+
+    if (deletePresenterFeedbackError) {
+      setSavingName(false);
+      setError(deletePresenterFeedbackError.message);
+      return;
+    }
+
+    const { error: deleteEvaluatorFeedbackError } = await supabase
+      .from('peer_feedback_audience_grid')
+      .delete()
+      .eq('evaluator_name', nameToDelete);
+    setSavingName(false);
+
+    if (deleteEvaluatorFeedbackError) {
+      setError(deleteEvaluatorFeedbackError.message);
+      return;
+    }
+
+    setParticipantNames((prev) =>
+      prev.filter((name) => name.trim().toLowerCase() !== nameToDelete.toLowerCase())
+    );
+    setSavedEvaluatorName('');
+    setEditingOriginalName('');
+    setForm(emptyForm);
+    setMessage(`ลบชื่อ "${nameToDelete}" และข้อมูลบน Dashboard แล้ว`);
+  };
+
+  const selectExistingEvaluatorName = (name: string) => {
+    setForm((prev) => ({ ...prev, evaluator_name: name }));
+    setNameDropdownOpen(false);
+    setError('');
+    setMessage('');
   };
 
   const submit = async (event: React.FormEvent) => {
@@ -237,7 +348,7 @@ function PeerFeedbackFormPage() {
     setMessage('');
 
     if (!isValid) {
-      setError('กรุณาเลือกชื่อที่กำลังประเมิน และให้คะแนนครบทั้ง 4 ข้อ');
+      setError('กรุณากดบันทึกชื่อก่อน แล้วเลือกชื่อที่กำลังประเมิน และให้คะแนนครบทั้ง 4 ข้อ');
       return;
     }
     if (!isSupabaseConfigured) {
@@ -302,16 +413,36 @@ function PeerFeedbackFormPage() {
               Q0 ชื่อและนามสกุลของคุณ <span className="text-zinc-500"></span>
             </label>
             <div className="flex flex-col gap-2 sm:flex-row">
-              <input
-                id="evaluator_name"
-                value={form.evaluator_name}
-                onChange={(event) => setForm((prev) => ({ ...prev, evaluator_name: event.target.value }))}
-                placeholder="กรอกชื่อของคุณ"
-                disabled={isEvaluatorNameLocked}
-                className="min-w-0 flex-1 rounded-2xl border border-white/10 bg-black/45 px-4 py-3 text-base text-white placeholder-zinc-500 outline-none focus:border-yellow-300 disabled:cursor-not-allowed disabled:border-yellow-300/25 disabled:bg-yellow-400/10 disabled:text-yellow-100"
-              />
+              <div className="relative min-w-0 flex-1">
+                <input
+                  id="evaluator_name"
+                  value={form.evaluator_name}
+                  onChange={(event) => setForm((prev) => ({ ...prev, evaluator_name: event.target.value }))}
+                  onFocus={() => setNameDropdownOpen(true)}
+                  onMouseDown={() => setNameDropdownOpen(true)}
+                  onBlur={() => window.setTimeout(() => setNameDropdownOpen(false), 120)}
+                  placeholder="กรอกชื่อของคุณ"
+                  disabled={isEvaluatorNameLocked}
+                  autoComplete="off"
+                  className="w-full rounded-2xl border border-white/10 bg-black/45 px-4 py-3 text-base text-white placeholder-zinc-500 outline-none focus:border-yellow-300 disabled:cursor-not-allowed disabled:border-yellow-300/25 disabled:bg-yellow-400/10 disabled:text-yellow-100"
+                />
+                {matchingParticipantNames.length > 0 && (
+                  <div className="absolute left-0 right-0 top-[calc(100%+0.35rem)] z-30 overflow-hidden rounded-2xl border border-yellow-300/20 bg-[#111] shadow-[0_18px_44px_rgba(0,0,0,0.45)]">
+                    {matchingParticipantNames.map((name) => (
+                      <button
+                        key={name}
+                        type="button"
+                        onClick={() => selectExistingEvaluatorName(name)}
+                        className="block w-full px-4 py-3 text-left text-sm font-bold text-zinc-200 transition-colors hover:bg-yellow-300/10 hover:text-yellow-100"
+                      >
+                        {name}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
               {isEvaluatorNameLocked ? (
-                <div className="grid grid-cols-2 gap-2 sm:flex">
+                <div className="grid grid-cols-3 gap-2 sm:flex">
                   <button
                     type="button"
                     onClick={editEvaluatorName}
@@ -325,6 +456,14 @@ function PeerFeedbackFormPage() {
                     className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-black text-zinc-200 transition-all hover:bg-white/10"
                   >
                     ชื่อใหม่
+                  </button>
+                  <button
+                    type="button"
+                    onClick={deleteSavedEvaluatorName}
+                    disabled={savingName}
+                    className="rounded-2xl border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm font-black text-red-200 transition-all hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    ลบชื่อ
                   </button>
                 </div>
               ) : (
@@ -343,6 +482,11 @@ function PeerFeedbackFormPage() {
                 บันทึกชื่อแล้ว ระบบจะใช้ชื่อนี้สำหรับการส่งแบบประเมินครั้งถัดไป
               </p>
             )}
+            {!isEvaluatorNameLocked && (
+              <p className="mt-2 text-xs font-semibold text-zinc-500">
+                ต้องกดบันทึกชื่อก่อนจึงจะเริ่มประเมินได้
+              </p>
+            )}
           </section>
 
           <section className="rounded-3xl border border-white/10 bg-white/[0.06] p-4">
@@ -353,9 +497,16 @@ function PeerFeedbackFormPage() {
               id="presenter_team"
               value={form.presenter_team}
               onChange={(event) => setForm((prev) => ({ ...prev, presenter_team: event.target.value }))}
-              className="w-full rounded-2xl border border-white/10 bg-black/45 px-4 py-3 text-base text-white outline-none focus:border-yellow-300"
+              disabled={!savedEvaluatorName}
+              className="w-full rounded-2xl border border-white/10 bg-black/45 px-4 py-3 text-base text-white outline-none focus:border-yellow-300 disabled:cursor-not-allowed disabled:opacity-45"
             >
-              <option value="">{participantNames.length > 0 ? 'เลือกชื่อที่บันทึกไว้' : 'ยังไม่มีชื่อที่บันทึก'}</option>
+              <option value="">
+                {!savedEvaluatorName
+                  ? 'กรุณาบันทึกชื่อก่อน'
+                  : participantNames.length > 0
+                    ? 'เลือกชื่อที่บันทึกไว้'
+                    : 'ยังไม่มีชื่อที่บันทึก'}
+              </option>
               {participantNames.map((name) => (
                 <option key={name} value={name}>
                   {name}
@@ -372,24 +523,28 @@ function PeerFeedbackFormPage() {
             value={form.answer_first_score}
             onChange={(value) => setScore('answer_first_score', value)}
             description="Q2 Answer-first — did they lead with the answer, not bury it?"
+            disabled={!savedEvaluatorName}
           />
           <ScorePicker
             field="logic_score"
             value={form.logic_score}
             onChange={(value) => setScore('logic_score', value)}
             description="Q3 Logic (MECE) — was the structure clear and easy to follow?"
+            disabled={!savedEvaluatorName}
           />
           <ScorePicker
             field="story_score"
             value={form.story_score}
             onChange={(value) => setScore('story_score', value)}
             description="Q4 Story (SEE) — did the points build a compelling story?"
+            disabled={!savedEvaluatorName}
           />
           <ScorePicker
             field="delivery_score"
             value={form.delivery_score}
             onChange={(value) => setScore('delivery_score', value)}
             description="Q5 Delivery — simple, short, and did it land?"
+            disabled={!savedEvaluatorName}
           />
 
           <section className="rounded-3xl border border-white/10 bg-white/[0.06] p-4">
@@ -402,7 +557,8 @@ function PeerFeedbackFormPage() {
               onChange={(event) => setForm((prev) => ({ ...prev, note: event.target.value }))}
               rows={4}
               placeholder="เช่น Opening ดีมาก แต่สรุปท้ายยังไม่ชัด"
-              className="w-full resize-none rounded-2xl border border-white/10 bg-black/45 px-4 py-3 text-base text-white placeholder-zinc-500 outline-none focus:border-yellow-300"
+              disabled={!savedEvaluatorName}
+              className="w-full resize-none rounded-2xl border border-white/10 bg-black/45 px-4 py-3 text-base text-white placeholder-zinc-500 outline-none focus:border-yellow-300 disabled:cursor-not-allowed disabled:opacity-45"
             />
           </section>
 
