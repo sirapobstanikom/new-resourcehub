@@ -478,7 +478,7 @@ const InnoClubSecondEvaluationPage: React.FC = () => {
           <div className="absolute inset-x-0 bottom-0 h-2 bg-[repeating-linear-gradient(90deg,rgba(255,240,190,0.8)_0_9px,transparent_9px_20px)] opacity-70" />
           <EventTitle eyebrow={reflectionSubmitted ? 'Stop Motion & AI Video Creation Vote' : 'Post-Activity Reflection Questions'} />
           <p className="mx-auto mt-6 max-w-2xl text-center text-yellow-50/80 text-sm sm:text-base leading-relaxed">
-            ตอบคำถามวัดผลจากกิจกรรม Stop Motion & AI Video Creation
+            ตอบคำถามวัดผลจากกิจกรรม innovation in motion
           </p>
         </section>
 
