@@ -35,16 +35,19 @@ type VoteRow = {
 const REFLECTION_QUESTIONS = [
   {
     id: 'key_message_learning',
+    sectionTitle: 'Value Communication (การสื่อสารคุณค่าของผลิตภัณฑ์)',
     title:
       'จากการได้รับโจทย์สินค้าและออกแบบ Storytelling คุณได้เรียนรู้อะไรเกี่ยวกับการสื่อสารคุณค่าของสินค้าให้กลุ่มเป้าหมายโดยเน้นเรื่องของการสื่อ Key Messege มากกว่าทำ Production ที่สวยงาม',
   },
   {
     id: 'team_challenge',
+    sectionTitle: 'Challenge & Collaboration (ความท้าทายและการทำงานร่วมกัน)',
     title:
       'ในกระบวนการสร้าง Stop Motion และ AI Video อะไรคือความท้าทายสำคัญของทีม และทีมของคุณจัดการกับความท้าทายนั้นอย่างไร?',
   },
   {
     id: 'real_work_application',
+    sectionTitle: 'Application & Next Action (การนำไปประยุกต์ใช้)',
     title:
       'จากกิจกรรมในวันนี้ มีแนวคิด เครื่องมือ หรือวิธีการใดที่คุณคิดว่าสามารถนำไปประยุกต์ หรือเป็นปัจจัยสำคัญในการชวนคิดกับการใช้กับงานจริงของคุณได้ทันที?',
   },
@@ -650,6 +653,9 @@ const InnoClubSecondEvaluationPage: React.FC = () => {
                   key={question.id}
                   className="rounded-[1.75rem] border border-yellow-200/20 bg-[linear-gradient(145deg,rgba(38,7,5,0.88),rgba(10,2,1,0.88))] p-4 sm:p-7 shadow-[0_18px_50px_rgba(0,0,0,0.38)]"
                 >
+                  <h2 className="mb-4 text-xl font-black leading-relaxed text-yellow-300 sm:text-2xl">
+                    {question.sectionTitle}
+                  </h2>
                   <label htmlFor={question.id} className="block text-yellow-50 font-bold text-base sm:text-xl leading-relaxed mb-3">
                     {index + 1}. {question.title} *
                   </label>
