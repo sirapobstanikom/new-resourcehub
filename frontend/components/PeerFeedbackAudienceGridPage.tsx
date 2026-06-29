@@ -1,16 +1,15 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useCallback, useMemo, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import * as XLSX from 'xlsx';
 import { isSupabaseConfigured, supabase } from '../lib/supabase';
 
-const TEAM_OPTIONS = ['Team A', 'Team B', 'Team C', 'Team D', 'Team E', 'Team F'];
 const SCORE_OPTIONS = [1, 2, 3, 4, 5] as const;
 const SCORE_FIELDS = ['answer_first_score', 'logic_score', 'story_score', 'delivery_score'] as const;
 
 type ScoreField = (typeof SCORE_FIELDS)[number];
 
 type FeedbackForm = {
-  evaluator_team: string;
+  evaluator_name: string;
   presenter_team: string;
   answer_first_score: number;
   logic_score: number;
@@ -21,6 +20,12 @@ type FeedbackForm = {
 
 type FeedbackRow = FeedbackForm & {
   id: number;
+  created_at: string;
+};
+
+type ParticipantRow = {
+  id: number;
+  name: string;
   created_at: string;
 };
 
@@ -36,7 +41,7 @@ type TeamSummary = {
 };
 
 const emptyForm: FeedbackForm = {
-  evaluator_team: '',
+  evaluator_name: '',
   presenter_team: '',
   answer_first_score: 0,
   logic_score: 0,
@@ -130,16 +135,100 @@ function ScorePicker({
 
 function PeerFeedbackFormPage() {
   const [form, setForm] = useState<FeedbackForm>(emptyForm);
+  const [participantNames, setParticipantNames] = useState<string[]>([]);
+  const [savedEvaluatorName, setSavedEvaluatorName] = useState('');
   const [saving, setSaving] = useState(false);
+  const [savingName, setSavingName] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+
+  const loadParticipantNames = useCallback(async () => {
+    if (!isSupabaseConfigured) return;
+    const { data, error: loadError } = await supabase
+      .from('peer_feedback_participants')
+      .select('id, name, created_at')
+      .order('name', { ascending: true });
+
+    if (loadError) {
+      setError(loadError.message);
+      setParticipantNames([]);
+      return;
+    }
+
+    setParticipantNames(((data as ParticipantRow[]) || []).map((row) => row.name));
+  }, []);
+
+  useEffect(() => {
+    loadParticipantNames();
+    if (!isSupabaseConfigured) return;
+
+    const channel = supabase
+      .channel('peer-feedback-participants')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'peer_feedback_participants' }, () => {
+        loadParticipantNames();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [loadParticipantNames]);
 
   const isValid =
     Boolean(form.presenter_team) &&
     SCORE_FIELDS.every((field) => form[field] >= 1 && form[field] <= 5);
+  const isEvaluatorNameLocked = Boolean(savedEvaluatorName) && form.evaluator_name === savedEvaluatorName;
 
   const setScore = (field: ScoreField, value: number) => {
     setForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const saveEvaluatorName = async () => {
+    const trimmedName = form.evaluator_name.trim();
+    setError('');
+    setMessage('');
+
+    if (!trimmedName) {
+      setError('กรุณากรอกชื่อก่อนบันทึก');
+      return;
+    }
+    if (!isSupabaseConfigured) {
+      setError('ยังไม่ได้ตั้งค่า Supabase กรุณาติดต่อผู้ดูแล');
+      return;
+    }
+    if (participantNames.some((name) => name.trim().toLowerCase() === trimmedName.toLowerCase())) {
+      setError('ชื่อนี้มีแล้ว');
+      return;
+    }
+
+    setSavingName(true);
+    const { error: saveError } = await supabase
+      .from('peer_feedback_participants')
+      .upsert({ name: trimmedName }, { onConflict: 'name', ignoreDuplicates: true });
+    setSavingName(false);
+
+    if (saveError) {
+      setError(saveError.message);
+      return;
+    }
+
+    setForm((prev) => ({ ...prev, evaluator_name: trimmedName }));
+    setSavedEvaluatorName(trimmedName);
+    setParticipantNames((prev) => Array.from(new Set([...prev, trimmedName])).sort());
+    setMessage(`บันทึกชื่อ "${trimmedName}" แล้ว สามารถเลือกชื่อนี้ในข้อ Q1 ได้`);
+  };
+
+  const editEvaluatorName = () => {
+    setSavedEvaluatorName('');
+    setMessage('');
+    setError('');
+  };
+
+  const startNewEvaluatorName = () => {
+    setSavedEvaluatorName('');
+    setForm((prev) => ({ ...prev, evaluator_name: '', presenter_team: '' }));
+    setMessage('');
+    setError('');
   };
 
   const submit = async (event: React.FormEvent) => {
@@ -148,7 +237,7 @@ function PeerFeedbackFormPage() {
     setMessage('');
 
     if (!isValid) {
-      setError('กรุณาเลือกทีมที่กำลังประเมิน และให้คะแนนครบทั้ง 4 ข้อ');
+      setError('กรุณาเลือกชื่อที่กำลังประเมิน และให้คะแนนครบทั้ง 4 ข้อ');
       return;
     }
     if (!isSupabaseConfigured) {
@@ -158,7 +247,7 @@ function PeerFeedbackFormPage() {
 
     setSaving(true);
     const { error: submitError } = await supabase.from('peer_feedback_audience_grid').insert({
-      evaluator_team: form.evaluator_team.trim() || null,
+      evaluator_name: form.evaluator_name.trim() || null,
       presenter_team: form.presenter_team,
       answer_first_score: form.answer_first_score,
       logic_score: form.logic_score,
@@ -173,8 +262,8 @@ function PeerFeedbackFormPage() {
       return;
     }
 
-    setForm(emptyForm);
-    setMessage('ขอบคุณสำหรับการประเมิน กรุณาส่งแบบประเมินอีกครั้งสำหรับทีมถัดไป');
+    setForm({ ...emptyForm, evaluator_name: savedEvaluatorName || form.evaluator_name });
+    setMessage('ขอบคุณสำหรับการประเมิน กรุณาส่งแบบประเมินอีกครั้งสำหรับคนถัดไป');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -186,7 +275,7 @@ function PeerFeedbackFormPage() {
           <p className="text-xs font-black uppercase tracking-[0.22em] text-yellow-300">Peer Feedback</p>
           <h1 className="mt-2 text-3xl font-black leading-tight sm:text-5xl">Audience Grid</h1>
           <p className="mt-3 text-sm leading-relaxed text-zinc-300">
-            แบบประเมินเร็วสำหรับผู้เข้าร่วม Workshop ประเมินทีมที่ขึ้นนำเสนอ ใช้เวลาประมาณ 45 วินาทีต่อทีม
+            แบบประเมินเร็วสำหรับผู้เข้าร่วม Workshop ประเมินผู้ที่ขึ้นนำเสนอ ใช้เวลาประมาณ 45 วินาทีต่อคน
           </p>
           <Link
             to="/peer-feedback/dashboard"
@@ -209,16 +298,51 @@ function PeerFeedbackFormPage() {
 
         <form onSubmit={submit} className="space-y-4">
           <section className="rounded-3xl border border-white/10 bg-white/[0.06] p-4">
-            <label htmlFor="evaluator_team" className="mb-2 block text-sm font-black text-zinc-200">
-              Q0 ทีมของคุณ <span className="text-zinc-500">(ไม่บังคับ)</span>
+            <label htmlFor="evaluator_name" className="mb-2 block text-sm font-black text-zinc-200">
+              Q0 ชื่อและนามสกุลของคุณ <span className="text-zinc-500"></span>
             </label>
-            <input
-              id="evaluator_team"
-              value={form.evaluator_team}
-              onChange={(event) => setForm((prev) => ({ ...prev, evaluator_team: event.target.value }))}
-              placeholder="กรอกชื่อทีมของคุณ (ไม่บังคับ)"
-              className="w-full rounded-2xl border border-white/10 bg-black/45 px-4 py-3 text-base text-white placeholder-zinc-500 outline-none focus:border-yellow-300"
-            />
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <input
+                id="evaluator_name"
+                value={form.evaluator_name}
+                onChange={(event) => setForm((prev) => ({ ...prev, evaluator_name: event.target.value }))}
+                placeholder="กรอกชื่อของคุณ"
+                disabled={isEvaluatorNameLocked}
+                className="min-w-0 flex-1 rounded-2xl border border-white/10 bg-black/45 px-4 py-3 text-base text-white placeholder-zinc-500 outline-none focus:border-yellow-300 disabled:cursor-not-allowed disabled:border-yellow-300/25 disabled:bg-yellow-400/10 disabled:text-yellow-100"
+              />
+              {isEvaluatorNameLocked ? (
+                <div className="grid grid-cols-2 gap-2 sm:flex">
+                  <button
+                    type="button"
+                    onClick={editEvaluatorName}
+                    className="rounded-2xl border border-yellow-300/30 bg-yellow-300/10 px-4 py-3 text-sm font-black text-yellow-100 transition-all hover:bg-yellow-300/20"
+                  >
+                    แก้ไขชื่อ
+                  </button>
+                  <button
+                    type="button"
+                    onClick={startNewEvaluatorName}
+                    className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-black text-zinc-200 transition-all hover:bg-white/10"
+                  >
+                    ชื่อใหม่
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={saveEvaluatorName}
+                  disabled={savingName || !form.evaluator_name.trim()}
+                  className="rounded-2xl bg-yellow-400 px-4 py-3 text-sm font-black text-black transition-all hover:bg-yellow-300 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {savingName ? 'กำลังบันทึก...' : 'บันทึกชื่อ'}
+                </button>
+              )}
+            </div>
+            {isEvaluatorNameLocked && (
+              <p className="mt-2 text-xs font-semibold text-yellow-100/70">
+                บันทึกชื่อแล้ว ระบบจะใช้ชื่อนี้สำหรับการส่งแบบประเมินครั้งถัดไป
+              </p>
+            )}
           </section>
 
           <section className="rounded-3xl border border-white/10 bg-white/[0.06] p-4">
@@ -231,13 +355,16 @@ function PeerFeedbackFormPage() {
               onChange={(event) => setForm((prev) => ({ ...prev, presenter_team: event.target.value }))}
               className="w-full rounded-2xl border border-white/10 bg-black/45 px-4 py-3 text-base text-white outline-none focus:border-yellow-300"
             >
-              <option value="">เลือกทีม</option>
-              {TEAM_OPTIONS.map((team) => (
-                <option key={team} value={team}>
-                  {team}
+              <option value="">{participantNames.length > 0 ? 'เลือกชื่อที่บันทึกไว้' : 'ยังไม่มีชื่อที่บันทึก'}</option>
+              {participantNames.map((name) => (
+                <option key={name} value={name}>
+                  {name}
                 </option>
               ))}
             </select>
+            <p className="mt-2 text-xs text-zinc-500">
+              หากยังไม่มีชื่อในรายการ ให้กรอกชื่อที่ Q0 แล้วกด “บันทึกชื่อ” ก่อน
+            </p>
           </section>
 
           <ScorePicker
@@ -424,7 +551,7 @@ function PeerFeedbackDashboardPage() {
     setError('');
     const { data, error: loadError } = await supabase
       .from('peer_feedback_audience_grid')
-      .select('id, created_at, evaluator_team, presenter_team, answer_first_score, logic_score, story_score, delivery_score, note')
+      .select('id, created_at, evaluator_name, presenter_team, answer_first_score, logic_score, story_score, delivery_score, note')
       .order('created_at', { ascending: false });
     setLoading(false);
     if (loadError) {
@@ -456,7 +583,7 @@ function PeerFeedbackDashboardPage() {
       const toOk = dateTo ? rowTime <= new Date(`${dateTo}T23:59:59`).getTime() : true;
       const teamOk = teamFilter ? row.presenter_team === teamFilter : true;
       const searchOk = search
-        ? `${row.presenter_team} ${row.evaluator_team || ''} ${row.note || ''}`.toLowerCase().includes(search.toLowerCase())
+        ? `${row.presenter_team} ${row.evaluator_name || ''} ${row.note || ''}`.toLowerCase().includes(search.toLowerCase())
         : true;
       return fromOk && toOk && teamOk && searchOk;
     });
@@ -482,7 +609,7 @@ function PeerFeedbackDashboardPage() {
   const exportExcel = () => {
     const exportRows = filteredRows.map((row) => ({
       created_at: row.created_at,
-      evaluator_team: row.evaluator_team || '',
+      evaluator_name: row.evaluator_name || '',
       presenter_team: row.presenter_team,
       answer_first_score: row.answer_first_score,
       logic_score: row.logic_score,
@@ -506,7 +633,7 @@ function PeerFeedbackDashboardPage() {
           overall_avg: summary.overallAvg,
         }))
       ),
-      'Team Summary'
+      'Presenter Summary'
     );
     XLSX.writeFile(workbook, `peer-feedback-audience-grid-${new Date().toISOString().slice(0, 10)}.xlsx`);
   };
@@ -544,7 +671,7 @@ function PeerFeedbackDashboardPage() {
         <section className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
           {[
             ['จำนวนการประเมินทั้งหมด', filteredRows.length],
-            ['จำนวนทีมที่ถูกประเมิน', summaries.length],
+            ['จำนวนชื่อที่ถูกประเมิน', summaries.length],
             ['คะแนนเฉลี่ยรวมทั้งหมด', formatScore(overallAverage)],
             ['ส่งล่าสุด', latestTime],
           ].map(([label, value]) => (
@@ -561,7 +688,7 @@ function PeerFeedbackDashboardPage() {
             onChange={(event) => setTeamFilter(event.target.value)}
             className="rounded-2xl border border-white/10 bg-black/45 px-4 py-3 text-white outline-none focus:border-yellow-300"
           >
-            <option value="">ทุกทีม</option>
+            <option value="">ทุกชื่อ</option>
             {uniqueTeams.map((team) => (
               <option key={team} value={team}>
                 {team}
@@ -571,7 +698,7 @@ function PeerFeedbackDashboardPage() {
           <input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="ค้นหาชื่อทีม / comment"
+            placeholder="ค้นหาชื่อ / comment"
             className="rounded-2xl border border-white/10 bg-black/45 px-4 py-3 text-white placeholder-zinc-500 outline-none focus:border-yellow-300"
           />
           <input
