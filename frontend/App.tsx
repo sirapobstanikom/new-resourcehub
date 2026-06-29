@@ -305,7 +305,11 @@ const App: React.FC = () => {
       <Suspense fallback={<RouteFallback />}>
         <Routes>
           <Route path="/evaluation/innoclub" element={<InnoClubEvaluationPage />} />
-          <Route path="/evaluation/innoclub-2" element={<InnoClubSecondEvaluationPage />} />
+          <Route path="/evaluation/innoclub-2" element={<InnoClubSecondEvaluationPage key="innoclub-2-form" />} />
+          <Route
+            path="/evaluation/innoclub-2/results"
+            element={<InnoClubSecondEvaluationPage key="innoclub-2-results" resultsOnly />}
+          />
           <Route path="/evaluation/eva-editor" element={<EvaEditorPage />} />
           <Route path="/evaluation/dashboard/login" element={<EvaDashboardLoginPage />} />
           <Route path="/evaluation/dashboard" element={<EvaDashboardPage />} />

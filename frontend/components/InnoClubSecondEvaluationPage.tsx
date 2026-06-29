@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
 type VoteOption = {
@@ -12,7 +12,11 @@ type VoteOption = {
 
 type VoteCategoryId = 'best_storytelling' | 'most_creative_product_launch' | 'most_market_impact';
 
-type VoteResultBucket = { total: number; counts: Record<string, number> };
+type VoteResultBucket = {
+  total: number;
+  counts: Record<string, number>;
+  firstVoteAt: Record<string, number>;
+};
 type VoteResults = Partial<Record<VoteCategoryId, VoteResultBucket>>;
 
 type EvaluationFormState = {
@@ -30,6 +34,7 @@ type VoteRow = {
   best_storytelling_option_id: string | null;
   most_creative_product_launch_option_id: string | null;
   most_market_impact_option_id: string | null;
+  created_at?: string | null;
 };
 
 const REFLECTION_QUESTIONS = [
@@ -56,18 +61,20 @@ const REFLECTION_QUESTIONS = [
 const VOTE_CATEGORIES: { id: VoteCategoryId; title: string; description: string }[] = [
   {
     id: 'best_storytelling',
-    title: 'Best Storytelling Award',
-    description: 'เล่าเรื่องได้ดีที่สุด',
+    title: 'Best Storytelling Award (เล่าเรื่องได้ดีที่สุด)',
+    description: 'ถ่ายทอดเรื่องราวได้ลำดับชัดเจน เข้าใจง่าย และน่าติดตาม เชื่อมโยงปัญหา คุณค่า และแนวทางแก้ไขของผลิตภัณฑ์ได้อย่างมีประสิทธิภาพทำให้ผู้ชมเข้าใจและจดจำผลิตภัณฑ์ได้ภายในเวลาสั้น',
   },
   {
     id: 'most_creative_product_launch',
-    title: 'Most Creative Product Launch Award',
-    description: 'เล่าเรื่องได้สร้างสรรค์สุดๆ',
+    title: 'Most Creative Product Launch Award (เปิดตัวได้สร้างสรรค์สุดๆ)',
+    description: 'ถ่ายทอดเรื่องราวได้ลำดับชัดเจน เข้าใจง่าย และน่าติดตาม เชื่อมโยงปัญหา คุณค่า และแนวทางแก้ไขของผลิตภัณฑ์ได้อย่างมีประสิทธิภาพ ทำให้ผู้ชมเข้าใจและจดจำผลิตภัณฑ์ได้ภายในเวลาสั้น',
   },
   {
     id: 'most_market_impact',
-    title: 'Most Market Impact Award',
-    description: 'สื่อสารสินค้าได้ตรงใจที่สุด',
+    title: 'Most Market Impact Award (สื่อสารคุณค่าสินค้าได้ตรงใจตลาด)',
+    description: `- เข้าใจกลุ่มเป้าหมายและ Pain Point ได้อย่างชัดเจน 
+- สื่อสารจุดเด่นและคุณค่าของผลิตภัณฑ์ได้ตรงกับความต้องการของลูกค้า
+- ทำให้ผู้ชมรู้สึกว่า "อยากทดลองใช้" หรือ "อยากซื้อ" ผลิตภัณฑ์`,
   },
 ];
 
@@ -110,7 +117,12 @@ function EventTitle({ eyebrow }: { eyebrow: string }) {
   );
 }
 
-const InnoClubSecondEvaluationPage: React.FC = () => {
+type InnoClubSecondEvaluationPageProps = {
+  resultsOnly?: boolean;
+};
+
+const InnoClubSecondEvaluationPage: React.FC<InnoClubSecondEvaluationPageProps> = ({ resultsOnly = false }) => {
+  const navigate = useNavigate();
   const [evaluationForm, setEvaluationForm] = useState<EvaluationFormState>({
     facilitator_score: 0,
     facilitator_comment: '',
@@ -126,7 +138,7 @@ const InnoClubSecondEvaluationPage: React.FC = () => {
     team_challenge: '',
     real_work_application: '',
   });
-  const [reflectionSubmitted, setReflectionSubmitted] = useState(false);
+  const [reflectionSubmitted, setReflectionSubmitted] = useState(resultsOnly);
   const [showVotePrompt, setShowVotePrompt] = useState(false);
   const [voteOptions, setVoteOptions] = useState<VoteOption[]>([]);
   const [votes, setVotes] = useState<Record<VoteCategoryId, string>>({
@@ -138,7 +150,7 @@ const InnoClubSecondEvaluationPage: React.FC = () => {
   const [loadingOptions, setLoadingOptions] = useState(false);
   const [submittingReflection, setSubmittingReflection] = useState(false);
   const [submittingVote, setSubmittingVote] = useState(false);
-  const [voteSubmitted, setVoteSubmitted] = useState(false);
+  const [voteSubmitted, setVoteSubmitted] = useState(resultsOnly);
   const [voteResults, setVoteResults] = useState<VoteResults>({});
   const [error, setError] = useState<string | null>(null);
   const voteCategoryRef = useRef<HTMLElement | null>(null);
@@ -173,6 +185,24 @@ const InnoClubSecondEvaluationPage: React.FC = () => {
     const count = categoryResult?.counts[optionId] ?? 0;
     const percent = total > 0 ? Math.round((count / total) * 100) : 0;
     return { count, total, percent };
+  };
+
+  const compareVoteOptionsByResult = (
+    categoryId: VoteCategoryId,
+    a: VoteOption,
+    b: VoteOption,
+    results: VoteResults = voteResults
+  ) => {
+    const categoryResult = results[categoryId];
+    const countA = categoryResult?.counts[a.id] || 0;
+    const countB = categoryResult?.counts[b.id] || 0;
+    if (countB !== countA) return countB - countA;
+
+    const firstA = categoryResult?.firstVoteAt[a.id] ?? Number.MAX_SAFE_INTEGER;
+    const firstB = categoryResult?.firstVoteAt[b.id] ?? Number.MAX_SAFE_INTEGER;
+    if (firstA !== firstB) return firstA - firstB;
+
+    return (a.sort_order ?? 9999) - (b.sort_order ?? 9999);
   };
 
   const scrollToTop = () => {
@@ -215,7 +245,11 @@ const InnoClubSecondEvaluationPage: React.FC = () => {
   };
 
   useEffect(() => {
-    if (!reflectionSubmitted || !isSupabaseConfigured) return;
+    if (!reflectionSubmitted) return;
+    if (!isSupabaseConfigured) {
+      setError('ยังไม่ได้ตั้งค่า Supabase กรุณาติดต่อผู้ดูแล');
+      return;
+    }
     setLoadingOptions(true);
     setError(null);
     supabase
@@ -232,8 +266,29 @@ const InnoClubSecondEvaluationPage: React.FC = () => {
           return;
         }
         setVoteOptions((data as VoteOption[]) || []);
+        if (resultsOnly) {
+          void loadVoteResults();
+        }
       });
-  }, [reflectionSubmitted]);
+  }, [reflectionSubmitted, resultsOnly]);
+
+  useEffect(() => {
+    if (!resultsOnly || !isSupabaseConfigured) return;
+    const channel = supabase
+      .channel('innoclub-second-results-live')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'innoclub_second_votes' },
+        () => {
+          void loadVoteResults();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [resultsOnly]);
 
   useEffect(() => {
     if (!pendingVoteCategoryScrollRef.current) return;
@@ -291,9 +346,9 @@ const InnoClubSecondEvaluationPage: React.FC = () => {
   );
 
   const createEmptyVoteResults = (): Record<VoteCategoryId, VoteResultBucket> => ({
-    best_storytelling: { total: 0, counts: {} },
-    most_creative_product_launch: { total: 0, counts: {} },
-    most_market_impact: { total: 0, counts: {} },
+    best_storytelling: { total: 0, counts: {}, firstVoteAt: {} },
+    most_creative_product_launch: { total: 0, counts: {}, firstVoteAt: {} },
+    most_market_impact: { total: 0, counts: {}, firstVoteAt: {} },
   });
 
   const applyFallbackVotes = (
@@ -307,6 +362,7 @@ const InnoClubSecondEvaluationPage: React.FC = () => {
       if (!optionId || results[category.id].counts[optionId]) return;
       results[category.id].total += 1;
       results[category.id].counts[optionId] = 1;
+      results[category.id].firstVoteAt[optionId] = Date.now();
     });
   };
 
@@ -353,12 +409,7 @@ const InnoClubSecondEvaluationPage: React.FC = () => {
     const resultRows = VOTE_CATEGORIES.flatMap((category) => {
       const categoryResult = results[category.id];
       return [...voteOptions]
-        .sort((a, b) => {
-          const countA = categoryResult.counts[a.id] || 0;
-          const countB = categoryResult.counts[b.id] || 0;
-          if (countB !== countA) return countB - countA;
-          return (a.sort_order ?? 9999) - (b.sort_order ?? 9999);
-        })
+        .sort((a, b) => compareVoteOptionsByResult(category.id, a, b, results))
         .map((option, index) => {
           const voteCount = categoryResult.counts[option.id] || 0;
           return {
@@ -388,7 +439,8 @@ const InnoClubSecondEvaluationPage: React.FC = () => {
   const loadVoteResults = async (fallbackVotes?: Record<VoteCategoryId, string>) => {
     const { data, error: loadError } = await supabase
       .from('innoclub_second_votes')
-      .select('best_storytelling_option_id, most_creative_product_launch_option_id, most_market_impact_option_id');
+      .select('created_at, best_storytelling_option_id, most_creative_product_launch_option_id, most_market_impact_option_id')
+      .order('created_at', { ascending: true });
 
     if (loadError) {
       setError(loadError.message);
@@ -401,11 +453,19 @@ const InnoClubSecondEvaluationPage: React.FC = () => {
     const nextResults = createEmptyVoteResults();
 
     ((data as VoteRow[]) || []).forEach((row) => {
+      const parsedVoteTime = row.created_at ? new Date(row.created_at).getTime() : Number.NaN;
+      const votedAt = Number.isFinite(parsedVoteTime) ? parsedVoteTime : Number.MAX_SAFE_INTEGER;
       VOTE_CATEGORIES.forEach((category) => {
         const optionId = row[VOTE_RESULT_COLUMNS[category.id]];
         if (!optionId) return;
         nextResults[category.id].total += 1;
         nextResults[category.id].counts[optionId] = (nextResults[category.id].counts[optionId] || 0) + 1;
+        if (
+          nextResults[category.id].firstVoteAt[optionId] === undefined ||
+          votedAt < nextResults[category.id].firstVoteAt[optionId]
+        ) {
+          nextResults[category.id].firstVoteAt[optionId] = votedAt;
+        }
       });
     });
 
@@ -477,7 +537,7 @@ const InnoClubSecondEvaluationPage: React.FC = () => {
     }
     setSubmittingVote(false);
     setVoteSubmitted(true);
-    scrollToElement(voteHeaderRef.current, 'start', 850);
+    navigate('/evaluation/innoclub-2/results');
   };
 
   const selectVoteOption = (categoryId: VoteCategoryId, optionId: string) => {
@@ -529,10 +589,37 @@ const InnoClubSecondEvaluationPage: React.FC = () => {
         <section className="relative mb-7 overflow-hidden rounded-[2rem] border border-yellow-200/25 bg-[linear-gradient(180deg,rgba(24,5,3,0.82),rgba(8,2,1,0.92))] p-5 sm:p-9 shadow-[0_24px_90px_rgba(0,0,0,0.6)]">
           <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-yellow-100 to-transparent" />
           <div className="absolute inset-x-0 bottom-0 h-2 bg-[repeating-linear-gradient(90deg,rgba(255,240,190,0.8)_0_9px,transparent_9px_20px)] opacity-70" />
-          <EventTitle eyebrow={reflectionSubmitted ? 'Stop Motion & AI Video Creation Vote' : 'Post-Activity Reflection Questions'} />
+          <EventTitle
+            eyebrow={
+              resultsOnly
+                ? 'Live Vote Result Dashboard'
+                : reflectionSubmitted
+                  ? 'Stop Motion & AI Video Creation Vote'
+                  : 'Post-Activity Reflection Questions'
+            }
+          />
           <p className="mx-auto mt-6 max-w-2xl text-center text-yellow-50/80 text-sm sm:text-base leading-relaxed">
-            ตอบคำถามวัดผลจากกิจกรรม innovation in motion
+            {resultsOnly
+              ? 'สรุปผลโหวตแบบ Real-time สำหรับเปิดดู Dashboard ได้โดยตรง'
+              : 'ตอบคำถามวัดผลจากกิจกรรม innovation in motion'}
           </p>
+          {resultsOnly && (
+            <div className="mt-6 flex flex-wrap justify-center gap-3">
+              <Link
+                to="/evaluation/innoclub-2"
+                className="rounded-full border border-yellow-200/30 bg-black/35 px-4 py-2 text-sm font-black text-yellow-100 hover:bg-yellow-100/10"
+              >
+                ไปหน้าประเมิน
+              </Link>
+              <button
+                type="button"
+                onClick={() => void loadVoteResults()}
+                className="rounded-full bg-gradient-to-r from-yellow-100 via-amber-300 to-yellow-600 px-4 py-2 text-sm font-black text-black hover:from-white hover:to-amber-400"
+              >
+                รีเฟรชผลโหวต
+              </button>
+            </div>
+          )}
         </section>
 
         {error && (
@@ -720,16 +807,31 @@ const InnoClubSecondEvaluationPage: React.FC = () => {
                 >
                   <div className="absolute right-0 top-0 h-28 w-28 rounded-bl-full bg-yellow-100/10" />
                   <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-yellow-100/80 to-transparent" />
-                  <div className="relative mb-6 flex flex-col sm:flex-row sm:items-center gap-4">
-                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-yellow-100/50 bg-yellow-100/15 text-2xl font-black text-yellow-100 shadow-[0_0_24px_rgba(250,204,21,0.18)]">
+                  <div className="relative mb-7 flex flex-col gap-4 sm:flex-row sm:items-start">
+                    <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full border border-yellow-100/50 bg-yellow-100/15 text-3xl font-black text-yellow-100 shadow-[0_0_24px_rgba(250,204,21,0.18)]">
                       {voteSubmitted ? index + 1 : activeVoteIndex + 1}
                     </div>
-                    <div>
-                      <p className="text-xs font-bold uppercase tracking-[0.24em] text-yellow-100/65">Award Category</p>
-                      <h3 className="mt-1 text-xl sm:text-3xl font-black text-[#ffe8a8]">
+                    <div className="min-w-0 flex-1">
+                      <p className="inline-flex rounded-full border border-yellow-200/30 bg-yellow-100/10 px-3 py-1 text-sm font-black uppercase tracking-[0.18em] text-yellow-100">
+                        Award Category
+                      </p>
+                      <h3 className="mt-3 text-2xl font-black leading-tight text-[#ffe8a8] sm:text-4xl">
                         {category.title}
                       </h3>
-                      <p className="mt-1 text-amber-50/75">{category.description}</p>
+                      <div className="mt-3 space-y-2 text-lg leading-relaxed text-amber-50/85 sm:text-xl">
+                        {category.description.split('\n').map((line, lineIdx) => {
+                          const cleanLine = line.replace(/^-+\s*/, '').trim();
+                          if (!cleanLine) return null;
+                          return (
+                            <p key={`${category.id}-desc-${lineIdx}`} className="flex gap-2">
+                              {category.description.includes('\n') && (
+                                <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-yellow-200/80" />
+                              )}
+                              <span>{cleanLine}</span>
+                            </p>
+                          );
+                        })}
+                      </div>
                     </div>
                   </div>
                   {!voteSubmitted && (
@@ -779,12 +881,7 @@ const InnoClubSecondEvaluationPage: React.FC = () => {
                     }`}
                   >
                     {(voteSubmitted
-                      ? [...voteOptions].sort((a, b) => {
-                          const resultA = getVoteResult(category.id, a.id);
-                          const resultB = getVoteResult(category.id, b.id);
-                          if (resultB.count !== resultA.count) return resultB.count - resultA.count;
-                          return (a.sort_order ?? 9999) - (b.sort_order ?? 9999);
-                        })
+                      ? [...voteOptions].sort((a, b) => compareVoteOptionsByResult(category.id, a, b))
                       : voteOptions
                     ).map((option, rankIndex) => {
                       const selected = votes[category.id] === option.id;
