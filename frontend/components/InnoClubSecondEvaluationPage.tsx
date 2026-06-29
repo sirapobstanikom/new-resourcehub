@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
@@ -138,6 +138,8 @@ const InnoClubSecondEvaluationPage: React.FC = () => {
   const [voteSubmitted, setVoteSubmitted] = useState(false);
   const [voteResults, setVoteResults] = useState<VoteResults>({});
   const [error, setError] = useState<string | null>(null);
+  const voteCategoryRef = useRef<HTMLElement | null>(null);
+  const voteActionsRef = useRef<HTMLDivElement | null>(null);
 
   const answeredCount = useMemo(
     () => REFLECTION_QUESTIONS.filter((q) => answers[q.id].trim().length > 0).length,
@@ -171,6 +173,12 @@ const InnoClubSecondEvaluationPage: React.FC = () => {
   const scrollToTop = () => {
     window.requestAnimationFrame(() => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  };
+
+  const scrollToElement = (element: HTMLElement | null, block: ScrollLogicalPosition = 'start') => {
+    window.requestAnimationFrame(() => {
+      element?.scrollIntoView({ behavior: 'smooth', block });
     });
   };
 
@@ -434,6 +442,11 @@ const InnoClubSecondEvaluationPage: React.FC = () => {
     scrollToTop();
   };
 
+  const selectVoteOption = (categoryId: VoteCategoryId, optionId: string) => {
+    setVotes((prev) => ({ ...prev, [categoryId]: optionId }));
+    scrollToElement(voteActionsRef.current, 'center');
+  };
+
   const goToNextVoteCategory = () => {
     setError(null);
     if (!activeVoteSelected) {
@@ -441,11 +454,13 @@ const InnoClubSecondEvaluationPage: React.FC = () => {
       return;
     }
     setActiveVoteIndex((prev) => Math.min(prev + 1, VOTE_CATEGORIES.length - 1));
+    scrollToElement(voteCategoryRef.current, 'start');
   };
 
   const goToPreviousVoteCategory = () => {
     setError(null);
     setActiveVoteIndex((prev) => Math.max(prev - 1, 0));
+    scrollToElement(voteCategoryRef.current, 'start');
   };
 
   const renderHeader = () => (
@@ -656,6 +671,7 @@ const InnoClubSecondEvaluationPage: React.FC = () => {
               (voteSubmitted ? VOTE_CATEGORIES : [activeVoteCategory]).map((category, index) => (
                 <section
                   key={category.id}
+                  ref={voteSubmitted ? undefined : voteCategoryRef}
                   className="relative overflow-hidden rounded-[2rem] border border-yellow-200/25 bg-[linear-gradient(145deg,rgba(49,8,5,0.9),rgba(12,2,1,0.92)_52%,rgba(35,13,3,0.95))] p-4 sm:p-7 shadow-[0_18px_60px_rgba(0,0,0,0.44)]"
                 >
                   <div className="absolute right-0 top-0 h-28 w-28 rounded-bl-full bg-yellow-100/10" />
@@ -737,11 +753,11 @@ const InnoClubSecondEvaluationPage: React.FC = () => {
                             key={option.id}
                             role="button"
                             tabIndex={0}
-                            onClick={() => setVotes((prev) => ({ ...prev, [category.id]: option.id }))}
+                            onClick={() => selectVoteOption(category.id, option.id)}
                             onKeyDown={(e) => {
                               if (e.key === 'Enter' || e.key === ' ') {
                                 e.preventDefault();
-                                setVotes((prev) => ({ ...prev, [category.id]: option.id }));
+                                selectVoteOption(category.id, option.id);
                               }
                             }}
                             className={`group relative flex cursor-pointer items-center gap-4 rounded-[1.5rem] border p-3 text-left transition-all sm:p-4 ${
@@ -823,12 +839,12 @@ const InnoClubSecondEvaluationPage: React.FC = () => {
                           role="button"
                           tabIndex={0}
                           onClick={() => {
-                            if (!voteSubmitted) setVotes((prev) => ({ ...prev, [category.id]: option.id }));
+                            if (!voteSubmitted) selectVoteOption(category.id, option.id);
                           }}
                           onKeyDown={(e) => {
                             if (e.key === 'Enter' || e.key === ' ') {
                               e.preventDefault();
-                              if (!voteSubmitted) setVotes((prev) => ({ ...prev, [category.id]: option.id }));
+                              if (!voteSubmitted) selectVoteOption(category.id, option.id);
                             }
                           }}
                           className={`group relative cursor-pointer rounded-[2rem] px-2 pb-3 pt-2 text-center transition-all hover:-translate-y-1 ${
@@ -954,7 +970,7 @@ const InnoClubSecondEvaluationPage: React.FC = () => {
                               type="button"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setVotes((prev) => ({ ...prev, [category.id]: option.id }));
+                                selectVoteOption(category.id, option.id);
                               }}
                               className={`mx-auto mt-2 block w-fit rounded-full px-4 py-1 text-xs font-black uppercase tracking-wide shadow-[0_8px_20px_rgba(250,204,21,0.22)] transition-all ${
                                 selected
@@ -1013,7 +1029,10 @@ const InnoClubSecondEvaluationPage: React.FC = () => {
                 <p className="mt-2 text-amber-50/80">เปอร์เซ็นต์ด้านบนคำนวณแยกตามแต่ละหมวดรางวัล</p>
               </div>
             ) : (
-              <div className="sticky bottom-0 z-20 -mx-4 border-t border-yellow-200/20 bg-[#120302]/95 px-4 pt-3 pb-4 backdrop-blur sm:mx-0 sm:rounded-[2rem] sm:border sm:bg-black/55 sm:p-4">
+              <div
+                ref={voteActionsRef}
+                className="sticky bottom-0 z-20 -mx-4 border-t border-yellow-200/20 bg-[#120302]/95 px-4 pt-3 pb-4 backdrop-blur sm:mx-0 sm:rounded-[2rem] sm:border sm:bg-black/55 sm:p-4"
+              >
                 <div className="flex flex-col gap-3 sm:flex-row">
                   {activeVoteIndex > 0 && (
                     <button
