@@ -140,6 +140,8 @@ const InnoClubSecondEvaluationPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const voteCategoryRef = useRef<HTMLElement | null>(null);
   const voteActionsRef = useRef<HTMLDivElement | null>(null);
+  const voteHeaderRef = useRef<HTMLElement | null>(null);
+  const pendingVoteCategoryScrollRef = useRef(false);
 
   const answeredCount = useMemo(
     () => REFLECTION_QUESTIONS.filter((q) => answers[q.id].trim().length > 0).length,
@@ -176,9 +178,36 @@ const InnoClubSecondEvaluationPage: React.FC = () => {
     });
   };
 
-  const scrollToElement = (element: HTMLElement | null, block: ScrollLogicalPosition = 'start') => {
+  const scrollToElement = (
+    element: HTMLElement | null,
+    block: ScrollLogicalPosition = 'start',
+    duration = 850
+  ) => {
     window.requestAnimationFrame(() => {
-      element?.scrollIntoView({ behavior: 'smooth', block });
+      if (!element) return;
+
+      const rect = element.getBoundingClientRect();
+      const startY = window.scrollY;
+      const rawTargetY =
+        block === 'center'
+          ? startY + rect.top - (window.innerHeight - rect.height) / 2
+          : startY + rect.top - 18;
+      const targetY = Math.max(0, rawTargetY);
+      const distance = targetY - startY;
+      const startTime = performance.now();
+
+      const step = (currentTime: number) => {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const easedProgress = 1 - Math.pow(1 - progress, 3);
+        window.scrollTo(0, startY + distance * easedProgress);
+
+        if (progress < 1) {
+          window.requestAnimationFrame(step);
+        }
+      };
+
+      window.requestAnimationFrame(step);
     });
   };
 
@@ -202,6 +231,12 @@ const InnoClubSecondEvaluationPage: React.FC = () => {
         setVoteOptions((data as VoteOption[]) || []);
       });
   }, [reflectionSubmitted]);
+
+  useEffect(() => {
+    if (!pendingVoteCategoryScrollRef.current) return;
+    pendingVoteCategoryScrollRef.current = false;
+    scrollToElement(voteCategoryRef.current, 'start', 850);
+  }, [activeVoteIndex]);
 
   const setAnswer = (id: string, value: string) => {
     setAnswers((prev) => ({ ...prev, [id]: value }));
@@ -439,12 +474,12 @@ const InnoClubSecondEvaluationPage: React.FC = () => {
     }
     setSubmittingVote(false);
     setVoteSubmitted(true);
-    scrollToTop();
+    scrollToElement(voteHeaderRef.current, 'start', 850);
   };
 
   const selectVoteOption = (categoryId: VoteCategoryId, optionId: string) => {
     setVotes((prev) => ({ ...prev, [categoryId]: optionId }));
-    scrollToElement(voteActionsRef.current, 'center');
+    scrollToElement(voteActionsRef.current, 'center', 950);
   };
 
   const goToNextVoteCategory = () => {
@@ -453,14 +488,14 @@ const InnoClubSecondEvaluationPage: React.FC = () => {
       setError('กรุณาเลือก 1 ทีมก่อนจึงจะไปยังรางวัลถัดไป');
       return;
     }
+    pendingVoteCategoryScrollRef.current = true;
     setActiveVoteIndex((prev) => Math.min(prev + 1, VOTE_CATEGORIES.length - 1));
-    scrollToElement(voteCategoryRef.current, 'start');
   };
 
   const goToPreviousVoteCategory = () => {
     setError(null);
+    pendingVoteCategoryScrollRef.current = true;
     setActiveVoteIndex((prev) => Math.max(prev - 1, 0));
-    scrollToElement(voteCategoryRef.current, 'start');
   };
 
   const renderHeader = () => (
@@ -644,7 +679,10 @@ const InnoClubSecondEvaluationPage: React.FC = () => {
 
         {reflectionSubmitted && (
           <form onSubmit={handleVoteSubmit} className="space-y-7">
-            <section className="relative overflow-hidden rounded-[2rem] border border-yellow-200/25 bg-[linear-gradient(145deg,rgba(49,8,5,0.9),rgba(12,2,1,0.92)_52%,rgba(35,13,3,0.95))] p-5 shadow-[0_18px_60px_rgba(0,0,0,0.44)] sm:p-8">
+            <section
+              ref={voteHeaderRef}
+              className="relative overflow-hidden rounded-[2rem] border border-yellow-200/25 bg-[linear-gradient(145deg,rgba(49,8,5,0.9),rgba(12,2,1,0.92)_52%,rgba(35,13,3,0.95))] p-5 shadow-[0_18px_60px_rgba(0,0,0,0.44)] sm:p-8"
+            >
               <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-yellow-100/80 to-transparent" />
               <div className="relative">
                 <div className="mx-auto mb-5 h-1.5 max-w-sm rounded-full bg-gradient-to-r from-transparent via-yellow-100 to-transparent" />
