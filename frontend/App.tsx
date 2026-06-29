@@ -47,6 +47,7 @@ const EvaEditorPage = lazy(() => import('./components/EvaEditorPage'));
 const EvaPublicFormPage = lazy(() => import('./components/EvaPublicFormPage'));
 const EvaDashboardPage = lazy(() => import('./components/EvaDashboardPage'));
 const EvaDashboardLoginPage = lazy(() => import('./components/EvaDashboardLoginPage'));
+const PeerFeedbackAudienceGridPage = lazy(() => import('./components/PeerFeedbackAudienceGridPage'));
 
 function cleanupArOverlays(): void {
   document.querySelectorAll('video').forEach((v) => {
@@ -312,6 +313,18 @@ const App: React.FC = () => {
           <Route path="/evaluation/innoclub-hogwarts" element={<HogwartsInnoclubPage />} />
           <Route path="/evaluation/innoclub-hogwarts-guest" element={<HogwartsInnoclubPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Suspense>
+    );
+  }
+
+  if (pathname.startsWith('/peer-feedback')) {
+    return (
+      <Suspense fallback={<RouteFallback />}>
+        <Routes>
+          <Route path="/peer-feedback" element={<PeerFeedbackAudienceGridPage />} />
+          <Route path="/peer-feedback/dashboard" element={<PeerFeedbackAudienceGridPage />} />
+          <Route path="*" element={<Navigate to="/peer-feedback" replace />} />
         </Routes>
       </Suspense>
     );

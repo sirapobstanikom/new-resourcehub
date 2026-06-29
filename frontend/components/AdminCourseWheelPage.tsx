@@ -1,4 +1,5 @@
 import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 
 type Item = { name: string; description: string; courseUrl?: string };
 type WheelCategory = {
@@ -639,6 +640,26 @@ const AdminCourseWheelPage: React.FC = () => {
               onHoverStart={handleHoverStart}
               onWheelLeave={handleWheelLeave}
             />
+          </div>
+          <div style={{ position: 'absolute', left: '50%', bottom: isMobile ? -54 : -42, transform: 'translateX(-50%)', width: 'min(92vw, 420px)', zIndex: 20 }}>
+            <Link
+              to="/peer-feedback"
+              style={{
+                display: 'block',
+                width: '100%',
+                padding: '14px 18px',
+                borderRadius: 999,
+                background: '#fed201',
+                color: '#111',
+                fontWeight: 900,
+                textAlign: 'center',
+                textDecoration: 'none',
+                boxShadow: '0 18px 40px rgba(254, 210, 1, 0.28)',
+                border: '1px solid rgba(17, 17, 17, 0.12)',
+              }}
+            >
+              Peer Feedback — Audience Grid
+            </Link>
           </div>
         </div>
       </main>

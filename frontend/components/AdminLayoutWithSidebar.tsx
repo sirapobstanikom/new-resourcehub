@@ -453,6 +453,14 @@ const AdminLayoutWithSidebar: React.FC = () => {
         >
           วงล้อหลักสูตร
         </a>
+        <a
+          href="/peer-feedback"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block py-2.5 px-3 rounded-lg text-sm font-medium text-gray-400 hover:bg-white/5 hover:text-white transition-colors"
+        >
+          Peer Feedback — Audience Grid
+        </a>
       </nav>
 
       <button
