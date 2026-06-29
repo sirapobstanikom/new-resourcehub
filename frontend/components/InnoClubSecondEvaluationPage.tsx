@@ -15,6 +15,17 @@ type VoteCategoryId = 'best_storytelling' | 'most_creative_product_launch' | 'mo
 type VoteResultBucket = { total: number; counts: Record<string, number> };
 type VoteResults = Partial<Record<VoteCategoryId, VoteResultBucket>>;
 
+type EvaluationFormState = {
+  facilitator_score: number;
+  facilitator_comment: string;
+  content_score: number;
+  content_comment: string;
+  overall_score: number;
+  atmosphere_score: number;
+  sharing_score: number;
+  overall_comment: string;
+};
+
 type VoteRow = {
   best_storytelling_option_id: string | null;
   most_creative_product_launch_option_id: string | null;
@@ -63,6 +74,8 @@ const VOTE_RESULT_COLUMNS: Record<VoteCategoryId, keyof VoteRow> = {
   most_market_impact: 'most_market_impact_option_id',
 };
 
+const SCORE_OPTIONS = [1, 2, 3, 4, 5] as const;
+
 const THEATER_PAGE_CLASS =
   'min-h-screen bg-transparent text-white flex flex-col selection:bg-yellow-300 selection:text-black innoclub-angsana';
 
@@ -95,6 +108,16 @@ function EventTitle({ eyebrow }: { eyebrow: string }) {
 }
 
 const InnoClubSecondEvaluationPage: React.FC = () => {
+  const [evaluationForm, setEvaluationForm] = useState<EvaluationFormState>({
+    facilitator_score: 0,
+    facilitator_comment: '',
+    content_score: 0,
+    content_comment: '',
+    overall_score: 0,
+    atmosphere_score: 0,
+    sharing_score: 0,
+    overall_comment: '',
+  });
   const [answers, setAnswers] = useState<Record<string, string>>({
     key_message_learning: '',
     team_challenge: '',
@@ -120,7 +143,18 @@ const InnoClubSecondEvaluationPage: React.FC = () => {
     () => REFLECTION_QUESTIONS.filter((q) => answers[q.id].trim().length > 0).length,
     [answers]
   );
-  const canSubmitReflection = answeredCount === REFLECTION_QUESTIONS.length;
+  const requiredScores = [
+    evaluationForm.facilitator_score,
+    evaluationForm.content_score,
+    evaluationForm.overall_score,
+    evaluationForm.atmosphere_score,
+    evaluationForm.sharing_score,
+  ];
+  const answeredRequiredScoreCount = requiredScores.filter((score) => score >= 1 && score <= 5).length;
+  const requiredQuestionCount = REFLECTION_QUESTIONS.length + requiredScores.length;
+  const answeredQuestionCount = answeredCount + answeredRequiredScoreCount;
+  const canSubmitReflection =
+    answeredCount === REFLECTION_QUESTIONS.length && answeredRequiredScoreCount === requiredScores.length;
   const canSubmitVote = VOTE_CATEGORIES.every((category) => votes[category.id]);
   const activeVoteCategory = VOTE_CATEGORIES[activeVoteIndex];
   const activeVoteSelected = Boolean(votes[activeVoteCategory.id]);
@@ -164,6 +198,51 @@ const InnoClubSecondEvaluationPage: React.FC = () => {
   const setAnswer = (id: string, value: string) => {
     setAnswers((prev) => ({ ...prev, [id]: value }));
   };
+
+  const setScore = (
+    key: Extract<keyof EvaluationFormState, 'facilitator_score' | 'content_score' | 'overall_score' | 'atmosphere_score' | 'sharing_score'>,
+    value: number
+  ) => {
+    setEvaluationForm((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const setText = (
+    key: Extract<keyof EvaluationFormState, 'facilitator_comment' | 'content_comment' | 'overall_comment'>,
+    value: string
+  ) => {
+    setEvaluationForm((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const renderScoreGroup = (
+    field: Extract<keyof EvaluationFormState, 'facilitator_score' | 'content_score' | 'overall_score' | 'atmosphere_score' | 'sharing_score'>,
+    name: string
+  ) => (
+    <div className="grid grid-cols-5 gap-2 sm:flex sm:flex-wrap sm:gap-3">
+      {SCORE_OPTIONS.map((score) => {
+        const selected = evaluationForm[field] === score;
+        return (
+          <label
+            key={score}
+            className={`flex min-h-[44px] cursor-pointer items-center justify-center rounded-xl border px-2 py-2 transition-all sm:min-h-[50px] sm:min-w-[52px] ${
+              selected
+                ? 'border-yellow-200 bg-yellow-200/20 text-yellow-50 shadow-[0_0_0_1px_rgba(254,240,138,0.38),0_0_18px_rgba(250,204,21,0.18)]'
+                : 'border-yellow-100/15 bg-black/30 text-yellow-100/75 hover:border-yellow-200/45'
+            }`}
+          >
+            <input
+              type="radio"
+              name={name}
+              checked={selected}
+              onChange={() => setScore(field, score)}
+              className="sr-only"
+              aria-label={`${name}-${score}`}
+            />
+            <span className="text-base font-black">{score}</span>
+          </label>
+        );
+      })}
+    </div>
+  );
 
   const createEmptyVoteResults = (): Record<VoteCategoryId, VoteResultBucket> => ({
     best_storytelling: { total: 0, counts: {} },
@@ -294,7 +373,7 @@ const InnoClubSecondEvaluationPage: React.FC = () => {
     e.preventDefault();
     setError(null);
     if (!canSubmitReflection) {
-      setError('กรุณาตอบคำถามให้ครบทั้ง 3 ข้อ');
+      setError('กรุณาให้คะแนนข้อบังคับ 5 ข้อ และตอบคำถามปลายเปิดให้ครบทั้ง 3 ข้อ');
       return;
     }
     if (!isSupabaseConfigured) {
@@ -303,6 +382,14 @@ const InnoClubSecondEvaluationPage: React.FC = () => {
     }
     setSubmittingReflection(true);
     const { error: submitError } = await supabase.from('innoclub_second_reflections').insert({
+      facilitator_score: evaluationForm.facilitator_score,
+      facilitator_comment: evaluationForm.facilitator_comment || null,
+      content_score: evaluationForm.content_score,
+      content_comment: evaluationForm.content_comment || null,
+      overall_score: evaluationForm.overall_score,
+      atmosphere_score: evaluationForm.atmosphere_score,
+      sharing_score: evaluationForm.sharing_score,
+      overall_comment: evaluationForm.overall_comment || null,
       key_message_learning: answers.key_message_learning.trim(),
       team_challenge: answers.team_challenge.trim(),
       real_work_application: answers.real_work_application.trim(),
@@ -374,7 +461,7 @@ const InnoClubSecondEvaluationPage: React.FC = () => {
           <div className="w-8 h-8 bg-gradient-to-br from-yellow-200 to-amber-500 rounded-lg flex items-center justify-center">
             <span className="text-black font-black text-sm">PTT</span>
           </div>
-          <span className="font-black tracking-tight text-sm text-yellow-100">INNO Influencer</span>
+          <span className="font-black tracking-tight text-sm text-yellow-100">INNO CLUB</span>
         </div>
       </div>
     </header>
@@ -407,18 +494,107 @@ const InnoClubSecondEvaluationPage: React.FC = () => {
               <div className="flex items-center justify-between text-sm">
                 <p className="text-yellow-100 font-bold">ความคืบหน้าแบบประเมิน</p>
                 <p className="text-white font-medium">
-                  {answeredCount}/3 <span className="text-gray-400">ข้อ</span>
+                  {answeredQuestionCount}/{requiredQuestionCount} <span className="text-gray-400">ข้อ</span>
                 </p>
               </div>
               <div className="mt-2 h-3 rounded-full bg-white/10 overflow-hidden border border-yellow-200/10">
                 <div
                   className="h-full bg-gradient-to-r from-red-700 via-yellow-200 to-amber-500 transition-all shadow-[0_0_18px_rgba(250,204,21,0.48)]"
-                  style={{ width: `${(answeredCount / REFLECTION_QUESTIONS.length) * 100}%` }}
+                  style={{ width: `${(answeredQuestionCount / requiredQuestionCount) * 100}%` }}
                 />
               </div>
             </div>
 
             <form onSubmit={handleReflectionSubmit} className="space-y-6">
+              <section className="rounded-[1.75rem] border border-yellow-200/20 bg-[linear-gradient(145deg,rgba(38,7,5,0.88),rgba(10,2,1,0.88))] p-4 shadow-[0_18px_50px_rgba(0,0,0,0.38)] sm:p-7">
+                <h2 className="mb-7 text-xl font-black text-yellow-300 sm:text-2xl">Facilitator</h2>
+                <div className="space-y-5">
+                  <div>
+                    <p className="mb-3 text-base font-bold leading-relaxed text-yellow-50 sm:text-xl">
+                      1. ความพึงพอใจโดยรวมต่อ Facilitator *
+                    </p>
+                    {renderScoreGroup('facilitator_score', 'facilitator_score')}
+                  </div>
+                  <div>
+                    <label htmlFor="facilitator_comment" className="mb-3 block text-sm font-bold text-yellow-100/65">
+                      2. ข้อเสนอแนะ
+                    </label>
+                    <textarea
+                      id="facilitator_comment"
+                      value={evaluationForm.facilitator_comment}
+                      onChange={(e) => setText('facilitator_comment', e.target.value)}
+                      rows={3}
+                      placeholder="ระบุข้อเสนอแนะ (ถ้ามี)..."
+                      className="w-full resize-none rounded-2xl border border-yellow-200/20 bg-black/45 px-4 py-3 text-base text-yellow-50 placeholder-yellow-100/35 focus:border-yellow-300 focus:outline-none"
+                    />
+                  </div>
+                </div>
+              </section>
+
+              <section className="rounded-[1.75rem] border border-yellow-200/20 bg-[linear-gradient(145deg,rgba(38,7,5,0.88),rgba(10,2,1,0.88))] p-4 shadow-[0_18px_50px_rgba(0,0,0,0.38)] sm:p-7">
+                <h2 className="mb-7 text-xl font-black text-yellow-300 sm:text-2xl">เนื้อหาของ PTT GROUP INNO Club</h2>
+                <div className="space-y-5">
+                  <div>
+                    <p className="mb-3 text-base font-bold leading-relaxed text-yellow-50 sm:text-xl">
+                      1. ความพึงพอใจโดยรวมต่อเนื้อหาของกิจกรรม *
+                    </p>
+                    {renderScoreGroup('content_score', 'content_score')}
+                  </div>
+                  <div>
+                    <label htmlFor="content_comment" className="mb-3 block text-sm font-bold text-yellow-100/65">
+                      2. ข้อเสนอแนะ
+                    </label>
+                    <textarea
+                      id="content_comment"
+                      value={evaluationForm.content_comment}
+                      onChange={(e) => setText('content_comment', e.target.value)}
+                      rows={3}
+                      placeholder="ระบุข้อเสนอแนะ (ถ้ามี)..."
+                      className="w-full resize-none rounded-2xl border border-yellow-200/20 bg-black/45 px-4 py-3 text-base text-yellow-50 placeholder-yellow-100/35 focus:border-yellow-300 focus:outline-none"
+                    />
+                  </div>
+                </div>
+              </section>
+
+              <section className="rounded-[1.75rem] border border-yellow-200/20 bg-[linear-gradient(145deg,rgba(38,7,5,0.88),rgba(10,2,1,0.88))] p-4 shadow-[0_18px_50px_rgba(0,0,0,0.38)] sm:p-7">
+                <h2 className="mb-7 text-xl font-black leading-relaxed text-yellow-300 sm:text-2xl">
+                  ความพึงพอใจโดยรวมและความคิดเห็นต่อ PTT GROUP INNO Club
+                </h2>
+                <div className="space-y-7">
+                  <div>
+                    <p className="mb-3 text-base font-bold leading-relaxed text-yellow-50 sm:text-xl">
+                      1. ความพึงพอใจโดยรวมต่อ PTT GROUP INNO Club *
+                    </p>
+                    {renderScoreGroup('overall_score', 'overall_score')}
+                  </div>
+                  <div>
+                    <p className="mb-3 text-base font-bold leading-relaxed text-yellow-50 sm:text-xl">
+                      2. ท่านเห็นบรรยากาศ PTT GROUP INNO Club ครั้งนี้ ส่งเสริมให้ทุกคนกล้าแสดงความคิดเห็น และสร้างการมีส่วนร่วมมากน้อยเพียงใด *
+                    </p>
+                    {renderScoreGroup('atmosphere_score', 'atmosphere_score')}
+                  </div>
+                  <div>
+                    <p className="mb-3 text-base font-bold leading-relaxed text-yellow-50 sm:text-xl">
+                      3. PTT GROUP INNO Club ครั้งนี้ มีการแบ่งปัน แลกเปลี่ยนข้อมูลระหว่างกันมากน้อยเพียงใด *
+                    </p>
+                    {renderScoreGroup('sharing_score', 'sharing_score')}
+                  </div>
+                  <div>
+                    <label htmlFor="overall_comment" className="mb-3 block text-sm font-bold text-yellow-100/65">
+                      4. ข้อเสนอแนะเพิ่มเติม
+                    </label>
+                    <textarea
+                      id="overall_comment"
+                      value={evaluationForm.overall_comment}
+                      onChange={(e) => setText('overall_comment', e.target.value)}
+                      rows={3}
+                      placeholder="ระบุข้อเสนอแนะ (ถ้ามี)..."
+                      className="w-full resize-none rounded-2xl border border-yellow-200/20 bg-black/45 px-4 py-3 text-base text-yellow-50 placeholder-yellow-100/35 focus:border-yellow-300 focus:outline-none"
+                    />
+                  </div>
+                </div>
+              </section>
+
               {REFLECTION_QUESTIONS.map((question, index) => (
                 <section
                   key={question.id}
