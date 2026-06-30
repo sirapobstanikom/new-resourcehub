@@ -600,7 +600,7 @@ const InnoClubSecondEvaluationPage: React.FC<InnoClubSecondEvaluationPageProps> 
           />
           <p className="mx-auto mt-6 max-w-2xl text-center text-yellow-50/80 text-sm sm:text-base leading-relaxed">
             {resultsOnly
-              ? 'สรุปผลโหวตแบบ Real-time สำหรับเปิดดู Dashboard ได้โดยตรง'
+              ? 'Dashboard'
               : 'ตอบคำถามวัดผลจากกิจกรรม innovation in motion'}
           </p>
           {resultsOnly && (
