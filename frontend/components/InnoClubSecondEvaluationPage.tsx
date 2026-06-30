@@ -603,6 +603,22 @@ const InnoClubSecondEvaluationPage: React.FC<InnoClubSecondEvaluationPageProps> 
               ? 'Dashboard'
               : 'ตอบคำถามวัดผลจากกิจกรรม innovation in motion'}
           </p>
+          {!resultsOnly && (
+            <div className="mt-6 flex flex-wrap justify-center gap-3">
+              <Link
+                to="/evaluation/innoclub-2/videos"
+                className="rounded-full bg-gradient-to-r from-yellow-100 via-amber-300 to-yellow-600 px-4 py-2 text-sm font-black text-black shadow-[0_12px_30px_rgba(250,204,21,0.2)] hover:from-white hover:to-amber-400"
+              >
+                ไปหน้าอัปโหลดวิดีโอ
+              </Link>
+              <Link
+                to="/evaluation/innoclub-2/videos/dashboard"
+                className="rounded-full border border-yellow-200/30 bg-black/35 px-4 py-2 text-sm font-black text-yellow-100 hover:bg-yellow-100/10"
+              >
+                Dashboard วิดีโอ
+              </Link>
+            </div>
+          )}
           {resultsOnly && (
             <div className="mt-6 flex flex-wrap justify-center gap-3">
               <Link

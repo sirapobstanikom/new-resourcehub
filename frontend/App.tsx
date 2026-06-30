@@ -41,6 +41,7 @@ const GameHiddenFox = lazy(() => import('./components/GameHiddenFox'));
 const WhaleDoneRolePlayPage = lazy(() => import('./components/WhaleDoneRolePlayPage'));
 const InnoClubEvaluationPage = lazy(() => import('./components/InnoClubEvaluationPage'));
 const InnoClubSecondEvaluationPage = lazy(() => import('./components/InnoClubSecondEvaluationPage'));
+const InnoClubSecondVideoPage = lazy(() => import('./components/InnoClubSecondVideoPage'));
 const AdminInnoClubSecondVotePage = lazy(() => import('./components/AdminInnoClubSecondVotePage'));
 const HogwartsInnoclubPage = lazy(() => import('./components/HogwartsInnoclubPage'));
 const EvaEditorPage = lazy(() => import('./components/EvaEditorPage'));
@@ -310,6 +311,8 @@ const App: React.FC = () => {
             path="/evaluation/innoclub-2/results"
             element={<InnoClubSecondEvaluationPage key="innoclub-2-results" resultsOnly />}
           />
+          <Route path="/evaluation/innoclub-2/videos" element={<InnoClubSecondVideoPage />} />
+          <Route path="/evaluation/innoclub-2/videos/dashboard" element={<InnoClubSecondVideoPage />} />
           <Route path="/evaluation/eva-editor" element={<EvaEditorPage />} />
           <Route path="/evaluation/dashboard/login" element={<EvaDashboardLoginPage />} />
           <Route path="/evaluation/dashboard" element={<EvaDashboardPage />} />
