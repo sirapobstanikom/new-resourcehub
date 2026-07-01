@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import * as XLSX from 'xlsx';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import AdminDatabaseSummaryDashboard from './AdminDatabaseSummaryDashboard';
 
 export type CollectionId =
   | 'leadership_entries'
@@ -93,9 +94,11 @@ const AdminDashboard: React.FC = () => {
   const [page, setPage] = useState(1);
   const [dateFrom, setDateFrom] = useState<string>('');
   const [dateTo, setDateTo] = useState<string>('');
+  const [showDashboard, setShowDashboard] = useState(false);
 
   useEffect(() => {
     if (!selectedCollection || !isSupabaseConfigured) return;
+    setShowDashboard(false);
     setSortColumn(null);
     setPage(1);
     setLoading(true);
@@ -159,6 +162,15 @@ const AdminDashboard: React.FC = () => {
     XLSX.writeFile(wb, `${selectedCollection}_${date}.xlsx`);
   };
 
+  const deleteRow = async (rowId: string | number) => {
+    if (!selectedCollection || !isSupabaseConfigured) {
+      throw new Error('ยังไม่ได้ตั้งค่า Supabase');
+    }
+    const { error: deleteError } = await supabase.from(selectedCollection).delete().eq('id', rowId);
+    if (deleteError) throw new Error(deleteError.message);
+    setRows((prev) => prev.filter((row) => row.id !== rowId));
+  };
+
   return (
     <div className="flex flex-col min-h-full">
         <header className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 px-4 sm:px-6 py-4 sm:py-6 border-b border-white/10">
@@ -218,14 +230,24 @@ const AdminDashboard: React.FC = () => {
                       <span className="text-sm text-gray-500">
                         {sortedRows.length} แถว · {displayColumns.length} คอลัมน์ · หน้า {currentPage}/{totalPages}
                       </span>
-                      <button
-                        type="button"
-                        onClick={downloadExcel}
-                        disabled={sortedRows.length === 0}
-                        className="px-4 py-2 rounded-xl text-sm font-medium bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 border border-emerald-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors w-full sm:w-auto"
-                      >
-                        ดาวน์โหลด Excel
-                      </button>
+                      <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+                        <button
+                          type="button"
+                          onClick={() => setShowDashboard(true)}
+                          disabled={sortedRows.length === 0}
+                          className="px-4 py-2 rounded-xl text-sm font-medium bg-yellow-400/15 text-yellow-300 hover:bg-yellow-400/25 border border-yellow-400/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors w-full sm:w-auto"
+                        >
+                          สร้าง Dashboard
+                        </button>
+                        <button
+                          type="button"
+                          onClick={downloadExcel}
+                          disabled={sortedRows.length === 0}
+                          className="px-4 py-2 rounded-xl text-sm font-medium bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 border border-emerald-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors w-full sm:w-auto"
+                        >
+                          ดาวน์โหลด Excel
+                        </button>
+                      </div>
                     </div>
                   </div>
                   <div className="flex flex-col gap-3 sm:gap-4">
@@ -290,7 +312,20 @@ const AdminDashboard: React.FC = () => {
                   </div>
                 </div>
 
-                {loading ? (
+                {showDashboard && !loading && !error && sortedRows.length > 0 ? (
+                  <div className="p-4 sm:p-6">
+                    <AdminDatabaseSummaryDashboard
+                      collectionId={selectedCollection}
+                      collectionLabel={COLLECTIONS.find((c) => c.id === selectedCollection)?.label || selectedCollection}
+                      rows={sortedRows}
+                      columns={displayColumns}
+                      dateFrom={dateFrom}
+                      dateTo={dateTo}
+                      onBack={() => setShowDashboard(false)}
+                      onDeleteRow={deleteRow}
+                    />
+                  </div>
+                ) : loading ? (
                   <div className="p-12 text-center text-gray-400">กำลังโหลด...</div>
                 ) : error ? (
                   <div className="p-6 mx-6 my-4 space-y-2">
