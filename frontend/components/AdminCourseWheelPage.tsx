@@ -1,5 +1,4 @@
 import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
 
 type Item = { name: string; description: string; courseUrl?: string };
 type WheelCategory = {
@@ -87,8 +86,18 @@ const FOUNDATION_SKILLS = {
 };
 
 const WHEEL_COLORS = {
-  dark: { main: '#1E293B', middle: '#334155', outer: '#0F172A', text: '#F8FAFC' },
-  accent: { main: '#F59E0B', middle: '#FBBF24', outer: '#FCD34D', text: '#111827' },
+  // Outer Arcs
+  yellowOuter: '#F9B732',
+  blueOuter: '#121E30',
+  
+  // Inner Quadrants
+  creamInner: '#FEF4E5',
+  greyInner: '#EAEFF5',
+  
+  // Center
+  centerBg: '#0A0A0A',
+  centerYellow: '#F9B732',
+  centerWhite: '#FFFFFF',
 };
 
 const ICONS = {
@@ -103,60 +112,91 @@ const ICONS = {
   Lightbulb: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/></svg>
 };
 
-const LINE_GAP = 25;
+const LINE_GAP = 22;
+
 function splitTextMultiLine(text: string): string[] | null {
-    if (text === 'Learning and Growth') {
-      return [
-        'Learning',
-        'and',
-        'Growth'
-      ];
-    }
-  if (text === 'Strategic Value Creation') {
-    return [
-      'Strategic Value',
-      'Creation'
-    ];
+  const norm = text.trim();
+  if (norm === 'Innovation & Transformation' || norm === 'Innovation Transformation') {
+    return ['INNOVATION', 'TRANSFORMATION'];
   }
-  const normalized = String(text)
-    .replace(/\//g, ' / ')
-    .replace(/&/g, ' & ')
-    .trim();
-
-  const words = normalized.split(/\s+/);
-
-  // สั้นๆ ไม่ต้องแยก
-  if (words.length <= 2 && normalized.length < 18) {
-    return null;
+  if (norm === 'Strategic Value Creation') {
+    return ['STRATEGIC VALUE', 'CREATION'];
   }
-
-  // 6 คำขึ้นไป หรือยาวมาก → 4 บรรทัด
-  if (words.length >= 5 || normalized.length > 32) {
-    return [
-      words[0] || '',
-      words[1] || '',
-      words[2] || '',
-      words.slice(3).join(' ')
-    ];
+  if (norm === 'Succeeding with Stakeholder' || norm === 'Succeeding with Stakeholders') {
+    return ['SUCCEEDING', 'WITH STAKEHOLDER'];
   }
-
-  // 4 คำขึ้นไป → 3 บรรทัด
-  if (words.length >= 4 || normalized.length > 22) {
-    return [
-      words[0] || '',
-      words[1] || '',
-      words.slice(2).join(' ')
-    ];
+  if (norm === 'Resilient Leadership') {
+    return ['RESILIENT', 'LEADERSHIP'];
   }
-
-  // ปกติ 2 บรรทัด
-  const mid = Math.ceil(words.length / 2);
-
-  return [
-    words.slice(0, mid).join(' '),
-    words.slice(mid).join(' ')
-  ];
+  return null;
 }
+
+const getInnerQuadrantTextLines = (id: string): string[] => {
+  switch (id) {
+    case 'innovation-transformation':
+      return ['LEARNING', '& GROWTH'];
+    case 'strategic-value':
+      return ['CREATIVITY', 'AND', 'PROBLEM-SOLVING'];
+    case 'succeeding-stakeholders':
+      return ['COLLABORATION', 'AND', 'COMMUNICATION'];
+    case 'resilient-leadership':
+      return ['EMOTIONAL', 'INTELLIGENCE'];
+    default:
+      return [];
+  }
+};
+
+const getLabelCoords = (midAngle: number, radius: number) => {
+  const rad = (midAngle - 90) * (Math.PI / 180);
+  return {
+    x: 500 + radius * Math.cos(rad),
+    y: 500 + radius * Math.sin(rad),
+  };
+};
+
+const MultilineText = ({
+  x,
+  y,
+  lines,
+  color,
+  fontSize = 14,
+  lineHeight = 18,
+}: {
+  x: number;
+  y: number;
+  lines: string[];
+  color: string;
+  fontSize?: number;
+  lineHeight?: number;
+}) => {
+  const halfLen = (lines.length - 1) / 2;
+  return (
+    <g style={{ pointerEvents: 'none' }}>
+      {lines.map((line, idx) => {
+        const dy = (idx - halfLen) * lineHeight;
+        return (
+          <text
+            key={idx}
+            x={x}
+            y={y + dy}
+            textAnchor="middle"
+            dominantBaseline="central"
+            fill={color}
+            style={{
+              fontSize: `${fontSize}px`,
+              fontWeight: 800,
+              fontFamily: '"Inter", system-ui, -apple-system, sans-serif',
+              letterSpacing: '0.04em',
+            }}
+          >
+            {line}
+          </text>
+        );
+      })}
+    </g>
+  );
+};
+
 const ArcText = memo(({
   id,
   text,
@@ -164,7 +204,7 @@ const ArcText = memo(({
   startAngle,
   endAngle,
   color = 'currentColor',
-  fontSize = '22px'
+  fontSize = '18px'
 }: {
   id: string;
   text: string;
@@ -174,11 +214,9 @@ const ArcText = memo(({
   color?: string;
   fontSize?: string;
 }) => {
-
   const midAngle = (startAngle + endAngle) / 2;
   const normalizedMidAngle = (midAngle + 360) % 360;
-  const isUpsideDown =
-    normalizedMidAngle > 95 && normalizedMidAngle < 265;
+  const isUpsideDown = normalizedMidAngle > 95 && normalizedMidAngle < 265;
 
   const startRad = (startAngle - 90) * (Math.PI / 180);
   const endRad = (endAngle - 90) * (Math.PI / 180);
@@ -190,11 +228,8 @@ const ArcText = memo(({
     const x2 = 500 + r * Math.cos(endRad);
     const y2 = 500 + r * Math.sin(endRad);
 
-    const normalPath =
-      `M ${x1} ${y1} A ${r} ${r} 0 0 1 ${x2} ${y2}`;
-
-    const reversePath =
-      `M ${x2} ${y2} A ${r} ${r} 0 0 0 ${x1} ${y1}`;
+    const normalPath = `M ${x1} ${y1} A ${r} ${r} 0 0 1 ${x2} ${y2}`;
+    const reversePath = `M ${x2} ${y2} A ${r} ${r} 0 0 0 ${x1} ${y1}`;
 
     return isUpsideDown ? reversePath : normalPath;
   };
@@ -203,56 +238,26 @@ const ArcText = memo(({
   const totalLines = lines?.length || 1;
 
   const getCenteredRadius = (index: number) => {
-    const offset =
-      (index - (totalLines - 1) / 2) * LINE_GAP;
-
+    const relativeIndex = isUpsideDown ? (totalLines - 1 - index) : index;
+    const offset = (relativeIndex - (totalLines - 1) / 2) * LINE_GAP;
     return radius - offset;
   };
 
-  const orderedLines =
-    lines && isUpsideDown
-      ? [...lines].reverse()
-      : lines;
-
-  const textOffset =
-    isUpsideDown ? '48%' : '50%';
+  const orderedLines = lines && isUpsideDown ? [...lines].reverse() : lines;
+  const textOffset = '50%';
 
   return (
     <>
       <defs>
-        <path
-          id={id}
-          d={makePath(getCenteredRadius(0))}
-        />
-
+        <path id={id} d={makePath(getCenteredRadius(0))} />
         {lines?.[1] && (
-          <path
-            id={`${id}-2`}
-            d={makePath(getCenteredRadius(1))}
-          />
-        )}
-
-        {lines?.[2] && (
-          <path
-            id={`${id}-3`}
-            d={makePath(getCenteredRadius(2))}
-          />
-        )}
-        {lines?.[3] && (
-          <path
-            id={`${id}-4`}
-            d={makePath(getCenteredRadius(3))}
-          />
+          <path id={`${id}-2`} d={makePath(getCenteredRadius(1))} />
         )}
       </defs>
 
       {!lines ? (
-        <text fill={color} className="arc-text">
-          <textPath
-            xlinkHref={`#${id}`}
-            startOffset={textOffset}
-            textAnchor="middle"
-          >
+        <text fill={color} className="arc-text" style={{ fontSize, fontWeight: 800, pointerEvents: 'none' }}>
+          <textPath xlinkHref={`#${id}`} startOffset={textOffset} textAnchor="middle">
             {text}
           </textPath>
         </text>
@@ -262,10 +267,16 @@ const ArcText = memo(({
             key={i}
             fill={color}
             className="arc-text"
-            style={{ fontSize }}
+            style={{
+              fontSize,
+              fontWeight: 800,
+              fontFamily: '"Inter", system-ui, -apple-system, sans-serif',
+              pointerEvents: 'none',
+              letterSpacing: '0.04em'
+            }}
           >
             <textPath
-              xlinkHref={`#${i === 0 ? id : `${id}-${i + 1}`}`}
+              xlinkHref={`#${i === 0 ? id : `${id}-2`}`}
               startOffset={textOffset}
               textAnchor="middle"
             >
@@ -278,57 +289,203 @@ const ArcText = memo(({
   );
 });
 
-const SegmentGroup = memo((props: {
-  id: string; text: string; startAngle: number; endAngle: number; innerRadius: number; outerRadius: number; fill: string;
-  textColor: string; onSelect: (t: string, d: any, q: string) => void; selectionType: string; selectionData: any; quadrantId: string;
-  isActive: boolean; isHovered: boolean; isDimmed: boolean; textRadius: number;
+function getOuterArcPath(qs: number, qe: number, radius: number, strokeWidth: number): string {
+  const capAngle = (strokeWidth / 2 / radius) * (180 / Math.PI);
+  const gap = 2.5; 
+  const angle1 = qs + gap + capAngle;
+  const angle2 = qe - gap - capAngle;
+  
+  const startRad = (angle1 - 90) * (Math.PI / 180);
+  const endRad = (angle2 - 90) * (Math.PI / 180);
+  
+  const x1 = 500 + radius * Math.cos(startRad);
+  const y1 = 500 + radius * Math.sin(startRad);
+  const x2 = 500 + radius * Math.cos(endRad);
+  const y2 = 500 + radius * Math.sin(endRad);
+  
+  const largeArcFlag = angle2 - angle1 <= 180 ? '0' : '1';
+  return `M ${x1} ${y1} A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2}`;
+}
+
+function getRoundedSectorPath(
+  cx: number, cy: number,
+  rIn: number, rOut: number,
+  startAngle: number, endAngle: number,
+  cornerRadius: number
+): string {
+  if (cornerRadius <= 0) {
+    const startRad = (startAngle - 90) * (Math.PI / 180);
+    const endRad = (endAngle - 90) * (Math.PI / 180);
+    
+    const x1 = cx + rOut * Math.cos(startRad);
+    const y1 = cy + rOut * Math.sin(startRad);
+    const x2 = cx + rOut * Math.cos(endRad);
+    const y2 = cy + rOut * Math.sin(endRad);
+    const x3 = cx + rIn * Math.cos(endRad);
+    const y3 = cy + rIn * Math.sin(endRad);
+    const x4 = cx + rIn * Math.cos(startRad);
+    const y4 = cy + rIn * Math.sin(startRad);
+    
+    const largeArcFlag = endAngle - startAngle <= 180 ? '0' : '1';
+    return `M ${x1} ${y1} A ${rOut} ${rOut} 0 ${largeArcFlag} 1 ${x2} ${y2} L ${x3} ${y3} A ${rIn} ${rIn} 0 ${largeArcFlag} 0 ${x4} ${y4} Z`;
+  }
+
+  const deltaAngleIn = (cornerRadius / rIn) * (180 / Math.PI);
+  const deltaAngleOut = (cornerRadius / rOut) * (180 / Math.PI);
+
+  const getXY = (r: number, angleDeg: number) => {
+    const rad = (angleDeg - 90) * (Math.PI / 180);
+    return {
+      x: cx + r * Math.cos(rad),
+      y: cy + r * Math.sin(rad)
+    };
+  };
+
+  const A = getXY(rIn + cornerRadius, startAngle);
+  const H = getXY(rOut - cornerRadius, startAngle);
+  const G = getXY(rOut, startAngle + deltaAngleOut);
+  const F = getXY(rOut, endAngle - deltaAngleOut);
+  const E = getXY(rOut - cornerRadius, endAngle);
+  const D = getXY(rIn + cornerRadius, endAngle);
+  const C = getXY(rIn, endAngle - deltaAngleIn);
+  const B = getXY(rIn, startAngle + deltaAngleIn);
+
+  const largeArcOuter = (endAngle - startAngle - 2 * deltaAngleOut) > 180 ? '1' : '0';
+  const largeArcInner = (endAngle - startAngle - 2 * deltaAngleIn) > 180 ? '1' : '0';
+
+  return [
+    `M ${A.x} ${A.y}`,
+    `L ${H.x} ${H.y}`,
+    `A ${cornerRadius} ${cornerRadius} 0 0 1 ${G.x} ${G.y}`,
+    `A ${rOut} ${rOut} 0 ${largeArcOuter} 1 ${F.x} ${F.y}`,
+    `A ${cornerRadius} ${cornerRadius} 0 0 1 ${E.x} ${E.y}`,
+    `L ${D.x} ${D.y}`,
+    `A ${cornerRadius} ${cornerRadius} 0 0 1 ${C.x} ${C.y}`,
+    `A ${rIn} ${rIn} 0 ${largeArcInner} 0 ${B.x} ${B.y}`,
+    `A ${cornerRadius} ${cornerRadius} 0 0 1 ${A.x} ${A.y}`,
+    'Z'
+  ].join(' ');
+}
+
+const InnerSegmentGroup = memo((props: {
+  id: string;
+  quadId: string;
+  startAngle: number;
+  endAngle: number;
+  onSelect: (t: string, d: any, q: string) => void;
+  selection: Selection;
+  isActive: boolean;
+  isHovered: boolean;
+  isDimmed: boolean;
   onHoverStart: (hoverId: string | null) => void;
 }) => {
-  const {
-    id,
-    text,
-    startAngle,
-    endAngle,
-    innerRadius,
-    outerRadius,
-    fill,
-    textColor,
-    onSelect,
-    selectionType,
-    selectionData,
-    quadrantId,
-    isActive,
-    isHovered,
-    isDimmed,
-    textRadius,
-    onHoverStart,
-  } = props;
-  const startRad = (startAngle - 90) * (Math.PI / 180);
-  const endRad = (endAngle - 90) * (Math.PI / 180);
-  const x1 = 500 + outerRadius * Math.cos(startRad);
-  const y1 = 500 + outerRadius * Math.sin(startRad);
-  const x2 = 500 + outerRadius * Math.cos(endRad);
-  const y2 = 500 + outerRadius * Math.sin(endRad);
-  const x3 = 500 + innerRadius * Math.cos(endRad);
-  const y3 = 500 + innerRadius * Math.sin(endRad);
-  const x4 = 500 + innerRadius * Math.cos(startRad);
-  const y4 = 500 + innerRadius * Math.sin(startRad);
-  const largeArcFlag = endAngle - startAngle <= 180 ? '0' : '1';
-  const d = `M ${x1} ${y1} A ${outerRadius} ${outerRadius} 0 ${largeArcFlag} 1 ${x2} ${y2} L ${x3} ${y3} A ${innerRadius} ${innerRadius} 0 ${largeArcFlag} 0 ${x4} ${y4} Z`;
-  const scale = isHovered ? 1.04 : isActive ? 1.02 : 1;
-  const opacity = isDimmed ? 0.28 : 1;
-  const filter = isHovered ? 'drop-shadow(0 0 18px rgba(254,210,1,0.35)) brightness(1.08)' : 'none';
+  const { id, quadId, startAngle, endAngle, onSelect, selection, isActive, isHovered, isDimmed, onHoverStart } = props;
+  const quad = WHEEL_DATA.find(q => q.id === quadId)!;
+  
+  const fill = (quadId === 'innovation-transformation' || quadId === 'resilient-leadership')
+    ? WHEEL_COLORS.creamInner
+    : WHEEL_COLORS.greyInner;
+    
+  const gap = 1.8;
+  const rIn = 155;
+  const rOut = 295;
+  const pathData = getRoundedSectorPath(500, 500, rIn, rOut, startAngle + gap, endAngle - gap, 0);
+  
+  const scale = isHovered ? 1.03 : isActive ? 1.01 : 1;
+  const opacity = isDimmed ? 0.3 : 1;
+  
+  const midAngle = (startAngle + endAngle) / 2;
+  const { x, y } = getLabelCoords(midAngle, 225);
+  const textLines = getInnerQuadrantTextLines(quadId);
+  
   return (
     <g
-      onClick={() => onSelect(selectionType, selectionData, quadrantId)}
+      onClick={() => onSelect('intermediate', { name: quad.intermediateName, description: `Core competency area within ${quad.name}.` }, quadId)}
       onMouseEnter={() => onHoverStart(id)}
       onMouseLeave={() => onHoverStart(null)}
       className="cursor-pointer"
-      style={{ transformOrigin: '500px 500px', transform: `scale(${scale})`, opacity, filter, transition: 'transform 180ms ease, opacity 180ms ease, filter 180ms ease' }}
+      style={{
+        transformOrigin: '500px 500px',
+        transform: `scale(${scale})`,
+        opacity,
+        transition: 'transform 200ms cubic-bezier(0.4, 0, 0.2, 1), opacity 200ms cubic-bezier(0.4, 0, 0.2, 1)'
+      }}
     >
+      <path
+        d={pathData}
+        fill={fill}
+        style={{
+          filter: isHovered ? 'drop-shadow(0 0 12px rgba(22, 36, 60, 0.08))' : 'none',
+          transition: 'filter 200ms ease'
+        }}
+      />
+      <MultilineText x={x} y={y} lines={textLines} color="#16243C" />
+    </g>
+  );
+});
+
+const OuterSegmentGroup = memo((props: {
+  id: string;
+  quadId: string;
+  startAngle: number;
+  endAngle: number;
+  onSelect: (t: string, d: any, q: string) => void;
+  selection: Selection;
+  isActive: boolean;
+  isHovered: boolean;
+  isDimmed: boolean;
+  onHoverStart: (hoverId: string | null) => void;
+}) => {
+  const { id, quadId, startAngle, endAngle, onSelect, selection, isActive, isHovered, isDimmed, onHoverStart } = props;
+  const quad = WHEEL_DATA.find(q => q.id === quadId)!;
   
-      <path d={d} fill={fill} className={`wheel-segment ${isActive ? 'active' : ''}`} stroke="rgba(0,0,0,0.15)" strokeWidth="1" />
-      <ArcText id={id} text={text} radius={textRadius} startAngle={startAngle} endAngle={endAngle} color={textColor} />
+  const color = (quadId === 'innovation-transformation' || quadId === 'resilient-leadership')
+    ? WHEEL_COLORS.yellowOuter
+    : WHEEL_COLORS.blueOuter;
+    
+  const textColor = (quadId === 'innovation-transformation' || quadId === 'resilient-leadership')
+    ? '#16243C'
+    : '#FFFFFF';
+    
+  const gap = 6.5;
+  const rIn = 310;
+  const rOut = 420;
+  const pathData = getRoundedSectorPath(500, 500, rIn, rOut, startAngle + gap, endAngle - gap, 0);
+  
+  const scale = isHovered ? 1.03 : isActive ? 1.01 : 1;
+  const opacity = isDimmed ? 0.3 : 1;
+  
+  return (
+    <g
+      onClick={() => onSelect('main-category', quad, quadId)}
+      onMouseEnter={() => onHoverStart(id)}
+      onMouseLeave={() => onHoverStart(null)}
+      className="cursor-pointer"
+      style={{
+        transformOrigin: '500px 500px',
+        transform: `scale(${scale})`,
+        opacity,
+        transition: 'transform 200ms cubic-bezier(0.4, 0, 0.2, 1), opacity 200ms cubic-bezier(0.4, 0, 0.2, 1)'
+      }}
+    >
+      <path
+        d={pathData}
+        fill={color}
+        style={{
+          filter: isHovered ? 'drop-shadow(0 0 15px rgba(22, 36, 60, 0.15))' : 'none',
+          transition: 'filter 200ms ease'
+        }}
+      />
+      
+      <ArcText
+        id={`text-path-${quadId}`}
+        text={quad.name}
+        radius={365}
+        startAngle={startAngle}
+        endAngle={endAngle}
+        color={textColor}
+        fontSize="16px"
+      />
     </g>
   );
 });
@@ -347,90 +504,76 @@ const Wheel = memo(({
   hoveredSegmentId: string | null;
   onHoverStart: (hoverId: string | null) => void;
   onWheelLeave: () => void;
-}) => (
-  <svg ref={svgRef} viewBox="0 0 1000 1000" onMouseLeave={onWheelLeave} style={{ width: '100%', height: '100%', borderRadius: '50%' }}>
-    <circle cx="500" cy="500" r="429" fill="none" stroke="rgba(223, 53, 53, 0.04)" strokeWidth="1" />
-    {WHEEL_DATA.map((quad, i) => {
-      const qs = i * 90;
-      const qe = (i + 1) * 90;
-      return (
-        <g key={`outer-${quad.id}`}>
-          <SegmentGroup
-            id={`text-main-${quad.id}`}
-            text={quad.name}
+}) => {
+  const isCenterActive = selection.quadrantId === 'foundation';
+  const isCenterHovered = hoveredSegmentId === 'foundation-center';
+  const isCenterDimmed = Boolean(hoveredSegmentId) && hoveredSegmentId !== 'foundation-center';
+  
+  return (
+    <svg ref={svgRef} viewBox="0 0 1000 1000" onMouseLeave={onWheelLeave} style={{ width: '100%', height: '100%', borderRadius: '50%' }}>
+      {/* Inner quadrants background shapes */}
+      {WHEEL_DATA.map((quad, i) => {
+        const qs = i * 90;
+        const qe = (i + 1) * 90;
+        const id = `inner-${quad.id}`;
+        return (
+          <InnerSegmentGroup
+            key={id}
+            id={id}
+            quadId={quad.id}
             startAngle={qs}
             endAngle={qe}
-            innerRadius={284}
-            outerRadius={429}
-            textRadius={357}
-            fill={quad.color === 'yellow' ? WHEEL_COLORS.accent.main : WHEEL_COLORS.dark.main}
-            textColor={quad.color === 'yellow' ? WHEEL_COLORS.accent.text : WHEEL_COLORS.dark.text}
-            isActive={selection.data === quad}
-            isHovered={hoveredSegmentId === `text-main-${quad.id}`}
-            isDimmed={Boolean(hoveredSegmentId) && hoveredSegmentId !== `text-main-${quad.id}`}
-            onHoverStart={onHoverStart}
             onSelect={onSelect}
-            selectionType="main-category"
-            selectionData={quad}
-            quadrantId={quad.id}
-          />
-        </g>
-      );
-    })}
-    {WHEEL_DATA.map((quad, i) => {
-      const qs = i * 90;
-      const qe = (i + 1) * 90;
-      return (
-        <g key={`inner-${quad.id}`}>
-          <SegmentGroup
-            id={`text-inter-${quad.id}`}
-            text={quad.intermediateName}
-            startAngle={qs}
-            endAngle={qe}
-            innerRadius={167}
-            outerRadius={282}
-            textRadius={225}
-
-            fill={quad.color === 'yellow' ? WHEEL_COLORS.accent.middle : WHEEL_COLORS.dark.middle}
-            textColor={quad.color === 'yellow' ? WHEEL_COLORS.accent.text : WHEEL_COLORS.dark.text}
+            selection={selection}
             isActive={selection.type === 'intermediate' && selection.quadrantId === quad.id}
-            isHovered={hoveredSegmentId === `text-inter-${quad.id}`}
-            isDimmed={Boolean(hoveredSegmentId) && hoveredSegmentId !== `text-inter-${quad.id}`}
+            isHovered={hoveredSegmentId === id}
+            isDimmed={Boolean(hoveredSegmentId) && hoveredSegmentId !== id}
             onHoverStart={onHoverStart}
-            onSelect={onSelect}
-            selectionType="intermediate"
-            selectionData={{ name: quad.intermediateName, description: `Core competency area within ${quad.name}.` }}
-            quadrantId={quad.id}
           />
-        </g>
-      );
-    })}
-  {(() => {
-    const isCenterHovered = hoveredSegmentId === 'foundation-center';
-    const isCenterDimmed = Boolean(hoveredSegmentId) && hoveredSegmentId !== 'foundation-center';
-    const isCenterActive = selection.quadrantId === 'foundation';
-    const centerScale = isCenterHovered ? 1.04 : isCenterActive ? 1.02 : 1;
-    const centerOpacity = isCenterDimmed ? 0.28 : 1;
+        );
+      })}
 
-    return (
+      {/* Outer arcs */}
+      {WHEEL_DATA.map((quad, i) => {
+        const qs = i * 90;
+        const qe = (i + 1) * 90;
+        const id = `outer-${quad.id}`;
+        return (
+          <OuterSegmentGroup
+            key={id}
+            id={id}
+            quadId={quad.id}
+            startAngle={qs}
+            endAngle={qe}
+            onSelect={onSelect}
+            selection={selection}
+            isActive={selection.data === quad}
+            isHovered={hoveredSegmentId === id}
+            isDimmed={Boolean(hoveredSegmentId) && hoveredSegmentId !== id}
+            onHoverStart={onHoverStart}
+          />
+        );
+      })}
+
+      {/* Central Black Circle (Foundation Skills) */}
       <g
         style={{
           transformOrigin: '500px 500px',
-          transform: `scale(${centerScale})`,
-          opacity: centerOpacity,
-          transition: 'transform 180ms ease, opacity 180ms ease',
+          transform: `scale(${isCenterHovered ? 1.04 : isCenterActive ? 1.02 : 1})`,
+          opacity: isCenterDimmed ? 0.3 : 1,
+          transition: 'transform 200ms cubic-bezier(0.4, 0, 0.2, 1), opacity 200ms cubic-bezier(0.4, 0, 0.2, 1)',
         }}
       >
         <g transform="translate(500, 500)">
           <circle
-            r="165"
-            fill="#111"
-            stroke={isCenterHovered || isCenterActive ? 'rgba(254,210,1,0.6)' : 'rgba(0,0,0,0.3)'}
-            strokeWidth={isCenterHovered || isCenterActive ? 2 : 1}
-            className="wheel-segment cursor-pointer"
+            r="154"
+            fill="#0A0A0A"
+            className="cursor-pointer"
             style={{
-              filter: isCenterHovered ? 'drop-shadow(0 0 18px rgba(254,210,1,0.35)) brightness(1.08)' : 'none',
-              transition: 'filter 180ms ease, stroke 180ms ease',
+              filter: isCenterHovered ? 'drop-shadow(0 0 20px rgba(249, 183, 50, 0.4))' : 'none',
+              stroke: isCenterHovered || isCenterActive ? '#F9B732' : 'none',
+              strokeWidth: 3,
+              transition: 'all 200ms ease',
             }}
             onClick={() =>
               onSelect(
@@ -446,62 +589,56 @@ const Wheel = memo(({
             onMouseLeave={() => onHoverStart(null)}
           />
 
-          <foreignObject
-            xmlns="http://www.w3.org/1999/xhtml"
-            x="-180"
-            y="-140"
-            width="360"
-            height="280"
-            style={{ pointerEvents: 'none' }}
+          <text
+            x="0"
+            y="-22"
+            textAnchor="middle"
+            fill="#F9B732"
+            style={{
+              fontSize: '21px',
+              fontWeight: 900,
+              fontFamily: '"Inter", system-ui, -apple-system, sans-serif',
+              letterSpacing: '0.12em',
+              pointerEvents: 'none',
+            }}
           >
-            <div
-              xmlns="http://www.w3.org/1999/xhtml"
-              style={{
-                width: '100%',
-                height: '100%',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                textAlign: 'center',
-                padding: 16,
-                pointerEvents: 'none',
-              }}
-            >
-              <h3
-                style={{
-                  fontSize: 22,
-                  fontWeight: 900,
-                  color: '#fed201',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.2em',
-                  margin: '0 0 8px 0',
-                }}
-              >
-                {FOUNDATION_SKILLS.title}
-              </h3>
-
-              <p
-                style={{
-                  fontSize: 16,
-                  fontWeight: 700,
-                  color: '#9ca3af',
-                  margin: 0,
-                  lineHeight: 1.2,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.1em',
-                }}
-              >
-                {FOUNDATION_SKILLS.subtitle}
-              </p>
-            </div>
-          </foreignObject>
+            FOUNDATION
+          </text>
+          <text
+            x="0"
+            y="8"
+            textAnchor="middle"
+            fill="#F9B732"
+            style={{
+              fontSize: '21px',
+              fontWeight: 900,
+              fontFamily: '"Inter", system-ui, -apple-system, sans-serif',
+              letterSpacing: '0.12em',
+              pointerEvents: 'none',
+            }}
+          >
+            SKILLS
+          </text>
+          <text
+            x="0"
+            y="42"
+            textAnchor="middle"
+            fill="#FFFFFF"
+            style={{
+              fontSize: '12px',
+              fontWeight: 700,
+              fontFamily: '"Inter", system-ui, -apple-system, sans-serif',
+              letterSpacing: '0.08em',
+              pointerEvents: 'none',
+            }}
+          >
+            AI FOR EVERYONE
+          </text>
         </g>
       </g>
-    );
-  })()}
-  </svg>
-));
+    </svg>
+  );
+});
 
 function useIsMobile(): boolean {
   const [isMobile, setIsMobile] = useState<boolean>(typeof window !== 'undefined' && window.innerWidth < 768);
@@ -520,23 +657,13 @@ function getCategoryIcon(id: string) {
   return <span style={{ width: 20, height: 20, display: 'inline-block' }}><I /></span>;
 }
 
-const AdminCourseWheelPage: React.FC = () => {
+export default function App() {
   const [selection, setSelection] = useState<Selection>({ type: null, data: null, quadrantId: null });
   const [hoveredSegmentId, setHoveredSegmentId] = useState<string | null>(null);
   const svgRef = useRef<SVGSVGElement | null>(null);
   const isMobile = useIsMobile();
   const selectedQuadrant = selection.quadrantId ? WHEEL_DATA.find(q => q.id === selection.quadrantId) : null;
 
-  // เปลี่ยนจาก
-  useEffect(() => {
-    const style = document.createElement('style');
-    style.id = 'course-wheel-bg-override';
-    style.textContent = `html, body { background: white !important; background-color: white !important; background-image: none !important; }`;
-    document.head.appendChild(style);
-    return () => { document.getElementById('course-wheel-bg-override')?.remove(); };
-  }, []);
-
-  // เป็น
   useEffect(() => {
     const body = document.body;
     const html = document.documentElement;
@@ -551,12 +678,15 @@ const AdminCourseWheelPage: React.FC = () => {
       html.setAttribute('style', prevHtmlStyle);
     };
   }, []);
+
   const handleReset = useCallback(() => setSelection({ type: null, data: null, quadrantId: null }), []);
   const handleSelection = useCallback((type: string, data: any, quadrantId: string) => setSelection({ type, data, quadrantId }), []);
+  
   const canGoBack =
     selection.type === 'subcategory' ||
     selection.type === 'topic' ||
     selection.type === 'foundation';
+    
   const handleBack = useCallback(() => {
     if (selection.type === 'foundation') {
       setSelection({
@@ -582,8 +712,10 @@ const AdminCourseWheelPage: React.FC = () => {
       });
     }
   }, [selection.type, selectedQuadrant]);
+
   const handleHoverStart = useCallback((hoverId: string | null) => setHoveredSegmentId(hoverId), []);
   const handleWheelLeave = useCallback(() => setHoveredSegmentId(null), []);
+
   const handleOpenCourse = useCallback(() => {
     const courseName = (selection.data as any)?.name;
     if (!courseName) return;
@@ -603,64 +735,63 @@ const AdminCourseWheelPage: React.FC = () => {
       'https://www.minddojo.co.th/workshop';
 
     window.open(courseUrl, '_blank', 'noopener,noreferrer');
-
   }, [selection.data]);
   
   return (
-    <div className="course-wheel-page" style={{width: '100vw',height: '100vh',overflow: 'hidden',display: 'flex',justifyContent: 'center',alignItems: 'center',background: 'white' }}>
+    <div className="course-wheel-page min-h-screen w-full flex items-center justify-center bg-white overflow-hidden font-sans">
       <style>{`
-        *{box-sizing:border-box}.arc-text{font-size:17px;font-weight:700;text-transform:uppercase;letter-spacing:.02em;paint-order:stroke;stroke-linejoin:round;text-shadow:0 1px 2px rgba(0,0,0,.2)}
-        .wheel-segment{cursor:pointer}.wheel-segment:hover{stroke:rgba(255,255,255,.4);stroke-width:1.5px}.wheel-segment.active{stroke:rgba(255,255,255,.5);stroke-width:2px}
-        .glass-panel{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);box-shadow:0 25px 50px -12px rgba(0,0,0,.25)}
-        .main-content{flex-direction:column}.wheel-wrap{margin-bottom:64px}@media(min-width:1024px){.main-content{flex-direction:row}.wheel-wrap{margin-bottom:0}}
-        .wheel-popup-overlay{position:fixed;inset:0;background:transparent;z-index:100;display:flex;align-items:center;justify-content:center;padding:24px}
-        .wheel-popup-box{background: rgba(17, 17, 17, 1);border:1px solid rgba(255,255,255,.1);border-radius:24px;box-shadow:0 25px 50px -12px rgba(0,0,0,.5);max-width:480px;width:100%;max-height:85vh;overflow-y:auto}
+        *{box-sizing:border-box}
+        .arc-text {
+          font-family: "Inter", system-ui, -apple-system, sans-serif;
+          font-weight: 800;
+          text-transform: uppercase;
+          letter-spacing: 0.04em;
+          paint-order: stroke;
+          stroke-linejoin: round;
+        }
+        .wheel-segment {
+          cursor: pointer;
+        }
+        .wheel-popup-overlay {
+          position: fixed;
+          inset: 0;
+          background: rgba(0, 0, 0, 0.4);
+          backdrop-filter: blur(4px);
+          z-index: 100;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 24px;
+        }
+        .wheel-popup-box {
+          background: #111111;
+          border: 1px solid rgba(255, 255, 255, 0.15);
+          border-radius: 24px;
+          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+          max-width: 480px;
+          width: 100%;
+          max-height: 85vh;
+          overflow-y: auto;
+          color: white;
+        }
         html:has(.course-wheel-page), 
         body:has(.course-wheel-page) {
-          background-color: transparent !important;
+          background-color: white !important;
           background-image: none !important;
-          background: transparent !important;
-        }
-        
-        /* ลบเงาหรือ Layout ที่อาจจะสร้างแถบสีดำ */
-        .main-content {
-          background: transparent !important;
+          background: white !important;
         }
       `}</style>
 
-
-      <main className="main-content" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, gap: 48, maxWidth: 1600, margin: '0 auto', width: '100%' }}>
-        <div className="wheel-wrap" style={{ position: 'relative', width: '100%', maxWidth: 850, flexShrink: 0, aspectRatio: isMobile ? 'auto' : '1' }}>
-          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', aspectRatio: '1', borderRadius: '50%', overflow: 'hidden' }}>
-            <Wheel
-              selection={selection}
-              onSelect={handleSelection}
-              svgRef={svgRef}
-              hoveredSegmentId={hoveredSegmentId}
-              onHoverStart={handleHoverStart}
-              onWheelLeave={handleWheelLeave}
-            />
-          </div>
-          <div style={{ position: 'absolute', left: '50%', bottom: isMobile ? -54 : -42, transform: 'translateX(-50%)', width: 'min(92vw, 420px)', zIndex: 20 }}>
-            <Link
-              to="/peer-feedback"
-              style={{
-                display: 'block',
-                width: '100%',
-                padding: '14px 18px',
-                borderRadius: 999,
-                background: '#fed201',
-                color: '#111',
-                fontWeight: 900,
-                textAlign: 'center',
-                textDecoration: 'none',
-                boxShadow: '0 18px 40px rgba(254, 210, 1, 0.28)',
-                border: '1px solid rgba(17, 17, 17, 0.12)',
-              }}
-            >
-              Peer Feedback — Audience Grid
-            </Link>
-          </div>
+      <main className="flex items-center justify-center p-4 max-w-5xl w-full mx-auto">
+        <div className="w-full max-w-[800px] aspect-square flex items-center justify-center">
+          <Wheel
+            selection={selection}
+            onSelect={handleSelection}
+            svgRef={svgRef}
+            hoveredSegmentId={hoveredSegmentId}
+            onHoverStart={handleHoverStart}
+            onWheelLeave={handleWheelLeave}
+          />
         </div>
       </main>
 
@@ -691,38 +822,48 @@ const AdminCourseWheelPage: React.FC = () => {
                       <ICONS.ChevronLeft />
                     </button>
                   )}
-                  <div style={{ padding: 10, background: '#fed201', borderRadius: 12, color: '#111' }}>{selection.quadrantId ? getCategoryIcon(selection.quadrantId) : <ICONS.Info />}</div>
-                  <span style={{ fontSize: 14, color: '#fed201', fontWeight: 800, textTransform: 'uppercase' }}>{String(selection.type).replace('-', ' ')}</span>
+                  <div style={{ padding: 10, background: '#F9B732', borderRadius: 12, color: '#111' }}>
+                    {selection.quadrantId ? getCategoryIcon(selection.quadrantId) : <ICONS.Info />}
+                  </div>
+                  <span style={{ fontSize: 14, color: '#F9B732', fontWeight: 800, textTransform: 'uppercase' }}>
+                    {String(selection.type).replace('-', ' ')}
+                  </span>
                 </div>
-                <button onClick={handleReset} style={{ background: 'transparent', border: 'none', color: '#9ca3af', cursor: 'pointer' }}><ICONS.X /></button>
+                <button onClick={handleReset} style={{ background: 'transparent', border: 'none', color: '#9ca3af', cursor: 'pointer' }}>
+                  <ICONS.X />
+                </button>
               </div>
-              <h2 style={{ fontSize: 32, fontWeight: 900, marginBottom: 12 }}>{(selection.data as any)?.name}</h2>
-              <p style={{ fontSize: 16, color: '#9ca3af', marginBottom: 16, lineHeight: 1.5 }}>{(selection.data as any)?.description}</p>
+              <h2 style={{ fontSize: 30, fontWeight: 900, marginBottom: 12, lineHeight: 1.2 }}>{(selection.data as any)?.name}</h2>
+              <p style={{ fontSize: 16, color: '#9ca3af', marginBottom: 20, lineHeight: 1.5 }}>{(selection.data as any)?.description}</p>
+              
               {(
                 selection.type === 'subcategory' ||
                 selection.type === 'topic' ||
                 selection.type === 'foundation'
               ) && (
-                <button onClick={handleOpenCourse} style={{ width: '100%', padding: '14px 16px', borderRadius: 14, border: '1px solid rgba(254,210,1,.25)', background: '#fed201', color: '#111', fontWeight: 900, fontSize: 16 }}>เปิดหลักสูตร</button>
+                <button onClick={handleOpenCourse} style={{ width: '100%', padding: '14px 16px', borderRadius: 14, border: '1px solid rgba(249,183,50,.25)', background: '#F9B732', color: '#111', fontWeight: 900, fontSize: 16, cursor: 'pointer', transition: 'all 150ms ease' }} className="hover:brightness-110 active:scale-95">เปิดหลักสูตร</button>
               )}
+              
               {selection.type === 'main-category' && (
                 <div style={{ marginTop: 14 }}>
                   {(selection.data as WheelCategory).subCategories.map((s, i) => (
-                    <button key={i} onClick={() => setSelection({ type: 'subcategory', data: s, quadrantId: (selection.data as WheelCategory).id })} style={{ width: '100%', display: 'flex', justifyContent: 'space-between', padding: 16, background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.08)', borderRadius: 14, marginBottom: 8, color: '#fff', fontSize: 16 }}>{s.name}<ICONS.ChevronRight /></button>
+                    <button key={i} onClick={() => setSelection({ type: 'subcategory', data: s, quadrantId: (selection.data as WheelCategory).id })} style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 16, background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.08)', borderRadius: 14, marginBottom: 8, color: '#fff', fontSize: 16, cursor: 'pointer', transition: 'all 150ms ease' }} className="hover:bg-white/10">{s.name}<ICONS.ChevronRight /></button>
                   ))}
                 </div>
               )}
+              
               {selection.type === 'intermediate' && (
                 <div style={{ marginTop: 14 }}>
                   {(selectedQuadrant?.topics || []).map((t, i) => (
-                    <button key={i} onClick={() => setSelection({ type: 'topic', data: t, quadrantId: selection.quadrantId })} style={{ width: '100%', display: 'flex', justifyContent: 'space-between', padding: 16, background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.08)', borderRadius: 14, marginBottom: 8, color: '#fff', fontSize: 16 }}>{t.name}<ICONS.ChevronRight /></button>
+                    <button key={i} onClick={() => setSelection({ type: 'topic', data: t, quadrantId: selection.quadrantId })} style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 16, background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.08)', borderRadius: 14, marginBottom: 8, color: '#fff', fontSize: 16, cursor: 'pointer', transition: 'all 150ms ease' }} className="hover:bg-white/10">{t.name}<ICONS.ChevronRight /></button>
                   ))}
                 </div>
               )}
+              
               {selection.type === 'foundation-category' && (
                 <div style={{ marginTop: 14 }}>
                   {FOUNDATION_SKILLS.bullets.map((b, i) => (
-                    <button key={i} onClick={() => setSelection({ type: 'foundation', data: b, quadrantId: 'foundation' })} style={{ width: '100%', display: 'flex', justifyContent: 'space-between', padding: 16, background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.08)', borderRadius: 14, marginBottom: 8, color: '#fff', fontSize: 16 }}>{b.name}<ICONS.ChevronRight /></button>
+                    <button key={i} onClick={() => setSelection({ type: 'foundation', data: b, quadrantId: 'foundation' })} style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 16, background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.08)', borderRadius: 14, marginBottom: 8, color: '#fff', fontSize: 16, cursor: 'pointer', transition: 'all 150ms ease' }} className="hover:bg-white/10">{b.name}<ICONS.ChevronRight /></button>
                   ))}
                 </div>
               )}
@@ -732,6 +873,4 @@ const AdminCourseWheelPage: React.FC = () => {
       )}
     </div>
   );
-};
-
-export default AdminCourseWheelPage;
+}
