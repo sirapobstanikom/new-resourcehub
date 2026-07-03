@@ -78,9 +78,9 @@ const FOUNDATION_SKILLS = {
       courseUrl: 'https://www.minddojo.co.th/family-course/analyst-tools%3A-scalable-analytics-with-power-bi'
     },
     {
-      name: 'Prompt Engineering for Business Leaders',
-      description: 'เรียนรู้การออกแบบ Prompt อย่างเป็นระบบ เพื่อใช้ AI ช่วยคิด วิเคราะห์ วางแผน และเพิ่มประสิทธิภาพการทำงานของทีมและองค์กรอย่างมีประสิทธิผล',
-      courseUrl: 'https://www.minddojo.co.th/family-course/-prompt-engineering-for-business-leaders'
+      name: 'AI for Everyone: How to Work Smarter with AI Tools',
+      description: 'ใช้ AI เป็นผู้ช่วยส่วนตัวในการทํางานประจําวัน ลดเวลาการทํางานซํ้า ๆ ได้อย่างน้อย 30-50% วิเคราะห์ สรุป และสื่อสารข้อมูลได้ชัดเจนขึ้น ทํางานได้เร็วขึ้น โดยไม่ต้องมีพื้นฐาน',
+      courseUrl: 'https://www.minddojo.co.th/family-course/-ai-for-everyone%3A-how-to-work-smarter-with-ai-tools'
     }
   ]
 };
