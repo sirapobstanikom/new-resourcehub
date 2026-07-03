@@ -13,18 +13,6 @@ type WheelCategory = {
 type Selection = { type: string | null; data: Item | WheelCategory | null; quadrantId: string | null };
 
 const WHEEL_DATA: WheelCategory[] = [
-  { id: 'strategic-value', name: 'Strategic Value Creation', intermediateName: 'Creativity and Problem Solving', color: 'black', description: 'Focuses on creating long-term value through strategic thinking and foresight.',
-    topics: [
-      { name: 'Critical Thinking', description: 'เป็นการอบรมที่มุ่งเน้นการพัฒนาทักษะการคิดเชิงวิพากษ์ ซึ่งเป็นทักษะที่ช่วยให้ผู้เข้าอบรมสามารถวิเคราะห์และประเมินข้อมูล สถานการณ์ และการตัดสินใจต่างๆ อย่างมีเหตุผลและเป็นระบบ', courseUrl: 'https://www.minddojo.co.th/workshop?course=Critical Thinking' },
-      { name: 'Creative Thinking and Ideation', description: 'Thinking outside the box to find new solutions.', courseUrl: 'https://www.minddojo.co.th/workshop?course=Creative Thinking and Ideation' },
-      { name: 'Creative Problem Solving & Decision Making', description: 'เป็นการอบรมที่มุ่งเน้นการพัฒนาทักษะในการแก้ปัญหาและการตัดสินใจอย่างมีประสิทธิภาพ' , courseUrl: 'https://www.minddojo.co.th/workshop?course=Creative Thinking and Ideation'}
-    ],
-    subCategories: [
-      { name: 'Strategic Foresight', description: 'เป็นหลักสูตรที่เน้นการพัฒนาทักษะและความรู้ในการพยากรณ์อนาคตและการวางแผนกลยุทธ์ผ่านการสร้างฉากทัศน์ต่างๆ', courseUrl: 'https://www.minddojo.co.th/family-course/strategic-foresight' },
-      { name: 'Practical Strategy', description: 'เป็นการอบรมที่มุ่งเน้นการพัฒนาทักษะและความรู้ในการวิเคราะห์เชิงกลยุทธ์', courseUrl: 'https://www.minddojo.co.th/family-course/practical-strategies' },
-      { name: 'Aligning Your Strategy', description: 'เป็นการอบรมที่มุ่งเน้นการปรับให้กลยุทธ์ต่าง ๆ ขององค์กรสอดคล้องกันอย่างเป็นระบบ' , courseUrl: 'https://www.minddojo.co.th/family-course/aligning-your-strategies'}
-    ]
-  },
   { id: 'resilient-leadership', name: 'Resilient Leadership', intermediateName: 'Emotional Intelligence', color: 'yellow', description: 'Developing the ability to lead effectively through change and uncertainty.',
     topics: [
       { name: 'People Intelligence with MBTI/DISC', description: 'ในปัจจุบันนี้หลายองค์กรกำลังประสบปัญหาการเปลี่ยนแปลงที่ไม่ประสบผลสำเร็จเท่าที่ควร', courseUrl: 'https://www.minddojo.co.th/family-course/people-intelligence' },
@@ -60,6 +48,18 @@ const WHEEL_DATA: WheelCategory[] = [
       { name: 'Change Maker', description: 'การเปลี่ยนแปลงองค์กรด้วยการเปลี่ยนความคิด พฤติกรรม และการลงมือทำ' , courseUrl: 'https://www.minddojo.co.th/change-maker'},
       { name: 'Practical Design Thinking', description: 'เน้นการพัฒนาทักษะและวิธีคิดเพื่อการแก้ไขปัญหาและการสร้างนวัตกรรม' , courseUrl: 'https://www.minddojo.co.th/family-course/practical-innovation'}
     ]
+  },
+  { id: 'strategic-value', name: 'Strategic Value Creation', intermediateName: 'Creativity and Problem Solving', color: 'black', description: 'Focuses on creating long-term value through strategic thinking and foresight.',
+    topics: [
+      { name: 'Critical Thinking', description: 'เป็นการอบรมที่มุ่งเน้นการพัฒนาทักษะการคิดเชิงวิพากษ์ ซึ่งเป็นทักษะที่ช่วยให้ผู้เข้าอบรมสามารถวิเคราะห์และประเมินข้อมูล สถานการณ์ และการตัดสินใจต่างๆ อย่างมีเหตุผลและเป็นระบบ', courseUrl: 'https://www.minddojo.co.th/workshop?course=Critical Thinking' },
+      { name: 'Creative Thinking and Ideation', description: 'Thinking outside the box to find new solutions.', courseUrl: 'https://www.minddojo.co.th/workshop?course=Creative Thinking and Ideation' },
+      { name: 'Creative Problem Solving & Decision Making', description: 'เป็นการอบรมที่มุ่งเน้นการพัฒนาทักษะในการแก้ปัญหาและการตัดสินใจอย่างมีประสิทธิภาพ' , courseUrl: 'https://www.minddojo.co.th/workshop?course=Creative Thinking and Ideation'}
+    ],
+    subCategories: [
+      { name: 'Strategic Foresight', description: 'เป็นหลักสูตรที่เน้นการพัฒนาทักษะและความรู้ในการพยากรณ์อนาคตและการวางแผนกลยุทธ์ผ่านการสร้างฉากทัศน์ต่างๆ', courseUrl: 'https://www.minddojo.co.th/family-course/strategic-foresight' },
+      { name: 'Practical Strategy', description: 'เป็นการอบรมที่มุ่งเน้นการพัฒนาทักษะและความรู้ในการวิเคราะห์เชิงกลยุทธ์', courseUrl: 'https://www.minddojo.co.th/family-course/practical-strategies' },
+      { name: 'Aligning Your Strategy', description: 'เป็นการอบรมที่มุ่งเน้นการปรับให้กลยุทธ์ต่าง ๆ ขององค์กรสอดคล้องกันอย่างเป็นระบบ' , courseUrl: 'https://www.minddojo.co.th/family-course/aligning-your-strategies'}
+    ]
   }
 ];
 
@@ -67,6 +67,11 @@ const FOUNDATION_SKILLS = {
   title: 'Foundation Skills',
   subtitle: 'AI for Everyone',
   bullets: [
+    { 
+      name: 'AI for Everyone: How to Work Smarter with AI Tools',
+      description: 'ใช้ AI เป็นผู้ช่วยส่วนตัวในการทํางานประจําวัน ลดเวลาการทํางานซํ้า ๆ ได้อย่างน้อย 30-50% วิเคราะห์ สรุป และสื่อสารข้อมูลได้ชัดเจนขึ้น ทํางานได้เร็วขึ้น โดยไม่ต้องมีพื้นฐาน',
+      courseUrl: 'https://www.minddojo.co.th/family-course/-ai-for-everyone%3A-how-to-work-smarter-with-ai-tools'
+    },
     {
       name: 'AI Powered Data Analytics & Visualization',
       description: 'ใช้ AI วิเคราะห์ข้อมูลจาก Excel/CSV ค้นหา Insight ที่สำคัญ และสื่อสารผลลัพธ์ผ่าน Visualization ที่เข้าใจง่าย เพื่อช่วยให้ตัดสินใจทางธุรกิจได้แม่นยำขึ้น',
@@ -77,11 +82,7 @@ const FOUNDATION_SKILLS = {
       description: 'พัฒนาทักษะ Power BI ตั้งแต่การเตรียมข้อมูล สร้าง Data Model เขียน DAX ไปจนถึงการสร้าง Dashboard แบบ Interactive เพื่อการวิเคราะห์ข้อมูลระดับองค์กร',
       courseUrl: 'https://www.minddojo.co.th/family-course/analyst-tools%3A-scalable-analytics-with-power-bi'
     },
-    {
-      name: 'AI for Everyone: How to Work Smarter with AI Tools',
-      description: 'ใช้ AI เป็นผู้ช่วยส่วนตัวในการทํางานประจําวัน ลดเวลาการทํางานซํ้า ๆ ได้อย่างน้อย 30-50% วิเคราะห์ สรุป และสื่อสารข้อมูลได้ชัดเจนขึ้น ทํางานได้เร็วขึ้น โดยไม่ต้องมีพื้นฐาน',
-      courseUrl: 'https://www.minddojo.co.th/family-course/-ai-for-everyone%3A-how-to-work-smarter-with-ai-tools'
-    }
+
   ]
 };
 
