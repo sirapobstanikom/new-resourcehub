@@ -14,7 +14,9 @@ export type CollectionId =
   | 'persuasion_results'
   | 'reactive_proactive_mindset_results'
   | 'conflict_management_style_results'
-  | 'key_principles_results';
+  | 'key_principles_results'
+  | 'innovation_evaluatees'
+  | 'innovation_evaluation_responses';
 
 const COLLECTIONS: { id: CollectionId; label: string; description: string }[] = [
   { id: 'leadership_entries', label: 'Leadership Entries', description: 'ผลแบบประเมินสมรรถนะภาวะผู้นำ' },
@@ -55,6 +57,16 @@ const COLLECTIONS: { id: CollectionId; label: string; description: string }[] = 
     label: 'Key Principles',
     description:
       'ผลแบบประเมิน Key Principles (ชื่อ, บริษัท, answers คะแนนข้อ 1–25, principle_scores ต่อส่วน, total_score รวม 125)',
+  },
+  {
+    id: 'innovation_evaluatees',
+    label: 'Innovation — รายชื่อผู้ถูกประเมิน',
+    description: 'รายชื่อผู้ถูกประเมินแบบ Innovation',
+  },
+  {
+    id: 'innovation_evaluation_responses',
+    label: 'Innovation — คะแนนประเมิน',
+    description: 'คะแนนจาก Dr. Keita Ono และ Jeerawat Yaowanich ตามเกณฑ์ 5 ข้อ',
   },
 ];
 
@@ -202,6 +214,37 @@ const AdminDashboard: React.FC = () => {
           </div>
         ) : (
           <>
+            <section className="mb-8 rounded-2xl border border-yellow-400/20 bg-yellow-400/5 p-4 sm:p-5">
+              <h2 className="text-lg font-bold text-yellow-300 mb-1">แบบประเมิน Innovation</h2>
+              <p className="text-sm text-gray-400 mb-4">
+                ผู้ประเมิน 2 คน · เกณฑ์ 5 ข้อ · คะแนนรวม 100 · Dashboard เฉลี่ย 50/50
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <a
+                  href="/evaluation/innovation"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="rounded-xl bg-yellow-400 px-4 py-2.5 text-sm font-bold text-black hover:bg-yellow-300"
+                >
+                  เปิดแบบประเมิน
+                </a>
+                <Link
+                  to="/admin/innovation-evaluatees"
+                  className="rounded-xl border border-yellow-400/30 bg-yellow-400/10 px-4 py-2.5 text-sm font-medium text-yellow-200 hover:bg-yellow-400/20"
+                >
+                  จัดการรายชื่อผู้ถูกประเมิน
+                </Link>
+                <a
+                  href="/evaluation/innovation/dashboard"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="rounded-xl border border-white/15 bg-white/5 px-4 py-2.5 text-sm font-medium text-white hover:bg-white/10"
+                >
+                  Dashboard สรุปคะแนน
+                </a>
+              </div>
+            </section>
+
             <h2 className="text-lg font-bold text-gray-300 mb-4">เลือก Collection (ตาราง)</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 mb-8 sm:mb-10">
               {COLLECTIONS.map((col) => (

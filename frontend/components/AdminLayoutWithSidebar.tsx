@@ -36,6 +36,7 @@ const AdminLayoutWithSidebar: React.FC = () => {
   const isStickycloud = location.pathname === '/admin/rooms';
   const isMinddojoUsers = location.pathname === '/admin/minddojo-users';
   const isInnoClubSecondVote = location.pathname === '/admin/innoclub-2-vote';
+  const isInnovationEvaluatees = location.pathname === '/admin/innovation-evaluatees';
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const showLeaveManageLink = user?.email != null && ADMIN_LEAVE_MANAGER_EMAILS.includes(user.email);
   type AdminUserRow = {
@@ -409,6 +410,28 @@ const AdminLayoutWithSidebar: React.FC = () => {
             >
               Admin โหวต InnoClub ครั้งที่ 2
             </Link>
+            <a
+              href="/evaluation/innovation"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block py-2 px-3 rounded-lg text-sm font-medium text-gray-400 hover:bg-white/5 hover:text-white transition-colors"
+            >
+              แบบประเมิน Innovation
+            </a>
+            <Link
+              to="/admin/innovation-evaluatees"
+              className={`block py-2 px-3 rounded-lg text-sm font-medium transition-colors ${isInnovationEvaluatees ? 'bg-yellow-400/20 text-yellow-400' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
+            >
+              Admin Innovation — รายชื่อผู้ถูกประเมิน
+            </Link>
+            <a
+              href="/evaluation/innovation/dashboard"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block py-2 px-3 rounded-lg text-sm font-medium text-gray-400 hover:bg-white/5 hover:text-white transition-colors"
+            >
+              Dashboard Innovation
+            </a>
             <a
               href="/evaluation/eva-editor"
               target="_blank"

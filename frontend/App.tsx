@@ -49,6 +49,8 @@ const EvaPublicFormPage = lazy(() => import('./components/EvaPublicFormPage'));
 const EvaDashboardPage = lazy(() => import('./components/EvaDashboardPage'));
 const EvaDashboardLoginPage = lazy(() => import('./components/EvaDashboardLoginPage'));
 const PeerFeedbackAudienceGridPage = lazy(() => import('./components/PeerFeedbackAudienceGridPage'));
+const InnovationEvaluationPage = lazy(() => import('./components/InnovationEvaluationPage'));
+const AdminInnovationEvaluateesPage = lazy(() => import('./components/AdminInnovationEvaluateesPage'));
 
 function cleanupArOverlays(): void {
   document.querySelectorAll('video').forEach((v) => {
@@ -245,6 +247,7 @@ const App: React.FC = () => {
               <Route path="rooms" element={<AdminStickycloudPage />} />
               <Route path="minddojo-users" element={<AdminMindDojoAssessmentUsersPage />} />
               <Route path="innoclub-2-vote" element={<AdminInnoClubSecondVotePage />} />
+              <Route path="innovation-evaluatees" element={<AdminInnovationEvaluateesPage />} />
             </Route>
           </Routes>
         </Suspense>
@@ -319,6 +322,8 @@ const App: React.FC = () => {
           <Route path="/evaluation/form/:templateId" element={<EvaPublicFormPage />} />
           <Route path="/evaluation/innoclub-hogwarts" element={<HogwartsInnoclubPage />} />
           <Route path="/evaluation/innoclub-hogwarts-guest" element={<HogwartsInnoclubPage />} />
+          <Route path="/evaluation/innovation/dashboard" element={<InnovationEvaluationPage />} />
+          <Route path="/evaluation/innovation" element={<InnovationEvaluationPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Suspense>
