@@ -51,6 +51,8 @@ const EvaDashboardLoginPage = lazy(() => import('./components/EvaDashboardLoginP
 const PeerFeedbackAudienceGridPage = lazy(() => import('./components/PeerFeedbackAudienceGridPage'));
 const InnovationEvaluationPage = lazy(() => import('./components/InnovationEvaluationPage'));
 const AdminInnovationEvaluateesPage = lazy(() => import('./components/AdminInnovationEvaluateesPage'));
+const ElevateAnswerKeySelectPage = lazy(() => import('./components/ElevateAnswerKeySelectPage'));
+const ElevateAnswerKeyPage = lazy(() => import('./components/ElevateAnswerKeyPage'));
 
 function cleanupArOverlays(): void {
   document.querySelectorAll('video').forEach((v) => {
@@ -337,6 +339,18 @@ const App: React.FC = () => {
           <Route path="/peer-feedback" element={<PeerFeedbackAudienceGridPage />} />
           <Route path="/peer-feedback/dashboard" element={<PeerFeedbackAudienceGridPage />} />
           <Route path="*" element={<Navigate to="/peer-feedback" replace />} />
+        </Routes>
+      </Suspense>
+    );
+  }
+
+  if (pathname.startsWith('/elevate-answer-key')) {
+    return (
+      <Suspense fallback={<RouteFallback />}>
+        <Routes>
+          <Route path="/elevate-answer-key" element={<ElevateAnswerKeySelectPage />} />
+          <Route path="/elevate-answer-key/:caseId" element={<ElevateAnswerKeyPage />} />
+          <Route path="*" element={<Navigate to="/elevate-answer-key" replace />} />
         </Routes>
       </Suspense>
     );
