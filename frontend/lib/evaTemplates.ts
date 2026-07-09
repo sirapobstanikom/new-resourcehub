@@ -100,6 +100,126 @@ export function isEvaPromptRequiredForAnswer(prompt: EvaPrompt): boolean {
   return Boolean(prompt.title?.trim());
 }
 
+export type EvaExportAnswer = {
+  prompt?: string;
+  subPrompt?: string;
+  answer?: string;
+  promptType?: string;
+  correctAnswer?: string;
+  isCorrect?: boolean;
+};
+
+/** ชื่อคอลัมน์ Excel — โจทย์ให้คะแนนไม่สร้างคอลัมน์รายข้อ */
+export function getEvaExportColumnKey(answer: EvaExportAnswer): string | null {
+  if (answer.promptType === 'scored_choice') {
+    return null;
+  }
+  if (answer.subPrompt) {
+    return `${answer.prompt || '-'} :: ${answer.subPrompt}`;
+  }
+  return answer.prompt || '-';
+}
+
+export function isEvaScoredChoiceCorrect(answer: EvaExportAnswer): boolean {
+  if (answer.isCorrect === true) return true;
+  if (answer.isCorrect === false) return false;
+  if (!answer.correctAnswer) return false;
+  return (answer.answer || '').trim() === answer.correctAnswer.trim();
+}
+
+/** ค่าในเซลล์ Excel — โจทย์ให้คะแนนส่งออกเป็นคะแนน 1/0 เท่านั้น */
+export function getEvaExportCellValue(answer: EvaExportAnswer): string | number {
+  if (answer.promptType === 'scored_choice') {
+    return isEvaScoredChoiceCorrect(answer) ? 1 : 0;
+  }
+  return answer.answer || '';
+}
+
+export function getEvaExportTotalScoreLabel(answers: EvaExportAnswer[]): string {
+  const scored = answers.filter((a) => a.promptType === 'scored_choice');
+  if (scored.length === 0) return '';
+  const score = scored.filter((a) => isEvaScoredChoiceCorrect(a)).length;
+  return `${score}/${scored.length}`;
+}
+
+export function getEvaExportUserName(answers: EvaExportAnswer[]): string {
+  const cleaned = (answers[0]?.answer || '').replace(/\s+/g, ' ').trim();
+  return cleaned || 'ไม่ระบุชื่อ';
+}
+
+export function buildEvaExportSheetRows(
+  entries: Array<{ createdAt: string; answers: EvaExportAnswer[] }>,
+  formatDate: (iso: string) => string
+): Record<string, string | number>[] {
+  if (entries.length === 0) return [];
+
+  const groups = new Map<string, Array<{ createdAt: string; answers: EvaExportAnswer[] }>>();
+  for (const entry of entries) {
+    const userName = getEvaExportUserName(entry.answers);
+    const list = groups.get(userName) || [];
+    groups.set(userName, [...list, entry]);
+  }
+
+  groups.forEach((subs, userName) => {
+    groups.set(
+      userName,
+      [...subs].sort((a, b) => (a.createdAt || '').localeCompare(b.createdAt || ''))
+    );
+  });
+
+  const hasScored = entries.some((entry) =>
+    entry.answers.some((answer) => answer.promptType === 'scored_choice')
+  );
+
+  const maxAttempts = Math.max(...Array.from(groups.values()).map((subs) => subs.length), 1);
+
+  const questionKeys = Array.from(
+    new Set(
+      entries.flatMap((entry) =>
+        entry.answers
+          .map((answer) => getEvaExportColumnKey(answer))
+          .filter((key): key is string => Boolean(key))
+      )
+    )
+  );
+
+  const sortedUsers = Array.from(groups.entries()).sort((a, b) => {
+    const latestA = a[1][a[1].length - 1]?.createdAt || '';
+    const latestB = b[1][b[1].length - 1]?.createdAt || '';
+    return latestB.localeCompare(latestA);
+  });
+
+  return sortedUsers.map(([userName, submissions], idx) => {
+    const latest = submissions[submissions.length - 1];
+    const row: Record<string, string | number> = {
+      ลำดับ: idx + 1,
+      ชื่อ: userName,
+    };
+
+    for (let attemptIdx = 0; attemptIdx < maxAttempts; attemptIdx++) {
+      const attemptNum = attemptIdx + 1;
+      const submission = submissions[attemptIdx];
+      row[`ครั้งที่ ${attemptNum} เวลา`] = submission ? formatDate(submission.createdAt) : '';
+      if (hasScored) {
+        row[`ครั้งที่ ${attemptNum} คะแนน`] = submission
+          ? getEvaExportTotalScoreLabel(submission.answers)
+          : '';
+      }
+    }
+
+    questionKeys.forEach((key) => {
+      row[key] = '';
+    });
+    latest?.answers.forEach((answer) => {
+      const key = getEvaExportColumnKey(answer);
+      if (!key) return;
+      row[key] = getEvaExportCellValue(answer);
+    });
+
+    return row;
+  });
+}
+
 /** ข้อย่อยของโจทย์ rating 1-5 ที่มีข้อความ — ว่าง = แสดงแค่ข้อโจทย์หลักกับปุ่ม 1–5 */
 export function getRatingSubItemNumberStyle(item: EvaRatingSubItem): EvaPromptNumberStyle {
   if (item.numberStyle === 'auto' || item.numberStyle === 'none' || item.numberStyle === 'fixed') {

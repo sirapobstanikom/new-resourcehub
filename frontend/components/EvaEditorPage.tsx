@@ -38,11 +38,13 @@ import {
   EVA_DEFAULT_FILL_INTRO_EN,
   EVA_DEFAULT_FILL_INTRO_TH,
   EVA_DEFAULT_FILL_LEAD_IN,
+  buildEvaExportSheetRows,
   defaultEvaCommitmentRows,
   evaBaseIdFromName,
   evaUniqueIdFromName,
   getPromptNumberStyle,
   loadStoredEvaTemplates,
+  type EvaExportAnswer,
 } from '../lib/evaTemplates';
 
 type EvaEditorPageMode = 'templates' | 'dashboard';
@@ -985,7 +987,7 @@ const EvaEditorPage: React.FC = () => {
         const parsed = JSON.parse(localRaw) as Array<{
           templateId?: string;
           templateName?: string;
-          answers?: Array<{ prompt?: string; subPrompt?: string; answer?: string }>;
+          answers?: EvaExportAnswer[];
           createdAt?: string;
         }>;
         return Array.isArray(parsed)
@@ -996,7 +998,7 @@ const EvaEditorPage: React.FC = () => {
       }
     })();
 
-    let remoteRows: Array<{ created_at?: string; answers_json?: Array<{ prompt?: string; subPrompt?: string; answer?: string }> }> = [];
+    let remoteRows: Array<{ created_at?: string; answers_json?: EvaExportAnswer[] }> = [];
     if (isSupabaseConfigured) {
       const { data, error } = await supabase
         .from('eva_editor_responses')
@@ -1036,28 +1038,7 @@ const EvaEditorPage: React.FC = () => {
       return;
     }
 
-    const questionKeys = Array.from(
-      new Set(
-        deduped.flatMap((entry) =>
-          entry.answers.map((a) => (a.subPrompt ? `${a.prompt || '-'} :: ${a.subPrompt}` : `${a.prompt || '-'}`))
-        )
-      )
-    );
-
-    const sheetRows = deduped.map((entry, idx) => {
-      const row: Record<string, string | number> = {
-        ลำดับ: idx + 1,
-        เวลาส่ง: entry.createdAt || '-',
-      };
-      questionKeys.forEach((key) => {
-        row[key] = '';
-      });
-      entry.answers.forEach((a) => {
-        const key = a.subPrompt ? `${a.prompt || '-'} :: ${a.subPrompt}` : `${a.prompt || '-'}`;
-        row[key] = a.answer || '';
-      });
-      return row;
-    });
+    const sheetRows = buildEvaExportSheetRows(deduped, (createdAt) => createdAt || '-');
 
     const ws = XLSX.utils.json_to_sheet(sheetRows);
     const wb = XLSX.utils.book_new();
