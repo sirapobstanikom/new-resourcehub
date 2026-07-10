@@ -124,7 +124,7 @@ function splitTextMultiLine(text: string): string[] | null {
     return ['STRATEGIC VALUE', 'CREATION'];
   }
   if (norm === 'Succeeding with Stakeholder' || norm === 'Succeeding with Stakeholders') {
-    return ['SUCCEEDING', 'WITH STAKEHOLDER'];
+    return ['STAKEHOLDER', 'SUCCEEDING WITH'];
   }
   if (norm === 'Resilient Leadership') {
     return ['RESILIENT', 'LEADERSHIP'];
