@@ -10,6 +10,7 @@ import {
 } from '../lib/evaDashboardConfig';
 import {
   EVA_DEFAULT_COMMITMENT_HEADERS,
+  buildEvaExportSheetRows,
   loadStoredEvaTemplates,
   type EvaEvaluationTemplate,
 } from '../lib/evaTemplates';
@@ -532,28 +533,10 @@ const EvaDashboardPage: React.FC = () => {
         return;
       }
 
-      const questionKeys: string[] = Array.from(
-        new Set(
-          rows.flatMap((entry) =>
-            entry.answers.map((a) => (a.subPrompt ? `${a.prompt || '-'} :: ${a.subPrompt}` : `${a.prompt || '-'}`))
-          )
-        )
+      const sheetRows = buildEvaExportSheetRows(
+        rows.map((entry) => ({ createdAt: entry.createdAt, answers: entry.answers })),
+        formatThaiDateTime
       );
-
-      const sheetRows = rows.map((entry, idx) => {
-        const row: Record<string, string | number> = {
-          ลำดับ: idx + 1,
-          เวลาส่ง: formatThaiDateTime(entry.createdAt),
-        };
-        questionKeys.forEach((key) => {
-          row[key] = '';
-        });
-        entry.answers.forEach((a) => {
-          const key = a.subPrompt ? `${a.prompt || '-'} :: ${a.subPrompt}` : `${a.prompt || '-'}`;
-          row[key] = a.answer || '';
-        });
-        return row;
-      });
 
       const ws = XLSX.utils.json_to_sheet(sheetRows);
       const wb = XLSX.utils.book_new();
