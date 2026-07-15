@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ChevronDown, ChevronUp, Copy, ExternalLink, Plus, Trash2 } from 'lucide-react';
+import { BarChart3, ChevronDown, ChevronUp, Copy, ExternalLink, Plus, Trash2 } from 'lucide-react';
 import {
   countScored,
   createEmptyBank,
   createEmptyQuestion,
+  elevateDashboardPath,
   elevateUniqueIdFromName,
   elevateUserFormPath,
   elevateUserFormUrl,
@@ -418,190 +419,324 @@ const ElevatePretestPosttestEditorPage: React.FC = () => {
                       className="w-full rounded-xl border border-white/15 bg-black/40 px-3 py-2 text-sm resize-y"
                     />
                   </div>
-                  <button
-                    type="button"
-                    onClick={deleteBank}
-                    className="inline-flex items-center gap-1.5 self-start rounded-xl border border-red-400/40 bg-red-500/15 px-3 py-2 text-sm font-semibold text-red-200 hover:bg-red-500/25"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                    ลบชุด
-                  </button>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-2">
-                  {(['pretest', 'posttest'] as const).map((tab) => {
-                    const count = selected[tab].length;
-                    const scored = countScored(selected[tab]);
-                    return (
-                      <button
-                        key={tab}
-                        type="button"
-                        onClick={() => setPhase(tab)}
-                        className={`rounded-xl px-4 py-2 text-sm font-bold transition-colors ${
-                          phase === tab
-                            ? 'bg-yellow-400 text-black'
-                            : 'border border-white/15 bg-black/30 text-gray-300 hover:border-yellow-400/40'
-                        }`}
-                      >
-                        {tab === 'pretest' ? 'Pretest' : 'Posttest'}
-                        <span className="ml-2 font-medium opacity-80">
-                          {count} ข้อ · ตรวจได้ {scored}
-                        </span>
-                      </button>
-                    );
-                  })}
-                  <button
-                    type="button"
-                    onClick={copyPretestToPosttest}
-                    className="inline-flex items-center gap-1.5 rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-xs font-semibold text-gray-200 hover:border-yellow-400/40"
-                  >
-                    <Copy className="h-3.5 w-3.5" />
-                    คัดลอก Pretest → Posttest
-                  </button>
-                </div>
-
-                <div className="rounded-xl border border-yellow-400/20 bg-yellow-400/5 p-3 space-y-2">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-yellow-300/90">ลิงก์ผู้ใช้งาน</p>
-                  <p className="text-[11px] text-zinc-500">
-                    ใช้โดเมนจริง + ชื่อชุดข้อสอบใน URL · แชร์ลิงก์นี้ให้ผู้เข้าอบรม
-                  </p>
-                  {(['pretest', 'posttest'] as const).map((linkPhase) => {
-                    const path = elevateUserFormPath(selected.id, linkPhase);
-                    const fullUrl = elevateUserFormUrl(selected.id, linkPhase);
-                    const count = selected[linkPhase].length;
-                    return (
-                      <div
-                        key={linkPhase}
-                        className="flex flex-col gap-2 rounded-lg border border-white/10 bg-black/30 p-2.5 sm:flex-row sm:items-center"
-                      >
-                        <div className="min-w-0 flex-1">
-                          <p className="text-xs font-bold text-white">
-                            {linkPhase === 'pretest' ? 'Pretest' : 'Posttest'}
-                            <span className="ml-2 font-medium text-zinc-500">{count} ข้อ</span>
-                          </p>
-                          <p className="mt-0.5 break-all font-mono text-[11px] text-zinc-300">{fullUrl}</p>
-                        </div>
-                        <div className="flex shrink-0 gap-1.5">
-                          <button
-                            type="button"
-                            disabled={count === 0}
-                            onClick={async () => {
-                              try {
-                                await navigator.clipboard.writeText(fullUrl);
-                                setMessage(`คัดลอกลิงก์ ${linkPhase === 'pretest' ? 'Pretest' : 'Posttest'} แล้ว`);
-                              } catch {
-                                setMessage('คัดลอกลิงก์ไม่สำเร็จ');
-                              }
-                            }}
-                            className="inline-flex items-center gap-1 rounded-lg border border-white/15 px-2.5 py-1.5 text-xs font-semibold text-zinc-200 hover:border-yellow-400/40 disabled:opacity-40"
-                          >
-                            <Copy className="h-3.5 w-3.5" />
-                            คัดลอก
-                          </button>
-                          <a
-                            href={path}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className={`inline-flex items-center gap-1 rounded-lg border border-yellow-400/40 bg-yellow-400/15 px-2.5 py-1.5 text-xs font-semibold text-yellow-100 hover:bg-yellow-400/25 ${
-                              count === 0 ? 'pointer-events-none opacity-40' : ''
-                            }`}
-                          >
-                            <ExternalLink className="h-3.5 w-3.5" />
-                            เปิด
-                          </a>
-                        </div>
-                      </div>
-                    );
-                  })}
+                  <div className="flex flex-col gap-2 self-start">
+                    <a
+                      href={elevateDashboardPath(selected.id)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 rounded-xl bg-yellow-400 px-3 py-2 text-sm font-bold text-black hover:bg-yellow-300"
+                    >
+                      <BarChart3 className="h-4 w-4" />
+                      Dashboard
+                    </a>
+                    <button
+                      type="button"
+                      onClick={deleteBank}
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-red-400/40 bg-red-500/15 px-3 py-2 text-sm font-semibold text-red-200 hover:bg-red-500/25"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      ลบชุด
+                    </button>
+                  </div>
                 </div>
               </section>
 
-              <section className="space-y-3">
-                {questions.length === 0 && (
-                  <div className="rounded-2xl border border-dashed border-white/15 bg-white/[0.02] px-5 py-10 text-center text-sm text-gray-500">
-                    ยังไม่มีโจทย์ใน {phase === 'pretest' ? 'Pretest' : 'Posttest'} — เพิ่มด้านล่าง
-                  </div>
-                )}
-
-                {questions.map((question, index) => (
-                  <article
-                    key={question.id}
-                    className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 space-y-3"
-                  >
-                    <div className="flex flex-wrap items-center gap-2 justify-between">
-                      <p className="text-xs font-bold uppercase tracking-wide text-yellow-400/80">
-                        ข้อ {index + 1} · {questionTypeLabel(question.type)}
-                      </p>
-                      <div className="flex items-center gap-1">
-                        <button
-                          type="button"
-                          onClick={() => moveQuestion(index, -1)}
-                          disabled={index === 0}
-                          className="rounded-lg border border-white/10 p-1.5 text-gray-400 hover:bg-white/5 disabled:opacity-30"
-                          aria-label="เลื่อนขึ้น"
-                        >
-                          <ChevronUp className="h-4 w-4" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => moveQuestion(index, 1)}
-                          disabled={index === questions.length - 1}
-                          className="rounded-lg border border-white/10 p-1.5 text-gray-400 hover:bg-white/5 disabled:opacity-30"
-                          aria-label="เลื่อนลง"
-                        >
-                          <ChevronDown className="h-4 w-4" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => removeQuestion(index)}
-                          className="rounded-lg border border-red-400/30 bg-red-500/10 px-2 py-1.5 text-xs font-semibold text-red-200 hover:bg-red-500/20"
-                        >
-                          ลบ
-                        </button>
-                      </div>
+              <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 space-y-3">
+                    <div className="flex flex-wrap items-center gap-2">
+                      {(['pretest', 'posttest'] as const).map((tab) => {
+                        const count = selected[tab].length;
+                        const scored = countScored(selected[tab]);
+                        return (
+                          <button
+                            key={tab}
+                            type="button"
+                            onClick={() => setPhase(tab)}
+                            className={`rounded-xl px-4 py-2 text-sm font-bold transition-colors ${
+                              phase === tab
+                                ? 'bg-yellow-400 text-black'
+                                : 'border border-white/15 bg-black/30 text-gray-300 hover:border-yellow-400/40'
+                            }`}
+                          >
+                            {tab === 'pretest' ? 'Pretest' : 'Posttest'}
+                            <span className="ml-2 font-medium opacity-80">
+                              {count} ข้อ · ตรวจได้ {scored}
+                            </span>
+                          </button>
+                        );
+                      })}
+                      <button
+                        type="button"
+                        onClick={copyPretestToPosttest}
+                        className="inline-flex items-center gap-1.5 rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-xs font-semibold text-gray-200 hover:border-yellow-400/40"
+                      >
+                        <Copy className="h-3.5 w-3.5" />
+                        คัดลอก Pretest → Posttest
+                      </button>
                     </div>
 
+                    <div className="rounded-xl border border-yellow-400/20 bg-yellow-400/5 p-3 space-y-2">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-yellow-300/90">ลิงก์ผู้ใช้งาน</p>
+                      <p className="text-[11px] text-zinc-500">
+                        ใช้โดเมนจริง + ชื่อชุดข้อสอบใน URL · แชร์ลิงก์นี้ให้ผู้เข้าอบรม
+                      </p>
+                      {(['pretest', 'posttest'] as const).map((linkPhase) => {
+                        const path = elevateUserFormPath(selected.id, linkPhase);
+                        const fullUrl = elevateUserFormUrl(selected.id, linkPhase);
+                        const count = selected[linkPhase].length;
+                        return (
+                          <div
+                            key={linkPhase}
+                            className="flex flex-col gap-2 rounded-lg border border-white/10 bg-black/30 p-2.5 sm:flex-row sm:items-center"
+                          >
+                            <div className="min-w-0 flex-1">
+                              <p className="text-xs font-bold text-white">
+                                {linkPhase === 'pretest' ? 'Pretest' : 'Posttest'}
+                                <span className="ml-2 font-medium text-zinc-500">{count} ข้อ</span>
+                              </p>
+                              <p className="mt-0.5 break-all font-mono text-[11px] text-zinc-300">{fullUrl}</p>
+                            </div>
+                            <div className="flex shrink-0 gap-1.5">
+                              <button
+                                type="button"
+                                disabled={count === 0}
+                                onClick={async () => {
+                                  try {
+                                    await navigator.clipboard.writeText(fullUrl);
+                                    setMessage(
+                                      `คัดลอกลิงก์ ${linkPhase === 'pretest' ? 'Pretest' : 'Posttest'} แล้ว`
+                                    );
+                                  } catch {
+                                    setMessage('คัดลอกลิงก์ไม่สำเร็จ');
+                                  }
+                                }}
+                                className="inline-flex items-center gap-1 rounded-lg border border-white/15 px-2.5 py-1.5 text-xs font-semibold text-zinc-200 hover:border-yellow-400/40 disabled:opacity-40"
+                              >
+                                <Copy className="h-3.5 w-3.5" />
+                                คัดลอก
+                              </button>
+                              <a
+                                href={path}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={`inline-flex items-center gap-1 rounded-lg border border-yellow-400/40 bg-yellow-400/15 px-2.5 py-1.5 text-xs font-semibold text-yellow-100 hover:bg-yellow-400/25 ${
+                                  count === 0 ? 'pointer-events-none opacity-40' : ''
+                                }`}
+                              >
+                                <ExternalLink className="h-3.5 w-3.5" />
+                                เปิด
+                              </a>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </section>
+
+                  <section className="space-y-3">
+                    {questions.length === 0 && (
+                      <div className="rounded-2xl border border-dashed border-white/15 bg-white/[0.02] px-5 py-10 text-center text-sm text-gray-500">
+                        ยังไม่มีโจทย์ใน {phase === 'pretest' ? 'Pretest' : 'Posttest'} — เพิ่มด้านล่าง
+                      </div>
+                    )}
+
+                    {questions.map((question, index) => (
+                      <article
+                        key={question.id}
+                        className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 space-y-3"
+                      >
+                        <div className="flex flex-wrap items-center gap-2 justify-between">
+                          <p className="text-xs font-bold uppercase tracking-wide text-yellow-400/80">
+                            ข้อ {index + 1} · {questionTypeLabel(question.type)}
+                          </p>
+                          <div className="flex items-center gap-1">
+                            <button
+                              type="button"
+                              onClick={() => moveQuestion(index, -1)}
+                              disabled={index === 0}
+                              className="rounded-lg border border-white/10 p-1.5 text-gray-400 hover:bg-white/5 disabled:opacity-30"
+                              aria-label="เลื่อนขึ้น"
+                            >
+                              <ChevronUp className="h-4 w-4" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => moveQuestion(index, 1)}
+                              disabled={index === questions.length - 1}
+                              className="rounded-lg border border-white/10 p-1.5 text-gray-400 hover:bg-white/5 disabled:opacity-30"
+                              aria-label="เลื่อนลง"
+                            >
+                              <ChevronDown className="h-4 w-4" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => removeQuestion(index)}
+                              className="rounded-lg border border-red-400/30 bg-red-500/10 px-2 py-1.5 text-xs font-semibold text-red-200 hover:bg-red-500/20"
+                            >
+                              ลบ
+                            </button>
+                          </div>
+                        </div>
+
+                        <select
+                          value={question.type}
+                          onChange={(e) => changeQuestionType(index, e.target.value as ElevateQuestionType)}
+                          className="rounded-xl border border-white/15 bg-black/40 px-3 py-2 text-sm"
+                        >
+                          <option value="choice">ช้อยส์ (กำหนดข้อถูก)</option>
+                          <option value="text">ตอบคำถาม (ข้อความ)</option>
+                        </select>
+
+                        <textarea
+                          value={question.title}
+                          onChange={(e) => updateQuestion(index, (q) => ({ ...q, title: e.target.value }))}
+                          rows={3}
+                          placeholder="พิมพ์โจทย์..."
+                          className="w-full rounded-xl border border-white/15 bg-black/40 px-3 py-2 text-sm resize-y"
+                        />
+
+                        {question.type === 'choice' && (
+                          <div className="space-y-2">
+                            {(question.options || []).map((option, optionIndex) => (
+                              <div key={`${question.id}-opt-${optionIndex}`} className="flex items-center gap-2">
+                                <label className="inline-flex items-center gap-1.5 text-xs text-emerald-200 shrink-0">
+                                  <input
+                                    type="radio"
+                                    name={`correct-${question.id}`}
+                                    checked={(question.correctOption || '') === option}
+                                    onChange={() =>
+                                      updateQuestion(index, (q) => ({ ...q, correctOption: option }))
+                                    }
+                                    className="accent-emerald-400"
+                                  />
+                                  ถูก
+                                </label>
+                                <input
+                                  value={option}
+                                  onChange={(e) => updateOption(index, optionIndex, e.target.value)}
+                                  className="min-w-0 flex-1 rounded-xl border border-white/15 bg-black/40 px-3 py-2 text-sm"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => removeOption(index, optionIndex)}
+                                  className="rounded-lg border border-red-400/30 bg-red-500/10 px-2.5 py-2 text-xs font-semibold text-red-200"
+                                >
+                                  ลบ
+                                </button>
+                              </div>
+                            ))}
+                            <button
+                              type="button"
+                              onClick={() => addOption(index)}
+                              className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-3 py-2 text-xs font-semibold text-emerald-100 hover:bg-emerald-500/20"
+                            >
+                              + เพิ่มตัวเลือก
+                            </button>
+                            <p className="text-xs text-emerald-300/80">
+                              เลือก radio “ถูก” หน้าตัวเลือกที่เป็นคำตอบถูก
+                            </p>
+                          </div>
+                        )}
+
+                        {question.type === 'text' && (
+                          <div className="space-y-1">
+                            <label className="text-xs text-gray-500">คำตอบถูก / คำตอบตัวอย่าง (ไม่บังคับ)</label>
+                            <input
+                              value={question.correctAnswer || ''}
+                              onChange={(e) =>
+                                updateQuestion(index, (q) => ({ ...q, correctAnswer: e.target.value }))
+                              }
+                              placeholder="ใส่คำตอบที่คาดหวังถ้าต้องการตรวจอัตโนมัติ"
+                              className="w-full rounded-xl border border-white/15 bg-black/40 px-3 py-2 text-sm"
+                            />
+                          </div>
+                        )}
+                      </article>
+                    ))}
+                  </section>
+
+                  <section className="rounded-2xl border border-yellow-400/25 bg-yellow-400/5 p-4 space-y-3">
+                    <h3 className="text-sm font-bold text-yellow-300">
+                      เพิ่มโจทย์ใหม่ · {phase === 'pretest' ? 'Pretest' : 'Posttest'}
+                    </h3>
                     <select
-                      value={question.type}
-                      onChange={(e) => changeQuestionType(index, e.target.value as ElevateQuestionType)}
-                      className="rounded-xl border border-white/15 bg-black/40 px-3 py-2 text-sm"
+                      value={draft.type}
+                      onChange={(e) => {
+                        const type = e.target.value as ElevateQuestionType;
+                        setDraft((prev) =>
+                          type === 'choice'
+                            ? {
+                                ...emptyDraft(),
+                                title: prev.title,
+                                type: 'choice',
+                              }
+                            : {
+                                title: prev.title,
+                                type: 'text',
+                                options: [],
+                                correctOption: '',
+                                correctAnswer: '',
+                              }
+                        );
+                      }}
+                      className="w-full rounded-xl border border-white/15 bg-black/40 px-3 py-2 text-sm sm:w-auto"
                     >
                       <option value="choice">ช้อยส์ (กำหนดข้อถูก)</option>
                       <option value="text">ตอบคำถาม (ข้อความ)</option>
                     </select>
 
                     <textarea
-                      value={question.title}
-                      onChange={(e) => updateQuestion(index, (q) => ({ ...q, title: e.target.value }))}
+                      value={draft.title}
+                      onChange={(e) => setDraft((prev) => ({ ...prev, title: e.target.value }))}
                       rows={3}
-                      placeholder="พิมพ์โจทย์..."
+                      placeholder="พิมพ์โจทย์ที่ต้องการเพิ่ม..."
                       className="w-full rounded-xl border border-white/15 bg-black/40 px-3 py-2 text-sm resize-y"
                     />
 
-                    {question.type === 'choice' && (
+                    {draft.type === 'choice' && (
                       <div className="space-y-2">
-                        {(question.options || []).map((option, optionIndex) => (
-                          <div key={`${question.id}-opt-${optionIndex}`} className="flex items-center gap-2">
+                        {draft.options.map((option, idx) => (
+                          <div key={`draft-opt-${idx}`} className="flex items-center gap-2">
                             <label className="inline-flex items-center gap-1.5 text-xs text-emerald-200 shrink-0">
                               <input
                                 type="radio"
-                                name={`correct-${question.id}`}
-                                checked={(question.correctOption || '') === option}
-                                onChange={() =>
-                                  updateQuestion(index, (q) => ({ ...q, correctOption: option }))
-                                }
+                                name="draft-correct"
+                                checked={draft.correctOption === option}
+                                onChange={() => setDraft((prev) => ({ ...prev, correctOption: option }))}
                                 className="accent-emerald-400"
                               />
                               ถูก
                             </label>
                             <input
                               value={option}
-                              onChange={(e) => updateOption(index, optionIndex, e.target.value)}
+                              onChange={(e) => {
+                                const value = e.target.value;
+                                setDraft((prev) => {
+                                  const options = [...prev.options];
+                                  const old = options[idx];
+                                  options[idx] = value;
+                                  return {
+                                    ...prev,
+                                    options,
+                                    correctOption: prev.correctOption === old ? value : prev.correctOption,
+                                  };
+                                });
+                              }}
                               className="min-w-0 flex-1 rounded-xl border border-white/15 bg-black/40 px-3 py-2 text-sm"
                             />
                             <button
                               type="button"
-                              onClick={() => removeOption(index, optionIndex)}
+                              onClick={() =>
+                                setDraft((prev) => {
+                                  const options = prev.options.filter((_, i) => i !== idx);
+                                  return {
+                                    ...prev,
+                                    options,
+                                    correctOption: options.includes(prev.correctOption)
+                                      ? prev.correctOption
+                                      : options[0] || '',
+                                  };
+                                })
+                              }
                               className="rounded-lg border border-red-400/30 bg-red-500/10 px-2.5 py-2 text-xs font-semibold text-red-200"
                             >
                               ลบ
@@ -610,154 +745,37 @@ const ElevatePretestPosttestEditorPage: React.FC = () => {
                         ))}
                         <button
                           type="button"
-                          onClick={() => addOption(index)}
-                          className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-3 py-2 text-xs font-semibold text-emerald-100 hover:bg-emerald-500/20"
+                          onClick={() =>
+                            setDraft((prev) => ({
+                              ...prev,
+                              options: [...prev.options, `ตัวเลือก ${prev.options.length + 1}`],
+                            }))
+                          }
+                          className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-3 py-2 text-xs font-semibold text-emerald-100"
                         >
                           + เพิ่มตัวเลือก
                         </button>
-                        <p className="text-xs text-emerald-300/80">เลือก radio “ถูก” หน้าตัวเลือกที่เป็นคำตอบถูก</p>
                       </div>
                     )}
 
-                    {question.type === 'text' && (
-                      <div className="space-y-1">
-                        <label className="text-xs text-gray-500">คำตอบถูก / คำตอบตัวอย่าง (ไม่บังคับ)</label>
-                        <input
-                          value={question.correctAnswer || ''}
-                          onChange={(e) =>
-                            updateQuestion(index, (q) => ({ ...q, correctAnswer: e.target.value }))
-                          }
-                          placeholder="ใส่คำตอบที่คาดหวังถ้าต้องการตรวจอัตโนมัติ"
-                          className="w-full rounded-xl border border-white/15 bg-black/40 px-3 py-2 text-sm"
-                        />
-                      </div>
+                    {draft.type === 'text' && (
+                      <input
+                        value={draft.correctAnswer}
+                        onChange={(e) => setDraft((prev) => ({ ...prev, correctAnswer: e.target.value }))}
+                        placeholder="คำตอบถูก / คำตอบตัวอย่าง (ไม่บังคับ)"
+                        className="w-full rounded-xl border border-white/15 bg-black/40 px-3 py-2 text-sm"
+                      />
                     )}
-                  </article>
-                ))}
-              </section>
 
-              <section className="rounded-2xl border border-yellow-400/25 bg-yellow-400/5 p-4 space-y-3">
-                <h3 className="text-sm font-bold text-yellow-300">
-                  เพิ่มโจทย์ใหม่ · {phase === 'pretest' ? 'Pretest' : 'Posttest'}
-                </h3>
-                <select
-                  value={draft.type}
-                  onChange={(e) => {
-                    const type = e.target.value as ElevateQuestionType;
-                    setDraft((prev) =>
-                      type === 'choice'
-                        ? {
-                            ...emptyDraft(),
-                            title: prev.title,
-                            type: 'choice',
-                          }
-                        : {
-                            title: prev.title,
-                            type: 'text',
-                            options: [],
-                            correctOption: '',
-                            correctAnswer: '',
-                          }
-                    );
-                  }}
-                  className="w-full rounded-xl border border-white/15 bg-black/40 px-3 py-2 text-sm sm:w-auto"
-                >
-                  <option value="choice">ช้อยส์ (กำหนดข้อถูก)</option>
-                  <option value="text">ตอบคำถาม (ข้อความ)</option>
-                </select>
-
-                <textarea
-                  value={draft.title}
-                  onChange={(e) => setDraft((prev) => ({ ...prev, title: e.target.value }))}
-                  rows={3}
-                  placeholder="พิมพ์โจทย์ที่ต้องการเพิ่ม..."
-                  className="w-full rounded-xl border border-white/15 bg-black/40 px-3 py-2 text-sm resize-y"
-                />
-
-                {draft.type === 'choice' && (
-                  <div className="space-y-2">
-                    {draft.options.map((option, idx) => (
-                      <div key={`draft-opt-${idx}`} className="flex items-center gap-2">
-                        <label className="inline-flex items-center gap-1.5 text-xs text-emerald-200 shrink-0">
-                          <input
-                            type="radio"
-                            name="draft-correct"
-                            checked={draft.correctOption === option}
-                            onChange={() => setDraft((prev) => ({ ...prev, correctOption: option }))}
-                            className="accent-emerald-400"
-                          />
-                          ถูก
-                        </label>
-                        <input
-                          value={option}
-                          onChange={(e) => {
-                            const value = e.target.value;
-                            setDraft((prev) => {
-                              const options = [...prev.options];
-                              const old = options[idx];
-                              options[idx] = value;
-                              return {
-                                ...prev,
-                                options,
-                                correctOption: prev.correctOption === old ? value : prev.correctOption,
-                              };
-                            });
-                          }}
-                          className="min-w-0 flex-1 rounded-xl border border-white/15 bg-black/40 px-3 py-2 text-sm"
-                        />
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setDraft((prev) => {
-                              const options = prev.options.filter((_, i) => i !== idx);
-                              return {
-                                ...prev,
-                                options,
-                                correctOption: options.includes(prev.correctOption)
-                                  ? prev.correctOption
-                                  : options[0] || '',
-                              };
-                            })
-                          }
-                          className="rounded-lg border border-red-400/30 bg-red-500/10 px-2.5 py-2 text-xs font-semibold text-red-200"
-                        >
-                          ลบ
-                        </button>
-                      </div>
-                    ))}
                     <button
                       type="button"
-                      onClick={() =>
-                        setDraft((prev) => ({
-                          ...prev,
-                          options: [...prev.options, `ตัวเลือก ${prev.options.length + 1}`],
-                        }))
-                      }
-                      className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-3 py-2 text-xs font-semibold text-emerald-100"
+                      onClick={addQuestionFromDraft}
+                      className="inline-flex items-center gap-1.5 rounded-xl bg-yellow-400 px-4 py-2.5 text-sm font-black text-black hover:bg-yellow-300"
                     >
-                      + เพิ่มตัวเลือก
+                      <Plus className="h-4 w-4" />
+                      เพิ่มโจทย์
                     </button>
-                  </div>
-                )}
-
-                {draft.type === 'text' && (
-                  <input
-                    value={draft.correctAnswer}
-                    onChange={(e) => setDraft((prev) => ({ ...prev, correctAnswer: e.target.value }))}
-                    placeholder="คำตอบถูก / คำตอบตัวอย่าง (ไม่บังคับ)"
-                    className="w-full rounded-xl border border-white/15 bg-black/40 px-3 py-2 text-sm"
-                  />
-                )}
-
-                <button
-                  type="button"
-                  onClick={addQuestionFromDraft}
-                  className="inline-flex items-center gap-1.5 rounded-xl bg-yellow-400 px-4 py-2.5 text-sm font-black text-black hover:bg-yellow-300"
-                >
-                  <Plus className="h-4 w-4" />
-                  เพิ่มโจทย์
-                </button>
-              </section>
+                  </section>
             </>
           )}
         </main>

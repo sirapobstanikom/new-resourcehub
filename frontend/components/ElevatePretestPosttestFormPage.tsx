@@ -10,8 +10,13 @@ import {
   saveElevateResponseLocal,
   type ElevateTestBank,
   type ElevateTestPhase,
+  type ElevateTestResponse,
 } from '../lib/elevatePretestPosttest';
-import { fetchElevateBanksFromSupabase } from '../lib/elevatePretestPosttestSupabase';
+import {
+  fetchElevateBanksFromSupabase,
+  insertElevateResponseToSupabase,
+  upsertElevateBankToSupabase,
+} from '../lib/elevatePretestPosttestSupabase';
 import { isSupabaseConfigured } from '../lib/supabase';
 
 const ElevatePretestPosttestFormPage: React.FC = () => {
@@ -26,6 +31,8 @@ const ElevatePretestPosttestFormPage: React.FC = () => {
   const [submitted, setSubmitted] = useState(false);
   const [score, setScore] = useState<{ score: number; total: number } | null>(null);
   const [submitError, setSubmitError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [saveNote, setSaveNote] = useState('');
 
   const questions = useMemo(() => (bank && phase ? bank[phase] : []), [bank, phase]);
   const phaseLabel = phase === 'pretest' ? 'Pretest' : phase === 'posttest' ? 'Posttest' : '';
@@ -60,9 +67,9 @@ const ElevatePretestPosttestFormPage: React.FC = () => {
     setAnswers((prev) => ({ ...prev, [questionId]: value }));
   };
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!bank || !phase) return;
+    if (!bank || !phase || submitting) return;
 
     if (!respondentName.trim()) {
       setSubmitError('กรุณากรอกชื่อผู้ทำแบบทดสอบ');
@@ -76,7 +83,7 @@ const ElevatePretestPosttestFormPage: React.FC = () => {
     }
 
     const graded = gradeElevateAnswers(questions, answers);
-    const response = {
+    const response: ElevateTestResponse = {
       id: newElevateId('resp'),
       bankId: bank.id,
       bankName: bank.name,
@@ -87,10 +94,36 @@ const ElevatePretestPosttestFormPage: React.FC = () => {
       total: graded.total,
       createdAt: new Date().toISOString(),
     };
-    saveElevateResponseLocal(response);
+
+    setSubmitting(true);
+    setSubmitError('');
+    setSaveNote('');
+
+    let savedToSupabase = false;
+    if (isSupabaseConfigured) {
+      // ให้แน่ใจว่าชุดข้อสอบอยู่บน Supabase ก่อนบันทึกคำตอบ (FK)
+      await upsertElevateBankToSupabase(bank);
+      const result = await insertElevateResponseToSupabase(response);
+      if (result.ok) {
+        savedToSupabase = true;
+        setSaveNote('บันทึกคำตอบลง Supabase แล้ว');
+      } else if (result.tableMissing) {
+        setSaveNote('ยังไม่มีตาราง responses บน Supabase — บันทึกในเครื่องชั่วคราว');
+      } else if (result.error) {
+        setSaveNote(`บันทึก Supabase ไม่สำเร็จ: ${result.error} — เก็บในเครื่องชั่วคราว`);
+      }
+    }
+
+    if (!savedToSupabase) {
+      saveElevateResponseLocal(response);
+      if (!isSupabaseConfigured) {
+        setSaveNote('บันทึกในเครื่องแล้ว (ยังไม่ได้ตั้งค่า Supabase)');
+      }
+    }
+
     setScore({ score: graded.score, total: graded.total });
     setSubmitted(true);
-    setSubmitError('');
+    setSubmitting(false);
   };
 
   if (loading) {
@@ -144,6 +177,7 @@ const ElevatePretestPosttestFormPage: React.FC = () => {
           ) : (
             <p className="mt-6 text-sm text-zinc-400">บันทึกคำตอบเรียบร้อย</p>
           )}
+          {saveNote && <p className="mt-4 text-xs text-zinc-500">{saveNote}</p>}
         </div>
       </div>
     );
@@ -226,9 +260,10 @@ const ElevatePretestPosttestFormPage: React.FC = () => {
 
         <button
           type="submit"
-          className="w-full rounded-xl bg-yellow-400 px-4 py-3 text-sm font-black text-black hover:bg-yellow-300 sm:w-auto"
+          disabled={submitting}
+          className="w-full rounded-xl bg-yellow-400 px-4 py-3 text-sm font-black text-black hover:bg-yellow-300 disabled:opacity-60 sm:w-auto"
         >
-          ส่งคำตอบ
+          {submitting ? 'กำลังบันทึก...' : 'ส่งคำตอบ'}
         </button>
       </form>
     </div>

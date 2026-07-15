@@ -178,6 +178,11 @@ export function elevateUserFormPath(bankId: string, phase: ElevateTestPhase): st
   return `/elevate-pretest-posttest/${encodeURIComponent(bankId)}/${phase}`;
 }
 
+/** หน้า Dashboard ของชุดข้อสอบ */
+export function elevateDashboardPath(bankId: string): string {
+  return `/elevate-pretest-posttest-editor/dashboard/${encodeURIComponent(bankId)}`;
+}
+
 /** ลิงก์จริงบนโดเมน production (ไม่ใช่ localhost) */
 export function elevateUserFormUrl(bankId: string, phase: ElevateTestPhase): string {
   return `${PUBLIC_SITE_URL}${elevateUserFormPath(bankId, phase)}`;
@@ -246,4 +251,151 @@ export function saveElevateResponseLocal(response: ElevateTestResponse): void {
   } catch {
     // ignore storage failures
   }
+}
+
+export function loadElevateResponsesLocal(): ElevateTestResponse[] {
+  try {
+    const raw = localStorage.getItem(ELEVATE_PPT_RESPONSE_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as ElevateTestResponse[];
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter(
+      (row) =>
+        row &&
+        typeof row.id === 'string' &&
+        typeof row.bankId === 'string' &&
+        (row.phase === 'pretest' || row.phase === 'posttest')
+    );
+  } catch {
+    return [];
+  }
+}
+
+export function scorePercent(score: number, total: number): number {
+  if (!total || total <= 0) return 0;
+  return (score / total) * 100;
+}
+
+function normalizeRespondentName(name: string): string {
+  return name.trim().replace(/\s+/g, ' ').toLowerCase();
+}
+
+export type ElevatePairedResult = {
+  name: string;
+  pretestScore: number;
+  pretestTotal: number;
+  pretestPercent: number;
+  posttestScore: number;
+  posttestTotal: number;
+  posttestPercent: number;
+  /** เพิ่มขึ้นเป็น % จากคะแนนเดิม ((post-pre)/pre*100) */
+  gainFromBaselinePercent: number | null;
+  /** เพิ่มขึ้นเป็น จุดเปอร์เซ็นต์ (post% - pre%) */
+  gainPoints: number;
+};
+
+export type ElevateDashboardStats = {
+  bankId: string;
+  pretestCount: number;
+  posttestCount: number;
+  avgPretestPercent: number;
+  avgPosttestPercent: number;
+  /** ความรู้เพิ่มขึ้นโดยรวมจากค่าเฉลี่ย ((post-pre)/pre*100) */
+  knowledgeGainPercent: number | null;
+  /** เพิ่มขึ้นเป็นจุดเปอร์เซ็นต์ */
+  knowledgeGainPoints: number;
+  paired: ElevatePairedResult[];
+  unpairedPretest: ElevateTestResponse[];
+  unpairedPosttest: ElevateTestResponse[];
+  latestPretest: ElevateTestResponse[];
+  latestPosttest: ElevateTestResponse[];
+};
+
+function latestByName(rows: ElevateTestResponse[]): Map<string, ElevateTestResponse> {
+  const map = new Map<string, ElevateTestResponse>();
+  const sorted = [...rows].sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  );
+  for (const row of sorted) {
+    const key = normalizeRespondentName(row.respondentName);
+    if (!key || map.has(key)) continue;
+    map.set(key, row);
+  }
+  return map;
+}
+
+export function computeElevateDashboard(
+  bankId: string,
+  allResponses: ElevateTestResponse[]
+): ElevateDashboardStats {
+  const forBank = allResponses.filter((r) => r.bankId === bankId);
+  const pretestRows = forBank.filter((r) => r.phase === 'pretest');
+  const posttestRows = forBank.filter((r) => r.phase === 'posttest');
+
+  const latestPre = latestByName(pretestRows);
+  const latestPost = latestByName(posttestRows);
+
+  const avg = (values: number[]) =>
+    values.length === 0 ? 0 : values.reduce((sum, v) => sum + v, 0) / values.length;
+
+  const prePercents = [...latestPre.values()].map((r) => scorePercent(r.score, r.total));
+  const postPercents = [...latestPost.values()].map((r) => scorePercent(r.score, r.total));
+  const avgPre = avg(prePercents);
+  const avgPost = avg(postPercents);
+  const gainPoints = avgPost - avgPre;
+  const gainFromBaseline = avgPre > 0 ? ((avgPost - avgPre) / avgPre) * 100 : null;
+
+  const paired: ElevatePairedResult[] = [];
+  const unpairedPretest: ElevateTestResponse[] = [];
+  const unpairedPosttest: ElevateTestResponse[] = [];
+
+  for (const [key, pre] of latestPre) {
+    const post = latestPost.get(key);
+    if (!post) {
+      unpairedPretest.push(pre);
+      continue;
+    }
+    const pretestPercent = scorePercent(pre.score, pre.total);
+    const posttestPercent = scorePercent(post.score, post.total);
+    paired.push({
+      name: pre.respondentName.trim() || post.respondentName.trim(),
+      pretestScore: pre.score,
+      pretestTotal: pre.total,
+      pretestPercent,
+      posttestScore: post.score,
+      posttestTotal: post.total,
+      posttestPercent,
+      gainFromBaselinePercent:
+        pretestPercent > 0 ? ((posttestPercent - pretestPercent) / pretestPercent) * 100 : null,
+      gainPoints: posttestPercent - pretestPercent,
+    });
+  }
+
+  for (const [key, post] of latestPost) {
+    if (!latestPre.has(key)) unpairedPosttest.push(post);
+  }
+
+  paired.sort((a, b) => b.gainPoints - a.gainPoints);
+
+  return {
+    bankId,
+    pretestCount: latestPre.size,
+    posttestCount: latestPost.size,
+    avgPretestPercent: avgPre,
+    avgPosttestPercent: avgPost,
+    knowledgeGainPercent: gainFromBaseline,
+    knowledgeGainPoints: gainPoints,
+    paired,
+    unpairedPretest,
+    unpairedPosttest,
+    latestPretest: [...latestPre.values()],
+    latestPosttest: [...latestPost.values()],
+  };
+}
+
+export function formatElevatePercent(value: number, digits = 1): string {
+  return value.toLocaleString('th-TH', {
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
+  });
 }

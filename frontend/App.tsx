@@ -56,6 +56,7 @@ const ElevateAnswerKeySelectPage = lazy(() => import('./components/ElevateAnswer
 const ElevateAnswerKeyPage = lazy(() => import('./components/ElevateAnswerKeyPage'));
 const ElevatePretestPosttestEditorPage = lazy(() => import('./components/ElevatePretestPosttestEditorPage'));
 const ElevatePretestPosttestFormPage = lazy(() => import('./components/ElevatePretestPosttestFormPage'));
+const ElevatePretestPosttestDashboardPage = lazy(() => import('./components/ElevatePretestPosttestDashboardPage'));
 
 function cleanupArOverlays(): void {
   document.querySelectorAll('video').forEach((v) => {
@@ -365,6 +366,10 @@ const App: React.FC = () => {
       <Suspense fallback={<RouteFallback />}>
         <Routes>
           <Route path="/elevate-pretest-posttest-editor" element={<ElevatePretestPosttestEditorPage />} />
+          <Route
+            path="/elevate-pretest-posttest-editor/dashboard/:bankId"
+            element={<ElevatePretestPosttestDashboardPage />}
+          />
           <Route path="*" element={<Navigate to="/elevate-pretest-posttest-editor" replace />} />
         </Routes>
       </Suspense>
