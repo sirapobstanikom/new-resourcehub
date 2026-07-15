@@ -7,6 +7,9 @@ const DEFAULT_IMAGE = `${SITE_URL}/updates/MindDoJoLogo.jpg`;
 const DEFAULT_DESCRIPTION =
   'MindDoJo แพลตฟอร์มรวมแบบประเมิน เครื่องมือพัฒนาองค์กร เครื่องมือวางแผนกลยุทธ์ เทมเพลตธุรกิจ และความรู้ด้านนวัตกรรมสำหรับองค์กรไทย';
 
+/** โดเมนจริงของแอปสำหรับลิงก์แชร์ (ไม่ใช้ localhost) */
+export const PUBLIC_SITE_URL = 'https://minddojobusiness.com';
+
 type SeoConfig = {
   title: string;
   description: string;
@@ -200,7 +203,9 @@ function getSeoConfig(pathname: string): SeoConfig {
     basePath === '/register' ||
     basePath.startsWith('/room') ||
     basePath.startsWith('/evaluation/eva-editor') ||
-    basePath.startsWith('/evaluation/dashboard')
+    basePath.startsWith('/evaluation/eva-one-page') ||
+    basePath.startsWith('/evaluation/dashboard') ||
+    basePath.startsWith('/elevate-pretest-posttest')
   ) {
     return {
       title: 'เข้าสู่ระบบ | MindDoJo',

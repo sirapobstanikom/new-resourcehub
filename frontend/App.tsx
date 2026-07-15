@@ -48,11 +48,14 @@ const EvaEditorPage = lazy(() => import('./components/EvaEditorPage'));
 const EvaPublicFormPage = lazy(() => import('./components/EvaPublicFormPage'));
 const EvaDashboardPage = lazy(() => import('./components/EvaDashboardPage'));
 const EvaDashboardLoginPage = lazy(() => import('./components/EvaDashboardLoginPage'));
+const EvaOnePageSummaryPage = lazy(() => import('./components/EvaOnePageSummaryPage'));
 const PeerFeedbackAudienceGridPage = lazy(() => import('./components/PeerFeedbackAudienceGridPage'));
 const InnovationEvaluationPage = lazy(() => import('./components/InnovationEvaluationPage'));
 const AdminInnovationEvaluateesPage = lazy(() => import('./components/AdminInnovationEvaluateesPage'));
 const ElevateAnswerKeySelectPage = lazy(() => import('./components/ElevateAnswerKeySelectPage'));
 const ElevateAnswerKeyPage = lazy(() => import('./components/ElevateAnswerKeyPage'));
+const ElevatePretestPosttestEditorPage = lazy(() => import('./components/ElevatePretestPosttestEditorPage'));
+const ElevatePretestPosttestFormPage = lazy(() => import('./components/ElevatePretestPosttestFormPage'));
 
 function cleanupArOverlays(): void {
   document.querySelectorAll('video').forEach((v) => {
@@ -319,6 +322,7 @@ const App: React.FC = () => {
           <Route path="/evaluation/innoclub-2/videos" element={<InnoClubSecondVideoPage />} />
           <Route path="/evaluation/innoclub-2/videos/dashboard" element={<InnoClubSecondVideoPage />} />
           <Route path="/evaluation/eva-editor" element={<EvaEditorPage />} />
+          <Route path="/evaluation/eva-one-page" element={<EvaOnePageSummaryPage />} />
           <Route path="/evaluation/dashboard/login" element={<EvaDashboardLoginPage />} />
           <Route path="/evaluation/dashboard" element={<EvaDashboardPage />} />
           <Route path="/evaluation/form/:templateId" element={<EvaPublicFormPage />} />
@@ -351,6 +355,28 @@ const App: React.FC = () => {
           <Route path="/elevate-answer-key" element={<ElevateAnswerKeySelectPage />} />
           <Route path="/elevate-answer-key/:caseId" element={<ElevateAnswerKeyPage />} />
           <Route path="*" element={<Navigate to="/elevate-answer-key" replace />} />
+        </Routes>
+      </Suspense>
+    );
+  }
+
+  if (pathname.startsWith('/elevate-pretest-posttest-editor')) {
+    return (
+      <Suspense fallback={<RouteFallback />}>
+        <Routes>
+          <Route path="/elevate-pretest-posttest-editor" element={<ElevatePretestPosttestEditorPage />} />
+          <Route path="*" element={<Navigate to="/elevate-pretest-posttest-editor" replace />} />
+        </Routes>
+      </Suspense>
+    );
+  }
+
+  if (pathname.startsWith('/elevate-pretest-posttest')) {
+    return (
+      <Suspense fallback={<RouteFallback />}>
+        <Routes>
+          <Route path="/elevate-pretest-posttest/:bankId/:phase" element={<ElevatePretestPosttestFormPage />} />
+          <Route path="*" element={<Navigate to="/elevate-pretest-posttest-editor" replace />} />
         </Routes>
       </Suspense>
     );

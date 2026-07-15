@@ -440,6 +440,14 @@ const AdminLayoutWithSidebar: React.FC = () => {
             >
               Eva editor
             </a>
+            <a
+              href="/evaluation/eva-one-page"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block py-2 px-3 rounded-lg text-sm font-medium text-gray-400 hover:bg-white/5 hover:text-white transition-colors"
+            >
+              Eva-สรุป1หน้า
+            </a>
           </div>
         </details>
         <details className="group rounded-lg">
@@ -491,6 +499,14 @@ const AdminLayoutWithSidebar: React.FC = () => {
           className="block py-2.5 px-3 rounded-lg text-sm font-medium text-gray-400 hover:bg-white/5 hover:text-white transition-colors"
         >
           ELEVATE · ANSWER KEY
+        </a>
+        <a
+          href="/elevate-pretest-posttest-editor"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block py-2.5 px-3 rounded-lg text-sm font-medium text-gray-400 hover:bg-white/5 hover:text-white transition-colors"
+        >
+          Pretest-Posttest editor
         </a>
       </nav>
 
