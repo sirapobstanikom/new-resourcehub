@@ -1,8 +1,10 @@
 import { PUBLIC_SITE_URL } from './seo';
 
-export type ElevateQuestionType = 'choice' | 'text';
+export type ElevateQuestionType = 'choice' | 'text' | 'rating_1_5';
 
 export type ElevateTestPhase = 'pretest' | 'posttest';
+
+export const ELEVATE_RATING_OPTIONS = ['1', '2', '3', '4', '5'] as const;
 
 export type ElevateQuestion = {
   id: string;
@@ -40,6 +42,14 @@ export function createEmptyQuestion(type: ElevateQuestionType = 'choice'): Eleva
       correctAnswer: '',
     };
   }
+  if (type === 'rating_1_5') {
+    return {
+      id: newElevateId('q'),
+      title: 'ระดับความรู้ของคุณตอนนี้ (1 = น้อย, 5 = มาก)',
+      type: 'rating_1_5',
+      options: [...ELEVATE_RATING_OPTIONS],
+    };
+  }
   return {
     id: newElevateId('q'),
     title: '',
@@ -64,7 +74,11 @@ export function createEmptyBank(name = 'ชุดข้อสอบใหม่'
 function isQuestion(value: unknown): value is ElevateQuestion {
   if (!value || typeof value !== 'object') return false;
   const q = value as ElevateQuestion;
-  return typeof q.id === 'string' && typeof q.title === 'string' && (q.type === 'choice' || q.type === 'text');
+  return (
+    typeof q.id === 'string' &&
+    typeof q.title === 'string' &&
+    (q.type === 'choice' || q.type === 'text' || q.type === 'rating_1_5')
+  );
 }
 
 function normalizeQuestion(raw: ElevateQuestion): ElevateQuestion {
@@ -74,6 +88,14 @@ function normalizeQuestion(raw: ElevateQuestion): ElevateQuestion {
       title: raw.title || '',
       type: 'text',
       correctAnswer: raw.correctAnswer || '',
+    };
+  }
+  if (raw.type === 'rating_1_5') {
+    return {
+      id: raw.id || newElevateId('q'),
+      title: raw.title || 'ระดับความรู้ของคุณตอนนี้ (1 = น้อย, 5 = มาก)',
+      type: 'rating_1_5',
+      options: [...ELEVATE_RATING_OPTIONS],
     };
   }
   const options = Array.isArray(raw.options) ? raw.options.map((o) => String(o)) : ['ตัวเลือก 1', 'ตัวเลือก 2'];
@@ -136,17 +158,27 @@ export function validateTextQuestion(question: ElevateQuestion): string | null {
   return null;
 }
 
+export function validateRatingQuestion(question: ElevateQuestion): string | null {
+  if (!question.title.trim()) return 'กรุณาพิมพ์โจทย์';
+  return null;
+}
+
 export function validateQuestion(question: ElevateQuestion): string | null {
-  return question.type === 'choice' ? validateChoiceQuestion(question) : validateTextQuestion(question);
+  if (question.type === 'choice') return validateChoiceQuestion(question);
+  if (question.type === 'rating_1_5') return validateRatingQuestion(question);
+  return validateTextQuestion(question);
 }
 
 export function questionTypeLabel(type: ElevateQuestionType): string {
-  return type === 'choice' ? 'ช้อยส์ (มีข้อถูก)' : 'ตอบคำถาม (ข้อความ)';
+  if (type === 'choice') return 'ช้อยส์ (มีข้อถูก)';
+  if (type === 'rating_1_5') return 'ประเมิน 1–5';
+  return 'ตอบคำถาม (ข้อความ)';
 }
 
 export function countScored(questions: ElevateQuestion[]): number {
   return questions.filter((q) => {
     if (q.type === 'choice') return Boolean(q.correctOption);
+    if (q.type === 'rating_1_5') return true;
     return Boolean(q.correctAnswer?.trim());
   }).length;
 }
@@ -211,6 +243,13 @@ export function gradeElevateAnswers(
   let total = 0;
   const details = questions.map((q) => {
     const given = (answers[q.id] || '').trim();
+    if (q.type === 'rating_1_5') {
+      total += 5;
+      const value = Number(given);
+      const points = Number.isFinite(value) && value >= 1 && value <= 5 ? value : 0;
+      score += points;
+      return { questionId: q.id, correct: points > 0 ? null : false };
+    }
     if (q.type === 'choice' && q.correctOption) {
       total += 1;
       const correct = given === q.correctOption.trim();

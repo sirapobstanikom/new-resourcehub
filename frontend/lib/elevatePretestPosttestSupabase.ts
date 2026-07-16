@@ -112,7 +112,7 @@ export async function upsertElevateBankToSupabase(bank: ElevateTestBank): Promis
     return { ok: false, error: null, tableMissing: false };
   }
 
-  const updated_at = new Date().toISOString();
+  const updated_at = bank.updatedAt || new Date().toISOString();
   const { error } = await supabase.from(BANKS_TABLE).upsert({
     id: bank.id,
     name: bank.name,
@@ -132,6 +132,31 @@ export async function upsertElevateBankToSupabase(bank: ElevateTestBank): Promis
   }
 
   return { ok: true, error: null, tableMissing: false };
+}
+
+/** อัปโหลดชุดข้อสอบทั้งหมดขึ้น Supabase (ใช้ตอนซิงก์จากเครื่อง / หลังสร้างตาราง) */
+export async function upsertAllElevateBanksToSupabase(
+  banks: ElevateTestBank[]
+): Promise<{ ok: boolean; synced: number; error: string | null; tableMissing: boolean }> {
+  if (!isSupabaseConfigured) {
+    return { ok: false, synced: 0, error: null, tableMissing: false };
+  }
+  if (banks.length === 0) {
+    return { ok: true, synced: 0, error: null, tableMissing: false };
+  }
+
+  let synced = 0;
+  for (const bank of banks) {
+    const result = await upsertElevateBankToSupabase(bank);
+    if (result.tableMissing) {
+      return { ok: false, synced, error: result.error, tableMissing: true };
+    }
+    if (!result.ok) {
+      return { ok: false, synced, error: result.error, tableMissing: false };
+    }
+    synced += 1;
+  }
+  return { ok: true, synced, error: null, tableMissing: false };
 }
 
 export async function deleteElevateBankFromSupabase(

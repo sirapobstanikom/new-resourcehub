@@ -99,26 +99,28 @@ const ElevatePretestPosttestFormPage: React.FC = () => {
     setSubmitError('');
     setSaveNote('');
 
-    let savedToSupabase = false;
+    // เก็บสำเนาในเครื่องเสมอ + พยายามขึ้น Supabase
+    saveElevateResponseLocal(response);
+
     if (isSupabaseConfigured) {
       // ให้แน่ใจว่าชุดข้อสอบอยู่บน Supabase ก่อนบันทึกคำตอบ (FK)
-      await upsertElevateBankToSupabase(bank);
-      const result = await insertElevateResponseToSupabase(response);
-      if (result.ok) {
-        savedToSupabase = true;
-        setSaveNote('บันทึกคำตอบลง Supabase แล้ว');
-      } else if (result.tableMissing) {
-        setSaveNote('ยังไม่มีตาราง responses บน Supabase — บันทึกในเครื่องชั่วคราว');
-      } else if (result.error) {
-        setSaveNote(`บันทึก Supabase ไม่สำเร็จ: ${result.error} — เก็บในเครื่องชั่วคราว`);
+      const bankUp = await upsertElevateBankToSupabase(bank);
+      if (bankUp.tableMissing) {
+        setSaveNote('บันทึกในเครื่องแล้ว — ยังไม่มีตารางบน Supabase (รัน SQL ใน editor)');
+      } else if (!bankUp.ok) {
+        setSaveNote(`บันทึกชุดข้อสอบขึ้น Supabase ไม่สำเร็จ: ${bankUp.error} — เก็บในเครื่องแล้ว`);
+      } else {
+        const result = await insertElevateResponseToSupabase(response);
+        if (result.ok) {
+          setSaveNote('บันทึกคำตอบลง Supabase แล้ว');
+        } else if (result.tableMissing) {
+          setSaveNote('ยังไม่มีตาราง responses บน Supabase — บันทึกในเครื่องชั่วคราว');
+        } else if (result.error) {
+          setSaveNote(`บันทึก Supabase ไม่สำเร็จ: ${result.error} — เก็บในเครื่องแล้ว`);
+        }
       }
-    }
-
-    if (!savedToSupabase) {
-      saveElevateResponseLocal(response);
-      if (!isSupabaseConfigured) {
-        setSaveNote('บันทึกในเครื่องแล้ว (ยังไม่ได้ตั้งค่า Supabase)');
-      }
+    } else {
+      setSaveNote('บันทึกในเครื่องแล้ว (ยังไม่ได้ตั้งค่า Supabase)');
     }
 
     setScore({ score: graded.score, total: graded.total });
@@ -215,7 +217,30 @@ const ElevatePretestPosttestFormPage: React.FC = () => {
             </legend>
             <p className="whitespace-pre-wrap text-sm leading-relaxed text-zinc-100">{question.title}</p>
 
-            {question.type === 'choice' ? (
+            {question.type === 'rating_1_5' ? (
+              <div className="space-y-2">
+                <div className="flex flex-wrap gap-2">
+                  {['1', '2', '3', '4', '5'].map((n) => {
+                    const selected = answers[question.id] === n;
+                    return (
+                      <button
+                        key={`${question.id}-rating-${n}`}
+                        type="button"
+                        onClick={() => setAnswer(question.id, n)}
+                        className={`h-11 w-11 rounded-xl border text-base font-semibold transition-colors md:h-12 md:w-12 ${
+                          selected
+                            ? 'border-yellow-300 bg-yellow-400/20 text-yellow-100'
+                            : 'border-white/20 bg-black/30 text-zinc-200 hover:bg-white/10'
+                        }`}
+                      >
+                        {n}
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className="text-[11px] text-zinc-500">1 = น้อย · 5 = มาก</p>
+              </div>
+            ) : question.type === 'choice' ? (
               <div className="space-y-2">
                 {(question.options || []).map((option) => {
                   const selected = answers[question.id] === option;

@@ -20,7 +20,9 @@ import {
 } from '../lib/elevatePretestPosttest';
 import {
   deleteElevateBankFromSupabase,
+  ELEVATE_PPT_TABLE_SQL,
   fetchElevateBanksFromSupabase,
+  upsertAllElevateBanksToSupabase,
   upsertElevateBankToSupabase,
 } from '../lib/elevatePretestPosttestSupabase';
 import { isSupabaseConfigured } from '../lib/supabase';
@@ -58,6 +60,8 @@ const ElevatePretestPosttestEditorPage: React.FC = () => {
   const [message, setMessage] = useState('');
   const [syncHint, setSyncHint] = useState('');
   const [loadingRemote, setLoadingRemote] = useState(false);
+  const [tableMissing, setTableMissing] = useState(false);
+  const [sqlCopied, setSqlCopied] = useState(false);
 
   const selected = useMemo(
     () => banks.find((bank) => bank.id === selectedId) || null,
@@ -67,34 +71,87 @@ const ElevatePretestPosttestEditorPage: React.FC = () => {
   const questions = selected ? selected[phase] : [];
 
   useEffect(() => {
-    if (!isSupabaseConfigured) return;
+    if (!isSupabaseConfigured) {
+      setSyncHint('ยังไม่ได้ตั้งค่า Supabase — บันทึกในเครื่องเท่านั้น');
+      return;
+    }
     let cancelled = false;
     (async () => {
       setLoadingRemote(true);
+      const local = loadStoredElevateBanks();
       const result = await fetchElevateBanksFromSupabase();
       if (cancelled) return;
       setLoadingRemote(false);
+
       if (result.tableMissing) {
-        setSyncHint('บันทึกในเครื่องแล้ว — ยังไม่มีตารางบน Supabase (ใช้ได้ปกติ)');
+        setTableMissing(true);
+        setSyncHint('ยังไม่มีตารางบน Supabase — รัน SQL ด้านล่างก่อน จึงจะเก็บข้อมูลขึ้นคลาวด์ได้');
         return;
       }
       if (result.error) {
         setSyncHint(`ซิงก์ระบบคลาวด์ไม่สำเร็จ: ${result.error}`);
         return;
       }
+
+      setTableMissing(false);
+
       if (result.banks.length > 0) {
         setBanks(result.banks);
         saveElevateBanksToStorage(result.banks);
         setSelectedId((prev) =>
           result.banks.some((b) => b.id === prev) ? prev : result.banks[0]?.id || ''
         );
-        setSyncHint('โหลดจาก Supabase แล้ว');
+        setSyncHint(`โหลดจาก Supabase แล้ว (${result.banks.length} ชุด)`);
+        return;
+      }
+
+      // ตารางมีแล้วแต่ยังว่าง — อัปโหลดชุดที่มีในเครื่องขึ้นไป
+      if (local.length > 0) {
+        const pushed = await upsertAllElevateBanksToSupabase(local);
+        if (cancelled) return;
+        if (pushed.ok) {
+          setBanks(local);
+          setSyncHint(`อัปโหลดชุดจากเครื่องขึ้น Supabase แล้ว (${pushed.synced} ชุด)`);
+        } else if (pushed.tableMissing) {
+          setTableMissing(true);
+          setSyncHint('ยังไม่มีตารางบน Supabase — รัน SQL ด้านล่างก่อน');
+        } else {
+          setSyncHint(`อัปโหลดขึ้น Supabase ไม่สำเร็จ: ${pushed.error}`);
+        }
+      } else {
+        setSyncHint('เชื่อม Supabase แล้ว — พร้อมบันทึกขึ้นคลาวด์');
       }
     })();
     return () => {
       cancelled = true;
     };
   }, []);
+
+  const copySetupSql = async () => {
+    try {
+      await navigator.clipboard.writeText(ELEVATE_PPT_TABLE_SQL);
+      setSqlCopied(true);
+      setTimeout(() => setSqlCopied(false), 2000);
+    } catch {
+      setMessage('คัดลอก SQL ไม่สำเร็จ — เปิดไฟล์ backend/supabase/elevate_pretest_posttest.sql');
+    }
+  };
+
+  const syncAllLocalToCloud = async () => {
+    if (!isSupabaseConfigured) return;
+    const result = await upsertAllElevateBanksToSupabase(banks);
+    if (result.tableMissing) {
+      setTableMissing(true);
+      setSyncHint('ยังไม่มีตารางบน Supabase — รัน SQL ด้านล่างก่อน');
+      return;
+    }
+    if (!result.ok) {
+      setSyncHint(`ซิงก์คลาวด์ไม่สำเร็จ: ${result.error}`);
+      return;
+    }
+    setTableMissing(false);
+    setSyncHint(`ซิงก์ขึ้น Supabase แล้ว ${result.synced} ชุด`);
+  };
 
   const persist = async (
     next: ElevateTestBank[],
@@ -117,10 +174,12 @@ const ElevatePretestPosttestEditorPage: React.FC = () => {
       if (!bank) return;
       const up = await upsertElevateBankToSupabase(bank);
       if (up.tableMissing) {
+        setTableMissing(true);
         setSyncHint('บันทึกในเครื่องแล้ว — ยังไม่มีตารางบน Supabase');
       } else if (!up.ok && up.error) {
         setSyncHint(`ซิงก์คลาวด์ไม่สำเร็จ: ${up.error}`);
       } else if (up.ok) {
+        setTableMissing(false);
         setSyncHint('บันทึกและซิงก์คลาวด์แล้ว');
       }
     }
@@ -216,11 +275,11 @@ const ElevatePretestPosttestEditorPage: React.FC = () => {
           correctAnswer: q.correctAnswer || '',
         };
       }
-      const base = createEmptyQuestion('choice');
+      const base = createEmptyQuestion(type);
       return {
         ...base,
         id: q.id,
-        title: q.title,
+        title: q.title || base.title,
       };
     });
   };
@@ -265,12 +324,19 @@ const ElevatePretestPosttestEditorPage: React.FC = () => {
             options: draft.options.map((o) => o.trim()).filter(Boolean),
             correctOption: draft.correctOption.trim(),
           }
-        : {
-            id: newElevateId('q'),
-            title: draft.title.trim(),
-            type: 'text',
-            correctAnswer: draft.correctAnswer.trim(),
-          };
+        : draft.type === 'rating_1_5'
+          ? {
+              id: newElevateId('q'),
+              title: draft.title.trim() || 'ระดับความรู้ของคุณตอนนี้ (1 = น้อย, 5 = มาก)',
+              type: 'rating_1_5',
+              options: ['1', '2', '3', '4', '5'],
+            }
+          : {
+              id: newElevateId('q'),
+              title: draft.title.trim(),
+              type: 'text',
+              correctAnswer: draft.correctAnswer.trim(),
+            };
 
     if (candidate.type === 'choice' && candidate.correctOption) {
       const opts = candidate.options || [];
@@ -321,16 +387,54 @@ const ElevatePretestPosttestEditorPage: React.FC = () => {
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-yellow-400/80">ELEVATE</p>
             <h1 className="mt-1 text-2xl font-black text-white sm:text-3xl">Pretest-Posttest editor</h1>
             <p className="mt-2 text-sm text-gray-400">
-              สร้างชุดข้อสอบ Pretest / Posttest — ช้อยส์กำหนดข้อถูก หรือตอบคำถามแบบข้อความ
+              สร้างชุดข้อสอบ Pretest / Posttest — ช้อยส์ · ประเมิน 1–5 · ตอบคำถาม
             </p>
           </div>
           <div className="text-xs text-gray-500 space-y-1 sm:text-right">
             {loadingRemote && <p>กำลังโหลดจากคลาวด์...</p>}
             {syncHint && <p className="text-yellow-400/80">{syncHint}</p>}
             {message && <p className="text-emerald-300">{message}</p>}
+            {isSupabaseConfigured && banks.length > 0 && (
+              <button
+                type="button"
+                onClick={() => void syncAllLocalToCloud()}
+                className="mt-1 rounded-lg border border-yellow-400/30 bg-yellow-400/10 px-2.5 py-1 text-[11px] font-semibold text-yellow-100 hover:bg-yellow-400/20"
+              >
+                ซิงก์ชุดทั้งหมดขึ้น Supabase
+              </button>
+            )}
           </div>
         </div>
       </header>
+
+      {tableMissing && (
+        <div className="border-b border-amber-400/30 bg-amber-500/10">
+          <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-4 sm:px-6">
+            <p className="text-sm font-semibold text-amber-100">
+              ยังไม่มีตารางบน Supabase — คัดลอก SQL ไปรันที่ Supabase → SQL Editor ครั้งเดียว
+            </p>
+            <p className="text-xs text-amber-100/70">
+              ไฟล์: <code className="text-amber-50">backend/supabase/elevate_pretest_posttest.sql</code>
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => void copySetupSql()}
+                className="rounded-xl bg-yellow-400 px-3 py-2 text-xs font-bold text-black hover:bg-yellow-300"
+              >
+                {sqlCopied ? 'คัดลอกแล้ว' : 'คัดลอก SQL'}
+              </button>
+              <button
+                type="button"
+                onClick={() => void syncAllLocalToCloud()}
+                className="rounded-xl border border-white/20 bg-black/30 px-3 py-2 text-xs font-semibold text-zinc-100 hover:bg-white/10"
+              >
+                ลองซิงก์อีกครั้ง (หลังรัน SQL)
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="mx-auto grid max-w-6xl gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[260px_1fr]">
         <aside className="space-y-3 rounded-2xl border border-white/10 bg-white/[0.03] p-4 h-fit">
@@ -583,6 +687,7 @@ const ElevatePretestPosttestEditorPage: React.FC = () => {
                           className="rounded-xl border border-white/15 bg-black/40 px-3 py-2 text-sm"
                         >
                           <option value="choice">ช้อยส์ (กำหนดข้อถูก)</option>
+                          <option value="rating_1_5">ประเมิน 1–5 (ระดับความรู้)</option>
                           <option value="text">ตอบคำถาม (ข้อความ)</option>
                         </select>
 
@@ -637,6 +742,25 @@ const ElevatePretestPosttestEditorPage: React.FC = () => {
                           </div>
                         )}
 
+                        {question.type === 'rating_1_5' && (
+                          <div className="space-y-2">
+                            <p className="text-xs text-zinc-400">
+                              ผู้ตอบเลือกคะแนน 1–5 · ใช้เปรียบเทียบ Pre / Post ได้เลย (ไม่ต้องตั้งข้อถูก)
+                            </p>
+                            <div className="flex flex-wrap gap-2">
+                              {['1', '2', '3', '4', '5'].map((n) => (
+                                <span
+                                  key={`${question.id}-scale-${n}`}
+                                  className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-yellow-400/30 bg-yellow-400/10 text-sm font-bold text-yellow-200"
+                                >
+                                  {n}
+                                </span>
+                              ))}
+                            </div>
+                            <p className="text-[11px] text-zinc-500">1 = น้อย · 5 = มาก</p>
+                          </div>
+                        )}
+
                         {question.type === 'text' && (
                           <div className="space-y-1">
                             <label className="text-xs text-gray-500">คำตอบถูก / คำตอบตัวอย่าง (ไม่บังคับ)</label>
@@ -662,25 +786,36 @@ const ElevatePretestPosttestEditorPage: React.FC = () => {
                       value={draft.type}
                       onChange={(e) => {
                         const type = e.target.value as ElevateQuestionType;
-                        setDraft((prev) =>
-                          type === 'choice'
-                            ? {
-                                ...emptyDraft(),
-                                title: prev.title,
-                                type: 'choice',
-                              }
-                            : {
-                                title: prev.title,
-                                type: 'text',
-                                options: [],
-                                correctOption: '',
-                                correctAnswer: '',
-                              }
-                        );
+                        setDraft((prev) => {
+                          if (type === 'choice') {
+                            return {
+                              ...emptyDraft(),
+                              title: prev.title,
+                              type: 'choice',
+                            };
+                          }
+                          if (type === 'rating_1_5') {
+                            return {
+                              title: prev.title || 'ระดับความรู้ของคุณตอนนี้ (1 = น้อย, 5 = มาก)',
+                              type: 'rating_1_5',
+                              options: ['1', '2', '3', '4', '5'],
+                              correctOption: '',
+                              correctAnswer: '',
+                            };
+                          }
+                          return {
+                            title: prev.title,
+                            type: 'text',
+                            options: [],
+                            correctOption: '',
+                            correctAnswer: '',
+                          };
+                        });
                       }}
                       className="w-full rounded-xl border border-white/15 bg-black/40 px-3 py-2 text-sm sm:w-auto"
                     >
                       <option value="choice">ช้อยส์ (กำหนดข้อถูก)</option>
+                      <option value="rating_1_5">ประเมิน 1–5 (ระดับความรู้)</option>
                       <option value="text">ตอบคำถาม (ข้อความ)</option>
                     </select>
 
@@ -755,6 +890,22 @@ const ElevatePretestPosttestEditorPage: React.FC = () => {
                         >
                           + เพิ่มตัวเลือก
                         </button>
+                      </div>
+                    )}
+
+                    {draft.type === 'rating_1_5' && (
+                      <div className="space-y-2 rounded-xl border border-white/10 bg-black/25 p-3">
+                        <p className="text-xs text-zinc-400">ผู้ตอบจะเห็นปุ่มเลือก 1–5</p>
+                        <div className="flex flex-wrap gap-2">
+                          {['1', '2', '3', '4', '5'].map((n) => (
+                            <span
+                              key={`draft-rating-${n}`}
+                              className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-yellow-400/30 bg-yellow-400/10 text-sm font-bold text-yellow-200"
+                            >
+                              {n}
+                            </span>
+                          ))}
+                        </div>
                       </div>
                     )}
 
