@@ -107,6 +107,53 @@ export async function fetchElevateBanksFromSupabase(): Promise<FetchElevateBanks
 
 export type UpsertElevateBankResult = { ok: boolean; error: string | null; tableMissing: boolean };
 
+export async function fetchElevateBankByIdFromSupabase(
+  bankId: string
+): Promise<{ bank: ElevateTestBank | null; error: string | null; tableMissing: boolean }> {
+  if (!isSupabaseConfigured || !bankId) {
+    return { bank: null, error: null, tableMissing: false };
+  }
+
+  let decoded = bankId;
+  try {
+    decoded = decodeURIComponent(bankId);
+  } catch {
+    decoded = bankId;
+  }
+
+  const { data, error } = await supabase
+    .from(BANKS_TABLE)
+    .select('id, name, description, pretest_json, posttest_json, updated_at')
+    .eq('id', decoded)
+    .maybeSingle();
+
+  if (error) {
+    const message = error.message || '';
+    return {
+      bank: null,
+      error: message,
+      tableMissing: isTableMissingError(message, BANKS_TABLE),
+    };
+  }
+
+  if (!data) {
+    // ลองหาด้วย id ดิบ (กรณี encode ซ้ำ)
+    if (decoded !== bankId) {
+      const retry = await supabase
+        .from(BANKS_TABLE)
+        .select('id, name, description, pretest_json, posttest_json, updated_at')
+        .eq('id', bankId)
+        .maybeSingle();
+      if (!retry.error && retry.data) {
+        return { bank: mapBankRow(retry.data as BankRow), error: null, tableMissing: false };
+      }
+    }
+    return { bank: null, error: null, tableMissing: false };
+  }
+
+  return { bank: mapBankRow(data as BankRow), error: null, tableMissing: false };
+}
+
 export async function upsertElevateBankToSupabase(bank: ElevateTestBank): Promise<UpsertElevateBankResult> {
   if (!isSupabaseConfigured) {
     return { ok: false, error: null, tableMissing: false };
@@ -132,6 +179,39 @@ export async function upsertElevateBankToSupabase(bank: ElevateTestBank): Promis
   }
 
   return { ok: true, error: null, tableMissing: false };
+}
+
+/**
+ * ใช้จากฟอร์มผู้ใช้เท่านั้น — สร้างแถวชุดข้อสอบถ้ายังไม่มี
+ * ไม่ทับ pretest/posttest ของชุดที่มีอยู่แล้ว (กันข้อมูลเก่าในเครื่องเขียนทับ editor)
+ */
+export async function ensureElevateBankExistsOnSupabase(
+  bank: ElevateTestBank
+): Promise<UpsertElevateBankResult> {
+  if (!isSupabaseConfigured) {
+    return { ok: false, error: null, tableMissing: false };
+  }
+
+  const { data, error: selectError } = await supabase
+    .from(BANKS_TABLE)
+    .select('id')
+    .eq('id', bank.id)
+    .maybeSingle();
+
+  if (selectError) {
+    const message = selectError.message || '';
+    return {
+      ok: false,
+      error: message,
+      tableMissing: isTableMissingError(message, BANKS_TABLE),
+    };
+  }
+
+  if (data?.id) {
+    return { ok: true, error: null, tableMissing: false };
+  }
+
+  return upsertElevateBankToSupabase(bank);
 }
 
 /** อัปโหลดชุดข้อสอบทั้งหมดขึ้น Supabase (ใช้ตอนซิงก์จากเครื่อง / หลังสร้างตาราง) */

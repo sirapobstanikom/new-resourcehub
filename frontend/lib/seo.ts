@@ -204,12 +204,38 @@ function getSeoConfig(pathname: string): SeoConfig {
     basePath.startsWith('/room') ||
     basePath.startsWith('/evaluation/eva-editor') ||
     basePath.startsWith('/evaluation/eva-one-page') ||
-    basePath.startsWith('/evaluation/dashboard') ||
-    basePath.startsWith('/elevate-pretest-posttest')
+    basePath.startsWith('/evaluation/dashboard')
   ) {
     return {
       title: 'เข้าสู่ระบบ | MindDoJo',
       description: DEFAULT_DESCRIPTION,
+      path: basePath,
+      robots: 'noindex, nofollow',
+    };
+  }
+
+  if (basePath.startsWith('/elevate-pretest-posttest-editor/dashboard')) {
+    return {
+      title: 'ELEVATE Pretest-Posttest Dashboard',
+      description: 'สรุปผล Pretest / Posttest และความรู้ที่เพิ่มขึ้น',
+      path: basePath,
+      robots: 'noindex, nofollow',
+    };
+  }
+
+  if (basePath.startsWith('/elevate-pretest-posttest-editor')) {
+    return {
+      title: 'ELEVATE Pretest-Posttest Editor',
+      description: 'สร้างและแก้ไขชุดข้อสอบ Pretest / Posttest',
+      path: basePath,
+      robots: 'noindex, nofollow',
+    };
+  }
+
+  if (basePath.startsWith('/elevate-pretest-posttest')) {
+    return {
+      title: 'ELEVATE Pretest / Posttest',
+      description: 'แบบทดสอบ Pretest หรือ Posttest จาก MindDoJo ELEVATE',
       path: basePath,
       robots: 'noindex, nofollow',
     };

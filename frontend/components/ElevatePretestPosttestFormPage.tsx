@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 import {
   findElevateBankById,
   gradeElevateAnswers,
@@ -13,14 +13,16 @@ import {
   type ElevateTestResponse,
 } from '../lib/elevatePretestPosttest';
 import {
-  fetchElevateBanksFromSupabase,
+  ensureElevateBankExistsOnSupabase,
+  fetchElevateBankByIdFromSupabase,
   insertElevateResponseToSupabase,
-  upsertElevateBankToSupabase,
 } from '../lib/elevatePretestPosttestSupabase';
 import { isSupabaseConfigured } from '../lib/supabase';
 
 const ElevatePretestPosttestFormPage: React.FC = () => {
   const { bankId, phase: phaseParam } = useParams<{ bankId: string; phase: string }>();
+  const [searchParams] = useSearchParams();
+  const cacheKey = searchParams.get('v') || '';
   const phase: ElevateTestPhase | null = isElevateTestPhase(phaseParam) ? phaseParam : null;
 
   const [bank, setBank] = useState<ElevateTestBank | null>(null);
@@ -40,26 +42,65 @@ const ElevatePretestPosttestFormPage: React.FC = () => {
   useEffect(() => {
     let cancelled = false;
     (async () => {
+      if (!bankId) return;
       setLoading(true);
       setLoadError('');
-      const local = loadStoredElevateBanks();
-      let found = findElevateBankById(local, bankId);
+
+      let found: ElevateTestBank | null = null;
 
       if (isSupabaseConfigured) {
-        const remote = await fetchElevateBanksFromSupabase();
-        if (!cancelled && remote.banks.length > 0) {
-          saveElevateBanksToStorage(remote.banks);
-          found = findElevateBankById(remote.banks, bankId) || found;
+        const remote = await fetchElevateBankByIdFromSupabase(bankId);
+        if (cancelled) return;
+        if (remote.bank) {
+          found = remote.bank;
+          const local = loadStoredElevateBanks();
+          const next = local.some((b) => b.id === found!.id)
+            ? local.map((b) => (b.id === found!.id ? found! : b))
+            : [found!, ...local];
+          saveElevateBanksToStorage(next);
+        } else {
+          found = findElevateBankById(loadStoredElevateBanks(), bankId);
         }
+      } else {
+        found = findElevateBankById(loadStoredElevateBanks(), bankId);
       }
 
       if (cancelled) return;
       setBank(found);
+      setAnswers({});
+      setSubmitted(false);
+      setScore(null);
+      setSubmitError('');
+      setSaveNote('');
       if (!found) setLoadError('ไม่พบชุดข้อสอบนี้');
       setLoading(false);
     })();
     return () => {
       cancelled = true;
+    };
+  }, [bankId, cacheKey]);
+
+  // กลับมาโฟกัสแท็บ — ดึงโจทย์ล่าสุดจาก Supabase อีกครั้ง
+  useEffect(() => {
+    const refresh = async () => {
+      if (document.visibilityState !== 'visible' || !bankId || !isSupabaseConfigured) return;
+      const remote = await fetchElevateBankByIdFromSupabase(bankId);
+      if (!remote.bank) return;
+      setBank(remote.bank);
+      const local = loadStoredElevateBanks();
+      const next = local.some((b) => b.id === remote.bank!.id)
+        ? local.map((b) => (b.id === remote.bank!.id ? remote.bank! : b))
+        : [remote.bank, ...local];
+      saveElevateBanksToStorage(next);
+    };
+    const onVisible = () => {
+      void refresh();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    window.addEventListener('focus', onVisible);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('focus', onVisible);
     };
   }, [bankId]);
 
@@ -103,12 +144,12 @@ const ElevatePretestPosttestFormPage: React.FC = () => {
     saveElevateResponseLocal(response);
 
     if (isSupabaseConfigured) {
-      // ให้แน่ใจว่าชุดข้อสอบอยู่บน Supabase ก่อนบันทึกคำตอบ (FK)
-      const bankUp = await upsertElevateBankToSupabase(bank);
+      // แค่ให้แน่ใจว่ามีแถวชุดข้อสอบ (FK) — ไม่ทับโจทย์จาก editor
+      const bankUp = await ensureElevateBankExistsOnSupabase(bank);
       if (bankUp.tableMissing) {
         setSaveNote('บันทึกในเครื่องแล้ว — ยังไม่มีตารางบน Supabase (รัน SQL ใน editor)');
       } else if (!bankUp.ok) {
-        setSaveNote(`บันทึกชุดข้อสอบขึ้น Supabase ไม่สำเร็จ: ${bankUp.error} — เก็บในเครื่องแล้ว`);
+        setSaveNote(`เชื่อมชุดข้อสอบบน Supabase ไม่สำเร็จ: ${bankUp.error} — เก็บในเครื่องแล้ว`);
       } else {
         const result = await insertElevateResponseToSupabase(response);
         if (result.ok) {

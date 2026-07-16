@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { BarChart3, ChevronDown, ChevronUp, Copy, ExternalLink, Plus, Trash2 } from 'lucide-react';
 import {
   countScored,
@@ -51,6 +51,8 @@ function cloneQuestions(questions: ElevateQuestion[]): ElevateQuestion[] {
   }));
 }
 
+const CLOUD_SYNC_DEBOUNCE_MS = 450;
+
 const ElevatePretestPosttestEditorPage: React.FC = () => {
   const [banks, setBanks] = useState<ElevateTestBank[]>(() => loadStoredElevateBanks());
   const [selectedId, setSelectedId] = useState(() => loadStoredElevateBanks()[0]?.id || '');
@@ -62,6 +64,20 @@ const ElevatePretestPosttestEditorPage: React.FC = () => {
   const [loadingRemote, setLoadingRemote] = useState(false);
   const [tableMissing, setTableMissing] = useState(false);
   const [sqlCopied, setSqlCopied] = useState(false);
+
+  const banksRef = useRef(banks);
+  const syncTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const syncGenRef = useRef(0);
+
+  useEffect(() => {
+    banksRef.current = banks;
+  }, [banks]);
+
+  useEffect(() => {
+    return () => {
+      if (syncTimerRef.current) clearTimeout(syncTimerRef.current);
+    };
+  }, []);
 
   const selected = useMemo(
     () => banks.find((bank) => bank.id === selectedId) || null,
@@ -153,10 +169,44 @@ const ElevatePretestPosttestEditorPage: React.FC = () => {
     setSyncHint(`ซิงก์ขึ้น Supabase แล้ว ${result.synced} ชุด`);
   };
 
+  const flushCloudUpsert = async (bankId: string) => {
+    if (!isSupabaseConfigured) return;
+    const gen = ++syncGenRef.current;
+    const bank = banksRef.current.find((b) => b.id === bankId);
+    if (!bank) return;
+    setSyncHint('กำลังซิงก์คลาวด์...');
+    const up = await upsertElevateBankToSupabase(bank);
+    if (gen !== syncGenRef.current) return;
+    if (up.tableMissing) {
+      setTableMissing(true);
+      setSyncHint('บันทึกในเครื่องแล้ว — ยังไม่มีตารางบน Supabase');
+    } else if (!up.ok && up.error) {
+      setSyncHint(`ซิงก์คลาวด์ไม่สำเร็จ: ${up.error}`);
+    } else if (up.ok) {
+      setTableMissing(false);
+      setSyncHint('อัปเดตคลาวด์อัตโนมัติแล้ว');
+    }
+  };
+
+  const scheduleCloudUpsert = (bankId: string, immediate = false) => {
+    if (!isSupabaseConfigured) return;
+    if (syncTimerRef.current) clearTimeout(syncTimerRef.current);
+    if (immediate) {
+      void flushCloudUpsert(bankId);
+      return;
+    }
+    setSyncHint('กำลังอัปเดตคลาวด์...');
+    syncTimerRef.current = setTimeout(() => {
+      syncTimerRef.current = null;
+      void flushCloudUpsert(bankId);
+    }, CLOUD_SYNC_DEBOUNCE_MS);
+  };
+
   const persist = async (
     next: ElevateTestBank[],
-    opts?: { upsertId?: string; deleteId?: string }
+    opts?: { upsertId?: string; deleteId?: string; immediate?: boolean }
   ) => {
+    banksRef.current = next;
     setBanks(next);
     saveElevateBanksToStorage(next);
 
@@ -170,26 +220,18 @@ const ElevatePretestPosttestEditorPage: React.FC = () => {
     }
 
     if (opts?.upsertId) {
-      const bank = next.find((b) => b.id === opts.upsertId);
-      if (!bank) return;
-      const up = await upsertElevateBankToSupabase(bank);
-      if (up.tableMissing) {
-        setTableMissing(true);
-        setSyncHint('บันทึกในเครื่องแล้ว — ยังไม่มีตารางบน Supabase');
-      } else if (!up.ok && up.error) {
-        setSyncHint(`ซิงก์คลาวด์ไม่สำเร็จ: ${up.error}`);
-      } else if (up.ok) {
-        setTableMissing(false);
-        setSyncHint('บันทึกและซิงก์คลาวด์แล้ว');
-      }
+      scheduleCloudUpsert(opts.upsertId, Boolean(opts.immediate));
     }
   };
 
-  const updateSelected = (updater: (current: ElevateTestBank) => ElevateTestBank) => {
+  const updateSelected = (
+    updater: (current: ElevateTestBank) => ElevateTestBank,
+    opts?: { immediate?: boolean }
+  ) => {
     if (!selected) return;
     const nextBank = { ...updater(selected), updatedAt: new Date().toISOString() };
     const next = banks.map((bank) => (bank.id === selected.id ? nextBank : bank));
-    void persist(next, { upsertId: selected.id });
+    void persist(next, { upsertId: selected.id, immediate: opts?.immediate });
   };
 
   const createBank = () => {
@@ -200,7 +242,7 @@ const ElevatePretestPosttestEditorPage: React.FC = () => {
     setNewBankName('');
     setPhase('pretest');
     setMessage(`สร้างชุด “${name}” แล้ว`);
-    void persist(next, { upsertId: bank.id });
+    void persist(next, { upsertId: bank.id, immediate: true });
   };
 
   const renameSelectedBank = (name: string) => {
@@ -224,7 +266,7 @@ const ElevatePretestPosttestEditorPage: React.FC = () => {
     };
     const next = banks.map((bank) => (bank.id === previousId ? nextBank : bank));
     setSelectedId(nextId);
-    void persist(next, { upsertId: nextId, deleteId: previousId });
+    void persist(next, { upsertId: nextId, deleteId: previousId, immediate: true });
     setMessage('อัปเดตลิงก์ตามชื่อข้อสอบแล้ว');
   };
 
@@ -248,19 +290,25 @@ const ElevatePretestPosttestEditorPage: React.FC = () => {
   const moveQuestion = (index: number, direction: -1 | 1) => {
     const target = index + direction;
     if (target < 0 || target >= questions.length) return;
-    updateSelected((bank) => {
-      const list = [...bank[phase]];
-      const [item] = list.splice(index, 1);
-      list.splice(target, 0, item);
-      return { ...bank, [phase]: list };
-    });
+    updateSelected(
+      (bank) => {
+        const list = [...bank[phase]];
+        const [item] = list.splice(index, 1);
+        list.splice(target, 0, item);
+        return { ...bank, [phase]: list };
+      },
+      { immediate: true }
+    );
   };
 
   const removeQuestion = (index: number) => {
-    updateSelected((bank) => ({
-      ...bank,
-      [phase]: bank[phase].filter((_, i) => i !== index),
-    }));
+    updateSelected(
+      (bank) => ({
+        ...bank,
+        [phase]: bank[phase].filter((_, i) => i !== index),
+      }),
+      { immediate: true }
+    );
     setMessage('ลบโจทย์แล้ว');
   };
 
@@ -351,10 +399,13 @@ const ElevatePretestPosttestEditorPage: React.FC = () => {
       return;
     }
 
-    updateSelected((bank) => ({
-      ...bank,
-      [phase]: [...bank[phase], candidate],
-    }));
+    updateSelected(
+      (bank) => ({
+        ...bank,
+        [phase]: [...bank[phase], candidate],
+      }),
+      { immediate: true }
+    );
     setDraft(emptyDraft());
     setMessage(`เพิ่มโจทย์ใน ${phase === 'pretest' ? 'Pretest' : 'Posttest'} แล้ว`);
   };
@@ -371,10 +422,13 @@ const ElevatePretestPosttestEditorPage: React.FC = () => {
     ) {
       return;
     }
-    updateSelected((bank) => ({
-      ...bank,
-      posttest: cloneQuestions(bank.pretest),
-    }));
+    updateSelected(
+      (bank) => ({
+        ...bank,
+        posttest: cloneQuestions(bank.pretest),
+      }),
+      { immediate: true }
+    );
     setPhase('posttest');
     setMessage('คัดลอกโจทย์จาก Pretest → Posttest แล้ว');
   };
@@ -584,8 +638,9 @@ const ElevatePretestPosttestEditorPage: React.FC = () => {
                         ใช้โดเมนจริง + ชื่อชุดข้อสอบใน URL · แชร์ลิงก์นี้ให้ผู้เข้าอบรม
                       </p>
                       {(['pretest', 'posttest'] as const).map((linkPhase) => {
-                        const path = elevateUserFormPath(selected.id, linkPhase);
-                        const fullUrl = elevateUserFormUrl(selected.id, linkPhase);
+                        const version = encodeURIComponent(selected.updatedAt || Date.now().toString());
+                        const path = `${elevateUserFormPath(selected.id, linkPhase)}?v=${version}`;
+                        const fullUrl = `${elevateUserFormUrl(selected.id, linkPhase)}?v=${version}`;
                         const count = selected[linkPhase].length;
                         return (
                           <div
@@ -618,17 +673,28 @@ const ElevatePretestPosttestEditorPage: React.FC = () => {
                                 <Copy className="h-3.5 w-3.5" />
                                 คัดลอก
                               </button>
-                              <a
-                                href={path}
-                                target="_blank"
-                                rel="noopener noreferrer"
+                              <button
+                                type="button"
+                                disabled={count === 0}
+                                onClick={async () => {
+                                  try {
+                                    if (syncTimerRef.current) {
+                                      clearTimeout(syncTimerRef.current);
+                                      syncTimerRef.current = null;
+                                    }
+                                    await flushCloudUpsert(selected.id);
+                                    window.open(path, '_blank', 'noopener,noreferrer');
+                                  } catch {
+                                    setMessage('เปิดลิงก์ไม่สำเร็จ');
+                                  }
+                                }}
                                 className={`inline-flex items-center gap-1 rounded-lg border border-yellow-400/40 bg-yellow-400/15 px-2.5 py-1.5 text-xs font-semibold text-yellow-100 hover:bg-yellow-400/25 ${
                                   count === 0 ? 'pointer-events-none opacity-40' : ''
                                 }`}
                               >
                                 <ExternalLink className="h-3.5 w-3.5" />
                                 เปิด
-                              </a>
+                              </button>
                             </div>
                           </div>
                         );
@@ -694,6 +760,9 @@ const ElevatePretestPosttestEditorPage: React.FC = () => {
                         <textarea
                           value={question.title}
                           onChange={(e) => updateQuestion(index, (q) => ({ ...q, title: e.target.value }))}
+                          onBlur={() => {
+                            if (selected) scheduleCloudUpsert(selected.id, true);
+                          }}
                           rows={3}
                           placeholder="พิมพ์โจทย์..."
                           className="w-full rounded-xl border border-white/15 bg-black/40 px-3 py-2 text-sm resize-y"
