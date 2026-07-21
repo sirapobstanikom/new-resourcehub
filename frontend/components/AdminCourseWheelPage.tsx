@@ -118,7 +118,7 @@ const LINE_GAP = 22;
 function splitTextMultiLine(text: string): string[] | null {
   const norm = text.trim();
   if (norm === 'Innovation & Transformation' || norm === 'Innovation Transformation') {
-    return ['INNOVATION', 'TRANSFORMATION'];
+    return ['TRANSFORMATION', 'INNOVATION'];
   }
   if (norm === 'Strategic Value Creation') {
     return ['STRATEGIC VALUE', 'CREATION'];
@@ -160,7 +160,7 @@ const MultilineText = ({
   y,
   lines,
   color,
-  fontSize = 14,
+  fontSize = 13,
   lineHeight = 18,
 }: {
   x: number;
@@ -185,8 +185,8 @@ const MultilineText = ({
             fill={color}
             style={{
               fontSize: `${fontSize}px`,
-              fontWeight: 800,
-              fontFamily: '"Inter", system-ui, -apple-system, sans-serif',
+              fontWeight: 900,
+              fontFamily: '"Prompt", sans-serif',
               letterSpacing: '0.04em',
             }}
           >
@@ -257,7 +257,7 @@ const ArcText = memo(({
       </defs>
 
       {!lines ? (
-        <text fill={color} className="arc-text" style={{ fontSize, fontWeight: 800, pointerEvents: 'none' }}>
+        <text fill={color} className="arc-text" style={{ fontSize, fontWeight: 900, pointerEvents: 'none' }}>
           <textPath xlinkHref={`#${id}`} startOffset={textOffset} textAnchor="middle">
             {text}
           </textPath>
@@ -270,8 +270,8 @@ const ArcText = memo(({
             className="arc-text"
             style={{
               fontSize,
-              fontWeight: 800,
-              fontFamily: '"Inter", system-ui, -apple-system, sans-serif',
+              fontWeight: 900,
+              fontFamily: '"Prompt", sans-serif',
               pointerEvents: 'none',
               letterSpacing: '0.04em'
             }}
@@ -598,7 +598,7 @@ const Wheel = memo(({
             style={{
               fontSize: '21px',
               fontWeight: 900,
-              fontFamily: '"Inter", system-ui, -apple-system, sans-serif',
+              fontFamily: '"Prompt", sans-serif',
               letterSpacing: '0.12em',
               pointerEvents: 'none',
             }}
@@ -613,7 +613,7 @@ const Wheel = memo(({
             style={{
               fontSize: '21px',
               fontWeight: 900,
-              fontFamily: '"Inter", system-ui, -apple-system, sans-serif',
+              fontFamily: '"Prompt", sans-serif',
               letterSpacing: '0.12em',
               pointerEvents: 'none',
             }}
@@ -627,8 +627,8 @@ const Wheel = memo(({
             fill="#FFFFFF"
             style={{
               fontSize: '12px',
-              fontWeight: 700,
-              fontFamily: '"Inter", system-ui, -apple-system, sans-serif',
+              fontWeight: 900,
+              fontFamily: '"Prompt", sans-serif',
               letterSpacing: '0.08em',
               pointerEvents: 'none',
             }}
@@ -739,11 +739,12 @@ export default function App() {
   }, [selection.data]);
   
   return (
-    <div className="course-wheel-page min-h-screen w-full flex items-center justify-center bg-white overflow-hidden font-sans">
+    <div className="course-wheel-page min-h-screen w-full flex items-center justify-center bg-transparent overflow-hidden font-sans">
       <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap');
         *{box-sizing:border-box}
         .arc-text {
-          font-family: "Inter", system-ui, -apple-system, sans-serif;
+          font-family: "Prompt", sans-serif;
           font-weight: 800;
           text-transform: uppercase;
           letter-spacing: 0.04em;
@@ -774,13 +775,11 @@ export default function App() {
           max-height: 85vh;
           overflow-y: auto;
           color: white;
-        }
-        html:has(.course-wheel-page), 
-        body:has(.course-wheel-page) {
-          background-color: white !important;
-          background-image: none !important;
-          background: white !important;
-        }
+        } 
+        html,
+          body {
+            background: transparent;
+          }
       `}</style>
 
       <main className="flex items-center justify-center p-4 max-w-5xl w-full mx-auto">
