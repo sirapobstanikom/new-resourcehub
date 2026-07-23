@@ -16,7 +16,9 @@ export type CollectionId =
   | 'conflict_management_style_results'
   | 'key_principles_results'
   | 'innovation_evaluatees'
-  | 'innovation_evaluation_responses';
+  | 'innovation_evaluation_responses'
+  | 'whale_done_conflict_canvas_responses'
+  | 'whale_done_accountability_commitments';
 
 const COLLECTIONS: { id: CollectionId; label: string; description: string }[] = [
   { id: 'leadership_entries', label: 'Leadership Entries', description: 'ผลแบบประเมินสมรรถนะภาวะผู้นำ' },
@@ -67,6 +69,16 @@ const COLLECTIONS: { id: CollectionId; label: string; description: string }[] = 
     id: 'innovation_evaluation_responses',
     label: 'Innovation — คะแนนประเมิน',
     description: 'คะแนนจาก Dr. Keita Ono และ Jeerawat Yaowanich ตามเกณฑ์ 5 ข้อ',
+  },
+  {
+    id: 'whale_done_conflict_canvas_responses',
+    label: 'Whale Done — Conflict Canvas',
+    description: 'คำตอบ Conflict Canvas Case 01–04 จาก Whale Done Role Play',
+  },
+  {
+    id: 'whale_done_accountability_commitments',
+    label: 'Whale Done — Commitment Card',
+    description: 'Participant Commitment Card จากแท็บ Accountability',
   },
 ];
 
@@ -432,6 +444,20 @@ create policy "Allow read conflict management style results"
 create policy "Allow read key principles results"
   on public.key_principles_results for select using (true);`}
                         </code>
+                      </div>
+                    )}
+                    {isPermissionError &&
+                      (selectedCollection === 'whale_done_conflict_canvas_responses' ||
+                        selectedCollection === 'whale_done_accountability_commitments') && (
+                      <div className="bg-amber-500/10 text-amber-200 rounded-xl p-4 text-sm">
+                        <p className="font-medium mb-1">ให้เห็นข้อมูล Whale Done Role Play:</p>
+                        <p className="text-gray-400 mb-2">
+                          รันไฟล์{' '}
+                          <code className="text-yellow-400/90">
+                            backend/supabase/migrations/whale_done_role_play_forms.sql
+                          </code>{' '}
+                          ใน Supabase SQL Editor
+                        </p>
                       </div>
                     )}
                   </div>

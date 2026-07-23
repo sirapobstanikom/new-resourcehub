@@ -10,10 +10,10 @@ const practiceEn = [
 ] as const;
 
 const practiceTh = [
-  'แยกปัญหาเรื่องช่องว่างของงาน ออกจากตัวบุคคล',
-  "ใช้กรอบผลประโยชน์ร่วม เช่น 'ถ้าโครงการล้มเหลว ทั้งสองทีมจะได้รับผลกระทบ' แทนการกล่าวโทษ",
-  'เจรจาโดยไม่ใช้อำนาจตำแหน่งหรือรีบยกระดับปัญหา',
-  'สร้างข้อตกลงสั้นๆ ที่เป็นลายลักษณ์อักษรและทั้งสองทีมใช้ยึดร่วมกันได้',
+  'แยกปัญหา (ช่องว่าง) ออกจากบุคคล (คุณนัท)',
+  "ใช้ผลประโยชน์ร่วม ('ทั้งสองทีมจะดูไม่ดีถ้าสิ่งนี้ล้มเหลว') ไม่ใช่การกล่าวโทษ",
+  'เจรจาโดยไม่ใช้ตำแหน่งหรือส่งต่อปัญหา',
+  'สร้างข้อตกลงย่อยที่เป็นเอกสารซึ่งทั้งสองทีมสามารถยึดถือได้',
 ] as const;
 
 const avoidEn = [
@@ -24,10 +24,10 @@ const avoidEn = [
 ] as const;
 
 const avoidTh = [
-  'ข้ามหัวคุณนัทไปหาผู้บริหารก่อนลองคุยตรงๆ',
-  'ถกเถียงว่าใครผิด โดยวนอยู่กับเอกสาร scope หรือการตีความ',
-  'ใช้วิธีกดดันจนทำลายความสัมพันธ์ในการทำงาน',
-  "ยอมรับคำตอบกว้างๆ เช่น 'เดี๋ยวค่อยหาทางกัน' โดยไม่มีเจ้าของงานชัดเจน",
+  'ข้ามหัวคุณนัทก่อนลองเจรจาโดยตรง',
+  'ถกเถียงเรื่องความผิดของใคร (เอกสารขอบเขตกับการตีความ)',
+  'ใช้กลยุทธ์กดดันที่ทำลายความสัมพันธ์',
+  "ยอมรับสิ่งที่ไม่ใช่วิธีแก้ปัญหา ('เราจะหาทางออก') โดยไม่มีเจ้าของชัดเจน",
 ] as const;
 
 type Props = {
@@ -62,9 +62,10 @@ export function ConflictCase03Article({ role }: Props) {
         </p>
         <p className="text-xs font-semibold text-violet-300/90">─── ฉบับภาษาไทย / THAI VERSION ───</p>
         <p className="border-l-2 border-violet-500/40 pl-4 text-gray-300">
-          ทีมของคุณและทีม IT Infrastructure ต้องทำงานร่วมกันในโครงการระบบเดียวกัน แต่โครงการล่าช้ามา 6 สัปดาห์ เพราะมีงานบางส่วนตกอยู่ตรงกลางระหว่างสองทีม
-          แต่ละฝ่ายมองว่าเป็นความรับผิดชอบของอีกฝ่าย คุณนัท หัวหน้าทีม IT ไม่ใช่ลูกน้องของคุณ และไม่ได้อยู่ในสายงานเดียวกัน ในการประชุมล่าสุด คุณนัทพูดชัดว่า
-          &quot;ขอบเขตของทีมเราจบที่ API ส่วนหลังจากนั้นเป็นเรื่องของทีมคุณ&quot; ตอนนี้งานยังไม่เดิน และทั้งสองทีมเริ่มดูไม่ดีต่อผู้บริหาร
+          ทีมของคุณและทีม IT Infrastructure ควรจะร่วมมือกันในโครงการระบบร่วม โครงการล่าช้า 6 สัปดาห์เพราะงานตกอยู่ในช่องว่างระหว่างสองทีม
+          แต่ละฝ่ายบอกว่าเป็นความรับผิดชอบของอีกฝ่าย คุณนัท หัวหน้า IT ไม่ใช่ผู้ใต้บังคับบัญชาหรือเพื่อนร่วมงานในแผนกเดียวกัน
+          ในการประชุมโครงการล่าสุด คุณนัทพูดตรงๆ ว่า &quot;ขอบเขตของทีมเราจบที่ API สิ่งที่เกิดขึ้นหลังจากนั้นเป็นปัญหาของทีมคุณ&quot;
+          งานไม่ได้รับการทำ และทั้งสองทีมดูไม่ดี
         </p>
       </section>
 
@@ -77,7 +78,7 @@ export function ConflictCase03Article({ role }: Props) {
           burning the relationship, and without escalating to senior management.
         </p>
         <p className="border-l-2 border-amber-500/35 pl-4 text-gray-300">
-          คุณต้องชวนคุณนัทมารับผิดชอบช่องว่างนี้ร่วมกัน โดยที่คุณไม่มีอำนาจสั่งเขา ต้องไม่ทำลายความสัมพันธ์ และยังไม่ควรยกระดับไปถึงผู้บริหาร
+          คุณต้องให้คุณนัทรับความเป็นเจ้าของร่วมในช่องว่าง โดยไม่มีอำนาจเหนือเขา ไม่เผาสะพาน และไม่ส่งต่อปัญหาไปยังผู้บริหารระดับสูง
         </p>
       </section>
 
@@ -140,7 +141,9 @@ export function ConflictCase03Article({ role }: Props) {
         <section className="space-y-6 border-t border-white/10 pt-8">
           <h3 className="text-base font-bold text-white">
             ROLE A — YOUR ROLE (Requesting Collaboration)
-            <span className="block text-sm font-normal text-violet-200/90 mt-1">บทบาท A — บทบาทของคุณ (ขอความร่วมมือ)</span>
+            <span className="block text-sm font-normal text-violet-200/90 mt-1">
+              บทบาท A — บทบาทของคุณ (ขอความร่วมมือ)
+            </span>
           </h3>
 
           <div className="space-y-3">
@@ -153,10 +156,10 @@ export function ConflictCase03Article({ role }: Props) {
               last week, Nat said flatly: &apos;Our scope ends at the API. What happens after that is your team&apos;s
               problem.&apos; You have no authority over him. You cannot force this. You cannot escalate to senior
               management without it looking like you&apos;ve failed to handle a peer relationship. Your manager has
-              already asked you twice how the project is progressing. You told her it was &apos;almost resolved.&apos; It
-              isn&apos;t. You are sitting across from Nat right now, and you have made a decision: you are not going to
-              debate scope. You are going to frame this as a shared problem and come with a specific proposal. You need
-              him to say yes to something concrete today.
+              already asked you twice how the project is progressing. You told her it was &apos;almost resolved.&apos;
+              It isn&apos;t. You are sitting across from Nat right now, and you have made a decision: you are not going
+              to debate scope. You are going to frame this as a shared problem and come with a specific proposal. You
+              need him to say yes to something concrete today.
             </p>
             <p className="font-semibold text-white pt-2">YOUR GOALS:</p>
             <ol className="list-decimal list-inside space-y-2 marker:text-violet-400/90 text-gray-300">
@@ -179,9 +182,8 @@ export function ConflictCase03Article({ role }: Props) {
             <p className="text-xs font-bold uppercase tracking-wider text-cyan-400/90">🇹🇭 ภาษาไทย</p>
             <p className="font-semibold text-white">คุณคือใคร:</p>
             <p className="border-l-2 border-cyan-500/35 pl-4 text-gray-300">
-              คุณเป็น Team Lead ที่รับผิดชอบโครงการระบบร่วม ซึ่งตอนนี้ติดขัดมา 6 สัปดาห์ เพราะมีงานบางส่วนที่ไม่ชัดว่าเป็นของทีมคุณหรือทีม IT ของคุณนัท
-              คุณไม่มีอำนาจสั่งคุณนัท และไม่อยากยกระดับเรื่องนี้ไปถึงผู้บริหารก่อนลองคุยกันตรงๆ วันนี้คุณตั้งใจจะไม่เถียงเรื่องขอบเขตงานเดิม
-              แต่จะเสนอว่าเรื่องนี้เป็นปัญหาร่วม และต้องการข้อตกลงที่ชัดเจนว่าใครทำอะไร ภายในเมื่อไหร่
+              คุณคือ team lead ที่โครงการติดขัดเพราะช่องว่างระหว่างทีมคุณกับทีม IT ของคุณนัท คุณไม่มีอำนาจเหนือเขา
+              คุณต้องให้เขาตกลงแบ่งปันความเป็นเจ้าของงานที่ไม่ได้รับมอบหมายชัดเจน
             </p>
             <p className="font-semibold text-white pt-2">เป้าหมายของคุณ:</p>
             <ol className="list-decimal list-inside space-y-2 marker:text-violet-400/90 text-gray-300">
@@ -210,9 +212,9 @@ export function ConflictCase03Article({ role }: Props) {
               was agreed in the original scope document. The gap that exists was never formally assigned to anyone. You
               understand it&apos;s causing problems. You are not indifferent to that. But your team is already
               understaffed and running two other critical projects simultaneously. Taking on unscoped work without
-              resourcing is not something you can do unilaterally — your own manager would push back. When the other team
-              lead comes to talk to you, you are not hostile. But you have a position and you intend to hold it — at
-              least until you hear something specific enough to evaluate. If they come with blame or vague requests,
+              resourcing is not something you can do unilaterally — your own manager would push back. When the other
+              team lead comes to talk to you, you are not hostile. But you have a position and you intend to hold it —
+              at least until you hear something specific enough to evaluate. If they come with blame or vague requests,
               you&apos;ll stay firm. If they come with an actual proposal — specific tasks, clear owner, realistic
               timeline — you&apos;re willing to negotiate. You just need to be able to go back to your own manager with
               something that makes sense.
@@ -233,9 +235,7 @@ export function ConflictCase03Article({ role }: Props) {
               </li>
               <li className="flex gap-2">
                 <span className="text-violet-400 shrink-0">•</span>
-                <span>
-                  Be willing to negotiate a partial ownership arrangement if the proposal is reasonable
-                </span>
+                <span>Be willing to negotiate a partial ownership arrangement if the proposal is reasonable</span>
               </li>
               <li className="flex gap-2">
                 <span className="text-violet-400 shrink-0">•</span>
@@ -249,10 +249,8 @@ export function ConflictCase03Article({ role }: Props) {
             <p className="text-xs font-bold uppercase tracking-wider text-cyan-400/90">🇹🇭 ภาษาไทย</p>
             <p className="font-semibold text-white">คุณคือใคร:</p>
             <p className="border-l-2 border-cyan-500/35 pl-4 text-gray-300">
-              คุณคือคุณนัท หัวหน้าทีม IT Infrastructure ทำงานกับบริษัทมา 7 ปี ทีมของคุณส่งมอบงานตามขอบเขตเดิมครบแล้ว ช่องว่างที่เกิดขึ้นมีอยู่จริง
-              แต่ไม่เคยถูกกำหนดชัดว่าเป็นความรับผิดชอบของใคร คุณไม่ได้เพิกเฉยต่อปัญหา แต่ทีมของคุณกำลังขาดคน และยังมีอีก 2 โครงการสำคัญที่ต้องทำพร้อมกัน
-              คุณไม่สามารถรับงานที่อยู่นอก scope เพิ่มได้เองโดยไม่มีเหตุผลหรือทรัพยากรรองรับ ถ้าอีกฝ่ายมาพร้อมการกล่าวโทษหรือคำขอกว้างๆ คุณจะยืนยันจุดยืนเดิม
-              แต่ถ้าเขามาพร้อมข้อเสนอที่ชัดเจน งานชัด คนรับผิดชอบชัด และ timeline สมจริง คุณพร้อมเจรจา
+              คุณคือหัวหน้าทีม IT Infrastructure ทีมของคุณส่งมอบตามขอบเขตที่กำหนดอย่างครบถ้วน ช่องว่างมีอยู่
+              แต่ไม่ได้กำหนดว่าเป็นความรับผิดชอบของทีมคุณ ทรัพยากรจำกัดและทีมถูกใช้งานอย่างเต็มที่
             </p>
             <p className="font-semibold text-white pt-2">แนวคิดของคุณ:</p>
             <ul className="space-y-2 list-none text-gray-300">
@@ -262,11 +260,11 @@ export function ConflictCase03Article({ role }: Props) {
               </li>
               <li className="flex gap-2">
                 <span className="text-violet-400 shrink-0">•</span>
-                <span>ถ้าอีกฝ่ายกล่าวโทษทีมคุณหรือใช้แรงกดดัน ให้ป้องกันตัวเอง</span>
+                <span>ถ้าอีกฝ่ายโทษทีมคุณหรือใช้ตำแหน่ง ป้องตัวเอง</span>
               </li>
               <li className="flex gap-2">
                 <span className="text-violet-400 shrink-0">•</span>
-                <span>ถ้าอีกฝ่ายยอมรับว่าขอบเขตงานคลุมเครือจริง และพูดอย่างยุติธรรม ให้ผ่อนคลายลง</span>
+                <span>ถ้าพวกเขายอมรับความคลุมเครือของขอบเขตอย่างยุติธรรม ผ่อนคลาย</span>
               </li>
               <li className="flex gap-2">
                 <span className="text-violet-400 shrink-0">•</span>
@@ -274,7 +272,7 @@ export function ConflictCase03Article({ role }: Props) {
               </li>
               <li className="flex gap-2">
                 <span className="text-violet-400 shrink-0">•</span>
-                <span>ถามว่า &apos;คุณต้องการให้ทีมผมทำอะไรอย่างเจาะจง และต้องการภายในเมื่อไหร่?&apos;</span>
+                <span>ถาม: &apos;คุณต้องการให้ทีมของฉันทำอะไรเจาะจง และในกรอบเวลาไหน?&apos;</span>
               </li>
             </ul>
           </div>

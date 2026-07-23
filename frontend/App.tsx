@@ -52,6 +52,9 @@ const EvaOnePageSummaryPage = lazy(() => import('./components/EvaOnePageSummaryP
 const PeerFeedbackAudienceGridPage = lazy(() => import('./components/PeerFeedbackAudienceGridPage'));
 const InnovationEvaluationPage = lazy(() => import('./components/InnovationEvaluationPage'));
 const AdminInnovationEvaluateesPage = lazy(() => import('./components/AdminInnovationEvaluateesPage'));
+const AdminWhaleDoneRolePlayDashboardPage = lazy(
+  () => import('./components/AdminWhaleDoneRolePlayDashboardPage')
+);
 const ElevateAnswerKeySelectPage = lazy(() => import('./components/ElevateAnswerKeySelectPage'));
 const ElevateAnswerKeyPage = lazy(() => import('./components/ElevateAnswerKeyPage'));
 const ElevatePretestPosttestEditorPage = lazy(() => import('./components/ElevatePretestPosttestEditorPage'));
@@ -254,6 +257,7 @@ const App: React.FC = () => {
               <Route path="minddojo-users" element={<AdminMindDojoAssessmentUsersPage />} />
               <Route path="innoclub-2-vote" element={<AdminInnoClubSecondVotePage />} />
               <Route path="innovation-evaluatees" element={<AdminInnovationEvaluateesPage />} />
+              <Route path="whale-done-role-play" element={<AdminWhaleDoneRolePlayDashboardPage />} />
             </Route>
           </Routes>
         </Suspense>
@@ -295,7 +299,8 @@ const App: React.FC = () => {
           <Route path="/gamification/reaction" element={<GameReaction />} />
           <Route path="/gamification/game-ar" element={<GameAr />} />
           <Route path="/gamification/hidden-fox" element={<GameHiddenFox />} />
-          <Route path="/gamification/whale-done-role-play" element={<WhaleDoneRolePlayPage />} />
+          <Route path="/gamification/whale-done-role-play" element={<Navigate to="/gamification/whale-done-role-play/v1" replace />} />
+          <Route path="/gamification/whale-done-role-play/:version" element={<WhaleDoneRolePlayPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Suspense>

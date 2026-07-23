@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, Navigate, useParams } from 'react-router-dom';
 import {
   EMPLOYEE_R1,
   EMPLOYEE_R2,
@@ -24,17 +24,43 @@ import {
   type WhaleDoneScenarioId,
 } from '../data/whaleDoneRolePlayData';
 import {
+  EMPLOYEE_R1_V2,
+  EMPLOYEE_R2_V2,
+  EMPLOYEE_R3_V2,
+  EMPLOYEE_R4_V2,
+  EMPLOYEE_W1_V2,
+  EMPLOYEE_W2_V2,
+  EMPLOYEE_W3_V2,
+  EMPLOYEE_W4_V2,
+  MANAGER_R1_V2,
+  MANAGER_R2_V2,
+  MANAGER_R3_V2,
+  MANAGER_R4_V2,
+  MANAGER_W1_V2,
+  MANAGER_W2_V2,
+  MANAGER_W3_V2,
+  MANAGER_W4_V2,
+  V2_SECTION1,
+  whaleDoneV2HasDetail,
+} from '../data/whaleDoneRolePlayDataV2';
+import {
   ACCOUNT_CASE_OPTIONS,
   getAccountabilityCard,
   type AccountabilityCard,
   type AccountabilitySection,
   type AccountCaseKey,
 } from '../data/accountabilityRolePlayData';
+import {
+  ACCOUNT_CASE_OPTIONS_V2,
+  getAccountabilityCardV2,
+} from '../data/accountabilityRolePlayDataV2';
 import { AccountabilityWorkbookCollapsible } from './AccountabilityWorkbookCollapsible';
+import { AccountabilityCommitmentCardCollapsible } from './AccountabilityCommitmentCardCollapsible';
 import { ConflictCase01Article } from './conflictCases/ConflictCase01Article';
 import { ConflictCase02Article } from './conflictCases/ConflictCase02Article';
 import { ConflictCase03Article } from './conflictCases/ConflictCase03Article';
 import { ConflictCase04Article } from './conflictCases/ConflictCase04Article';
+import { ConflictCanvasCollapsible } from './conflictCases/ConflictCanvasCollapsible';
 import { ConflictAnswerSheetModal } from './conflictCases/ConflictAnswerSheetModal';
 
 const selectClass =
@@ -45,6 +71,12 @@ const selectClassFull =
   'w-full px-4 py-3 rounded-xl bg-black/50 border border-white/15 text-white text-base focus:outline-none focus:border-violet-400 appearance-none cursor-pointer';
 
 type WhaleDonePageTab = 'whaledone' | 'accountability' | 'conflict_case';
+
+type WhaleDoneVersion = 'v1' | 'v2' | 'v3';
+
+function isWhaleDoneVersion(value: string | undefined): value is WhaleDoneVersion {
+  return value === 'v1' || value === 'v2' || value === 'v3';
+}
 
 type ConflictCaseKey = 'case1' | 'case2' | 'case3' | 'case4';
 
@@ -283,6 +315,202 @@ function WhaleDoneEmployeeScenario({ badge, data }: { badge: string; data: Emplo
   );
 }
 
+function WhaleDoneManagerScenarioV2({
+  badge,
+  data,
+}: {
+  badge: string;
+  data:
+    | typeof MANAGER_R1_V2
+    | typeof MANAGER_R2_V2
+    | typeof MANAGER_R3_V2
+    | typeof MANAGER_R4_V2
+    | typeof MANAGER_W1_V2
+    | typeof MANAGER_W2_V2
+    | typeof MANAGER_W3_V2
+    | typeof MANAGER_W4_V2;
+}) {
+  return (
+    <article className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 md:p-8 space-y-8 text-left">
+      <div className="space-y-2">
+        <h2 className="text-lg md:text-xl font-bold text-yellow-400/95">{badge}</h2>
+        <p className="text-sm md:text-base font-semibold text-white leading-snug">{data.headline}</p>
+        <p className="text-xs text-cyan-400/90 font-medium">{data.subhead}</p>
+      </div>
+
+      <section className="space-y-3">
+        <h3 className="text-xs font-bold uppercase tracking-wider text-cyan-400/90">
+          THE SITUATION / สถานการณ์
+        </h3>
+        <p className="text-sm text-gray-300 leading-relaxed">{data.situationEn}</p>
+        <p className="text-sm text-gray-300 leading-relaxed border-l-2 border-cyan-500/40 pl-4">{data.situationTh}</p>
+      </section>
+
+      <div className="space-y-1">
+        <p className="text-sm md:text-base font-semibold text-white leading-snug">{data.cardTitleEn}</p>
+      </div>
+
+      <section className="space-y-3">
+        <h3 className="text-xs font-bold uppercase tracking-wider text-cyan-400/90">WHO YOU ARE / คุณคือใคร</h3>
+        <p className="text-sm text-gray-200 leading-relaxed">{data.whoYouAreEn}</p>
+      </section>
+
+      <section className="space-y-4">
+        <h3 className="text-xs font-bold uppercase tracking-wider text-yellow-400/90">{data.stepsTitleEn}</h3>
+        <ol className="space-y-4 list-decimal list-inside marker:text-yellow-400/80">
+          {data.stepsEn.map((s, idx) => (
+            <li key={`en-${idx}-${s.label}`} className="text-sm text-gray-200 leading-relaxed pl-1">
+              <span className="font-semibold text-white">{s.label}</span>
+              <span className="text-gray-400"> : </span>
+              {s.body}
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      <section className="space-y-3">
+        <h3 className="text-xs font-bold uppercase tracking-wider text-rose-400/90">{data.avoidTitleEn} / {data.avoidTitleTh}</h3>
+        <ul className="space-y-2 text-sm text-gray-300">
+          {data.avoidEn.map((line) => (
+            <li key={`en-${line}`} className="flex gap-2">
+              <span className="text-rose-400 shrink-0">✗</span>
+              <span>{line}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <div className="border-t border-white/10 pt-6 space-y-6">
+        <p className="text-xs font-bold uppercase tracking-wider text-amber-300/90">
+          ─── ฉบับภาษาไทย / THAI VERSION ───
+        </p>
+        <p className="text-sm md:text-base font-semibold text-white leading-snug">{data.cardTitleTh}</p>
+
+        <section className="space-y-3">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-cyan-400/90">คุณคือใคร</h3>
+          <p className="text-sm text-gray-200 leading-relaxed">{data.whoYouAreTh}</p>
+        </section>
+
+        <section className="space-y-4">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-yellow-400/90">{data.stepsTitleTh}</h3>
+          <ol className="space-y-4 list-decimal list-inside marker:text-yellow-400/80">
+            {data.stepsTh.map((s, idx) => (
+              <li key={`th-${idx}-${s.label}`} className="text-sm text-gray-200 leading-relaxed pl-1">
+                <span className="font-semibold text-white">{s.label}</span>
+                <span className="text-gray-400"> : </span>
+                {s.body}
+              </li>
+            ))}
+          </ol>
+        </section>
+
+        <section className="space-y-3">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-rose-400/90">{data.avoidTitleTh}</h3>
+          <ul className="space-y-2 text-sm text-gray-300">
+            {data.avoidTh.map((line) => (
+              <li key={`th-${line}`} className="flex gap-2">
+                <span className="text-rose-400 shrink-0">✗</span>
+                <span>{line}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      </div>
+    </article>
+  );
+}
+
+function WhaleDoneEmployeeScenarioV2({
+  badge,
+  data,
+}: {
+  badge: string;
+  data:
+    | typeof EMPLOYEE_R1_V2
+    | typeof EMPLOYEE_R2_V2
+    | typeof EMPLOYEE_R3_V2
+    | typeof EMPLOYEE_R4_V2
+    | typeof EMPLOYEE_W1_V2
+    | typeof EMPLOYEE_W2_V2
+    | typeof EMPLOYEE_W3_V2
+    | typeof EMPLOYEE_W4_V2;
+}) {
+  return (
+    <article className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 md:p-8 space-y-8 text-left">
+      <div className="space-y-2">
+        <h2 className="text-lg md:text-xl font-bold text-yellow-400/95">{badge}</h2>
+        <p className="text-sm md:text-base font-semibold text-white leading-snug">{data.headline}</p>
+        <p className="text-xs text-cyan-400/90 font-medium">{data.subhead}</p>
+      </div>
+
+      <section className="space-y-3">
+        <h3 className="text-xs font-bold uppercase tracking-wider text-cyan-400/90">
+          THE SITUATION / สถานการณ์
+        </h3>
+        <p className="text-sm text-gray-300 leading-relaxed">{data.situationEn}</p>
+        <p className="text-sm text-gray-300 leading-relaxed border-l-2 border-cyan-500/40 pl-4">{data.situationTh}</p>
+      </section>
+
+      <div>
+        <p className="text-sm md:text-base font-semibold text-white leading-snug">{data.cardTitleEn}</p>
+      </div>
+
+      <section className="space-y-3">
+        <h3 className="text-xs font-bold uppercase tracking-wider text-cyan-400/90">WHO YOU ARE / คุณคือใคร</h3>
+        <p className="text-sm text-gray-200 leading-relaxed">{data.whoYouAreEn}</p>
+      </section>
+
+      <section className="space-y-3">
+        <h3 className="text-xs font-bold uppercase tracking-wider text-yellow-400/90">{data.feelingsTitleEn}</h3>
+        <p className="text-sm text-gray-200 leading-relaxed">{data.feelingsEn}</p>
+      </section>
+
+      <section className="space-y-4">
+        <h3 className="text-xs font-bold uppercase tracking-wider text-emerald-400/90">{data.howToPlayTitleEn}</h3>
+        <ol className="space-y-4 list-decimal list-inside marker:text-emerald-400/80">
+          {data.howToPlayEn.map((item, idx) => (
+            <li key={`en-${idx}-${item.lead}`} className="text-sm text-gray-200 leading-relaxed pl-1">
+              <span className="font-semibold text-white">{item.lead}</span>
+              <span className="text-gray-400"> : </span>
+              {item.line}
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      <div className="border-t border-white/10 pt-6 space-y-6">
+        <p className="text-xs font-bold uppercase tracking-wider text-amber-300/90">
+          ─── ฉบับภาษาไทย / THAI VERSION ───
+        </p>
+        <p className="text-sm md:text-base font-semibold text-white leading-snug">{data.cardTitleTh}</p>
+
+        <section className="space-y-3">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-cyan-400/90">คุณคือใคร</h3>
+          <p className="text-sm text-gray-200 leading-relaxed">{data.whoYouAreTh}</p>
+        </section>
+
+        <section className="space-y-3">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-yellow-400/90">{data.feelingsTitleTh}</h3>
+          <p className="text-sm text-gray-200 leading-relaxed">{data.feelingsTh}</p>
+        </section>
+
+        <section className="space-y-4">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-emerald-400/90">{data.howToPlayTitleTh}</h3>
+          <ol className="space-y-4 list-decimal list-inside marker:text-emerald-400/80">
+            {data.howToPlayTh.map((item, idx) => (
+              <li key={`th-${idx}-${item.lead}`} className="text-sm text-gray-200 leading-relaxed pl-1">
+                <span className="font-semibold text-white">{item.lead}</span>
+                <span className="text-gray-400"> : </span>
+                {item.line}
+              </li>
+            ))}
+          </ol>
+        </section>
+      </div>
+    </article>
+  );
+}
+
 function AccountabilitySectionBlock({ section }: { section: AccountabilitySection }) {
   switch (section.type) {
     case 'who':
@@ -389,6 +617,9 @@ function AccountabilityRoleCardArticle({ card }: { card: AccountabilityCard }) {
 }
 
 const WhaleDoneRolePlayPage: React.FC = () => {
+  const { version: versionParam } = useParams<{ version: string }>();
+  const version: WhaleDoneVersion = isWhaleDoneVersion(versionParam) ? versionParam : 'v1';
+
   const [activeTab, setActiveTab] = useState<WhaleDonePageTab>('whaledone');
   const [role, setRole] = useState<WhaleDoneRole | ''>('');
   const [scenarioId, setScenarioId] = useState<WhaleDoneScenarioId | ''>('');
@@ -515,11 +746,33 @@ const WhaleDoneRolePlayPage: React.FC = () => {
     })();
   };
 
-  const showDetail = role && scenarioId && whaleDoneHasDetail(role, scenarioId);
-  const showComingSoon = role && scenarioId && !whaleDoneHasDetail(role, scenarioId);
+  const showDetail =
+    role &&
+    scenarioId &&
+    (version === 'v1'
+      ? whaleDoneHasDetail(role, scenarioId)
+      : version === 'v2'
+        ? whaleDoneV2HasDetail(role, scenarioId)
+        : false);
+  const showComingSoon =
+    role &&
+    scenarioId &&
+    (version === 'v1'
+      ? !whaleDoneHasDetail(role, scenarioId)
+      : version === 'v2'
+        ? !whaleDoneV2HasDetail(role, scenarioId)
+        : false);
   const accountCardRole = mapAccountTabRoleToCardRole(accountRole);
   const accountCard =
-    accountCardRole && accountCase ? getAccountabilityCard(accountCase, accountCardRole) : null;
+    accountCardRole && accountCase
+      ? version === 'v2'
+        ? getAccountabilityCardV2(accountCase, accountCardRole)
+        : getAccountabilityCard(accountCase, accountCardRole)
+      : null;
+
+  if (!isWhaleDoneVersion(versionParam)) {
+    return <Navigate to="/gamification/whale-done-role-play/v1" replace />;
+  }
 
   return (
     <div className="min-h-screen bg-transparent text-white bg-grid flex flex-col selection:bg-yellow-400 selection:text-black">
@@ -533,6 +786,7 @@ const WhaleDoneRolePlayPage: React.FC = () => {
           </Link>
 
           <div className="flex flex-col gap-2 w-full sm:flex-1 sm:min-w-0">
+            {(version === 'v1' || version === 'v2') && (
             <nav
               className="grid grid-cols-3 gap-1.5 w-full sm:flex sm:flex-wrap sm:justify-center"
               aria-label="เลือกโหมด"
@@ -573,6 +827,8 @@ const WhaleDoneRolePlayPage: React.FC = () => {
                 <span className="min-[380px]:hidden">Conflict…</span>
               </button>
             </nav>
+            )}
+            {version === 'v1' && (
             <Link
               to={LEADERSHIP_REFLECTION_FORM_PATH}
               className={`${headerNavBtnBase} w-full text-center bg-emerald-500/15 border-emerald-400/55 text-emerald-100 hover:bg-emerald-500/25 hover:border-emerald-300 hover:text-white uppercase tracking-wide`}
@@ -580,6 +836,7 @@ const WhaleDoneRolePlayPage: React.FC = () => {
               <span className="hidden min-[420px]:inline">LEADERSHIP REFLECTION</span>
               <span className="min-[420px]:hidden">LEADERSHIP…</span>
             </Link>
+            )}
           </div>
 
           <Link
@@ -592,6 +849,392 @@ const WhaleDoneRolePlayPage: React.FC = () => {
       </header>
 
       <main className="flex-1 px-4 sm:px-6 pb-16 max-w-3xl mx-auto w-full space-y-8">
+        {version === 'v3' ? (
+          <div className="rounded-2xl border border-dashed border-white/15 bg-white/[0.03] px-6 py-16 text-center space-y-3">
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-yellow-400/80">
+              Whale Done Role Play · {version.toUpperCase()}
+            </p>
+            <h1 className="text-2xl font-black text-white">ยังไม่มีข้อมูล</h1>
+            <p className="text-sm text-zinc-400 max-w-md mx-auto">
+              เวอร์ชันนี้ยังไม่ได้ใส่คอนเทนต์ — กลับมาเมื่ออัปเดตแล้ว
+            </p>
+          </div>
+        ) : version === 'v2' ? (
+          <>
+            {activeTab === 'whaledone' && (
+            <>
+            <div className="text-center space-y-3">
+              <p className="text-[10px] uppercase tracking-widest text-cyan-400/90">Gamification · V2</p>
+              <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight">
+                Whale Done Role play
+              </h1>
+              <div className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-4 text-left space-y-2 max-w-2xl mx-auto">
+                <p className="text-sm font-semibold text-yellow-200/95 leading-snug">{V2_SECTION1.title}</p>
+                <p className="text-sm text-zinc-300 leading-relaxed">{V2_SECTION1.blurbEn}</p>
+                <p className="text-sm text-zinc-400 leading-relaxed border-l-2 border-cyan-500/40 pl-3">
+                  {V2_SECTION1.blurbTh}
+                </p>
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-6 md:p-8 space-y-6">
+              <div className="space-y-2">
+                <label htmlFor="wd-role-v2" className="block text-sm font-medium text-gray-400">
+                  เลือกบทบาท
+                </label>
+                <select
+                  id="wd-role-v2"
+                  className={selectClass}
+                  value={role}
+                  onChange={(e) => {
+                    const v = e.target.value as WhaleDoneRole | '';
+                    setRole(v);
+                    setScenarioId('');
+                  }}
+                >
+                  <option value="">— เลือก —</option>
+                  {ROLE_OPTIONS.map((o) => (
+                    <option key={o.value} value={o.value}>
+                      {o.labelTh}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <label htmlFor="wd-scenario-v2" className="block text-sm font-medium text-gray-400">
+                  เลือก R หรือ W
+                </label>
+                <select
+                  id="wd-scenario-v2"
+                  className={`${selectClass} ${!role ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  value={scenarioId}
+                  disabled={!role}
+                  onChange={(e) => setScenarioId((e.target.value as WhaleDoneScenarioId) || '')}
+                >
+                  <option value="">— เลือก R หรือ W —</option>
+                  {SCENARIO_GROUPS.map((group) => (
+                    <optgroup key={group.labelTh} label={group.labelTh}>
+                      {group.options.map((o) => (
+                        <option key={o.value} value={o.value}>
+                          {o.label}
+                        </option>
+                      ))}
+                    </optgroup>
+                  ))}
+                </select>
+                {!role && (
+                  <p className="text-xs text-gray-500">กรุณาเลือกบทบาทก่อน แล้วจึงเลือก R1–R4 หรือ W1–W4</p>
+                )}
+              </div>
+            </div>
+
+            {showComingSoon && (
+              <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-6 text-center">
+                <p className="font-bold text-amber-200 mb-1">เร็วๆ นี้</p>
+                <p className="text-sm text-gray-300">
+                  เนื้อหา V2 สำหรับบทบาทนี้และระดับ {scenarioId?.toUpperCase()} กำลังเตรียมไว้ให้
+                </p>
+              </div>
+            )}
+
+            {showDetail && role === 'manager' && scenarioId === 'r1' && (
+              <WhaleDoneManagerScenarioV2 badge="ผู้จัดการ R1 · V2" data={MANAGER_R1_V2} />
+            )}
+
+            {showDetail && role === 'employee' && scenarioId === 'r1' && (
+              <WhaleDoneEmployeeScenarioV2 badge="พนักงาน R1 · V2" data={EMPLOYEE_R1_V2} />
+            )}
+
+            {showDetail && role === 'manager' && scenarioId === 'r2' && (
+              <WhaleDoneManagerScenarioV2 badge="ผู้จัดการ R2 · V2" data={MANAGER_R2_V2} />
+            )}
+
+            {showDetail && role === 'employee' && scenarioId === 'r2' && (
+              <WhaleDoneEmployeeScenarioV2 badge="พนักงาน R2 · V2" data={EMPLOYEE_R2_V2} />
+            )}
+
+            {showDetail && role === 'manager' && scenarioId === 'r3' && (
+              <WhaleDoneManagerScenarioV2 badge="ผู้จัดการ R3 · V2" data={MANAGER_R3_V2} />
+            )}
+
+            {showDetail && role === 'employee' && scenarioId === 'r3' && (
+              <WhaleDoneEmployeeScenarioV2 badge="พนักงาน R3 · V2" data={EMPLOYEE_R3_V2} />
+            )}
+
+            {showDetail && role === 'manager' && scenarioId === 'r4' && (
+              <WhaleDoneManagerScenarioV2 badge="ผู้จัดการ R4 · V2" data={MANAGER_R4_V2} />
+            )}
+
+            {showDetail && role === 'employee' && scenarioId === 'r4' && (
+              <WhaleDoneEmployeeScenarioV2 badge="พนักงาน R4 · V2" data={EMPLOYEE_R4_V2} />
+            )}
+
+            {showDetail && role === 'manager' && scenarioId === 'w1' && (
+              <WhaleDoneManagerScenarioV2 badge="ผู้จัดการ W1 · V2" data={MANAGER_W1_V2} />
+            )}
+
+            {showDetail && role === 'employee' && scenarioId === 'w1' && (
+              <WhaleDoneEmployeeScenarioV2 badge="พนักงาน W1 · V2" data={EMPLOYEE_W1_V2} />
+            )}
+
+            {showDetail && role === 'manager' && scenarioId === 'w2' && (
+              <WhaleDoneManagerScenarioV2 badge="ผู้จัดการ W2 · V2" data={MANAGER_W2_V2} />
+            )}
+
+            {showDetail && role === 'employee' && scenarioId === 'w2' && (
+              <WhaleDoneEmployeeScenarioV2 badge="พนักงาน W2 · V2" data={EMPLOYEE_W2_V2} />
+            )}
+
+            {showDetail && role === 'manager' && scenarioId === 'w3' && (
+              <WhaleDoneManagerScenarioV2 badge="ผู้จัดการ W3 · V2" data={MANAGER_W3_V2} />
+            )}
+
+            {showDetail && role === 'employee' && scenarioId === 'w3' && (
+              <WhaleDoneEmployeeScenarioV2 badge="พนักงาน W3 · V2" data={EMPLOYEE_W3_V2} />
+            )}
+
+            {showDetail && role === 'manager' && scenarioId === 'w4' && (
+              <WhaleDoneManagerScenarioV2 badge="ผู้จัดการ W4 · V2" data={MANAGER_W4_V2} />
+            )}
+
+            {showDetail && role === 'employee' && scenarioId === 'w4' && (
+              <WhaleDoneEmployeeScenarioV2 badge="พนักงาน W4 · V2" data={EMPLOYEE_W4_V2} />
+            )}
+            </>
+            )}
+
+            {activeTab === 'accountability' && (
+              <>
+                <div className="text-center space-y-2">
+                  <p className="text-[10px] uppercase tracking-widest text-cyan-400/90">Accountability · V2</p>
+                  <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight">Accountability</h1>
+                  <p className="text-gray-400 text-sm max-w-xl mx-auto leading-relaxed">
+                    เลือกกรณีก่อน แล้วเลือกบทบาทด้านล่างเพื่อแสดงบัตรบทบาทสำหรับซ้อมบทสนทนาเรื่องความรับผิดชอบ
+                  </p>
+                </div>
+
+                <div className="rounded-2xl border border-white/10 bg-white/5 p-6 md:p-8 space-y-6">
+                  <div className="space-y-2">
+                    <label htmlFor="acct-case-v2" className="block text-sm font-medium text-gray-400">
+                      เลือกกรณี
+                    </label>
+                    <select
+                      id="acct-case-v2"
+                      className={selectClass}
+                      value={accountCase}
+                      onChange={(e) => {
+                        const v = (e.target.value as AccountCaseKey | '') || '';
+                        setAccountCase(v);
+                        setAccountRole((r) => {
+                          if (!v) return '';
+                          if (v === 'case4') {
+                            return r === 'requester' || r === 'peer' ? r : '';
+                          }
+                          return r === 'manager' || r === 'employee' ? r : '';
+                        });
+                      }}
+                    >
+                      <option value="">— เลือกกรณี —</option>
+                      {ACCOUNT_CASE_OPTIONS_V2.map((o) => (
+                        <option key={o.value} value={o.value}>
+                          {o.label}
+                        </option>
+                      ))}
+                    </select>
+                    {accountCase === 'case4' ? (
+                      <p className="text-xs text-cyan-300/85 leading-relaxed">
+                        <span className="font-semibold text-cyan-200">กรณีที่ 04</span> ใช้กับบทบาทผู้ขอความร่วมมือ / คู่เจรจา เท่านั้น
+                      </p>
+                    ) : accountCase === 'case1' || accountCase === 'case2' || accountCase === 'case3' ? (
+                      <p className="text-xs text-gray-500 leading-relaxed">
+                        กรณีที่ 01–03 ใช้กับบทบาทผู้จัดการ / พนักงาน
+                      </p>
+                    ) : null}
+                  </div>
+
+                  <div className="space-y-2">
+                    <label htmlFor="acct-role-v2" className="block text-sm font-medium text-gray-400">
+                      เลือกบทบาท
+                    </label>
+                    <select
+                      id="acct-role-v2"
+                      className={`${selectClass} ${!accountCase ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      value={accountRole}
+                      disabled={!accountCase}
+                      onChange={(e) => setAccountRole((e.target.value as AccountTabRole) || '')}
+                    >
+                      <option value="">— เลือก —</option>
+                      {accountRoleOptionsForCase(accountCase).map((o) => (
+                        <option key={o.value} value={o.value}>
+                          {o.label}
+                        </option>
+                      ))}
+                    </select>
+                    {!accountCase && (
+                      <p className="text-xs text-gray-500">กรุณาเลือกกรณีก่อน แล้วจึงเลือกบทบาท</p>
+                    )}
+                  </div>
+                </div>
+
+                {!accountRole || !accountCase ? (
+                  <div className="rounded-2xl border border-white/10 bg-white/5 p-8 text-center">
+                    <p className="text-sm text-gray-400 leading-relaxed">
+                      เลือกกรณีและบทบาทเพื่อแสดงบัตรบทบาท
+                    </p>
+                  </div>
+                ) : accountCard ? (
+                  <div className="space-y-6">
+                    <AccountabilityRoleCardArticle card={accountCard} />
+                    <AccountabilityWorkbookCollapsible key={`v2-${accountRole}-${accountCase}`} />
+                  </div>
+                ) : null}
+
+                <AccountabilityCommitmentCardCollapsible pageVersion={version} />
+              </>
+            )}
+
+            {activeTab === 'conflict_case' && (
+              <>
+                <div className="text-center space-y-2 px-1">
+                  <p className="text-[10px] uppercase tracking-widest text-violet-400/90">Conflict Case · V2</p>
+                  <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-white tracking-tight leading-snug">
+                    Conflict_Case
+                  </h1>
+                  <p className="text-gray-400 text-sm max-w-xl mx-auto leading-relaxed">
+                    เลือก Case ด้านบน แล้วเลือก Role ด้านล่าง — Case 01–04 พร้อมใช้แล้ว
+                  </p>
+                </div>
+
+                <div className="rounded-2xl border border-violet-500/25 bg-violet-950/20 p-4 sm:p-6 md:p-8 space-y-5 sm:space-y-6">
+                  <div className="space-y-2 min-w-0">
+                    <label htmlFor="cc-case-v2" className="block text-sm font-medium text-violet-200/90">
+                      เลือก Case
+                    </label>
+                    <select
+                      id="cc-case-v2"
+                      className={selectClassFull}
+                      value={conflictCase}
+                      onChange={(e) => setConflictCase((e.target.value as ConflictCaseKey | '') || '')}
+                    >
+                      <option value="">— เลือก Case —</option>
+                      <option value="case1">Case1 · Managing Underperformance</option>
+                      <option value="case2">Case2 · Managing Someone Older</option>
+                      <option value="case3">Case3 · Breaking Down the Silos</option>
+                      <option value="case4">Case4 · Managing Gen Z Talent</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-2 min-w-0">
+                    <label htmlFor="cc-role-v2" className="block text-sm font-medium text-violet-200/90">
+                      เลือก Role
+                    </label>
+                    <select
+                      id="cc-role-v2"
+                      className={`${selectClassFull} ${!conflictCase ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      value={conflictRole}
+                      disabled={!conflictCase}
+                      onChange={(e) => setConflictRole((e.target.value as ConflictRoleChoice | '') || '')}
+                    >
+                      <option value="">— เลือก Role —</option>
+                      {CONFLICT_ROLE_OPTIONS.map((o) => (
+                        <option key={o.value} value={o.value}>
+                          {o.label}
+                        </option>
+                      ))}
+                    </select>
+                    {!conflictCase && (
+                      <p className="text-xs text-gray-500">กรุณาเลือก Case ก่อน แล้วจึงเลือก Role</p>
+                    )}
+                  </div>
+                </div>
+
+                {answerSheetOpen && answerSheetSnap && (
+                  <ConflictAnswerSheetModal
+                    open
+                    onClose={() => {
+                      setAnswerSheetOpen(false);
+                      setAnswerSheetSnap(null);
+                    }}
+                    caseKey={answerSheetSnap.caseKey}
+                    role={answerSheetSnap.role}
+                  />
+                )}
+
+                {conflictCase === 'case1' && (
+                  <ConflictCase01Article role={conflictRole || null} />
+                )}
+
+                {conflictCase === 'case2' && (
+                  <ConflictCase02Article role={conflictRole || null} />
+                )}
+
+                {conflictCase === 'case3' && (
+                  <ConflictCase03Article role={conflictRole || null} />
+                )}
+
+                {conflictCase === 'case4' && (
+                  <ConflictCase04Article role={conflictRole || null} />
+                )}
+
+                {conflictCase && (
+                  <ConflictCanvasCollapsible caseKey={conflictCase} pageVersion={version} />
+                )}
+
+                {!conflictCase ? (
+                  <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-5 sm:p-6 text-center">
+                    <p className="text-sm text-gray-400 leading-relaxed">
+                      เลือก <span className="text-violet-200/90 font-medium">Case</span> เพื่ออ่านสถานการณ์
+                    </p>
+                  </div>
+                ) : null}
+
+                {conflictRole && conflictCase && (
+                  <div className="rounded-2xl border border-violet-400/30 bg-violet-600/10 p-4 sm:p-5 space-y-3">
+                    <p className="text-center text-[11px] sm:text-xs font-medium text-violet-200/95 leading-snug">
+                      Answer sheet — สำหรับ{' '}
+                      <span className="text-white font-semibold">
+                        {conflictCase === 'case1'
+                          ? 'Case1'
+                          : conflictCase === 'case2'
+                            ? 'Case2'
+                            : conflictCase === 'case3'
+                              ? 'Case3'
+                              : 'Case4'}
+                      </span>
+                      {' · '}
+                      <span className="text-white font-semibold">
+                        {CONFLICT_ROLE_OPTIONS.find((o) => o.value === conflictRole)?.label}
+                      </span>
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (!conflictRole || !conflictCase) return;
+                        setAnswerSheetSnap({ caseKey: conflictCase, role: conflictRole });
+                        setAnswerSheetOpen(true);
+                      }}
+                      className="w-full min-h-[48px] rounded-xl border border-violet-400/50 bg-violet-700/30 px-3 py-3 text-center font-black uppercase tracking-wide text-violet-50 text-xs sm:text-sm leading-snug hover:bg-violet-600/40 hover:border-violet-300/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black/40 active:scale-[0.99] transition-transform"
+                    >
+                      <span className="block opacity-95">Answer sheet</span>
+                      <span className="block text-violet-200 normal-case font-bold tracking-normal mt-0.5">
+                        {conflictCase === 'case1'
+                          ? 'CASE1'
+                          : conflictCase === 'case2'
+                            ? 'CASE2'
+                            : conflictCase === 'case3'
+                              ? 'CASE3'
+                              : 'CASE4'}{' '}
+                        · {CONFLICT_ROLE_OPTIONS.find((o) => o.value === conflictRole)?.label}
+                      </span>
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+          </>
+        ) : (
+        <>
         {activeTab === 'whaledone' && (
           <>
         <div className="text-center space-y-2">
@@ -918,6 +1561,8 @@ const WhaleDoneRolePlayPage: React.FC = () => {
                 <AccountabilityWorkbookCollapsible key={`${accountRole}-${accountCase}`} />
               </div>
             ) : null}
+
+            <AccountabilityCommitmentCardCollapsible pageVersion={version} />
           </>
         )}
 
@@ -1114,6 +1759,10 @@ const WhaleDoneRolePlayPage: React.FC = () => {
               <ConflictCase04Article role={conflictRole || null} />
             )}
 
+            {conflictCase && (
+              <ConflictCanvasCollapsible caseKey={conflictCase} pageVersion={version} />
+            )}
+
             {!conflictCase ? (
               <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-5 sm:p-6 text-center">
                 <p className="text-sm text-gray-400 leading-relaxed">
@@ -1167,6 +1816,8 @@ const WhaleDoneRolePlayPage: React.FC = () => {
               </div>
             )}
           </>
+        )}
+        </>
         )}
       </main>
     </div>

@@ -37,6 +37,7 @@ const AdminLayoutWithSidebar: React.FC = () => {
   const isMinddojoUsers = location.pathname === '/admin/minddojo-users';
   const isInnoClubSecondVote = location.pathname === '/admin/innoclub-2-vote';
   const isInnovationEvaluatees = location.pathname === '/admin/innovation-evaluatees';
+  const isWhaleDoneDashboard = location.pathname === '/admin/whale-done-role-play';
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const showLeaveManageLink = user?.email != null && ADMIN_LEAVE_MANAGER_EMAILS.includes(user.email);
   type AdminUserRow = {
@@ -508,6 +509,50 @@ const AdminLayoutWithSidebar: React.FC = () => {
         >
           Pretest-Posttest editor
         </a>
+        <details className="group rounded-lg" open={isWhaleDoneDashboard}>
+          <summary className="list-none cursor-pointer py-2.5 px-3 rounded-lg text-sm font-medium text-gray-400 hover:bg-white/5 hover:text-white transition-colors flex items-center justify-between">
+            <span className={isWhaleDoneDashboard ? 'text-yellow-400' : undefined}>Whale Done Role Play</span>
+            <svg className="w-4 h-4 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </summary>
+          <div className="mt-1 ml-2 space-y-1 border-l border-white/10 pl-2">
+            <Link
+              to="/admin/whale-done-role-play"
+              className={`block py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
+                isWhaleDoneDashboard
+                  ? 'bg-yellow-400/20 text-yellow-400'
+                  : 'text-gray-400 hover:bg-white/5 hover:text-white'
+              }`}
+            >
+              Dashboard — คำตอบที่กรอก
+            </Link>
+            <a
+              href="/gamification/whale-done-role-play/v1"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block py-2 px-3 rounded-lg text-sm font-medium text-gray-400 hover:bg-white/5 hover:text-white transition-colors"
+            >
+              v1
+            </a>
+            <a
+              href="/gamification/whale-done-role-play/v2"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block py-2 px-3 rounded-lg text-sm font-medium text-gray-400 hover:bg-white/5 hover:text-white transition-colors"
+            >
+              v2
+            </a>
+            <a
+              href="/gamification/whale-done-role-play/v3"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block py-2 px-3 rounded-lg text-sm font-medium text-gray-400 hover:bg-white/5 hover:text-white transition-colors"
+            >
+              v3 <span className="text-[10px] text-zinc-600">(ยังไม่มีข้อมูล)</span>
+            </a>
+          </div>
+        </details>
       </nav>
 
       <button

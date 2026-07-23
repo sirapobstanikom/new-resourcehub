@@ -10,10 +10,10 @@ const practiceEn = [
 ] as const;
 
 const practiceTh = [
-  'ยอมรับสิ่งที่เขาทำได้ดีก่อนพูดถึงสิ่งที่ต้องปรับ',
-  'อธิบายเหตุผลเบื้องหลังกระบวนการและลำดับชั้น ไม่ใช่แค่บอกให้ทำตาม',
-  'เชื่อม feedback กับความเสี่ยงต่อชื่อเสียงและอาชีพของเขา ไม่ใช่แค่กฎขององค์กร',
-  'ตกลงวิธีทำงานร่วมกันที่ใช้พลังและความคิดของเขาให้เกิดผล โดยไม่ข้ามขั้นตอนสำคัญ',
+  'ยอมรับสิ่งที่ได้ผลก่อนจัดการสิ่งที่ไม่ได้ผล',
+  "อธิบาย 'เหตุผล' เบื้องหลังกระบวนการและลำดับชั้น ไม่ใช่แค่ยืนยัน",
+  'ทำให้ feedback เกี่ยวกับความเสี่ยงทางวิชาชีพ (ต่อเขา) ไม่ใช่กฎขององค์กร',
+  'สร้างรูปแบบการทำงานร่วมกันที่นำพลังงานของเขาไปในทิศทางที่มีประสิทธิผล',
 ] as const;
 
 const avoidEn = [
@@ -24,10 +24,10 @@ const avoidEn = [
 ] as const;
 
 const avoidTh = [
-  "บอกแค่ว่า 'ที่นี่ทำกันแบบนี้' โดยไม่อธิบายเหตุผล",
-  'เปลี่ยนบทสนทนาให้เป็นการสั่งสอนเรื่องความเคารพหรือลำดับชั้น',
-  'พูด feedback อ้อมเกินไปจนเขาไม่เข้าใจความรุนแรงของผลกระทบ',
-  'มองเรื่องนี้เป็นการลงวินัย แทนที่จะเป็นบทสนทนาเพื่อพัฒนา',
+  "บอกว่า 'นั่นคือวิธีที่เราทำที่นี่' โดยไม่มีคำอธิบาย",
+  'ทำให้กลายเป็นการบรรยายเรื่องความเคารพและลำดับชั้น',
+  'ทำให้ feedback อ่อนลงจนไม่มีผล',
+  'มองว่าเป็นเรื่องวินัยแทนที่จะเป็นบทสนทนาการพัฒนา',
 ] as const;
 
 type Props = {
@@ -62,9 +62,10 @@ export function ConflictCase04Article({ role }: Props) {
         </p>
         <p className="text-xs font-semibold text-violet-300/90">─── ฉบับภาษาไทย / THAI VERSION ───</p>
         <p className="border-l-2 border-violet-500/40 pl-4 text-gray-300">
-          คุณเพชรอายุ 24 ปี เข้าทีมมา 8 เดือน และเป็นคนมีความสามารถจริงๆ ทั้งทำงานเร็ว คิดสร้างสรรค์ และเก่งด้านดิจิทัล แต่เขามักเสนอไอเดียเหมือนเป็นข้อสรุปสุดท้าย
-          ข้ามขั้นตอนการเช็กกับหัวหน้า และล่าสุดบอกข้อมูลกับลูกค้าบางอย่างที่ขัดกับจุดยืนที่บริษัทตกลงกันไว้ โดยไม่ได้ปรึกษาคุณก่อน เมื่อคุณให้ feedback เขาตอบว่า
-          &quot;ผมคิดว่ามันชัดเจนอยู่แล้ว ทำไมเราต้องทำแบบเดิม?&quot; เขาไม่ได้ตั้งใจไม่เคารพใคร แต่ยังไม่เข้าใจจริงๆ ว่าทำไมกระบวนการ ลำดับชั้น และการขออนุมัติจึงสำคัญ
+          คุณเพชรอายุ 24 ปี เข้าร่วมทีมมา 8 เดือนและมีพรสวรรค์จริงๆ — เร็ว สร้างสรรค์ เก่งเรื่องดิจิทัล แต่เขามักนำเสนอความคิดว่าเป็น
+          การตัดสินใจสุดท้าย ข้ามขั้นตอนการเช็คอิน และเพิ่งบอกลูกค้าบางอย่างที่ขัดแย้งกับจุดยืนของบริษัทโดยไม่ปรึกษาคุณก่อน
+          เมื่อคุณให้ feedback เขาพูดว่า &quot;ฉันคิดว่าชัดเจนอยู่แล้ว ทำไมเราถึงยังทำแบบเดิม?&quot; เขาไม่ได้หยาบคาย แต่จริงๆ ไม่เข้าใจว่า
+          ทำไมลำดับชั้น กระบวนการ และการอนุมัติจากผู้อาวุโสถึงสำคัญ
         </p>
       </section>
 
@@ -77,7 +78,7 @@ export function ConflictCase04Article({ role }: Props) {
           leave? How do you give feedback he&apos;ll actually hear?
         </p>
         <p className="border-l-2 border-amber-500/35 pl-4 text-gray-300">
-          คุณจะปรับพฤติกรรมของคุณเพชรอย่างไร โดยไม่ดับพลังหรือทำให้เขาถอยห่าง และจะให้ feedback แบบไหนที่เขารับฟังจริงๆ?
+          คุณจะแก้ไขพฤติกรรมของคุณเพชรได้อย่างไรโดยไม่ทำลายพลังงานและทำให้เขาถอยห่างหรือลาออก? จะให้ feedback อย่างไรที่เขาจะได้ยินจริงๆ?
         </p>
       </section>
 
@@ -150,15 +151,15 @@ export function ConflictCase04Article({ role }: Props) {
               You are Khun Petch&apos;s manager — 9 years in the industry, 3 in this role. Petch has been on your team
               for 8 months and is genuinely talented: fast, creative, technically sharp, full of ideas. Three days ago,
               he told a client something that contradicted the company&apos;s agreed position on a regulatory matter. He
-              didn&apos;t ask you first. He didn&apos;t check. He was confident it was the right answer — and honestly, in
-              a different context, it might have been a reasonable view. But it wasn&apos;t the position you and the
+              didn&apos;t ask you first. He didn&apos;t check. He was confident it was the right answer — and honestly,
+              in a different context, it might have been a reasonable view. But it wasn&apos;t the position you and the
               leadership team had agreed to present. You spent an hour in a call with the client walking it back and
               smoothing it over. When you gave Petch feedback, he said: &apos;I thought that was obvious — why would we
-              keep doing it the old way?&apos; He is not being insolent. He genuinely doesn&apos;t understand why process
-              and hierarchy matter more than being right. Your job today is to help him see what he can&apos;t see yet —
-              that professional trust is built slowly and destroyed fast, and that his confidence, without the system to
-              back it up, is a liability to his own career. You do not want to lecture him. You want him to actually
-              understand.
+              keep doing it the old way?&apos; He is not being insolent. He genuinely doesn&apos;t understand why
+              process and hierarchy matter more than being right. Your job today is to help him see what he can&apos;t
+              see yet — that professional trust is built slowly and destroyed fast, and that his confidence, without the
+              system to back it up, is a liability to his own career. You do not want to lecture him. You want him to
+              actually understand.
             </p>
             <p className="font-semibold text-white pt-2">YOUR GOALS:</p>
             <ol className="list-decimal list-inside space-y-2 marker:text-violet-400/90 text-gray-300">
@@ -182,11 +183,12 @@ export function ConflictCase04Article({ role }: Props) {
             <p className="text-xs font-bold uppercase tracking-wider text-cyan-400/90">🇹🇭 ภาษาไทย</p>
             <p className="font-semibold text-white">คุณคือใคร:</p>
             <p className="border-l-2 border-cyan-500/35 pl-4 text-gray-300">
-              คุณคือผู้จัดการของคุณเพชร มีประสบการณ์ในอุตสาหกรรมนี้ 9 ปี และอยู่ในบทบาทผู้จัดการมา 3 ปี คุณเพชรอยู่ในทีมมา 8 เดือน และเป็นคนมีศักยภาพจริง
-              ทั้งทำงานเร็ว คิดสร้างสรรค์ เข้าใจเทคนิค และมีไอเดียเยอะ สามวันที่แล้ว เขาบอกลูกค้าบางอย่างที่ขัดกับจุดยืนที่บริษัทและทีมผู้บริหารตกลงกันไว้ โดยไม่ได้ถามคุณก่อน
-              เขามั่นใจว่านั่นคือคำตอบที่ถูกต้อง และในบางบริบท มุมมองของเขาอาจมีเหตุผล แต่ครั้งนี้ไม่ใช่สิ่งที่บริษัทตกลงจะสื่อสารกับลูกค้า คุณต้องใช้เวลา 1 ชั่วโมงคุยกับลูกค้าเพื่ออธิบายและแก้สถานการณ์
-              เมื่อคุณให้ feedback เขาตอบว่า &quot;ผมคิดว่ามันชัดเจนอยู่แล้ว ทำไมเราต้องทำแบบเดิม?&quot; เขาไม่ได้หยาบคาย แต่ยังไม่เข้าใจว่าทำไมกระบวนการและลำดับชั้นจึงสำคัญ
-              งานของคุณวันนี้คือช่วยให้เขาเห็นว่า ความไว้วางใจในวิชาชีพสร้างช้าแต่เสียได้เร็ว และความมั่นใจที่ไม่มีระบบรองรับ อาจกลายเป็นความเสี่ยงต่อชื่อเสียงและการเติบโตของเขาเอง
+              คุณคือผู้จัดการของคุณเพชร — 9 ปีในอุตสาหกรรม 3 ปีในบทบาทนี้ คุณเพชรอยู่ในทีม 8 เดือนและมีความสามารถจริงๆ: เร็ว
+              สร้างสรรค์ เต็มไปด้วยไอเดีย สามวันที่แล้วเขาบอกลูกค้าบางอย่างที่ขัดแย้งกับจุดยืนที่บริษัทและทีมผู้บริหารตกลงกัน
+              โดยไม่ได้ถามคุณก่อน คุณใช้เวลาหนึ่งชั่วโมงในการโทรกับลูกค้าเพื่อแก้ไขและบรรเทาสถานการณ์ เมื่อคุณให้ feedback เขาพูดว่า
+              &quot;ผมคิดว่ามันชัดเจนอยู่แล้ว ทำไมเราถึงยังทำแบบเดิม?&quot; เขาไม่ได้หยาบคาย เขาแค่จริงๆ ไม่เข้าใจว่าทำไมกระบวนการและลำดับชั้นถึงสำคัญ
+              งานของคุณวันนี้คือช่วยให้เขาเข้าใจว่าความไว้วางใจในอาชีพสร้างช้าและพังเร็ว — และความมั่นใจของเขา ถ้าไม่มีระบบสนับสนุน
+              เป็นความเสี่ยงต่ออาชีพของเขาเอง
             </p>
             <p className="font-semibold text-white pt-2">เป้าหมายของคุณ:</p>
             <ol className="list-decimal list-inside space-y-2 marker:text-violet-400/90 text-gray-300">
@@ -204,7 +206,9 @@ export function ConflictCase04Article({ role }: Props) {
         <section className="space-y-6 border-t border-white/10 pt-8">
           <h3 className="text-base font-bold text-white">
             ROLE B — KHUN PETCH (Gen Z Employee)
-            <span className="block text-sm font-normal text-violet-200/90 mt-1">บทบาท B — คุณเพชร (พนักงาน Gen Z)</span>
+            <span className="block text-sm font-normal text-violet-200/90 mt-1">
+              บทบาท B — คุณเพชร (พนักงาน Gen Z)
+            </span>
           </h3>
 
           <div className="space-y-3">
@@ -213,16 +217,16 @@ export function ConflictCase04Article({ role }: Props) {
             <p className="text-gray-300">
               You are Khun Petch — 24 years old, 8 months in this company. You graduated with high marks from one of the
               best engineering programs in the country. You applied here because the company seemed forward-thinking.
-              Sometimes it still feels that way. Other times it feels like people are attached to how things were done 10
-              years ago. Three days ago, in a client meeting, you answered a question the way you genuinely believed it
-              should be answered. The position you took was, in your mind, clearly more accurate and more useful to the
-              client than the company&apos;s outdated official line. You didn&apos;t think to check first because it felt
-              obvious. When your manager gave you feedback, your first reaction was defensive — and you said so: &apos;Why
-              would we keep doing it the old way?&apos; You are walking into this meeting braced for a lecture about
-              hierarchy and rules. You already have your counter-arguments ready. But here&apos;s the thing: part of you
-              knows you might be missing something. You are not incapable of changing your mind. You are just not going to
-              do it because someone told you to. If your manager explains why this matters in terms of your career —
-              your reputation, your ability to be trusted with bigger things — you will actually listen.
+              Sometimes it still feels that way. Other times it feels like people are attached to how things were done
+              10 years ago. Three days ago, in a client meeting, you answered a question the way you genuinely believed
+              it should be answered. The position you took was, in your mind, clearly more accurate and more useful to
+              the client than the company&apos;s outdated official line. You didn&apos;t think to check first because it
+              felt obvious. When your manager gave you feedback, your first reaction was defensive — and you said so:
+              &apos;Why would we keep doing it the old way?&apos; You are walking into this meeting braced for a lecture
+              about hierarchy and rules. You already have your counter-arguments ready. But here&apos;s the thing: part
+              of you knows you might be missing something. You are not incapable of changing your mind. You are just not
+              going to do it because someone told you to. If your manager explains why this matters in terms of your
+              career — your reputation, your ability to be trusted with bigger things — you will actually listen.
             </p>
             <p className="font-semibold text-white pt-2">YOUR MINDSET:</p>
             <ul className="space-y-2 list-none text-gray-300">
@@ -235,15 +239,13 @@ export function ConflictCase04Article({ role }: Props) {
               <li className="flex gap-2">
                 <span className="text-violet-400 shrink-0">•</span>
                 <span>
-                  If manager explains with rules and hierarchy alone, push back: &apos;But why does that matter more than
-                  getting it right?&apos;
+                  If manager explains with rules and hierarchy alone, push back: &apos;But why does that matter more
+                  than getting it right?&apos;
                 </span>
               </li>
               <li className="flex gap-2">
                 <span className="text-violet-400 shrink-0">•</span>
-                <span>
-                  If manager explains in terms of professional risk to you personally, genuinely listen
-                </span>
+                <span>If manager explains in terms of professional risk to you personally, genuinely listen</span>
               </li>
               <li className="flex gap-2">
                 <span className="text-violet-400 shrink-0">•</span>
@@ -264,35 +266,36 @@ export function ConflictCase04Article({ role }: Props) {
             <p className="text-xs font-bold uppercase tracking-wider text-cyan-400/90">🇹🇭 ภาษาไทย</p>
             <p className="font-semibold text-white">คุณคือใคร:</p>
             <p className="border-l-2 border-cyan-500/35 pl-4 text-gray-300">
-              คุณคือคุณเพชร อายุ 24 ปี อยู่กับบริษัทมา 8 เดือน คุณเรียนจบด้วยผลการเรียนดีจากหลักสูตรวิศวกรรมชั้นนำ และเลือกสมัครที่นี่เพราะคิดว่าเป็นองค์กรที่เปิดกว้างและทันสมัย
-              บางครั้งคุณก็รู้สึกแบบนั้น แต่บางครั้งคุณรู้สึกว่าคนยังยึดติดกับวิธีทำงานแบบเดิมเมื่อ 10 ปีก่อน สามวันที่แล้ว ในการประชุมกับลูกค้า คุณตอบคำถามตามสิ่งที่คุณเชื่อว่าถูกต้องและเป็นประโยชน์ที่สุด
-              คุณไม่ได้คิดว่าต้องเช็กก่อน เพราะสำหรับคุณมันชัดเจนมากว่าคำตอบเดิมของบริษัทล้าสมัย ตอนผู้จัดการให้ feedback คุณรู้สึกป้องกันตัวและพูดว่า &quot;ทำไมเราต้องทำแบบเดิม?&quot;
-              วันนี้คุณเข้าห้องประชุมโดยเตรียมเหตุผลไว้โต้แย้ง แต่ลึกๆ คุณก็รู้ว่าอาจมีบางอย่างที่คุณยังไม่เห็น ถ้าผู้จัดการพูดแค่เรื่องกฎและลำดับชั้น คุณจะฟังแต่ไม่เชื่อจริงๆ
-              แต่ถ้าเขาอธิบายว่าเรื่องนี้กระทบชื่อเสียง ความไว้วางใจ และโอกาสเติบโตของคุณอย่างไร คุณจะตั้งใจฟัง
+              คุณคือคุณเพชร — อายุ 24 ปี อยู่ในบริษัทมา 8 เดือน คุณเรียนจบด้วยเกียรตินิยมจากสถาบันชั้นนำ สมัครที่นี่เพราะดูก้าวหน้า
+              บางครั้งก็เป็นอย่างนั้น บางครั้งรู้สึกว่าคนยึดติดกับวิธีทำงานแบบ 10 ปีที่แล้ว สามวันก่อนในการประชุมลูกค้า
+              คุณตอบคำถามด้วยสิ่งที่คุณเชื่อว่าถูกต้องที่สุด โดยไม่ได้คิดว่าต้องถามก่อน มันชัดเจนสำหรับคุณว่าเป็นคำตอบที่ดีกว่า
+              ตอนที่ผู้จัดการให้ feedback คุณตอบโต้: &quot;ทำไมเราถึงยังทำแบบเดิม?&quot; คุณเข้าห้องนี้เตรียมพร้อมถกเถียงด้วยเหตุผล
+              ถ้าผู้จัดการพูดถึงกฎและลำดับชั้นเพียงอย่างเดียว คุณจะฟังภายนอกแต่ไม่เชื่อภายใน แต่ถ้าผู้จัดการอธิบายในแง่ความเสี่ยงต่ออาชีพของคุณ —
+              ต่อชื่อเสียงและโอกาสของคุณเอง — คุณจะฟังจริงๆ
             </p>
             <p className="font-semibold text-white pt-2">แนวคิดของคุณ:</p>
             <ul className="space-y-2 list-none text-gray-300">
               <li className="flex gap-2">
                 <span className="text-violet-400 shrink-0">•</span>
-                <span>เริ่มด้วยท่าทีป้องกันตัวเล็กน้อย: &apos;ผมคิดว่าผมกำลังช่วยนะครับ จุดยืนเดิมมันล้าสมัยแล้ว&apos;</span>
+                <span>เริ่มค่อนข้างป้องกันตัวเอง: &apos;ฉันคิดว่าฉันกำลังช่วย จุดยืนเดิมล้าสมัย&apos;</span>
               </li>
               <li className="flex gap-2">
                 <span className="text-violet-400 shrink-0">•</span>
                 <span>
-                  ถ้าผู้จัดการอธิบายแค่เรื่องกฎและลำดับชั้น ให้ถามกลับอย่างสุภาพว่า &apos;แต่ทำไมเรื่องนั้นถึงสำคัญกว่าการให้คำตอบที่ถูกต้องครับ?&apos;
+                  ถ้าผู้จัดการอธิบายด้วยกฎและลำดับชั้นเพียงอย่างเดียว โต้แย้ง: &apos;แต่ทำไมสิ่งนั้นถึงสำคัญกว่าการทำให้ถูกต้อง?&apos;
                 </span>
               </li>
               <li className="flex gap-2">
                 <span className="text-violet-400 shrink-0">•</span>
-                <span>ถ้าผู้จัดการอธิบายให้เห็นความเสี่ยงต่อชื่อเสียงและการเติบโตของคุณ ให้ฟังอย่างจริงจัง</span>
+                <span>ถ้าผู้จัดการอธิบายในแง่ความเสี่ยงทางวิชาชีพต่อคุณเป็นการส่วนตัว ฟังอย่างจริงจัง</span>
               </li>
               <li className="flex gap-2">
                 <span className="text-violet-400 shrink-0">•</span>
-                <span>ถ้าผู้จัดการถามความคิดเห็นและปฏิบัติกับคุณเหมือนผู้ใหญ่ที่มีเหตุผล ให้มีส่วนร่วมในเชิงบวก</span>
+                <span>ถ้าผู้จัดการถามความคิดเห็นและปฏิบัติกับคุณเหมือนผู้ใหญ่ที่ฉลาด มีส่วนร่วมในเชิงบวก</span>
               </li>
               <li className="flex gap-2">
                 <span className="text-violet-400 shrink-0">•</span>
-                <span>ตอนจบ ถ้าบทสนทนาดี ให้เสนอข้อตกลงที่ชัดเจน แต่ถ้าเป็นแค่การสั่งสอน ให้ตอบรับเท่าที่จำเป็น</span>
+                <span>ท้าย: ถ้าบทสนทนาดี เสนอข้อผูกพันเจาะจง; ถ้าเป็นการบรรยาย ให้ปฏิบัติตามน้อยที่สุด</span>
               </li>
             </ul>
           </div>
