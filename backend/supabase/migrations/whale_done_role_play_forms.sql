@@ -34,6 +34,12 @@ create policy "Allow read whale_done_conflict_canvas_responses"
   for select
   using (true);
 
+drop policy if exists "Allow delete whale_done_conflict_canvas_responses" on public.whale_done_conflict_canvas_responses;
+create policy "Allow delete whale_done_conflict_canvas_responses"
+  on public.whale_done_conflict_canvas_responses
+  for delete
+  using (true);
+
 -- Accountability Participant Commitment Card
 create table if not exists public.whale_done_accountability_commitments (
   id uuid primary key default gen_random_uuid(),
@@ -62,4 +68,10 @@ drop policy if exists "Allow read whale_done_accountability_commitments" on publ
 create policy "Allow read whale_done_accountability_commitments"
   on public.whale_done_accountability_commitments
   for select
+  using (true);
+
+drop policy if exists "Allow delete whale_done_accountability_commitments" on public.whale_done_accountability_commitments;
+create policy "Allow delete whale_done_accountability_commitments"
+  on public.whale_done_accountability_commitments
+  for delete
   using (true);

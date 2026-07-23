@@ -268,7 +268,7 @@ export function AccountabilityCommitmentCardCollapsible({ pageVersion }: Props) 
               disabled={saveStatus === 'saving'}
               className="w-full rounded-xl border border-emerald-400/50 bg-emerald-700/35 px-4 py-3 text-sm font-semibold text-emerald-50 hover:bg-emerald-600/40 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/80"
             >
-              {saveStatus === 'saving' ? 'กำลังบันทึก…' : 'บันทึกลง Supabase'}
+              {saveStatus === 'saving' ? 'กำลังบันทึก…' : 'บันทึก'}
             </button>
             {saveStatus === 'success' && (
               <p className="text-center text-sm text-emerald-300">บันทึกสำเร็จ</p>
