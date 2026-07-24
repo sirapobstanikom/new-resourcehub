@@ -665,21 +665,6 @@ export default function App() {
   const isMobile = useIsMobile();
   const selectedQuadrant = selection.quadrantId ? WHEEL_DATA.find(q => q.id === selection.quadrantId) : null;
 
-  useEffect(() => {
-    const body = document.body;
-    const html = document.documentElement;
-    const prevBodyStyle = body.getAttribute('style') || '';
-    const prevHtmlStyle = html.getAttribute('style') || '';
-    
-    body.setAttribute('style', prevBodyStyle + '; background: white !important; background-color: white !important; background-image: none !important;');
-    html.setAttribute('style', prevHtmlStyle + '; background: white !important; background-color: white !important; background-image: none !important;');
-    
-    return () => {
-      body.setAttribute('style', prevBodyStyle);
-      html.setAttribute('style', prevHtmlStyle);
-    };
-  }, []);
-
   const handleReset = useCallback(() => setSelection({ type: null, data: null, quadrantId: null }), []);
   const handleSelection = useCallback((type: string, data: any, quadrantId: string) => setSelection({ type, data, quadrantId }), []);
   
@@ -777,9 +762,14 @@ export default function App() {
           color: white;
         } 
         html,
-          body {
-            background: transparent;
-          }
+        body,
+        #root {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            background: transparent !important;
+        }
       `}</style>
 
       <main className="flex items-center justify-center p-4 max-w-5xl w-full mx-auto">
