@@ -181,7 +181,6 @@ function leaveOverlapsDay(row: LeaveRequestRow, dayKey: string): boolean {
 /** สร้าง grid 42 ช่อง (6 สัปดาห์) สำหรับเดือนที่กำหนด */
 function getMonthGrid(year: number, month: number): { date: Date; isCurrentMonth: boolean }[] {
   const first = new Date(year, month - 1, 1);
-  const last = new Date(year, month, 0);
   const startSunday = new Date(first);
   startSunday.setDate(first.getDate() - first.getDay());
   const out: { date: Date; isCurrentMonth: boolean }[] = [];
@@ -194,6 +193,24 @@ function getMonthGrid(year: number, month: number): { date: Date; isCurrentMonth
     });
   }
   return out;
+}
+
+/** ตัดสัปดาห์ท้ายที่ไม่มีวันในเดือนนี้ออก เพื่อให้ปฏิทินเตี้ยลง */
+function getVisibleMonthGrid(year: number, month: number): { date: Date; isCurrentMonth: boolean }[] {
+  const cells = getMonthGrid(year, month);
+  let weeks = 6;
+  for (let w = 5; w >= 4; w--) {
+    const week = cells.slice(w * 7, w * 7 + 7);
+    if (week.every((c) => !c.isCurrentMonth)) weeks = w;
+    else break;
+  }
+  return cells.slice(0, weeks * 7);
+}
+
+function shortLeaveName(row: LeaveRequestRow): string {
+  const raw = (row.user_display_name || row.user_email || '—').trim();
+  const first = raw.split(/\s+/)[0] || raw;
+  return first.length > 10 ? `${first.slice(0, 9)}…` : first;
 }
 
 const ADMIN_LEAVE_MANAGER_EMAILS = ['pink@minddojo.me', 'koy@minddojo.me', 'tonji@minddojo.me'];
@@ -279,6 +296,9 @@ const AdminLeavePage: React.FC = () => {
   const [publicHolidaysLoading, setPublicHolidaysLoading] = useState(true);
   const [publicHolidaysError, setPublicHolidaysError] = useState<string | null>(null);
   const [holidaysOpen, setHolidaysOpen] = useState(false);
+  const [myLeaveListOpen, setMyLeaveListOpen] = useState(false);
+  const [approvedListOpen, setApprovedListOpen] = useState(false);
+  const [cancelListOpen, setCancelListOpen] = useState(false);
   const [leaveType, setLeaveType] = useState<string>(LEAVE_TYPES[0].id);
   const [startDate, setStartDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [endDate, setEndDate] = useState(() => new Date().toISOString().slice(0, 10));
@@ -319,10 +339,8 @@ const AdminLeavePage: React.FC = () => {
   const [debugLogs, setDebugLogs] = useState<
     Array<{ at: string; level: 'info' | 'warn' | 'error'; text: string }>
   >([]);
-  const ROWS_PER_PAGE = 20;
   const APPROVED_ROWS_PER_PAGE = 5;
   const CANCEL_ROWS_PER_PAGE = 5;
-  const [myLeavePage, setMyLeavePage] = useState(1);
   const [approvedPage, setApprovedPage] = useState(1);
   const [approvedRows, setApprovedRows] = useState<LeaveRequestRow[]>([]);
   const [approvedTotal, setApprovedTotal] = useState(0);
@@ -1283,9 +1301,181 @@ const AdminLeavePage: React.FC = () => {
           )}
         </form>
 
-        <section className="rounded-2xl border border-white/10 bg-white/5 p-4 sm:p-6">
-          <h3 className="font-bold text-gray-300 mb-2">รายการลาของตัวเอง</h3>
-          <p className="text-sm text-gray-500 mb-4">รายการขอลาที่ยังไม่ยกเลิก สามารถยกเลิกได้เฉพาะคำขอที่รออนุมัติ</p>
+        <section className="rounded-2xl border border-white/10 bg-white/5 p-3 sm:p-5">
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2 mb-3">
+            <div>
+              <h3 className="font-bold text-gray-200 text-base sm:text-lg">ตารางรายเดือน — ใครลาบ้าง</h3>
+              <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
+                การลาที่อนุมัติแล้ว · กดชื่อหรือวันเพื่อดูรายละเอียด
+              </p>
+            </div>
+            <div className="flex items-center gap-1.5 sm:gap-2 self-stretch sm:self-auto">
+              <button
+                type="button"
+                onClick={() => {
+                  const d = new Date(calendarViewDate);
+                  d.setMonth(d.getMonth() - 1);
+                  d.setDate(1);
+                  setCalendarViewDate(d);
+                }}
+                className="flex-1 sm:flex-none min-h-[40px] px-3 rounded-xl text-sm font-medium text-zinc-300 hover:text-white hover:bg-white/10 border border-white/10 transition-colors"
+                aria-label="เดือนก่อน"
+              >
+                ‹
+              </button>
+              <span className="flex-1 sm:flex-none text-center text-sm sm:text-base font-semibold text-yellow-300 min-w-[9.5rem] px-2">
+                {calendarViewDate.toLocaleDateString('th-TH', { month: 'long', year: 'numeric' })}
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  const d = new Date(calendarViewDate);
+                  d.setMonth(d.getMonth() + 1);
+                  d.setDate(1);
+                  setCalendarViewDate(d);
+                }}
+                className="flex-1 sm:flex-none min-h-[40px] px-3 rounded-xl text-sm font-medium text-zinc-300 hover:text-white hover:bg-white/10 border border-white/10 transition-colors"
+                aria-label="เดือนถัดไป"
+              >
+                ›
+              </button>
+            </div>
+          </div>
+
+          {(() => {
+            const year = calendarViewDate.getFullYear();
+            const month = calendarViewDate.getMonth() + 1;
+            const cells = getVisibleMonthGrid(year, month);
+            const weekCount = cells.length / 7;
+            return (
+              <div
+                className="rounded-xl border border-white/10 bg-black/20 overflow-hidden"
+                style={{ height: `min(58vh, ${weekCount * 5.1 + 2.1}rem)` }}
+              >
+                <div className="grid grid-cols-7 border-b border-white/10 bg-white/[0.04]">
+                  {WEEKDAY_LABELS.map((label, i) => (
+                    <div
+                      key={label}
+                      className={`py-1.5 sm:py-2 text-center text-[11px] sm:text-xs font-semibold ${
+                        i === 0 || i === 6 ? 'text-amber-400/70' : 'text-zinc-400'
+                      }`}
+                    >
+                      {label}
+                    </div>
+                  ))}
+                </div>
+                <div
+                  className="grid grid-cols-7 h-[calc(100%-2.1rem)]"
+                  style={{ gridTemplateRows: `repeat(${weekCount}, minmax(0, 1fr))` }}
+                >
+                  {cells.map(({ date, isCurrentMonth }) => {
+                    const dayKey = toDateKey(date);
+                    const dayLeaves = approvedLeaves.filter((row) => leaveOverlapsDay(row, dayKey));
+                    const isToday = dayKey === toDateKey(new Date());
+                    const dow = date.getDay();
+                    const isWeekendCell = dow === 0 || dow === 6;
+                    const preview = dayLeaves.slice(0, 2);
+                    const extra = dayLeaves.length - preview.length;
+                    const openDay = () => {
+                      if (dayLeaves.length === 0) return;
+                      if (dayLeaves.length === 1) {
+                        setSelectedDayLeaves(null);
+                        setSelectedDayKey(null);
+                        setSelectedLeave(dayLeaves[0]);
+                        return;
+                      }
+                      setSelectedLeave(null);
+                      setSelectedDayKey(dayKey);
+                      setSelectedDayLeaves(dayLeaves);
+                    };
+                    return (
+                      <div
+                        key={dayKey}
+                        role={dayLeaves.length > 0 ? 'button' : undefined}
+                        tabIndex={dayLeaves.length > 0 ? 0 : undefined}
+                        onClick={dayLeaves.length > 0 ? openDay : undefined}
+                        onKeyDown={
+                          dayLeaves.length > 0
+                            ? (e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                  e.preventDefault();
+                                  openDay();
+                                }
+                              }
+                            : undefined
+                        }
+                        className={`min-h-0 border-r border-b border-white/[0.06] p-0.5 sm:p-1.5 flex flex-col gap-0.5 overflow-hidden transition-colors ${
+                          isCurrentMonth ? '' : 'opacity-35'
+                        } ${isWeekendCell && isCurrentMonth ? 'bg-white/[0.02]' : ''} ${
+                          isToday ? 'bg-yellow-400/10 ring-1 ring-inset ring-yellow-400/35' : ''
+                        } ${dayLeaves.length > 0 ? 'cursor-pointer hover:bg-white/[0.04]' : ''}`}
+                      >
+                        <div className="flex items-center justify-between gap-0.5 shrink-0">
+                          <span
+                            className={`inline-flex w-5 h-5 sm:w-6 sm:h-6 items-center justify-center rounded-full text-[11px] sm:text-xs font-semibold ${
+                              isToday ? 'bg-yellow-400 text-black' : isCurrentMonth ? 'text-zinc-200' : 'text-zinc-500'
+                            }`}
+                          >
+                            {date.getDate()}
+                          </span>
+                          {dayLeaves.length > 0 && (
+                            <span className="sm:hidden inline-flex min-w-[1.1rem] h-4 px-1 items-center justify-center rounded-full bg-emerald-500/25 text-emerald-200 text-[10px] font-semibold">
+                              {dayLeaves.length}
+                            </span>
+                          )}
+                        </div>
+                        <ul className="hidden sm:flex flex-col gap-0.5 min-h-0 overflow-hidden flex-1">
+                          {preview.map((row) => (
+                            <li
+                              key={row.id}
+                              role="button"
+                              tabIndex={0}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedDayLeaves(null);
+                                setSelectedDayKey(null);
+                                setSelectedLeave(row);
+                              }}
+                              onKeyDown={(e) => {
+                                if (e.key !== 'Enter') return;
+                                e.stopPropagation();
+                                setSelectedDayLeaves(null);
+                                setSelectedDayKey(null);
+                                setSelectedLeave(row);
+                              }}
+                              className="truncate rounded px-1 py-0.5 text-[10px] leading-tight bg-emerald-500/20 text-emerald-100 hover:bg-emerald-500/35"
+                              title={`${row.user_display_name || row.user_email} — ${resolveLeaveTypeLabel(row.leave_type)}`}
+                            >
+                              {shortLeaveName(row)}
+                            </li>
+                          ))}
+                          {extra > 0 && (
+                            <li className="text-[10px] text-zinc-400 px-1 leading-tight">+{extra}</li>
+                          )}
+                        </ul>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })()}
+        </section>
+
+        <section className="rounded-2xl border border-white/10 bg-white/5 overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setMyLeaveListOpen((o) => !o)}
+            className="w-full flex items-center justify-between gap-3 px-4 sm:px-6 py-3.5 sm:py-4 text-left hover:bg-white/5 transition"
+          >
+            <span className="font-bold text-gray-300">รายการลาของตัวเอง</span>
+            <svg className={`w-5 h-5 text-gray-400 shrink-0 transition-transform ${myLeaveListOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          {myLeaveListOpen && (
+          <div className="px-4 sm:px-6 pb-4 sm:pb-6 border-t border-white/10">
+          <p className="text-sm text-gray-500 mb-4 mt-3">รายการขอลาที่ยังไม่ยกเลิก สามารถยกเลิกได้เฉพาะคำขอที่รออนุมัติ</p>
           {cancelError && (
             <div className="text-sm mb-3 space-y-2">
               <p className="text-red-400">{cancelError}</p>
@@ -1312,9 +1502,6 @@ create policy "Allow update own leave_requests cancel"
           ) : (() => {
             const myList = myLeaveList.filter((r) => r.status !== 'cancelled');
             const myTotal = myList.length;
-            const myTotalPages = Math.max(1, Math.ceil(myTotal / ROWS_PER_PAGE));
-            const myPage = Math.min(myLeavePage, myTotalPages);
-            const myRows = myList.slice((myPage - 1) * ROWS_PER_PAGE, myPage * ROWS_PER_PAGE);
             return myTotal === 0 ? (
               <div className="min-h-[80px] rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-gray-500 text-sm">
                 ยังไม่มีรายการลา (ที่ยังไม่ยกเลิก)
@@ -1322,10 +1509,13 @@ create policy "Allow update own leave_requests cancel"
             ) : (
             <>
             <p className="sm:hidden text-xs text-gray-500 mb-2">เลื่อนซ้าย-ขวาเพื่อดูตาราง</p>
-            <div className="rounded-xl border border-white/10 overflow-x-auto mx-0">
+            {myTotal > 10 && (
+              <p className="text-xs text-gray-500 mb-2">แสดง {myTotal} รายการ · เลื่อนดูเพิ่มได้ (สูงสุด 10 แถวต่อครั้ง)</p>
+            )}
+            <div className="rounded-xl border border-white/10 overflow-auto mx-0 max-h-[calc(2.75rem+10*3.25rem)]">
               <table className="w-full text-left text-sm min-w-[460px]">
-                <thead>
-                  <tr className="border-b border-white/10 bg-white/5">
+                <thead className="sticky top-0 z-10">
+                  <tr className="border-b border-white/10 bg-zinc-900">
                     <th className="px-3 py-2 font-semibold text-gray-400">ประเภท</th>
                     <th className="px-3 py-2 font-semibold text-gray-400">วันเริ่ม</th>
                     <th className="px-3 py-2 font-semibold text-gray-400">วันสิ้นสุด</th>
@@ -1335,7 +1525,7 @@ create policy "Allow update own leave_requests cancel"
                   </tr>
                 </thead>
                 <tbody>
-                  {myRows.map((row) => (
+                  {myList.map((row) => (
                     <tr key={row.id} className="border-b border-white/5 hover:bg-white/5">
                       <td className="px-3 py-2 text-gray-300">{resolveLeaveTypeLabel(row.leave_type)}</td>
                       <td className="px-3 py-2 text-gray-300">{formatThaiDate(row.start_date)}</td>
@@ -1391,152 +1581,11 @@ create policy "Allow update own leave_requests cancel"
                 </tbody>
               </table>
             </div>
-            {myTotalPages > 1 && (
-              <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-white/10 pt-3">
-                <span className="text-xs text-gray-500">แถว {(myPage - 1) * ROWS_PER_PAGE + 1}–{Math.min(myPage * ROWS_PER_PAGE, myTotal)} จาก {myTotal} · หน้าแรก = ข้อมูลล่าสุด</span>
-                <div className="flex flex-wrap items-center gap-1.5">
-                  <button type="button" onClick={() => setMyLeavePage((p) => Math.max(1, p - 1))} disabled={myPage <= 1}
-                    className="px-2 py-1 rounded text-sm bg-white/10 text-white hover:bg-white/20 disabled:opacity-40 disabled:cursor-not-allowed">← ก่อนหน้า</button>
-                  {Array.from({ length: myTotalPages }, (_, i) => i + 1).map((p) => (
-                    <button key={p} type="button" onClick={() => setMyLeavePage(p)}
-                      className={`px-2 py-1 rounded text-sm min-w-[1.75rem] ${myPage === p ? 'bg-yellow-400/20 text-yellow-400' : 'bg-white/10 text-white hover:bg-white/20'}`}>
-                      {p}
-                    </button>
-                  ))}
-                  <button type="button" onClick={() => setMyLeavePage((p) => Math.min(myTotalPages, p + 1))} disabled={myPage >= myTotalPages}
-                    className="px-2 py-1 rounded text-sm bg-white/10 text-white hover:bg-white/20 disabled:opacity-40 disabled:cursor-not-allowed">ถัดไป →</button>
-                </div>
-              </div>
-            )}
             </>
             );
           })()}
-        </section>
-
-        <section className="rounded-2xl border border-white/10 bg-white/5 p-4 sm:p-6">
-          <h3 className="font-bold text-gray-300 mb-2">ตารางรายเดือน — ใครลาบ้าง</h3>
-          <p className="text-sm text-gray-500 mb-4">
-            ปฏิทินรายเดือนแสดงการลาที่อนุมัติแล้ว — เลื่อนเดือนดูได้
-          </p>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between gap-2 flex-wrap">
-              <button
-                type="button"
-                onClick={() => {
-                  const d = new Date(calendarViewDate);
-                  d.setMonth(d.getMonth() - 1);
-                  d.setDate(1);
-                  setCalendarViewDate(d);
-                }}
-                className="px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium text-gray-400 hover:text-white hover:bg-white/10 border border-white/10"
-              >
-                ‹ เดือนก่อน
-              </button>
-              <span className="text-sm sm:text-base font-semibold text-white text-center min-w-[140px]">
-                {calendarViewDate.toLocaleDateString('th-TH', { month: 'long', year: 'numeric' })}
-              </span>
-              <button
-                type="button"
-                onClick={() => {
-                  const d = new Date(calendarViewDate);
-                  d.setMonth(d.getMonth() + 1);
-                  d.setDate(1);
-                  setCalendarViewDate(d);
-                }}
-                className="px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium text-gray-400 hover:text-white hover:bg-white/10 border border-white/10"
-              >
-                เดือนถัดไป ›
-              </button>
-            </div>
-            <div className="rounded-xl border border-white/10 overflow-x-auto mx-0">
-              <table className="w-full text-sm border-collapse min-w-[320px]">
-                <thead>
-                  <tr className="bg-white/5 border-b border-white/10">
-                    {WEEKDAY_LABELS.map((label) => (
-                      <th key={label} className="py-1.5 sm:py-2 font-semibold text-gray-400 w-[14.28%] text-center min-w-[36px]">
-                        {label}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {Array.from({ length: 6 }, (_, rowIndex) => (
-                    <tr key={rowIndex} className="border-b border-white/5 last:border-0">
-                      {getMonthGrid(
-                        calendarViewDate.getFullYear(),
-                        calendarViewDate.getMonth() + 1
-                      )
-                        .slice(rowIndex * 7, rowIndex * 7 + 7)
-                        .map(({ date, isCurrentMonth }) => {
-                          const dayKey = toDateKey(date);
-                          const dayLeaves = approvedLeaves.filter((row) => leaveOverlapsDay(row, dayKey));
-                          const isToday = dayKey === toDateKey(new Date());
-                          return (
-                            <td
-                              key={dayKey}
-                              className={`align-top p-0.5 sm:p-1 min-h-[64px] sm:min-h-[88px] border-r border-white/5 last:border-r-0 text-xs sm:text-sm ${
-                                isCurrentMonth ? 'text-gray-200' : 'text-gray-600'
-                              } ${isToday ? 'bg-yellow-400/10 ring-1 ring-yellow-400/30' : ''}`}
-                            >
-                              <span className="inline-flex w-6 h-6 sm:w-7 sm:h-7 items-center justify-center rounded-full text-xs font-medium">
-                                {date.getDate()}
-                              </span>
-                              <ul className="space-y-0.5 mt-0.5">
-                                {dayLeaves.slice(0, 5).map((row) => {
-                                  const label = resolveLeaveTypeLabel(row.leave_type);
-                                  const timeRange = formatLeaveSlotLabel(row.start_date, row.end_date, row.start_time, row.end_time);
-                                  const displayText = timeRange
-                                    ? `${row.user_display_name || row.user_email} — ${label} ${timeRange}`
-                                    : `${row.user_display_name || row.user_email} — ${label}`;
-                                  return (
-                                    <li
-                                      key={row.id}
-                                      role="button"
-                                      tabIndex={0}
-                                      onClick={() => {
-                                        setSelectedDayLeaves(null);
-                                        setSelectedDayKey(null);
-                                        setSelectedLeave(row);
-                                      }}
-                                      onKeyDown={(e) => {
-                                        if (e.key !== 'Enter') return;
-                                        setSelectedDayLeaves(null);
-                                        setSelectedDayKey(null);
-                                        setSelectedLeave(row);
-                                      }}
-                                      className="text-xs truncate px-1 py-0.5 rounded bg-emerald-500/20 text-emerald-200 cursor-pointer hover:bg-emerald-500/30 transition-colors"
-                                      title="คลิกดูรายละเอียด"
-                                    >
-                                      {displayText}
-                                    </li>
-                                  );
-                                })}
-                                {dayLeaves.length > 5 && (
-                                  <li>
-                                    <button
-                                      type="button"
-                                      className="text-xs text-gray-400 px-1 py-0.5 rounded hover:bg-white/5 transition-colors cursor-pointer"
-                                      onClick={() => {
-                                        setSelectedLeave(null);
-                                        setSelectedDayKey(dayKey);
-                                        setSelectedDayLeaves(dayLeaves);
-                                      }}
-                                      title="คลิกดูรายละเอียดทั้งหมด"
-                                    >
-                                      +{dayLeaves.length - 5}
-                                    </button>
-                                  </li>
-                                )}
-                              </ul>
-                            </td>
-                          );
-                        })}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
           </div>
+          )}
         </section>
 
         {user?.email != null && ADMIN_LEAVE_MANAGER_EMAILS.includes(user.email) && (
@@ -1623,9 +1672,20 @@ alter table public.leave_requests add column if not exists approved_at timestamp
           )}
         </section>
 
-        <section className="rounded-2xl border border-white/10 bg-white/5 p-4 sm:p-6">
-          <h3 className="font-bold text-gray-300 mb-2">รายการลาที่อนุมัติแล้วของทุกคน</h3>
-          <p className="text-sm text-gray-500 mb-4">
+        <section className="rounded-2xl border border-white/10 bg-white/5 overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setApprovedListOpen((o) => !o)}
+            className="w-full flex items-center justify-between gap-3 px-4 sm:px-6 py-3.5 sm:py-4 text-left hover:bg-white/5 transition"
+          >
+            <span className="font-bold text-gray-300">รายการลาที่อนุมัติแล้วของทุกคน</span>
+            <svg className={`w-5 h-5 text-gray-400 shrink-0 transition-transform ${approvedListOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          {approvedListOpen && (
+          <div className="px-4 sm:px-6 pb-4 sm:pb-6 border-t border-white/10">
+          <p className="text-sm text-gray-500 mb-4 mt-3">
             แสดงคำขอลาที่อนุมัติแล้ว ตอนยื่นคำขอลาตอนเวลาเท่าไร และเมลผู้อนุมัติ
           </p>
           {approvedLoading ? (
@@ -1714,11 +1774,24 @@ alter table public.leave_requests add column if not exists approved_at timestamp
             </>
             );
           })()}
+          </div>
+          )}
         </section>
 
-        <section className="rounded-2xl border border-white/10 bg-white/5 p-3 sm:p-4">
-          <h3 className="font-bold text-gray-300 mb-2">รายการลาที่ขอยกเลิก</h3>
-          <p className="text-xs text-gray-500 mb-3">แสดงรายการขอยกเลิก (รออนุมัติ/ยกเลิกแล้ว) ของทุกคน</p>
+        <section className="rounded-2xl border border-white/10 bg-white/5 overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setCancelListOpen((o) => !o)}
+            className="w-full flex items-center justify-between gap-3 px-3 sm:px-4 py-3 sm:py-3.5 text-left hover:bg-white/5 transition"
+          >
+            <span className="font-bold text-gray-300">รายการลาที่ขอยกเลิก</span>
+            <svg className={`w-5 h-5 text-gray-400 shrink-0 transition-transform ${cancelListOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          {cancelListOpen && (
+          <div className="px-3 sm:px-4 pb-3 sm:pb-4 border-t border-white/10">
+          <p className="text-xs text-gray-500 mb-3 mt-3">แสดงรายการขอยกเลิก (รออนุมัติ/ยกเลิกแล้ว) ของทุกคน</p>
           {(() => {
             const cancelTotal = cancelAuditsTotal;
             const cancelTotalPages = Math.max(1, Math.ceil(cancelTotal / CANCEL_ROWS_PER_PAGE));
@@ -1823,6 +1896,8 @@ alter table public.leave_requests add column if not exists approved_at timestamp
               </>
             );
           })()}
+          </div>
+          )}
         </section>
       </main>
 

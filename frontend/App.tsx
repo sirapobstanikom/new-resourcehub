@@ -21,6 +21,7 @@ const AdminDashboard = lazy(() => import('./components/AdminDashboard'));
 const AdminCourseWheelPage = lazy(() => import('./components/AdminCourseWheelPage'));
 const AdminLeavePage = lazy(() => import('./components/AdminLeavePage'));
 const AdminLeaveManagePage = lazy(() => import('./components/AdminLeaveManagePage'));
+const AdminCourseOutingDashboardPage = lazy(() => import('./components/AdminCourseOutingDashboardPage'));
 const AdminStickycloudPage = lazy(() => import('./components/AdminStickycloudPage'));
 const JoinRoomPage = lazy(() => import('./components/JoinRoomPage'));
 const RoomWorkspacePage = lazy(() => import('./components/RoomWorkspacePage'));
@@ -253,6 +254,7 @@ const App: React.FC = () => {
               <Route path="course-wheel" element={<AdminCourseWheelPage />} />
               <Route path="leave" element={<AdminLeavePage />} />
               <Route path="leave/manage" element={<AdminLeaveManagePage />} />
+              <Route path="course-outings/:role" element={<AdminCourseOutingDashboardPage />} />
               <Route path="rooms" element={<AdminStickycloudPage />} />
               <Route path="minddojo-users" element={<AdminMindDojoAssessmentUsersPage />} />
               <Route path="innoclub-2-vote" element={<AdminInnoClubSecondVotePage />} />

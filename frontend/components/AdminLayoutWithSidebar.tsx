@@ -13,6 +13,12 @@ import {
 const ADMIN_LEAVE_MANAGER_EMAILS = ['pink@minddojo.me', 'koy@minddojo.me', 'tonji@minddojo.me'];
 const DEPRECATED_ADMIN_EMAIL = 'admin@minddojo.me';
 
+const QUICK_MENU_ITEMS = [
+  { to: '/admin/leave', label: '1. ระบบลา' },
+  { to: '/admin/course-outings/trainer', label: '2. Dashboard รายการออกหลักสูตร วิทยากร' },
+  { to: '/admin/course-outings/support', label: '3. Dashboard รายการออกหลักสูตร ทีมซับพอท' },
+] as const;
+
 function formatDayValue(days: number | null | undefined): string {
   const v = Number(days ?? 0);
   if (Number.isNaN(v)) return '0 วัน';
@@ -32,6 +38,9 @@ const AdminLayoutWithSidebar: React.FC = () => {
   }, [user?.email, signOut, navigate]);
   const isLeave = location.pathname === '/admin/leave';
   const isLeaveManage = location.pathname === '/admin/leave/manage';
+  const isCourseOutingTrainer = location.pathname === '/admin/course-outings/trainer';
+  const isCourseOutingSupport = location.pathname === '/admin/course-outings/support';
+  const isQuickMenuActive = isLeave || isCourseOutingTrainer || isCourseOutingSupport;
   const isAdminLeavePage = isLeave;
   const isStickycloud = location.pathname === '/admin/rooms';
   const isMinddojoUsers = location.pathname === '/admin/minddojo-users';
@@ -348,9 +357,54 @@ const AdminLayoutWithSidebar: React.FC = () => {
       </div>
 
       <nav className="flex-1 pt-4 space-y-1">
+        <details className="group rounded-lg">
+          <summary
+            className={`list-none cursor-pointer py-2.5 px-3 rounded-lg text-sm font-semibold transition-colors flex items-center justify-between border ${
+              isQuickMenuActive
+                ? 'bg-yellow-400/20 text-yellow-400 border-yellow-400/40'
+                : 'text-yellow-200/95 bg-yellow-400/10 border-yellow-400/25 hover:bg-yellow-400/20 hover:text-yellow-300'
+            }`}
+          >
+            <span>ระบบลา MindDojo</span>
+            <svg className="w-4 h-4 transition-transform group-open:rotate-180 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </summary>
+          <div className="mt-1 ml-2 space-y-1 border-l border-yellow-400/20 pl-2">
+            {QUICK_MENU_ITEMS.map((item) => {
+              const active = location.pathname === item.to;
+              return (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  onClick={() => setSidebarOpen(false)}
+                  className={`block py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
+                    active
+                      ? 'bg-yellow-400/20 text-yellow-400'
+                      : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
+          </div>
+        </details>
+        {showLeaveManageLink && (
+          <Link
+            to="/admin/leave/manage"
+            className={`block py-2.5 px-3 rounded-lg text-sm font-medium transition-colors ${
+              isLeaveManage
+                ? 'bg-yellow-400/20 text-yellow-400'
+                : 'text-gray-400 hover:bg-white/5 hover:text-white'
+            }`}
+          >
+            จัดการคำขอลา
+          </Link>
+        )}
         <Link
           to="/admin"
-          className={`block py-2.5 px-3 rounded-lg text-sm font-medium transition-colors ${!isLeave && !isStickycloud && !isMinddojoUsers && !isInnoClubSecondVote ? 'bg-yellow-400/20 text-yellow-400' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
+          className={`block py-2.5 px-3 rounded-lg text-sm font-medium transition-colors ${!isLeave && !isLeaveManage && !isCourseOutingTrainer && !isCourseOutingSupport && !isStickycloud && !isMinddojoUsers && !isInnoClubSecondVote && !isInnovationEvaluatees ? 'bg-yellow-400/20 text-yellow-400' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
         >
           ดูข้อมูล Database
         </Link>
@@ -366,20 +420,6 @@ const AdminLayoutWithSidebar: React.FC = () => {
         >
           Workshop Board MindDoJo
         </Link>
-        <Link
-          to="/admin/leave"
-          className={`block py-2.5 px-3 rounded-lg text-sm font-medium transition-colors ${isLeave && !isLeaveManage ? 'bg-yellow-400/20 text-yellow-400' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
-        >
-          ระบบลา MindDojo
-        </Link>
-        {showLeaveManageLink && (
-          <Link
-            to="/admin/leave/manage"
-            className={`block py-2.5 px-3 rounded-lg text-sm font-medium transition-colors ${isLeaveManage ? 'bg-yellow-400/20 text-yellow-400' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
-          >
-            จัดการคำขอลา
-          </Link>
-        )}
         <details className="group rounded-lg">
           <summary className="list-none cursor-pointer py-2.5 px-3 rounded-lg text-sm font-medium text-gray-400 hover:bg-white/5 hover:text-white transition-colors flex items-center justify-between">
             <span>All Eva</span>
