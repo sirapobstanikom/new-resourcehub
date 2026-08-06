@@ -4,6 +4,7 @@ import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import {
   computeElevateDashboard,
+  deleteElevateResponsesLocal,
   findElevateBankById,
   formatElevatePercent,
   loadElevateResponsesLocal,
@@ -14,10 +15,24 @@ import {
   type ElevateTestResponse,
 } from '../lib/elevatePretestPosttest';
 import {
+  deleteElevateResponsesFromSupabase,
   fetchElevateBanksFromSupabase,
   fetchElevateResponsesFromSupabase,
 } from '../lib/elevatePretestPosttestSupabase';
 import { isSupabaseConfigured } from '../lib/supabase';
+
+function formatResponseTime(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleString('th-TH', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  });
+}
 
 const ElevatePretestPosttestDashboardPage: React.FC = () => {
   const { bankId } = useParams<{ bankId: string }>();
@@ -27,14 +42,13 @@ const ElevatePretestPosttestDashboardPage: React.FC = () => {
   const [tick, setTick] = useState(0);
   const [exporting, setExporting] = useState(false);
   const [error, setError] = useState('');
-  const [syncNote, setSyncNote] = useState('');
+  const [deletingIds, setDeletingIds] = useState<string[]>([]);
   const dashboardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       setLoading(true);
-      setSyncNote('');
       const local = loadStoredElevateBanks();
       let found = findElevateBankById(local, bankId);
       let nextResponses = loadElevateResponsesLocal();
@@ -48,17 +62,10 @@ const ElevatePretestPosttestDashboardPage: React.FC = () => {
 
         const remoteResponses = await fetchElevateResponsesFromSupabase(found?.id);
         if (!cancelled) {
-          if (remoteResponses.tableMissing) {
-            setSyncNote('ยังไม่มีตาราง responses บน Supabase — แสดงข้อมูลจากเครื่อง');
-          } else if (remoteResponses.error) {
-            setSyncNote(`โหลดคำตอบจาก Supabase ไม่สำเร็จ: ${remoteResponses.error}`);
-          } else {
+          if (!remoteResponses.tableMissing && !remoteResponses.error) {
             nextResponses = remoteResponses.responses;
-            setSyncNote(`โหลดคำตอบจาก Supabase ${remoteResponses.responses.length} รายการ`);
           }
         }
-      } else {
-        setSyncNote('แสดงข้อมูลจากเครื่อง (ยังไม่ได้ตั้งค่า Supabase)');
       }
 
       if (cancelled) return;
@@ -75,6 +82,37 @@ const ElevatePretestPosttestDashboardPage: React.FC = () => {
     if (!bank) return null;
     return computeElevateDashboard(bank.id, responses);
   }, [bank, responses]);
+
+  const bankResponses = useMemo(() => {
+    if (!bank) return [];
+    return responses
+      .filter((r) => r.bankId === bank.id)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }, [bank, responses]);
+
+  const deleteResponses = async (ids: string[], label: string) => {
+    if (ids.length === 0) return;
+    const ok = window.confirm(`ลบข้อมูลของ ${label}?\nการลบไม่สามารถกู้คืนได้`);
+    if (!ok) return;
+
+    setError('');
+    setDeletingIds(ids);
+
+    deleteElevateResponsesLocal(ids);
+
+    if (isSupabaseConfigured) {
+      const result = await deleteElevateResponsesFromSupabase(ids);
+      if (!result.ok && !result.tableMissing) {
+        setError('ลบไม่สำเร็จ กรุณาลองใหม่');
+        setDeletingIds([]);
+        setTick((n) => n + 1);
+        return;
+      }
+    }
+
+    setResponses((prev) => prev.filter((r) => !ids.includes(r.id)));
+    setDeletingIds([]);
+  };
 
   const downloadPdf = async () => {
     if (!dashboardRef.current || !bank) return;
@@ -134,6 +172,7 @@ const ElevatePretestPosttestDashboardPage: React.FC = () => {
       : `${stats.knowledgeGainPercent >= 0 ? '+' : ''}${formatElevatePercent(stats.knowledgeGainPercent)}%`;
 
   const pointsLabel = `${stats.knowledgeGainPoints >= 0 ? '+' : ''}${formatElevatePercent(stats.knowledgeGainPoints)} pt`;
+  const isBusy = deletingIds.length > 0;
 
   return (
     <div className="min-h-screen bg-[#070707] text-white selection:bg-yellow-300 selection:text-black">
@@ -168,9 +207,6 @@ const ElevatePretestPosttestDashboardPage: React.FC = () => {
             </Link>
           </div>
         </div>
-        {syncNote && (
-          <p className="mx-auto max-w-6xl px-4 pb-3 text-xs text-zinc-500 sm:px-6">{syncNote}</p>
-        )}
       </header>
 
       <div className="mx-auto max-w-6xl space-y-4 px-4 py-6 sm:px-6">
@@ -236,7 +272,7 @@ const ElevatePretestPosttestDashboardPage: React.FC = () => {
                 ยังไม่มีคนที่ทำครบทั้ง Pretest และ Posttest ด้วยชื่อเดียวกัน
               </p>
             ) : (
-              <table className="w-full min-w-[640px] border-collapse text-sm">
+              <table className="w-full min-w-[720px] border-collapse text-sm">
                 <thead>
                   <tr className="text-left text-xs text-zinc-500">
                     <th className="border-b border-white/10 px-2 py-2">ชื่อ</th>
@@ -244,11 +280,12 @@ const ElevatePretestPosttestDashboardPage: React.FC = () => {
                     <th className="border-b border-white/10 px-2 py-2 text-right">Posttest</th>
                     <th className="border-b border-white/10 px-2 py-2 text-right">เพิ่มขึ้น (pt)</th>
                     <th className="border-b border-white/10 px-2 py-2 text-right">จากเดิม (%)</th>
+                    <th className="border-b border-white/10 px-2 py-2 text-right">จัดการ</th>
                   </tr>
                 </thead>
                 <tbody>
                   {stats.paired.map((row) => (
-                    <tr key={row.name} className="text-zinc-200">
+                    <tr key={`${row.pretestId}-${row.posttestId}`} className="text-zinc-200">
                       <td className="border-b border-white/5 px-2 py-2 font-medium">{row.name}</td>
                       <td className="border-b border-white/5 px-2 py-2 text-right">
                         {formatElevatePercent(row.pretestPercent)}%
@@ -279,6 +316,21 @@ const ElevatePretestPosttestDashboardPage: React.FC = () => {
                           ? '—'
                           : `${row.gainFromBaselinePercent >= 0 ? '+' : ''}${formatElevatePercent(row.gainFromBaselinePercent)}%`}
                       </td>
+                      <td className="border-b border-white/5 px-2 py-2 text-right">
+                        <button
+                          type="button"
+                          disabled={isBusy}
+                          onClick={() =>
+                            void deleteResponses(
+                              [row.pretestId, row.posttestId],
+                              `${row.name} (Pretest + Posttest)`
+                            )
+                          }
+                          className="rounded-lg border border-red-400/30 bg-red-500/10 px-2.5 py-1 text-xs font-semibold text-red-200 hover:bg-red-500/20 disabled:opacity-50"
+                        >
+                          ลบ
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -290,28 +342,52 @@ const ElevatePretestPosttestDashboardPage: React.FC = () => {
             <section className="grid gap-3 md:grid-cols-2">
               <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
                 <h3 className="text-xs font-bold uppercase tracking-wide text-zinc-500">ทำแค่ Pretest</h3>
-                <ul className="mt-2 space-y-1 text-sm text-zinc-300">
+                <ul className="mt-2 space-y-2 text-sm text-zinc-300">
                   {stats.unpairedPretest.length === 0 && <li className="text-zinc-600">—</li>}
                   {stats.unpairedPretest.map((row) => (
-                    <li key={row.id}>
-                      {row.respondentName}{' '}
-                      <span className="text-zinc-500">
-                        ({formatElevatePercent(scorePercent(row.score, row.total))}%)
+                    <li key={row.id} className="flex items-center justify-between gap-2">
+                      <span>
+                        {row.respondentName}{' '}
+                        <span className="text-zinc-500">
+                          ({formatElevatePercent(scorePercent(row.score, row.total))}%)
+                        </span>
                       </span>
+                      <button
+                        type="button"
+                        disabled={isBusy}
+                        onClick={() =>
+                          void deleteResponses([row.id], `${row.respondentName} (Pretest)`)
+                        }
+                        className="shrink-0 rounded-lg border border-red-400/30 bg-red-500/10 px-2 py-0.5 text-[11px] font-semibold text-red-200 hover:bg-red-500/20 disabled:opacity-50"
+                      >
+                        ลบ
+                      </button>
                     </li>
                   ))}
                 </ul>
               </div>
               <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
                 <h3 className="text-xs font-bold uppercase tracking-wide text-zinc-500">ทำแค่ Posttest</h3>
-                <ul className="mt-2 space-y-1 text-sm text-zinc-300">
+                <ul className="mt-2 space-y-2 text-sm text-zinc-300">
                   {stats.unpairedPosttest.length === 0 && <li className="text-zinc-600">—</li>}
                   {stats.unpairedPosttest.map((row) => (
-                    <li key={row.id}>
-                      {row.respondentName}{' '}
-                      <span className="text-zinc-500">
-                        ({formatElevatePercent(scorePercent(row.score, row.total))}%)
+                    <li key={row.id} className="flex items-center justify-between gap-2">
+                      <span>
+                        {row.respondentName}{' '}
+                        <span className="text-zinc-500">
+                          ({formatElevatePercent(scorePercent(row.score, row.total))}%)
+                        </span>
                       </span>
+                      <button
+                        type="button"
+                        disabled={isBusy}
+                        onClick={() =>
+                          void deleteResponses([row.id], `${row.respondentName} (Posttest)`)
+                        }
+                        className="shrink-0 rounded-lg border border-red-400/30 bg-red-500/10 px-2 py-0.5 text-[11px] font-semibold text-red-200 hover:bg-red-500/20 disabled:opacity-50"
+                      >
+                        ลบ
+                      </button>
                     </li>
                   ))}
                 </ul>
@@ -319,6 +395,76 @@ const ElevatePretestPosttestDashboardPage: React.FC = () => {
             </section>
           )}
         </div>
+
+        <section className="overflow-x-auto rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+          <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
+            <div>
+              <h3 className="text-sm font-bold text-yellow-300">รายการคำตอบทั้งหมด</h3>
+              <p className="mt-1 text-xs text-zinc-500">ลบรายการทีละครั้งได้</p>
+            </div>
+            <p className="text-xs text-zinc-500">{bankResponses.length} รายการ</p>
+          </div>
+          {bankResponses.length === 0 ? (
+            <p className="text-sm text-zinc-500">ยังไม่มีคำตอบในชุดนี้</p>
+          ) : (
+            <table className="w-full min-w-[640px] border-collapse text-sm">
+              <thead>
+                <tr className="text-left text-xs text-zinc-500">
+                  <th className="border-b border-white/10 px-2 py-2">ชื่อ</th>
+                  <th className="border-b border-white/10 px-2 py-2">รอบ</th>
+                  <th className="border-b border-white/10 px-2 py-2 text-right">คะแนน</th>
+                  <th className="border-b border-white/10 px-2 py-2">เวลา</th>
+                  <th className="border-b border-white/10 px-2 py-2 text-right">จัดการ</th>
+                </tr>
+              </thead>
+              <tbody>
+                {bankResponses.map((row) => {
+                  const busy = deletingIds.includes(row.id);
+                  return (
+                    <tr key={row.id} className="text-zinc-200">
+                      <td className="border-b border-white/5 px-2 py-2 font-medium">
+                        {row.respondentName || '—'}
+                      </td>
+                      <td className="border-b border-white/5 px-2 py-2">
+                        <span
+                          className={
+                            row.phase === 'pretest' ? 'text-amber-200' : 'text-emerald-200'
+                          }
+                        >
+                          {row.phase === 'pretest' ? 'Pretest' : 'Posttest'}
+                        </span>
+                      </td>
+                      <td className="border-b border-white/5 px-2 py-2 text-right">
+                        {row.score}/{row.total}
+                        <span className="ml-1 text-[11px] text-zinc-500">
+                          ({formatElevatePercent(scorePercent(row.score, row.total))}%)
+                        </span>
+                      </td>
+                      <td className="border-b border-white/5 px-2 py-2 text-xs text-zinc-400">
+                        {formatResponseTime(row.createdAt)}
+                      </td>
+                      <td className="border-b border-white/5 px-2 py-2 text-right">
+                        <button
+                          type="button"
+                          disabled={isBusy}
+                          onClick={() =>
+                            void deleteResponses(
+                              [row.id],
+                              `${row.respondentName || 'ไม่ระบุชื่อ'} (${row.phase})`
+                            )
+                          }
+                          className="rounded-lg border border-red-400/30 bg-red-500/10 px-2.5 py-1 text-xs font-semibold text-red-200 hover:bg-red-500/20 disabled:opacity-50"
+                        >
+                          {busy ? 'กำลังลบ...' : 'ลบ'}
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
+        </section>
       </div>
     </div>
   );

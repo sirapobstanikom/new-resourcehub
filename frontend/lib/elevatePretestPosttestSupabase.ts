@@ -292,6 +292,28 @@ export async function fetchElevateResponsesFromSupabase(
   return { responses, error: null, tableMissing: false };
 }
 
+export async function deleteElevateResponsesFromSupabase(
+  ids: string[]
+): Promise<{ ok: boolean; error: string | null; tableMissing: boolean }> {
+  if (!isSupabaseConfigured) {
+    return { ok: true, error: null, tableMissing: false };
+  }
+  if (ids.length === 0) {
+    return { ok: true, error: null, tableMissing: false };
+  }
+
+  const { error } = await supabase.from(RESPONSES_TABLE).delete().in('id', ids);
+  if (error) {
+    const message = error.message || '';
+    return {
+      ok: false,
+      error: message,
+      tableMissing: isTableMissingError(message, RESPONSES_TABLE),
+    };
+  }
+  return { ok: true, error: null, tableMissing: false };
+}
+
 export type InsertElevateResponseResult = {
   ok: boolean;
   error: string | null;

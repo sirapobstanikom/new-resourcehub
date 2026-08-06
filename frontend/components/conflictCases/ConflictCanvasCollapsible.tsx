@@ -96,7 +96,7 @@ export function ConflictCanvasCollapsible({ caseKey, pageVersion }: Props) {
   const handleSave = async () => {
     if (!isSupabaseConfigured) {
       setSaveStatus('error');
-      setSaveError('ยังไม่ได้ตั้งค่า Supabase');
+      setSaveError('บันทึกไม่สำเร็จ กรุณาลองใหม่');
       return;
     }
     if (!form.participantName.trim()) {
@@ -127,7 +127,7 @@ export function ConflictCanvasCollapsible({ caseKey, pageVersion }: Props) {
 
     if (error) {
       setSaveStatus('error');
-      setSaveError(error.message);
+      setSaveError('บันทึกไม่สำเร็จ กรุณาลองใหม่');
       return;
     }
     setSaveStatus('success');
@@ -353,7 +353,7 @@ export function ConflictCanvasCollapsible({ caseKey, pageVersion }: Props) {
               {saveStatus === 'saving' ? 'กำลังบันทึก…' : 'บันทึก'}
             </button>
             {saveStatus === 'success' && (
-              <p className="text-center text-sm text-emerald-300">บันทึกสำเร็จ</p>
+              <p className="text-center text-sm text-emerald-300">บันทึกเรียบร้อย</p>
             )}
             {saveStatus === 'error' && saveError && (
               <p className="text-center text-sm text-red-300">{saveError}</p>

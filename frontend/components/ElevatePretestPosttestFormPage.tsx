@@ -140,29 +140,16 @@ const ElevatePretestPosttestFormPage: React.FC = () => {
     setSubmitError('');
     setSaveNote('');
 
-    // เก็บสำเนาในเครื่องเสมอ + พยายามขึ้น Supabase
+    // เก็บสำเนาในเครื่องเสมอ + พยายามขึ้นคลาวด์
     saveElevateResponseLocal(response);
 
     if (isSupabaseConfigured) {
-      // แค่ให้แน่ใจว่ามีแถวชุดข้อสอบ (FK) — ไม่ทับโจทย์จาก editor
       const bankUp = await ensureElevateBankExistsOnSupabase(bank);
-      if (bankUp.tableMissing) {
-        setSaveNote('บันทึกในเครื่องแล้ว — ยังไม่มีตารางบน Supabase (รัน SQL ใน editor)');
-      } else if (!bankUp.ok) {
-        setSaveNote(`เชื่อมชุดข้อสอบบน Supabase ไม่สำเร็จ: ${bankUp.error} — เก็บในเครื่องแล้ว`);
-      } else {
-        const result = await insertElevateResponseToSupabase(response);
-        if (result.ok) {
-          setSaveNote('บันทึกคำตอบลง Supabase แล้ว');
-        } else if (result.tableMissing) {
-          setSaveNote('ยังไม่มีตาราง responses บน Supabase — บันทึกในเครื่องชั่วคราว');
-        } else if (result.error) {
-          setSaveNote(`บันทึก Supabase ไม่สำเร็จ: ${result.error} — เก็บในเครื่องแล้ว`);
-        }
+      if (bankUp.ok) {
+        await insertElevateResponseToSupabase(response);
       }
-    } else {
-      setSaveNote('บันทึกในเครื่องแล้ว (ยังไม่ได้ตั้งค่า Supabase)');
     }
+    setSaveNote('บันทึกเรียบร้อย');
 
     setScore({ score: graded.score, total: graded.total });
     setSubmitted(true);
@@ -218,7 +205,7 @@ const ElevatePretestPosttestFormPage: React.FC = () => {
               {score.score}/{score.total}
             </p>
           ) : (
-            <p className="mt-6 text-sm text-zinc-400">บันทึกคำตอบเรียบร้อย</p>
+            <p className="mt-6 text-sm text-zinc-400">บันทึกเรียบร้อย</p>
           )}
           {saveNote && <p className="mt-4 text-xs text-zinc-500">{saveNote}</p>}
         </div>

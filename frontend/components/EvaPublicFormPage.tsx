@@ -72,11 +72,7 @@ const EvaPublicFormPage: React.FC = () => {
       const { templates: remoteTemplates, error: loadError } = await fetchEvaEditorTemplatesFromSupabase();
       if (loadError) {
         setTemplate(findEvaTemplateByRouteId(localTemplates, templateId));
-        setError(
-          /does not exist|could not find the table/i.test(loadError)
-            ? 'ยังไม่พบตาราง eva_editor_templates ใน Supabase'
-            : `โหลดแบบประเมินจาก Supabase ไม่สำเร็จ (${loadError})`
-        );
+        setError('โหลดแบบประเมินไม่สำเร็จ กรุณาลองใหม่');
         setLoadingTemplate(false);
         return;
       }
@@ -327,11 +323,7 @@ const EvaPublicFormPage: React.FC = () => {
       });
       if (insertError) {
         hasSupabaseError = true;
-        setError(
-          /does not exist|could not find the table/i.test(insertError.message || '')
-            ? 'ยังไม่พบตาราง eva_editor_responses ใน Supabase'
-            : `บันทึกคำตอบลง Supabase ไม่สำเร็จ (${insertError.message})`
-        );
+        setError('บันทึกไม่สำเร็จ กรุณาลองใหม่');
       } else {
         savedToSupabase = true;
       }

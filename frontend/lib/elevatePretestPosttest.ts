@@ -310,6 +310,17 @@ export function loadElevateResponsesLocal(): ElevateTestResponse[] {
   }
 }
 
+export function deleteElevateResponsesLocal(ids: string[]): void {
+  if (ids.length === 0) return;
+  try {
+    const idSet = new Set(ids);
+    const next = loadElevateResponsesLocal().filter((row) => !idSet.has(row.id));
+    localStorage.setItem(ELEVATE_PPT_RESPONSE_STORAGE_KEY, JSON.stringify(next));
+  } catch {
+    // ignore storage failures
+  }
+}
+
 export function scorePercent(score: number, total: number): number {
   if (!total || total <= 0) return 0;
   return (score / total) * 100;
@@ -321,6 +332,8 @@ function normalizeRespondentName(name: string): string {
 
 export type ElevatePairedResult = {
   name: string;
+  pretestId: string;
+  posttestId: string;
   pretestScore: number;
   pretestTotal: number;
   pretestPercent: number;
@@ -398,6 +411,8 @@ export function computeElevateDashboard(
     const posttestPercent = scorePercent(post.score, post.total);
     paired.push({
       name: pre.respondentName.trim() || post.respondentName.trim(),
+      pretestId: pre.id,
+      posttestId: post.id,
       pretestScore: pre.score,
       pretestTotal: pre.total,
       pretestPercent,
