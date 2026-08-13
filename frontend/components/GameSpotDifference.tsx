@@ -15,26 +15,111 @@ import {
   type SaveCardMatchOutcome,
 } from '../services/cardMatchSupabase';
 
-type CardDef = {
-  uid: string;
+type TechSet = {
   setId: string;
-  emoji: string;
+  mark: string;
   label: string;
+  category: string;
+  blurb: string;
+  description: string;
   tint: string;
+  logoUrl?: string;
 };
+
+type CardDef = TechSet & { uid: string };
 
 type Phase = 'intro' | 'registering' | 'playing' | 'won';
 
-const SETS = [
-  { setId: 'fox', emoji: '🦊', label: 'จิ้งจอก', tint: 'from-orange-400 to-amber-500' },
-  { setId: 'idea', emoji: '💡', label: 'ไอเดีย', tint: 'from-yellow-300 to-amber-400' },
-  { setId: 'bolt', emoji: '⚡', label: 'พลัง', tint: 'from-cyan-300 to-sky-500' },
-  { setId: 'target', emoji: '🎯', label: 'เป้า', tint: 'from-rose-400 to-red-500' },
-  { setId: 'star', emoji: '⭐', label: 'ดาว', tint: 'from-amber-200 to-yellow-400' },
-  { setId: 'fire', emoji: '🔥', label: 'ไฟ', tint: 'from-orange-500 to-red-500' },
-  { setId: 'brain', emoji: '🧠', label: 'สมอง', tint: 'from-pink-300 to-fuchsia-500' },
-  { setId: 'rocket', emoji: '🚀', label: 'จรวด', tint: 'from-sky-400 to-indigo-500' },
-] as const;
+const SETS: TechSet[] = [
+  {
+    setId: 'slack',
+    mark: 'Sl',
+    label: 'Slack',
+    category: 'Communication',
+    blurb: 'Connect & Communicate',
+    description: 'เทคโนโลยีช่วยให้ทีมสื่อสารเร็วและทำงานร่วมกันง่ายขึ้น',
+    tint: 'from-fuchsia-300 to-purple-700',
+    logoUrl:
+      'https://axaasphuaaadzjoffznj.supabase.co/storage/v1/object/public/images/Logo%20-%20Matching%20Card%20Game/slack-new-logo-icon-11609376883z32jbkf8kg.png',
+  },
+  {
+    setId: 'powerbi',
+    mark: 'BI',
+    label: 'Power BI',
+    category: 'Data & Analytics',
+    blurb: 'Turn Data into Insight',
+    description: 'เปลี่ยนข้อมูลให้มองเห็น Pattern และช่วยตัดสินใจ',
+    tint: 'from-amber-300 to-yellow-600',
+    logoUrl:
+      'https://axaasphuaaadzjoffznj.supabase.co/storage/v1/object/public/images/Logo%20-%20Matching%20Card%20Game/Power-BI-Logo.png',
+  },
+  {
+    setId: 'asana',
+    mark: 'As',
+    label: 'Asana',
+    category: 'Work Management',
+    blurb: 'Plan & Get Things Done',
+    description: 'วางแผนงาน มอบหมายงาน และติดตามความคืบหน้า',
+    tint: 'from-rose-300 to-red-600',
+    logoUrl:
+      'https://axaasphuaaadzjoffznj.supabase.co/storage/v1/object/public/images/Logo%20-%20Matching%20Card%20Game/asana.png',
+  },
+  {
+    setId: 'canva',
+    mark: 'Cv',
+    label: 'Canva',
+    category: 'Creative Tech',
+    blurb: 'Create Faster, Better',
+    description: 'ใช้เทคโนโลยีช่วยสร้างสื่อ Presentation และ Visual Content',
+    tint: 'from-violet-300 to-cyan-500',
+    logoUrl:
+      'https://axaasphuaaadzjoffznj.supabase.co/storage/v1/object/public/images/Logo%20-%20Matching%20Card%20Game/Canva-Logo-PNG.png',
+  },
+  {
+    setId: 'claude',
+    mark: 'Cl',
+    label: 'Claude',
+    category: 'AI Platform',
+    blurb: 'AI as Your Co-worker',
+    description: 'ใช้ AI เป็นผู้ช่วยคิด วิเคราะห์ สรุป และสร้างงาน',
+    tint: 'from-orange-200 to-amber-700',
+    logoUrl:
+      'https://axaasphuaaadzjoffznj.supabase.co/storage/v1/object/public/images/Logo%20-%20Matching%20Card%20Game/Claude.png',
+  },
+  {
+    setId: 'gdrive',
+    mark: 'Gd',
+    label: 'Google Drive',
+    category: 'Cloud Storage',
+    blurb: 'Access Work Anywhere',
+    description: 'จัดเก็บ แชร์ และเข้าถึงไฟล์จากทุกที่',
+    tint: 'from-yellow-300 to-blue-600',
+    logoUrl:
+      'https://axaasphuaaadzjoffznj.supabase.co/storage/v1/object/public/images/Logo%20-%20Matching%20Card%20Game/google%20drive.png',
+  },
+  {
+    setId: 'notion',
+    mark: 'No',
+    label: 'Notion',
+    category: 'Knowledge Management',
+    blurb: 'Organize What We Know',
+    description: 'รวบรวม จัดระบบ และแบ่งปันความรู้ของทีม',
+    tint: 'from-zinc-100 to-stone-800',
+    logoUrl:
+      'https://axaasphuaaadzjoffznj.supabase.co/storage/v1/object/public/images/Logo%20-%20Matching%20Card%20Game/Notion.png',
+  },
+  {
+    setId: 'zapier',
+    mark: 'Zp',
+    label: 'Zapier',
+    category: 'Automation',
+    blurb: 'Let Tech Do the Routine',
+    description: 'ให้เทคโนโลยีจัดการงานซ้ำๆ และเชื่อม Workflow',
+    tint: 'from-orange-300 to-orange-600',
+    logoUrl:
+      'https://axaasphuaaadzjoffznj.supabase.co/storage/v1/object/public/images/Logo%20-%20Matching%20Card%20Game/Zapier-Symbol.png',
+  },
+];
 
 const EMPTY_REGISTRATION: CardMatchRegistration = { name: '', email: '', company: '' };
 
@@ -51,13 +136,7 @@ function buildDeck(): CardDef[] {
   const cards: CardDef[] = [];
   SETS.forEach((set) => {
     for (let i = 0; i < 2; i += 1) {
-      cards.push({
-        uid: `${set.setId}-${i}`,
-        setId: set.setId,
-        emoji: set.emoji,
-        label: set.label,
-        tint: set.tint,
-      });
+      cards.push({ uid: `${set.setId}-${i}`, ...set });
     }
   });
   return shuffle(cards);
@@ -92,6 +171,9 @@ const GameSpotDifference: React.FC = () => {
   const startMsRef = useRef<number | null>(null);
   const savingRef = useRef(false);
   const nameInputRef = useRef<HTMLInputElement | null>(null);
+  const popupTimerRef = useRef<number | null>(null);
+  const pendingFinishRef = useRef<{ timeMs: number; moves: number } | null>(null);
+  const [matchFact, setMatchFact] = useState<TechSet | null>(null);
   const filledCount = [registration.name, registration.email, registration.company].filter((v) => v.trim().length >= 2).length;
 
   const formReady =
@@ -130,6 +212,9 @@ const GameSpotDifference: React.FC = () => {
     void loadBoard();
     const stored = loadStoredRegistration();
     if (stored) setRegistration(stored);
+    return () => {
+      if (popupTimerRef.current) window.clearTimeout(popupTimerRef.current);
+    };
   }, [loadBoard]);
 
   useEffect(() => {
@@ -139,12 +224,12 @@ const GameSpotDifference: React.FC = () => {
   }, [loadBoard]);
 
   useEffect(() => {
-    if (phase !== 'playing' || !startMsRef.current) return;
+    if (phase !== 'playing' || !startMsRef.current || matchFact) return;
     const tick = () => setElapsedMs(Date.now() - (startMsRef.current ?? Date.now()));
     tick();
     const id = window.setInterval(tick, 80);
     return () => window.clearInterval(id);
-  }, [phase, round]);
+  }, [phase, round, matchFact]);
 
   useEffect(() => {
     if (phase !== 'registering') return;
@@ -169,6 +254,12 @@ const GameSpotDifference: React.FC = () => {
   }, [phase, registration.email]);
 
   const startGame = () => {
+    if (popupTimerRef.current) {
+      window.clearTimeout(popupTimerRef.current);
+      popupTimerRef.current = null;
+    }
+    pendingFinishRef.current = null;
+    setMatchFact(null);
     setDeck(buildDeck());
     setFlipped([]);
     setMatched([]);
@@ -209,6 +300,39 @@ const GameSpotDifference: React.FC = () => {
     [loadBoard, playerId, registration]
   );
 
+  const closeMatchFact = useCallback(() => {
+    if (popupTimerRef.current) {
+      window.clearTimeout(popupTimerRef.current);
+      popupTimerRef.current = null;
+    }
+    setMatchFact(null);
+    setLocked(false);
+    const pending = pendingFinishRef.current;
+    if (pending) {
+      pendingFinishRef.current = null;
+      void finishGame(pending.timeMs, pending.moves);
+    }
+  }, [finishGame]);
+
+  const openMatchFact = useCallback(
+    (setId: string, completed: boolean, timeMs: number, totalMoves: number) => {
+      const fact = SETS.find((item) => item.setId === setId) ?? null;
+      if (!fact) return;
+      if (popupTimerRef.current) {
+        window.clearTimeout(popupTimerRef.current);
+      }
+      setMatchFact(fact);
+      setLocked(true);
+      if (completed) {
+        pendingFinishRef.current = { timeMs, moves: totalMoves };
+      }
+      popupTimerRef.current = window.setTimeout(() => {
+        closeMatchFact();
+      }, 3000);
+    },
+    [closeMatchFact]
+  );
+
   const handleRegistration = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!registration.name.trim() || !registration.email.trim() || !registration.company.trim()) return;
@@ -243,15 +367,15 @@ const GameSpotDifference: React.FC = () => {
       if (!first || !second) return;
 
       if (first.setId === second.setId) {
+        setLocked(true);
         const nextMatched = [...matched, first.uid, second.uid];
         setMatched(nextMatched);
         setFlipped([]);
-        if (nextMatched.length >= deck.length) {
-          const timeMs = Date.now() - (startMsRef.current ?? Date.now());
-          window.setTimeout(() => {
-            void finishGame(timeMs, nextMoves);
-          }, 420);
-        }
+        const completed = nextMatched.length >= deck.length;
+        const timeMs = Date.now() - (startMsRef.current ?? Date.now());
+        window.setTimeout(() => {
+          openMatchFact(first.setId, completed, timeMs, nextMoves);
+        }, 280);
         return;
       }
 
@@ -261,7 +385,7 @@ const GameSpotDifference: React.FC = () => {
         setLocked(false);
       }, 800);
     },
-    [phase, locked, matched, flipped, deck, moves, finishGame]
+    [phase, locked, matched, flipped, deck, moves, openMatchFact]
   );
 
   return (
@@ -296,14 +420,14 @@ const GameSpotDifference: React.FC = () => {
       {(phase === 'intro' || phase === 'registering') && (
         <div className="relative mx-auto grid min-h-screen max-w-6xl items-center gap-8 px-4 py-24 lg:grid-cols-[1.05fr_0.95fr]">
           <div className="order-2 lg:order-1">
-            <p className="text-[11px] font-bold uppercase tracking-[0.32em] text-amber-300/90">MindDoJo · Memory Match</p>
+            <p className="text-[11px] font-bold uppercase tracking-[0.32em] text-amber-300/90">MindDoJo · Tech & Platforms</p>
             <h1 className="mt-3 text-4xl font-black tracking-tight text-white sm:text-6xl">
               จับคู่การ์ด
-              <span className="mt-2 block text-2xl font-semibold text-amber-200/90 sm:text-3xl">แข่งกันที่เวลา</span>
+              <span className="mt-2 block text-2xl font-semibold text-amber-200/90 sm:text-3xl">Tech ที่คนรู้จัก</span>
             </h1>
             <p className="mt-4 max-w-md text-base leading-relaxed text-zinc-400">
-              เปิดการ์ด 16 ใบ ให้ครบ 8 คู่ ยิ่งเร็ว ยิ่งขึ้นอันดับ
-              กรอกข้อมูลแล้วเริ่มได้เลย — คะแนนขึ้นกระดานเมื่อจบเกม
+              จับคู่แพลตฟอร์ม 8 คู่ เช่น Slack, Power BI, Claude, Notion
+              จับคู่ถูกจะมีป๊อปอัปสั้นๆ บอกว่าคืออะไร แล้วแข่งกันที่เวลา
             </p>
 
             <div className="mt-7 max-w-md">
@@ -314,7 +438,7 @@ const GameSpotDifference: React.FC = () => {
               <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5">16 ใบ</span>
               <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5">8 คู่</span>
               <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5">จับเวลา</span>
-              <span className="rounded-full border border-amber-300/20 bg-amber-300/10 px-3 py-1.5 text-amber-200">ขึ้นกระดานเมื่อจบเกม</span>
+              <span className="rounded-full border border-amber-300/20 bg-amber-300/10 px-3 py-1.5 text-amber-200">จับคู่ถูกมีคำอธิบาย</span>
             </div>
 
             {entries[0] ? (
@@ -423,9 +547,9 @@ const GameSpotDifference: React.FC = () => {
       {phase === 'playing' && (
         <div className="mx-auto flex min-h-screen max-w-xl flex-col justify-center px-4 py-24 sm:px-6">
           <div className="mb-5 text-center">
-            <h2 className="text-2xl font-black text-white">เปิดการ์ดจับคู่</h2>
+            <h2 className="text-2xl font-black text-white">จับคู่ Tech & Platforms</h2>
             <p className="mt-1 text-sm text-zinc-400">
-              {registration.name} · กดเปิดทีละใบ แข่งกันที่เวลา
+              {registration.name} · จับคู่ถูกจะบอกสั้นๆ ว่าแพลตฟอร์มนั้นคืออะไร
             </p>
           </div>
 
@@ -451,18 +575,22 @@ const GameSpotDifference: React.FC = () => {
                       <span className="text-lg font-black tracking-widest text-cyan-200/80 sm:text-xl">MD</span>
                     </div>
                     <div
-                      className={`absolute inset-0 flex flex-col items-center justify-center rounded-2xl border border-white/20 bg-gradient-to-br ${card.tint} text-black shadow-lg [backface-visibility:hidden] [transform:rotateY(180deg)]`}
+                      className={`absolute inset-0 flex flex-col items-center justify-center rounded-2xl border shadow-lg [backface-visibility:hidden] [transform:rotateY(180deg)] ${
+                        card.logoUrl
+                          ? 'border-white/20 bg-white text-stone-800'
+                          : `border-white/20 bg-gradient-to-br ${card.tint} text-black`
+                      }`}
                     >
-                      <span className="text-3xl sm:text-4xl" aria-hidden>
-                        {card.emoji}
-                      </span>
-                      <span className="mt-0.5 text-[10px] font-bold sm:text-xs">{card.label}</span>
+                      <TechMark item={card} className="h-8 w-8 sm:h-10 sm:w-10 text-sm font-black leading-none tracking-tight" />
+                      <span className="mt-1 max-w-[90%] truncate text-[9px] font-bold sm:text-[10px]">{card.label}</span>
                     </div>
                   </div>
                 </button>
               );
             })}
           </div>
+
+          {matchFact ? <MatchFactPopup fact={matchFact} onClose={closeMatchFact} /> : null}
         </div>
       )}
 
@@ -519,12 +647,21 @@ function LobbyPreview() {
               key={`${set.setId}-${copy}`}
               className={`aspect-square rounded-2xl border shadow-[0_10px_24px_rgba(0,0,0,0.28)] ${
                 faceUp
-                  ? `border-white/20 bg-gradient-to-br ${set.tint}`
+                  ? set.logoUrl
+                    ? 'border-white/20 bg-white'
+                    : `border-white/20 bg-gradient-to-br ${set.tint}`
                   : 'border-amber-200/20 bg-[linear-gradient(145deg,#182033,#0f1728)]'
               }`}
             >
-              <div className="flex h-full items-center justify-center text-lg sm:text-xl">
-                {faceUp ? set.emoji : <span className="text-[11px] font-black tracking-[0.2em] text-amber-200/80">MD</span>}
+              <div className="flex h-full flex-col items-center justify-center px-1 text-center">
+                {faceUp ? (
+                  <>
+                    <TechMark item={set} className="h-6 w-6 sm:h-7 sm:w-7 text-xs font-black tracking-tight text-black" />
+                    <span className="mt-0.5 text-[8px] font-bold text-black/70">{set.label}</span>
+                  </>
+                ) : (
+                  <span className="text-[11px] font-black tracking-[0.2em] text-amber-200/80">MD</span>
+                )}
               </div>
             </div>
           );
@@ -582,6 +719,70 @@ const Field = React.forwardRef<
     </label>
   );
 });
+
+function TechMark({
+  item,
+  className,
+}: {
+  item: Pick<TechSet, 'mark' | 'label' | 'logoUrl'>;
+  className?: string;
+}) {
+  if (item.logoUrl) {
+    return <img src={item.logoUrl} alt={item.label} className={`object-contain ${className ?? ''}`} />;
+  }
+  return <span className={className}>{item.mark}</span>;
+}
+
+function MatchFactPopup({ fact, onClose }: { fact: TechSet; onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-40 flex items-end justify-center bg-black/55 p-4 backdrop-blur-[2px] sm:items-center">
+      <div
+        role="dialog"
+        aria-labelledby="match-fact-title"
+        className="relative w-full max-w-md overflow-hidden rounded-[28px] border border-white/15 bg-[#11141c] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.45)] sm:p-6"
+      >
+        <div className="absolute inset-x-0 top-0 h-1.5 overflow-hidden bg-white/10">
+          <div className="h-full w-full origin-left bg-amber-300" style={{ animation: 'matchFactShrink 3s linear forwards' }} />
+        </div>
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute right-3 top-3 inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20"
+          aria-label="ปิด"
+        >
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+
+        <div className="flex items-start gap-3 pr-10">
+          <div
+            className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl ${
+              fact.logoUrl ? 'bg-white' : `bg-gradient-to-br ${fact.tint}`
+            } text-sm font-black text-black`}
+          >
+            <TechMark item={fact} className="max-h-8 max-w-[80%] text-sm font-black" />
+          </div>
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-amber-300/90">{fact.category}</p>
+            <h3 id="match-fact-title" className="mt-1 text-2xl font-black text-white">
+              {fact.label}
+            </h3>
+            <p className="mt-1 text-sm font-semibold text-zinc-200">{fact.blurb}</p>
+          </div>
+        </div>
+        <p className="mt-4 text-sm leading-relaxed text-zinc-400">{fact.description}</p>
+        <p className="mt-4 text-center text-[11px] text-zinc-500">ปิดอัตโนมัติใน 3 วินาที หรือกดปิดได้เลย</p>
+      </div>
+      <style>{`
+        @keyframes matchFactShrink {
+          from { transform: scaleX(1); }
+          to { transform: scaleX(0); }
+        }
+      `}</style>
+    </div>
+  );
+}
 
 function FieldIcon({ name }: { name: 'user' | 'mail' | 'building' }) {
   if (name === 'mail') {
