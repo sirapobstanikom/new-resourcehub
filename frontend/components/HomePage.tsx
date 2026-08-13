@@ -276,6 +276,18 @@ const HomePage: React.FC = () => {
               ลงทะเบียนแล้วจับคู่การ์ด 16 ใบ — แข่งกันที่เวลา มีกระดานคะแนนสด
             </p>
           </Link>
+          <Link
+            to="/gamification/camera-block-jump"
+            className="block rounded-2xl border border-white/10 p-6 text-left transition-all bg-white/5 hover:bg-white/10 hover:border-yellow-400/30 group"
+          >
+            <div className="w-12 h-12 rounded-xl bg-yellow-400/20 flex items-center justify-center mb-4 group-hover:bg-yellow-400/30 transition-colors">
+              <span className="text-2xl" aria-hidden>?</span>
+            </div>
+            <h3 className="font-bold text-lg mb-2 text-white">Camera Block Jump</h3>
+            <p className="text-gray-500 text-sm">
+              กระโดดโหม่งกล่องด้วยกล้องเว็บแคม — สุ่มเลขกลุ่มแบบ Lucky Block
+            </p>
+          </Link>
         </div>
       </section>
 
