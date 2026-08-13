@@ -39,6 +39,7 @@ const Game10Timeout = lazy(() => import('./components/Game10Timeout'));
 const GameReaction = lazy(() => import('./components/GameReaction'));
 const GameAr = lazy(() => import('./components/GameAr'));
 const GameHiddenFox = lazy(() => import('./components/GameHiddenFox'));
+const GameSpotDifference = lazy(() => import('./components/GameSpotDifference'));
 const WhaleDoneRolePlayPage = lazy(() => import('./components/WhaleDoneRolePlayPage'));
 const InnoClubEvaluationPage = lazy(() => import('./components/InnoClubEvaluationPage'));
 const InnoClubSecondEvaluationPage = lazy(() => import('./components/InnoClubSecondEvaluationPage'));
@@ -304,6 +305,7 @@ const App: React.FC = () => {
           <Route path="/gamification/reaction" element={<GameReaction />} />
           <Route path="/gamification/game-ar" element={<GameAr />} />
           <Route path="/gamification/hidden-fox" element={<GameHiddenFox />} />
+          <Route path="/gamification/spot-difference" element={<GameSpotDifference />} />
           <Route path="/gamification/whale-done-role-play" element={<Navigate to="/gamification/whale-done-role-play/v1" replace />} />
           <Route path="/gamification/whale-done-role-play/dashboard" element={<WhaleDoneRolePlayDashboardPage />} />
           <Route path="/gamification/whale-done-role-play/:version" element={<WhaleDoneRolePlayPage />} />

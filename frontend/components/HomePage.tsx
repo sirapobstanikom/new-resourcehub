@@ -264,6 +264,18 @@ const HomePage: React.FC = () => {
               ล่าจิ้งจอกแอบบนแผนที่ — เล่นแนวนอน บันทึกคะแนน Hall of Fame
             </p>
           </Link>
+          <Link
+            to="/gamification/spot-difference"
+            className="block rounded-2xl border border-white/10 p-6 text-left transition-all bg-white/5 hover:bg-white/10 hover:border-cyan-400/30 group"
+          >
+            <div className="w-12 h-12 rounded-xl bg-cyan-500/20 flex items-center justify-center mb-4 group-hover:bg-cyan-500/30 transition-colors">
+              <span className="text-2xl" aria-hidden>🃏</span>
+            </div>
+            <h3 className="font-bold text-lg mb-2 text-white">จับคู่การ์ด</h3>
+            <p className="text-gray-500 text-sm">
+              ลงทะเบียนแล้วจับคู่การ์ด 16 ใบ — แข่งกันที่เวลา มีกระดานคะแนนสด
+            </p>
+          </Link>
         </div>
       </section>
 
