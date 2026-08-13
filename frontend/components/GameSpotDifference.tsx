@@ -40,7 +40,7 @@ const SETS: TechSet[] = [
     description: 'เทคโนโลยีช่วยให้ทีมสื่อสารเร็วและทำงานร่วมกันง่ายขึ้น',
     tint: 'from-fuchsia-300 to-purple-700',
     logoUrl:
-      'https://axaasphuaaadzjoffznj.supabase.co/storage/v1/object/public/images/Logo%20-%20Matching%20Card%20Game/slack-new-logo-icon-11609376883z32jbkf8kg.png',
+      'https://axaasphuaaadzjoffznj.supabase.co/storage/v1/object/public/images/Logo%20-%20Matching%20Card%20Game/slack-logo-icon.png',
   },
   {
     setId: 'powerbi',
@@ -95,7 +95,7 @@ const SETS: TechSet[] = [
     description: 'จัดเก็บ แชร์ และเข้าถึงไฟล์จากทุกที่',
     tint: 'from-yellow-300 to-blue-600',
     logoUrl:
-      'https://axaasphuaaadzjoffznj.supabase.co/storage/v1/object/public/images/Logo%20-%20Matching%20Card%20Game/google%20drive.png',
+      'https://axaasphuaaadzjoffznj.supabase.co/storage/v1/object/public/images/Logo%20-%20Matching%20Card%20Game/google-drive-logo.png',
   },
   {
     setId: 'notion',
