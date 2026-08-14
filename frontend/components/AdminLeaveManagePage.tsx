@@ -3,6 +3,7 @@ import { Link, Navigate } from 'react-router-dom';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { formatTotalHoursAsDaysHalves, requestedLeaveHoursEquivalent } from '../lib/leaveUnits';
+import { isWfhSwapRequest, stripWfhSwapTag } from '../lib/wfhFridaySwap';
 
 const ADMIN_LEAVE_MANAGER_EMAILS = ['pink@minddojo.me', 'koy@minddojo.me', 'tonji@minddojo.me'];
 
@@ -21,6 +22,11 @@ const LEGACY_LEAVE_LABELS: Record<string, string> = {
 
 function resolveLeaveTypeLabel(id: string): string {
   return LEAVE_TYPES.find((t) => t.id === id)?.label ?? LEGACY_LEAVE_LABELS[id] ?? id;
+}
+
+function leaveTypeLabelForRow(row: { leave_type: string; reason?: string | null }): string {
+  if (isWfhSwapRequest(row)) return 'สลับวัน WFH';
+  return resolveLeaveTypeLabel(row.leave_type);
 }
 
 /** รวม personal + vacation + personal_vacation เป็นคอลัมน์เดียวในสรุป */
@@ -546,19 +552,19 @@ const AdminLeaveManagePage: React.FC = () => {
                       </span>
                     </td>
                     <td className="px-3 sm:px-4 py-2 sm:py-3 text-gray-300 text-xs sm:text-sm">
-                      {resolveLeaveTypeLabel(row.leave_type)}
+                      {leaveTypeLabelForRow(row)}
                     </td>
                     <td className="px-3 sm:px-4 py-2 sm:py-3 text-gray-300 text-xs sm:text-sm">{formatThaiDate(row.start_date)}</td>
                     <td className="px-3 sm:px-4 py-2 sm:py-3 text-gray-300 text-xs sm:text-sm">{formatThaiDate(row.end_date)}</td>
                     <td
                       className="px-3 sm:px-4 py-2 sm:py-3 text-gray-400 text-xs max-w-[200px]"
-                      title={(row.status === 'cancel_requested' ? row.cancel_reason : row.reason) || ''}
+                      title={(row.status === 'cancel_requested' ? row.cancel_reason : stripWfhSwapTag(row.reason)) || ''}
                     >
                       {row.other_leave_purpose ? (
                         <span className="block text-cyan-300/90 text-[11px] mb-0.5">ลาอื่น: {row.other_leave_purpose}</span>
                       ) : null}
                       <span className="truncate block">
-                        {(row.status === 'cancel_requested' ? row.cancel_reason : row.reason) || '—'}
+                        {(row.status === 'cancel_requested' ? row.cancel_reason : stripWfhSwapTag(row.reason)) || '—'}
                       </span>
                     </td>
                     <td className="px-3 sm:px-4 py-2 sm:py-3 text-xs">

@@ -53,7 +53,10 @@ function buildMessage(payload: NotifyPayload): string {
         ? 'มีคำขอยกเลิกการลา'
         : 'มีคำขอลาใหม่';
   const who = payload.user_display_name?.trim() || payload.user_email?.trim() || 'ไม่ระบุผู้ลา';
-  const typeLabel = LEAVE_TYPE_LABELS[payload.leave_type || ''] || payload.leave_type || '-';
+  const typeLabel =
+    payload.leave_type === 'wfh' && /\[WFH_SWAP:\d{4}-\d{2}-\d{2}\]/.test(payload.reason || '')
+      ? 'สลับวัน WFH'
+      : LEAVE_TYPE_LABELS[payload.leave_type || ''] || payload.leave_type || '-';
   const slot = payload.slot_label?.trim() || '-';
   const dateRange =
     payload.start_date && payload.end_date

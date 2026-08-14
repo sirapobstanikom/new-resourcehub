@@ -288,6 +288,18 @@ const HomePage: React.FC = () => {
               กระโดดโหม่งกล่องด้วยกล้องเว็บแคม — สุ่มเลขกลุ่มแบบ Lucky Block
             </p>
           </Link>
+          <Link
+            to="/gamification/skill-connector"
+            className="block rounded-2xl border border-white/10 p-6 text-left transition-all bg-white/5 hover:bg-white/10 hover:border-teal-400/30 group"
+          >
+            <div className="w-12 h-12 rounded-xl bg-teal-500/20 flex items-center justify-center mb-4 group-hover:bg-teal-500/30 transition-colors">
+              <span className="text-2xl" aria-hidden>◎</span>
+            </div>
+            <h3 className="font-bold text-lg mb-2 text-white">Skill Connector</h3>
+            <p className="text-gray-500 text-sm">
+              ต่อสายวิชาชีพผู้นำ — หมุนทักษะจาก Foundation ไปสู่ผลลัพธ์
+            </p>
+          </Link>
         </div>
       </section>
 

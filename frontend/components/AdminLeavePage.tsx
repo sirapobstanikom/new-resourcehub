@@ -10,6 +10,18 @@ import {
   formatLeaveSlotLabel,
   requestedLeaveHoursEquivalent,
 } from '../lib/leaveUnits';
+import {
+  formatWfhSwapReason,
+  isAllowedWfhSwapTarget,
+  isFridaySwappedAway,
+  isWfhSwapRequest,
+  pendingSwapFridayKeys,
+  stripWfhSwapTag,
+  swappedAwayFridayKeys,
+  upcomingFridays,
+  weekdayIndex,
+  fridayKey,
+} from '../lib/wfhFridaySwap';
 /** ตัวเลือกในฟอร์ม — ลากิจ+พักร้อนรวมเป็นกลุ่มเดียว */
 const LEAVE_TYPES = [
   { id: 'personal_vacation', label: 'ลากิจ / ลาพักร้อน' },
@@ -26,6 +38,15 @@ const LEGACY_LEAVE_TYPE_LABELS: Record<string, string> = {
 
 function resolveLeaveTypeLabel(id: string): string {
   return LEAVE_TYPES.find((t) => t.id === id)?.label ?? LEGACY_LEAVE_TYPE_LABELS[id] ?? id;
+}
+
+function leaveTypeLabelForRow(row: { leave_type: string; reason?: string | null }): string {
+  if (isWfhSwapRequest(row)) return 'สลับวัน WFH';
+  return resolveLeaveTypeLabel(row.leave_type);
+}
+
+function isSyntheticForcedWfhRow(row: { id: string }): boolean {
+  return row.id.startsWith('forced-wfh-');
 }
 
 type LeaveRequestRow = {
@@ -354,6 +375,12 @@ const AdminLeavePage: React.FC = () => {
   const [cancelAuditsError, setCancelAuditsError] = useState<string | null>(null);
   const [cancelAuditsRefreshKey, setCancelAuditsRefreshKey] = useState(0);
   const isForcedMonthlyWfhUser = user?.email != null && FORCED_MONTHLY_WFH_EMAILS.includes(user.email.toLowerCase());
+  const [swapFromFriday, setSwapFromFriday] = useState('');
+  const [swapToDate, setSwapToDate] = useState('');
+  const [swapNote, setSwapNote] = useState('');
+  const [swapError, setSwapError] = useState<string | null>(null);
+  const [swapLoading, setSwapLoading] = useState(false);
+  const [swapSubmitted, setSwapSubmitted] = useState(false);
 
   const pushDebugLog = (level: 'info' | 'warn' | 'error', label: string, details: Record<string, unknown>) => {
     const text = `${label} ${JSON.stringify(details)}`;
@@ -482,7 +509,10 @@ const AdminLeavePage: React.FC = () => {
           return;
         }
         const year = new Date().getFullYear();
-        const forcedRows = buildForcedMonthlyWfhRows(year).filter((r) => r.user_email === user.email?.toLowerCase());
+        const away = swappedAwayFridayKeys(dbRows);
+        const forcedRows = buildForcedMonthlyWfhRows(year)
+          .filter((r) => r.user_email === user.email?.toLowerCase())
+          .filter((r) => !isFridaySwappedAway(away, r.user_email, r.start_date));
         const rowKey = (r: LeaveRequestRow) => `${r.leave_type}-${r.start_date}-${r.end_date}`;
         const existingKeys = new Set(dbRows.map(rowKey));
         const merged = [...dbRows, ...forcedRows.filter((r) => !existingKeys.has(rowKey(r)))];
@@ -642,17 +672,26 @@ const AdminLeavePage: React.FC = () => {
       .lte('start_date', monthEnd)
       .gte('end_date', monthStart)
       .order('start_date', { ascending: true })
-      .then(({ data, error }) => {
+      .then(async ({ data, error }) => {
         if (error) return;
         const dbRows = (data as LeaveRequestRow[]) ?? [];
         const year = calendarViewDate.getFullYear();
-        const forcedRows = buildForcedMonthlyWfhRows(year);
+        const { data: swapSource } = await supabase
+          .from('leave_requests')
+          .select('user_email, leave_type, status, reason')
+          .in('user_email', FORCED_MONTHLY_WFH_EMAILS)
+          .eq('leave_type', 'wfh')
+          .in('status', ['approved', 'cancel_requested']);
+        const away = swappedAwayFridayKeys((swapSource as LeaveRequestRow[]) ?? []);
+        const forcedRows = buildForcedMonthlyWfhRows(year).filter(
+          (r) => !isFridaySwappedAway(away, r.user_email, r.start_date)
+        );
         const rowKey = (r: LeaveRequestRow) => `${r.user_email}-${r.leave_type}-${r.start_date}-${r.end_date}`;
         const existingKeys = new Set(dbRows.map(rowKey));
         const merged = [...dbRows, ...forcedRows.filter((r) => !existingKeys.has(rowKey(r)))];
         setApprovedLeaves(merged);
       });
-  }, [monthStart, monthEnd]);
+  }, [monthStart, monthEnd, submitted]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -822,7 +861,7 @@ const AdminLeavePage: React.FC = () => {
       end_date: endDate,
       reason: reason.trim() || null,
     });
-    setSubmitted(true);
+    setSubmitted((s) => !s);
     setStartDate('');
     setEndDate('');
     setLeaveDayPart('full');
@@ -833,7 +872,115 @@ const AdminLeavePage: React.FC = () => {
     setSickAttachment(null);
   };
 
+  const handleWfhSwapSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSwapError(null);
+    setSwapSubmitted(false);
+    if (!user?.id || !user?.email || !isForcedMonthlyWfhUser) {
+      setSwapError('บัญชีนี้ไม่สามารถสลับวัน WFH ได้');
+      return;
+    }
+    if (!isSupabaseConfigured) {
+      setSwapError('ยังไม่ได้ตั้งค่า Supabase');
+      return;
+    }
+    if (!swapFromFriday || !swapToDate) {
+      setSwapError('กรุณาเลือกวันศุกร์ที่สลับออก และวันที่ต้องการ WFH แทน');
+      return;
+    }
+    if (weekdayIndex(swapFromFriday) !== 5) {
+      setSwapError('เบื้องต้นสลับได้เฉพาะจากวันศุกร์');
+      return;
+    }
+    if (swapFromFriday < today) {
+      setSwapError('ไม่สามารถสลับวันศุกร์ที่ผ่านไปแล้ว');
+      return;
+    }
+    if (!isAllowedWfhSwapTarget(swapToDate)) {
+      setSwapError('สลับไปได้เฉพาะวันจันทร์–พฤหัสบดี (ยังไม่เปิดสลับไปวันศุกร์หรือวันหยุดเสาร์–อาทิตย์)');
+      return;
+    }
+    if (swapToDate < today) {
+      setSwapError('วันที่ต้องการ WFH แทนต้องไม่ย้อนหลัง');
+      return;
+    }
+    const [, monthNum, dayNum] = swapToDate.split('-').map(Number);
+    if (publicHolidays.some((h) => h.month === monthNum && h.day === dayNum)) {
+      setSwapError('วันนั้นเป็นวันหยุดประจำปี กรุณาเลือกวันทำงานอื่น');
+      return;
+    }
+    const email = user.email.toLowerCase();
+    const away = swappedAwayFridayKeys(myLeaveList);
+    const pending = pendingSwapFridayKeys(myLeaveList);
+    if (isFridaySwappedAway(away, email, swapFromFriday) || pending.has(fridayKey(email, swapFromFriday))) {
+      setSwapError('วันศุกร์นี้มีคำขอสลับแล้ว หรือถูกสลับไปแล้ว');
+      return;
+    }
+
+    const { data: overlapRows, error: overlapErr } = await supabase
+      .from('leave_requests')
+      .select('id')
+      .eq('user_id', user.id)
+      .in('status', ['pending', 'approved', 'cancel_requested'])
+      .lte('start_date', swapToDate)
+      .gte('end_date', swapToDate)
+      .limit(1);
+    if (overlapErr) {
+      setSwapError(overlapErr.message);
+      return;
+    }
+    if ((overlapRows?.length ?? 0) > 0) {
+      setSwapError('คุณมีรายการลาในวันที่ต้องการ WFH แทนอยู่แล้ว กรุณายกเลิกรายการเดิมก่อน');
+      return;
+    }
+
+    setSwapLoading(true);
+    const displayName = user.user_metadata?.full_name ?? user.email.split('@')[0];
+    const payload = {
+      user_id: user.id,
+      user_email: user.email,
+      user_display_name: displayName,
+      leave_type: 'wfh',
+      start_date: swapToDate,
+      end_date: swapToDate,
+      start_time: '09:00:00',
+      end_time: '17:00:00',
+      reason: formatWfhSwapReason(swapFromFriday, swapNote),
+      status: 'pending',
+    };
+    const { data: insertedRows, error } = await supabase
+      .from('leave_requests')
+      .insert(payload)
+      .select('id')
+      .limit(1);
+    setSwapLoading(false);
+    if (error) {
+      setSwapError(error.message);
+      return;
+    }
+    void notifyLeaveLine({
+      event_type: 'leave_created',
+      leave_id: insertedRows?.[0]?.id ?? null,
+      user_display_name: displayName,
+      user_email: user.email,
+      leave_type: 'wfh',
+      slot_label: formatLeaveSlotLabel(swapToDate, swapToDate, '09:00:00', '17:00:00'),
+      start_date: swapToDate,
+      end_date: swapToDate,
+      reason: formatWfhSwapReason(swapFromFriday, swapNote),
+    });
+    setSwapSubmitted(true);
+    setSubmitted((s) => !s);
+    setSwapFromFriday('');
+    setSwapToDate('');
+    setSwapNote('');
+  };
+
   const handleCancelRequest = async (row: LeaveRequestRow) => {
+    if (isSyntheticForcedWfhRow(row)) {
+      setCancelError('วันศุกร์ WFH ประจำไม่สามารถยกเลิกตรงนี้ได้ — ใช้ฟอร์มสลับวัน WFH ด้านบน');
+      return;
+    }
     setCancelError(null);
     setCancellingId(row.id);
     const nextStatus = row.status === 'approved' ? 'cancel_requested' : 'cancelled';
@@ -1043,6 +1190,16 @@ const AdminLeavePage: React.FC = () => {
   const sickWeekdayCountForForm =
     leaveType === 'sick' && startDate && endDate ? countWeekdaysInRange(startDate, endDate) : 0;
 
+  const swapFridayOptions = (() => {
+    if (!isForcedMonthlyWfhUser || !user?.email) return [];
+    const email = user.email.toLowerCase();
+    const away = swappedAwayFridayKeys(myLeaveList);
+    const pending = pendingSwapFridayKeys(myLeaveList);
+    return upcomingFridays(today, 16).filter(
+      (fri) => !isFridaySwappedAway(away, email, fri) && !pending.has(fridayKey(email, fri))
+    );
+  })();
+
   return (
     <div className="min-h-screen bg-transparent text-white flex flex-col overflow-x-hidden">
       <header className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 px-4 sm:px-6 py-4 sm:py-6 border-b border-white/10">
@@ -1081,8 +1238,10 @@ const AdminLeavePage: React.FC = () => {
             <span className="font-medium text-gray-400">ลาคงเหลือ (ปี {currentYear}):</span>{' '}
             ลากิจ / พักร้อน (รวม) {formatDayValue(leaveBalance.leave_days_remaining)} · ลาป่วย{' '}
             {formatDayValue(leaveBalance.sick_remaining)} ·{' '}
-            WFH 1 วัน/เดือน (เดือนนี้{wfhUsedThisMonth ? 'ใช้แล้ว — ลาอีกได้เดือนถัดไป' : 'ยังใช้ได้'}) · ลาไม่รับเงิน{' '}
-            {formatDayValue(leaveBalance.unpaid_remaining)}
+            {isForcedMonthlyWfhUser
+              ? 'WFH ทุกวันศุกร์ (ตั้งค่าประจำ) — สลับไปวันอื่นได้จากฟอร์มด้านล่าง'
+              : `WFH 1 วัน/เดือน (เดือนนี้${wfhUsedThisMonth ? 'ใช้แล้ว — ลาอีกได้เดือนถัดไป' : 'ยังใช้ได้'})`}{' '}
+            · ลาไม่รับเงิน {formatDayValue(leaveBalance.unpaid_remaining)}
             <span className="block mt-2 text-gray-500 text-xs">
               ยื่นลากิจหรือลาพักร้อนเลือกประเภทเดียวกัน &quot;ลากิจ / ลาพักร้อน&quot; — ระบบหักจากโควตาทั้งสองกลุ่มรวมกัน
             </span>
@@ -1129,6 +1288,87 @@ const AdminLeavePage: React.FC = () => {
             </div>
           )}
         </div>
+
+        {isForcedMonthlyWfhUser && (
+          <form
+            onSubmit={handleWfhSwapSubmit}
+            className="rounded-2xl border border-sky-400/30 bg-sky-500/5 p-4 sm:p-6 space-y-4"
+          >
+            <div>
+              <h3 className="text-base font-semibold text-sky-200">สลับวัน Work from Home (วันศุกร์)</h3>
+              <p className="text-xs text-gray-400 mt-1">
+                บัญชีนี้ WFH ทุกวันศุกร์ — ขอสลับวันศุกร์ไปวันจันทร์–พฤหัสบดีได้ (รอผู้จัดการอนุมัติ)
+                จนกว่าจะอนุมัติ วันศุกร์เดิมยังนับเป็น WFH ตามปกติ
+              </p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="min-w-0">
+                <label className="block text-sm font-medium text-gray-400 mb-2">วันศุกร์ที่ต้องการสลับออก</label>
+                <select
+                  value={swapFromFriday}
+                  onChange={(e) => {
+                    setSwapFromFriday(e.target.value);
+                    setSwapError(null);
+                    setSwapSubmitted(false);
+                  }}
+                  required
+                  className="block w-full min-w-0 px-4 py-3 rounded-xl bg-white/5 border border-white/20 text-white text-sm focus:outline-none focus:border-sky-400"
+                >
+                  <option value="" className="bg-neutral-900 text-white">
+                    เลือกวันศุกร์
+                  </option>
+                  {swapFridayOptions.map((fri) => (
+                    <option key={fri} value={fri} className="bg-neutral-900 text-white">
+                      {formatThaiDate(fri)} (ศุกร์)
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="min-w-0">
+                <label className="block text-sm font-medium text-gray-400 mb-2">วันที่ต้องการ WFH แทน (จ.–พฤ.)</label>
+                <input
+                  type="date"
+                  value={swapToDate}
+                  min={today}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    setSwapSubmitted(false);
+                    if (v && !isAllowedWfhSwapTarget(v)) {
+                      setSwapError('สลับไปได้เฉพาะวันจันทร์–พฤหัสบดี');
+                      setSwapToDate('');
+                      return;
+                    }
+                    setSwapError(null);
+                    setSwapToDate(v);
+                  }}
+                  required
+                  className="ios-date-input-fix block !w-full min-w-0 px-4 py-3 rounded-xl bg-white/5 border border-white/20 text-white text-base focus:outline-none focus:border-sky-400"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-400 mb-2">เหตุผลเพิ่มเติม (ถ้ามี)</label>
+              <input
+                type="text"
+                value={swapNote}
+                onChange={(e) => setSwapNote(e.target.value)}
+                placeholder="เช่น มีนัดออฟฟิศวันศุกร์"
+                className="block w-full px-4 py-3 rounded-xl bg-white/5 border border-white/20 text-white text-sm focus:outline-none focus:border-sky-400"
+              />
+            </div>
+            {swapError && <p className="text-sm text-red-400">{swapError}</p>}
+            {swapSubmitted && (
+              <p className="text-sm text-emerald-400">ส่งคำขอสลับวันแล้ว รอผู้จัดการอนุมัติ</p>
+            )}
+            <button
+              type="submit"
+              disabled={swapLoading || swapFridayOptions.length === 0}
+              className="min-h-[44px] px-5 py-3 rounded-xl font-medium bg-sky-500/20 text-sky-200 hover:bg-sky-500/30 border border-sky-400/30 disabled:opacity-50"
+            >
+              {swapLoading ? 'กำลังส่ง...' : 'ส่งคำขอสลับวัน WFH'}
+            </button>
+          </form>
+        )}
 
         <form onSubmit={handleSubmit} className="leave-form rounded-2xl border border-white/10 bg-white/5 p-4 sm:p-6 space-y-5 min-w-0">
           <div>
@@ -1444,7 +1684,7 @@ const AdminLeavePage: React.FC = () => {
                                 setSelectedLeave(row);
                               }}
                               className="truncate rounded px-1 py-0.5 text-[10px] leading-tight bg-emerald-500/20 text-emerald-100 hover:bg-emerald-500/35"
-                              title={`${row.user_display_name || row.user_email} — ${resolveLeaveTypeLabel(row.leave_type)}`}
+                              title={`${row.user_display_name || row.user_email} — ${leaveTypeLabelForRow(row)}`}
                             >
                               {shortLeaveName(row)}
                             </li>
@@ -1527,7 +1767,7 @@ create policy "Allow update own leave_requests cancel"
                 <tbody>
                   {myList.map((row) => (
                     <tr key={row.id} className="border-b border-white/5 hover:bg-white/5">
-                      <td className="px-3 py-2 text-gray-300">{resolveLeaveTypeLabel(row.leave_type)}</td>
+                      <td className="px-3 py-2 text-gray-300">{leaveTypeLabelForRow(row)}</td>
                       <td className="px-3 py-2 text-gray-300">{formatThaiDate(row.start_date)}</td>
                       <td className="px-3 py-2 text-gray-300">{formatThaiDate(row.end_date)}</td>
                       <td className="px-3 py-2 text-gray-400 text-xs">
@@ -1559,7 +1799,8 @@ create policy "Allow update own leave_requests cancel"
                         </span>
                       </td>
                       <td className="px-3 py-2 text-right">
-                        {(row.status === 'pending' || row.status === 'approved' || row.status === 'cancel_requested') && (
+                        {(row.status === 'pending' || row.status === 'approved' || row.status === 'cancel_requested') &&
+                          !isSyntheticForcedWfhRow(row) && (
                           <button
                             type="button"
                             onClick={() => handleCancelRequest(row)}
@@ -1656,7 +1897,7 @@ alter table public.leave_requests add column if not exists approved_at timestamp
                         {row.user_display_name || row.user_email}
                       </td>
                       <td className="px-3 sm:px-4 py-2 sm:py-3 text-gray-300 text-xs sm:text-sm">
-                        {resolveLeaveTypeLabel(row.leave_type)}
+                        {leaveTypeLabelForRow(row)}
                       </td>
                       <td className="px-3 sm:px-4 py-2 sm:py-3 text-gray-300 text-xs sm:text-sm">{formatThaiDate(row.start_date)}</td>
                       <td className="px-3 sm:px-4 py-2 sm:py-3 text-gray-300 text-xs sm:text-sm">{formatThaiDate(row.end_date)}</td>
@@ -1729,7 +1970,7 @@ alter table public.leave_requests add column if not exists approved_at timestamp
                           {row.user_display_name || row.user_email}
                         </td>
                         <td className="px-3 sm:px-4 py-2 sm:py-3 text-gray-300 text-xs sm:text-sm">
-                          {resolveLeaveTypeLabel(row.leave_type)}
+                          {leaveTypeLabelForRow(row)}
                         </td>
                         <td className="px-3 sm:px-4 py-2 sm:py-3 text-gray-300 text-xs sm:text-sm">{formatThaiDate(row.start_date)}</td>
                         <td className="px-3 sm:px-4 py-2 sm:py-3 text-gray-300 text-xs sm:text-sm">{formatThaiDate(row.end_date)}</td>
@@ -1950,15 +2191,16 @@ alter table public.leave_requests add column if not exists approved_at timestamp
                 </thead>
                 <tbody>
                   {selectedDayLeaves.map((row) => {
-                    const typeLabel = resolveLeaveTypeLabel(row.leave_type);
+                    const typeLabel = leaveTypeLabelForRow(row);
                     const timeRange = formatLeaveSlotLabel(row.start_date, row.end_date, row.start_time, row.end_time);
+                    const reasonText = stripWfhSwapTag(row.reason) || '—';
                     return (
                       <tr key={row.id} className="border-b border-white/5 last:border-b-0 hover:bg-white/5">
                         <td className="px-3 py-2 text-gray-300">{row.user_display_name || row.user_email}</td>
                         <td className="px-3 py-2 text-gray-300">{typeLabel}</td>
                         <td className="px-3 py-2 text-gray-300">{timeRange || '—'}</td>
-                        <td className="px-3 py-2 text-gray-400 max-w-[260px] truncate" title={row.reason || ''}>
-                          {row.reason || '—'}
+                        <td className="px-3 py-2 text-gray-400 max-w-[260px] truncate" title={reasonText}>
+                          {reasonText}
                         </td>
                       </tr>
                     );
@@ -1999,7 +2241,7 @@ alter table public.leave_requests add column if not exists approved_at timestamp
               <div>
                 <dt className="text-gray-500">ประเภทการลา</dt>
                 <dd className="text-gray-300">
-                  {resolveLeaveTypeLabel(selectedLeave.leave_type)}
+                  {leaveTypeLabelForRow(selectedLeave)}
                 </dd>
               </div>
               <div>
@@ -2028,7 +2270,7 @@ alter table public.leave_requests add column if not exists approved_at timestamp
               {selectedLeave.reason && (
                 <div>
                   <dt className="text-gray-500">เหตุผล</dt>
-                  <dd className="text-gray-300 whitespace-pre-wrap">{selectedLeave.reason}</dd>
+                  <dd className="text-gray-300 whitespace-pre-wrap">{stripWfhSwapTag(selectedLeave.reason)}</dd>
                 </div>
               )}
                 <div>
