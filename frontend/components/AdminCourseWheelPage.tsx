@@ -129,74 +129,20 @@ function splitTextMultiLine(text: string): string[] | null {
   if (norm === 'Resilient Leadership') {
     return ['RESILIENT', 'LEADERSHIP'];
   }
+  if (norm === 'Emotional Intelligence') {
+    return ['EMOTIONAL', 'INTELLIGENCE'];
+  }
+  if (norm === 'Collaboration and Communication') {
+    return ['COLLABORATION &', 'COMMUNICATION'];
+  }
+  if (norm === 'Learning and Growth') {
+    return ['LEARNING &', 'GROWTH'];
+  }
+  if (norm === 'Creativity and Problem Solving') {
+    return ['CREATIVITY &', 'PROBLEM SOLVING'];
+  }
   return null;
 }
-
-const getInnerQuadrantTextLines = (id: string): string[] => {
-  switch (id) {
-    case 'innovation-transformation':
-      return ['LEARNING', '& GROWTH'];
-    case 'strategic-value':
-      return ['CREATIVITY', 'AND', 'PROBLEM-SOLVING'];
-    case 'succeeding-stakeholders':
-      return ['COLLABORATION', 'AND', 'COMMUNICATION'];
-    case 'resilient-leadership':
-      return ['EMOTIONAL', 'INTELLIGENCE'];
-    default:
-      return [];
-  }
-};
-
-const getLabelCoords = (midAngle: number, radius: number) => {
-  const rad = (midAngle - 90) * (Math.PI / 180);
-  return {
-    x: 500 + radius * Math.cos(rad),
-    y: 500 + radius * Math.sin(rad),
-  };
-};
-
-const MultilineText = ({
-  x,
-  y,
-  lines,
-  color,
-  fontSize = 13,
-  lineHeight = 18,
-}: {
-  x: number;
-  y: number;
-  lines: string[];
-  color: string;
-  fontSize?: number;
-  lineHeight?: number;
-}) => {
-  const halfLen = (lines.length - 1) / 2;
-  return (
-    <g style={{ pointerEvents: 'none' }}>
-      {lines.map((line, idx) => {
-        const dy = (idx - halfLen) * lineHeight;
-        return (
-          <text
-            key={idx}
-            x={x}
-            y={y + dy}
-            textAnchor="middle"
-            dominantBaseline="central"
-            fill={color}
-            style={{
-              fontSize: `${fontSize}px`,
-              fontWeight: 900,
-              fontFamily: '"Prompt", sans-serif',
-              letterSpacing: '0.04em',
-            }}
-          >
-            {line}
-          </text>
-        );
-      })}
-    </g>
-  );
-};
 
 const ArcText = memo(({
   id,
@@ -205,7 +151,9 @@ const ArcText = memo(({
   startAngle,
   endAngle,
   color = 'currentColor',
-  fontSize = '18px'
+  fontSize = '18px',
+  fontWeight = 900,
+  strokeWidth = 0,
 }: {
   id: string;
   text: string;
@@ -214,6 +162,8 @@ const ArcText = memo(({
   endAngle: number;
   color?: string;
   fontSize?: string;
+  fontWeight?: number;
+  strokeWidth?: number;
 }) => {
   const midAngle = (startAngle + endAngle) / 2;
   const normalizedMidAngle = (midAngle + 360) % 360;
@@ -257,7 +207,13 @@ const ArcText = memo(({
       </defs>
 
       {!lines ? (
-        <text fill={color} className="arc-text" style={{ fontSize, fontWeight: 900, pointerEvents: 'none' }}>
+        <text
+          fill={color}
+          stroke={strokeWidth > 0 ? color : undefined}
+          strokeWidth={strokeWidth > 0 ? strokeWidth : undefined}
+          className="arc-text"
+          style={{ fontSize, fontWeight, pointerEvents: 'none' }}
+        >
           <textPath xlinkHref={`#${id}`} startOffset={textOffset} textAnchor="middle">
             {text}
           </textPath>
@@ -267,10 +223,12 @@ const ArcText = memo(({
           <text
             key={i}
             fill={color}
+            stroke={strokeWidth > 0 ? color : undefined}
+            strokeWidth={strokeWidth > 0 ? strokeWidth : undefined}
             className="arc-text"
             style={{
               fontSize,
-              fontWeight: 900,
+              fontWeight,
               fontFamily: '"Prompt", sans-serif',
               pointerEvents: 'none',
               letterSpacing: '0.04em'
@@ -395,10 +353,6 @@ const InnerSegmentGroup = memo((props: {
   const scale = isHovered ? 1.03 : isActive ? 1.01 : 1;
   const opacity = isDimmed ? 0.3 : 1;
   
-  const midAngle = (startAngle + endAngle) / 2;
-  const { x, y } = getLabelCoords(midAngle, 225);
-  const textLines = getInnerQuadrantTextLines(quadId);
-  
   return (
     <g
       onClick={() => onSelect('intermediate', { name: quad.intermediateName, description: `Core competency area within ${quad.name}.` }, quadId)}
@@ -420,7 +374,17 @@ const InnerSegmentGroup = memo((props: {
           transition: 'filter 200ms ease'
         }}
       />
-      <MultilineText x={x} y={y} lines={textLines} color="#16243C" />
+      <ArcText
+        id={`text-path-inner-${quadId}`}
+        text={quad.intermediateName}
+        radius={225}
+        startAngle={startAngle}
+        endAngle={endAngle}
+        color="#16243C"
+        fontSize="14px"
+        fontWeight={900}
+        strokeWidth={0.6}
+      />
     </g>
   );
 });
@@ -741,14 +705,14 @@ export default function App() {
   return (
     <div className="course-wheel-page min-h-screen w-full flex items-center justify-center bg-transparent overflow-hidden font-sans">
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;800;900&display=swap');
         *{box-sizing:border-box}
         .arc-text {
           font-family: "Prompt", sans-serif;
-          font-weight: 800;
+          font-weight: 900;
           text-transform: uppercase;
           letter-spacing: 0.04em;
-          paint-order: stroke;
+          paint-order: stroke fill;
           stroke-linejoin: round;
         }
         .wheel-segment {

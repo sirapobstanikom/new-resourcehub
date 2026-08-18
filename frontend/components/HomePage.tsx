@@ -297,7 +297,7 @@ const HomePage: React.FC = () => {
             </div>
             <h3 className="font-bold text-lg mb-2 text-white">Skill Connector</h3>
             <p className="text-gray-500 text-sm">
-              ต่อสายวิชาชีพผู้นำ — หมุนทักษะจาก Foundation ไปสู่ผลลัพธ์
+              กดช่องติดกัน จากเริ่มไปเส้นชัย — ง่าย เข้าใจทันที
             </p>
           </Link>
           <Link
