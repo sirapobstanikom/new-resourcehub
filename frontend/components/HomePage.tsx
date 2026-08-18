@@ -300,6 +300,18 @@ const HomePage: React.FC = () => {
               ต่อสายวิชาชีพผู้นำ — หมุนทักษะจาก Foundation ไปสู่ผลลัพธ์
             </p>
           </Link>
+          <Link
+            to="/gamification/ai-hr-challenge"
+            className="block rounded-2xl border border-white/10 p-6 text-left transition-all bg-white/5 hover:bg-white/10 hover:border-violet-400/30 group"
+          >
+            <div className="w-12 h-12 rounded-xl bg-violet-500/20 flex items-center justify-center mb-4 group-hover:bg-violet-500/30 transition-colors">
+              <span className="text-2xl" aria-hidden>🧠</span>
+            </div>
+            <h3 className="font-bold text-lg mb-2 text-white">AI HR Challenge</h3>
+            <p className="text-gray-500 text-sm">
+              ตอบโจทย์ HR 3 ข้อ — อ่านเฉลยทีละข้อ แล้วรับคะแนน AI และของรางวัล (~2 นาที)
+            </p>
+          </Link>
         </div>
       </section>
 
