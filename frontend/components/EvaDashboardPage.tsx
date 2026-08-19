@@ -12,6 +12,7 @@ import {
   EVA_DEFAULT_COMMITMENT_HEADERS,
   buildEvaExportSheetRows,
   loadStoredEvaTemplates,
+  parseEvaPromptsJson,
   type EvaEvaluationTemplate,
 } from '../lib/evaTemplates';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
@@ -278,13 +279,18 @@ const EvaDashboardPage: React.FC = () => {
               : `โหลดแบบประเมินจาก Supabase ไม่สำเร็จ (${templatesError.message})`
           );
         } else {
-          remoteTemplates = (data || []).map((row) => ({
-            id: row.id as string,
-            name: row.name as string,
-            description: (row.description as string) || '',
-            prompts: Array.isArray(row.prompts_json) ? (row.prompts_json as EvaEvaluationTemplate['prompts']) : [],
-            updatedAt: (row.updated_at as string) || new Date().toISOString(),
-          }));
+          remoteTemplates = (data || []).map((row) => {
+            const parsed = parseEvaPromptsJson(row.prompts_json);
+            return {
+              id: row.id as string,
+              name: row.name as string,
+              description: (row.description as string) || '',
+              language: parsed.language,
+              englishSnapshot: parsed.englishSnapshot,
+              prompts: parsed.prompts,
+              updatedAt: (row.updated_at as string) || new Date().toISOString(),
+            };
+          });
         }
       }
 

@@ -1,6 +1,6 @@
 import { supabase } from './supabase';
-import type { EvaEvaluationTemplate, EvaPrompt } from './evaTemplates';
-import { loadStoredEvaTemplates, migrateEvaTemplates } from './evaTemplates';
+import type { EvaEvaluationTemplate } from './evaTemplates';
+import { encodeEvaPromptsJson, loadStoredEvaTemplates, migrateEvaTemplates, parseEvaPromptsJson } from './evaTemplates';
 
 const SELECT_WITH_HEADING = 'id, name, heading, description, prompts_json, updated_at';
 const SELECT_LEGACY = 'id, name, description, prompts_json, updated_at';
@@ -27,12 +27,15 @@ type EvaTemplateRow = {
 };
 
 function mapEvaTemplateRow(row: EvaTemplateRow, includeHeading: boolean): EvaEvaluationTemplate {
+  const parsed = parseEvaPromptsJson(row.prompts_json);
   return {
     id: row.id,
     name: row.name,
     heading: includeHeading ? (row.heading as string) || '' : '',
     description: (row.description as string) || '',
-    prompts: Array.isArray(row.prompts_json) ? (row.prompts_json as EvaPrompt[]) : [],
+    language: parsed.language,
+    englishSnapshot: parsed.englishSnapshot,
+    prompts: parsed.prompts,
     updatedAt: row.updated_at || new Date().toISOString(),
   };
 }
@@ -112,7 +115,7 @@ export async function upsertEvaEditorTemplateToSupabase(
     name: template.name,
     heading: template.heading?.trim() || '',
     description: template.description || '',
-    prompts_json: template.prompts,
+    prompts_json: encodeEvaPromptsJson(template),
     updated_at,
   });
 
@@ -125,7 +128,7 @@ export async function upsertEvaEditorTemplateToSupabase(
       id: template.id,
       name: template.name,
       description: template.description || '',
-      prompts_json: template.prompts,
+      prompts_json: encodeEvaPromptsJson(template),
       updated_at,
     });
     if (legacy.error) {

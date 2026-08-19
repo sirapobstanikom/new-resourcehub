@@ -4,8 +4,24 @@ export type EvaEvaluationTemplate = {
   /** หัวข้อใหญ่บนฟอร์มผู้ตอบ (ใส่ก่อนชื่อแบบประเมินได้ หรือไม่ใส่ก็ได้) */
   heading?: string;
   description?: string;
+  /** ภาษา UI ของฟอร์มผู้ตอบ — คำถามยังเป็นข้อความที่พิมพ์ใน editor */
+  language?: EvaFormLanguage;
+  /** แปล EN ไว้ล่วงหน้า (sync กับ updatedAt) */
+  englishSnapshot?: EvaEnglishSnapshot;
   prompts: EvaPrompt[];
   updatedAt: string;
+};
+
+export type EvaFormLanguage = 'th' | 'en';
+
+/** เนื้อหาภาษาอังกฤษที่แปลไว้ล่วงหน้า — โหลดฟอร์มผู้ตอบได้ทันที */
+export type EvaEnglishSnapshot = {
+  heading?: string;
+  name: string;
+  description?: string;
+  prompts: EvaPrompt[];
+  /** ตรงกับ template.updatedAt ตอนที่แปล */
+  syncedAt: string;
 };
 
 export type EvaDescriptionWeight = 'normal' | 'bold';
@@ -363,6 +379,136 @@ export const EVA_DEFAULT_FILL_CLOSING = '.';
 
 export const EVA_TEMPLATE_STORAGE_KEY = 'minddojo.eva-editor.templates.v1';
 
+export function parseEvaFormLanguage(raw: unknown): EvaFormLanguage {
+  return raw === 'en' ? 'en' : 'th';
+}
+
+export function getEvaFormLanguage(template: Pick<EvaEvaluationTemplate, 'language'> | null | undefined): EvaFormLanguage {
+  return parseEvaFormLanguage(template?.language);
+}
+
+/** อ่าน prompts_json จาก Supabase — รองรับ array เดิม, { language, prompts }, และ english snapshot */
+export function parseEvaPromptsJson(raw: unknown): {
+  prompts: EvaPrompt[];
+  language: EvaFormLanguage;
+  englishSnapshot?: EvaEnglishSnapshot;
+} {
+  if (Array.isArray(raw)) {
+    return { prompts: raw as EvaPrompt[], language: 'th' };
+  }
+  if (raw && typeof raw === 'object') {
+    const o = raw as { prompts?: unknown; language?: unknown; english?: unknown };
+    if (Array.isArray(o.prompts)) {
+      let englishSnapshot: EvaEnglishSnapshot | undefined;
+      if (o.english && typeof o.english === 'object') {
+        const e = o.english as Partial<EvaEnglishSnapshot>;
+        if (Array.isArray(e.prompts) && typeof e.syncedAt === 'string') {
+          englishSnapshot = {
+            heading: typeof e.heading === 'string' ? e.heading : undefined,
+            name: typeof e.name === 'string' ? e.name : '',
+            description: typeof e.description === 'string' ? e.description : undefined,
+            prompts: e.prompts as EvaPrompt[],
+            syncedAt: e.syncedAt,
+          };
+        }
+      }
+      return {
+        prompts: o.prompts as EvaPrompt[],
+        language: parseEvaFormLanguage(o.language),
+        englishSnapshot,
+      };
+    }
+  }
+  return { prompts: [], language: 'th' };
+}
+
+export function encodeEvaPromptsJson(template: EvaEvaluationTemplate): unknown {
+  const language = parseEvaFormLanguage(template.language);
+  if (language === 'th') return template.prompts;
+  const payload: Record<string, unknown> = {
+    language: 'en',
+    prompts: template.prompts,
+  };
+  if (
+    template.englishSnapshot &&
+    template.englishSnapshot.syncedAt === template.updatedAt
+  ) {
+    payload.english = template.englishSnapshot;
+  }
+  return payload;
+}
+
+export type EvaPublicFormCopy = {
+  loading: string;
+  loadFailed: string;
+  notFoundTitle: string;
+  notFoundBody: string;
+  backHome: string;
+  submittedTitle: string;
+  submittedBody: string;
+  yourScore: string;
+  scoreHint: string;
+  formKicker: string;
+  pleaseSpecify: string;
+  enterPlaceholder: string;
+  pleaseAnswer: string;
+  pleaseAnswerAll: string;
+  saveFailed: string;
+  submit: string;
+  translating: string;
+  rowLabel: (n: number) => string;
+  fullSentence: string;
+};
+
+const EVA_PUBLIC_FORM_COPY: Record<EvaFormLanguage, EvaPublicFormCopy> = {
+  th: {
+    loading: 'กำลังโหลดแบบประเมิน...',
+    loadFailed: 'โหลดแบบประเมินไม่สำเร็จ กรุณาลองใหม่',
+    notFoundTitle: 'ไม่พบแบบประเมิน',
+    notFoundBody: 'ลิงก์นี้อาจไม่ถูกต้อง หรือแบบประเมินถูกลบไปแล้ว',
+    backHome: 'กลับหน้าหลัก',
+    submittedTitle: 'ส่งคำตอบเรียบร้อย',
+    submittedBody: 'ขอบคุณสำหรับการทำแบบประเมิน',
+    yourScore: 'คะแนนของคุณ',
+    scoreHint: 'คิดจากข้อที่เป็นช้อยส์แบบมีคำตอบถูก',
+    formKicker: 'แบบประเมิน',
+    pleaseSpecify: 'โปรดระบุ...',
+    enterPlaceholder: 'ระบุ...',
+    pleaseAnswer: 'กรุณาตอบคำถาม',
+    pleaseAnswerAll: 'กรุณาตอบคำถามให้ครบทุกข้อ',
+    saveFailed: 'บันทึกไม่สำเร็จ กรุณาลองใหม่',
+    submit: 'ส่งแบบประเมิน',
+    translating: 'กำลังแปลเนื้อหาเป็นภาษาอังกฤษ...',
+    rowLabel: (n) => `แถว ${n}`,
+    fullSentence: 'ประโยคเต็ม (รวมเทมเพลต)',
+  },
+  en: {
+    loading: 'Loading evaluation...',
+    loadFailed: 'Could not load this evaluation. Please try again.',
+    notFoundTitle: 'Evaluation not found',
+    notFoundBody: 'This link may be invalid, or the evaluation was removed.',
+    backHome: 'Back to home',
+    submittedTitle: 'Submitted',
+    submittedBody: 'Thank you for completing the evaluation.',
+    yourScore: 'Your score',
+    scoreHint: 'Based on scored multiple-choice items',
+    formKicker: 'Evaluation',
+    pleaseSpecify: 'Please specify...',
+    enterPlaceholder: 'Enter...',
+    pleaseAnswer: 'Please answer this question',
+    pleaseAnswerAll: 'Please answer all questions',
+    saveFailed: 'Could not save. Please try again.',
+    submit: 'Submit',
+    translating: 'Translating content to English...',
+    rowLabel: (n) => `Row ${n}`,
+    fullSentence: 'Full sentence',
+  },
+};
+
+export function getEvaPublicFormCopy(language: EvaFormLanguage | undefined): EvaPublicFormCopy {
+  return EVA_PUBLIC_FORM_COPY[parseEvaFormLanguage(language)];
+}
+
 /** เดิมใช้ id นี้ — ยังรองรับลิงก์เก่า */
 export const LEGACY_DEFAULT_TEMPLATE_ID = 'eva-innoclub-default';
 
@@ -388,12 +534,15 @@ export function migrateEvaTemplates(templates: EvaEvaluationTemplate[]): EvaEval
     const normalizedPrompts = Array.isArray(t.prompts)
       ? t.prompts.map((prompt, idx) => normalizePrompt(prompt, idx))
       : [];
+    const language = parseEvaFormLanguage(t.language);
     if (t.id === LEGACY_DEFAULT_TEMPLATE_ID) {
       return {
         ...t,
         id: evaBaseIdFromName(t.name || 'แบบประเมิน InnoClub'),
         heading: typeof t.heading === 'string' ? t.heading : '',
         description: t.description || '',
+        language,
+        englishSnapshot: t.englishSnapshot,
         prompts: normalizedPrompts,
       };
     }
@@ -401,6 +550,8 @@ export function migrateEvaTemplates(templates: EvaEvaluationTemplate[]): EvaEval
       ...t,
       heading: typeof t.heading === 'string' ? t.heading : '',
       description: t.description || '',
+      language,
+      englishSnapshot: t.englishSnapshot,
       prompts: normalizedPrompts,
     };
   });

@@ -41,6 +41,7 @@ const GameAr = lazy(() => import('./components/GameAr'));
 const GameHiddenFox = lazy(() => import('./components/GameHiddenFox'));
 const GameSpotDifference = lazy(() => import('./components/GameSpotDifference'));
 const GameCameraBlockJump = lazy(() => import('./components/GameCameraBlockJump'));
+const GamePrizeCatch = lazy(() => import('./components/GamePrizeCatch'));
 const GameSkillConnector = lazy(() => import('./components/GameSkillConnector'));
 const GameAiHrChallenge = lazy(() => import('./components/GameAiHrChallenge'));
 const WhaleDoneRolePlayPage = lazy(() => import('./components/WhaleDoneRolePlayPage'));
@@ -311,6 +312,7 @@ const App: React.FC = () => {
           <Route path="/gamification/spot-difference" element={<GameSpotDifference />} />
           <Route path="/gamification/camera-block-jump" element={<GameCameraBlockJump />} />
           <Route path="/gamification/camera-block-jump-game" element={<GameCameraBlockJump />} />
+          <Route path="/gamification/prize-catch" element={<GamePrizeCatch />} />
           <Route path="/gamification/skill-connector" element={<GameSkillConnector />} />
           <Route path="/gamification/ai-hr-challenge" element={<GameAiHrChallenge />} />
           <Route path="/gamification/whale-done-role-play" element={<Navigate to="/gamification/whale-done-role-play/v1" replace />} />

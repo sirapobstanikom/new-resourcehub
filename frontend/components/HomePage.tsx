@@ -289,6 +289,18 @@ const HomePage: React.FC = () => {
             </p>
           </Link>
           <Link
+            to="/gamification/prize-catch"
+            className="block rounded-2xl border border-white/10 p-6 text-left transition-all bg-white/5 hover:bg-white/10 hover:border-lime-400/30 group"
+          >
+            <div className="w-12 h-12 rounded-xl bg-lime-400/20 flex items-center justify-center mb-4 group-hover:bg-lime-400/30 transition-colors">
+              <span className="text-2xl" aria-hidden>🎁</span>
+            </div>
+            <h3 className="font-bold text-lg mb-2 text-white">เกมกระโดดรับของรางวัล</h3>
+            <p className="text-gray-500 text-sm">
+              Minddojo WorkTech Expo — โหม่ง 3 ครั้ง แล้วกระโดดตามถึงเส้นชัย ตกหลุม = FAIL
+            </p>
+          </Link>
+          <Link
             to="/gamification/skill-connector"
             className="block rounded-2xl border border-white/10 p-6 text-left transition-all bg-white/5 hover:bg-white/10 hover:border-teal-400/30 group"
           >

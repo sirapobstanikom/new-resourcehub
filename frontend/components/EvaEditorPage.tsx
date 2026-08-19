@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import * as XLSX from 'xlsx';
 import { isAdminAuthenticated } from '../lib/auth';
@@ -42,10 +42,15 @@ import {
   defaultEvaCommitmentRows,
   evaBaseIdFromName,
   evaUniqueIdFromName,
+  getEvaFormLanguage,
   getPromptNumberStyle,
   loadStoredEvaTemplates,
   type EvaExportAnswer,
 } from '../lib/evaTemplates';
+import {
+  buildEvaEnglishSnapshotForTemplate,
+  isEvaEnglishSnapshotCurrent,
+} from '../lib/evaTranslate';
 
 type EvaEditorPageMode = 'templates' | 'dashboard';
 
@@ -226,6 +231,9 @@ const EvaEditorPage: React.FC = () => {
   const [exportingTemplateId, setExportingTemplateId] = useState<string | null>(null);
   const [exportDateFrom, setExportDateFrom] = useState('');
   const [exportDateTo, setExportDateTo] = useState('');
+  const englishSyncTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+  const englishSyncInFlightRef = useRef<Set<string>>(new Set());
+  const [englishSyncingId, setEnglishSyncingId] = useState<string | null>(null);
 
   const selectedTemplate = useMemo(
     () => templates.find((item) => item.id === selectedId) || null,
@@ -327,6 +335,60 @@ const EvaEditorPage: React.FC = () => {
     }
   };
 
+  const runEnglishSnapshotSync = useCallback(async (templateId: string, snapshotAt?: string) => {
+    if (englishSyncInFlightRef.current.has(templateId)) return;
+
+    const currentTemplates = readTemplates();
+    const target = currentTemplates.find((item) => item.id === templateId);
+    if (!target || getEvaFormLanguage(target) !== 'en') return;
+    if (snapshotAt && target.updatedAt !== snapshotAt) return;
+    if (isEvaEnglishSnapshotCurrent(target)) return;
+
+    englishSyncInFlightRef.current.add(templateId);
+    setEnglishSyncingId(templateId);
+    try {
+      const snap = await buildEvaEnglishSnapshotForTemplate(target);
+      if (!snap) return;
+
+      setTemplates((latest) => {
+        const live = latest.find((item) => item.id === templateId);
+        if (!live || live.updatedAt !== target.updatedAt) return latest;
+
+        const next = latest.map((item) =>
+          item.id === templateId ? { ...item, englishSnapshot: snap } : item
+        );
+        if (typeof window !== 'undefined') {
+          localStorage.setItem(EVA_TEMPLATE_STORAGE_KEY, JSON.stringify(next));
+        }
+        const synced = next.find((item) => item.id === templateId);
+        if (synced) void syncTemplateToSupabase(synced);
+        return next;
+      });
+    } catch {
+      /* public form still has live-translate fallback */
+    } finally {
+      englishSyncInFlightRef.current.delete(templateId);
+      setEnglishSyncingId((current) => (current === templateId ? null : current));
+    }
+  }, []);
+
+  const scheduleEnglishSnapshotSync = useCallback(
+    (templateId: string, snapshotAt?: string) => {
+      const timers = englishSyncTimersRef.current;
+      const existing = timers.get(templateId);
+      if (existing) clearTimeout(existing);
+
+      timers.set(
+        templateId,
+        setTimeout(() => {
+          timers.delete(templateId);
+          void runEnglishSnapshotSync(templateId, snapshotAt);
+        }, 2000)
+      );
+    },
+    [runEnglishSnapshotSync]
+  );
+
   const saveTemplates = (next: EvaEvaluationTemplate[], options?: SaveOptions) => {
     setTemplates(next);
     if (typeof window !== 'undefined') {
@@ -334,12 +396,29 @@ const EvaEditorPage: React.FC = () => {
     }
     if (options?.upsertTemplateId) {
       const target = next.find((item) => item.id === options.upsertTemplateId);
-      if (target) void syncTemplateToSupabase(target);
+      if (target) {
+        void syncTemplateToSupabase(target);
+        if (getEvaFormLanguage(target) === 'en') {
+          scheduleEnglishSnapshotSync(target.id, target.updatedAt);
+        }
+      }
     }
     if (options?.deleteTemplateId) {
       void deleteTemplateFromSupabase(options.deleteTemplateId);
     }
   };
+
+  useEffect(() => {
+    if (!selectedTemplate) return;
+    if (getEvaFormLanguage(selectedTemplate) !== 'en') return;
+    if (isEvaEnglishSnapshotCurrent(selectedTemplate)) return;
+    void runEnglishSnapshotSync(selectedTemplate.id, selectedTemplate.updatedAt);
+  }, [
+    selectedId,
+    selectedTemplate?.language,
+    selectedTemplate?.englishSnapshot?.syncedAt,
+    runEnglishSnapshotSync,
+  ]);
 
   useEffect(() => {
     if (!isSupabaseConfigured) return;
@@ -382,6 +461,7 @@ const EvaEditorPage: React.FC = () => {
       id: evaUniqueIdFromName(name, existingIds),
       name,
       description: '',
+      language: 'th',
       prompts: [],
       updatedAt: new Date().toISOString(),
     };
@@ -471,6 +551,25 @@ const EvaEditorPage: React.FC = () => {
         : item
     );
     saveTemplates(next, { upsertTemplateId: selectedTemplate.id });
+  };
+
+  const updateTemplateLanguage = (language: 'th' | 'en') => {
+    if (!selectedTemplate) return;
+    const next = templates.map((item) =>
+      item.id === selectedTemplate.id
+        ? {
+            ...item,
+            language,
+            englishSnapshot: undefined,
+            updatedAt: new Date().toISOString(),
+          }
+        : item
+    );
+    saveTemplates(next, { upsertTemplateId: selectedTemplate.id });
+    if (language === 'en') {
+      const updated = next.find((item) => item.id === selectedTemplate.id);
+      if (updated) void runEnglishSnapshotSync(updated.id, updated.updatedAt);
+    }
   };
 
   const deleteTemplate = () => {
@@ -1496,6 +1595,37 @@ const EvaEditorPage: React.FC = () => {
                     placeholder="เช่น โปรดตอบตามความคิดเห็นจริง ใช้เวลาประมาณ 3-5 นาที"
                     className="mt-1 w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm resize-y"
                   />
+                  <div className="mt-3">
+                    <p className="text-sm text-gray-400">ภาษาบนฟอร์มผู้ตอบ</p>
+                    <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1.5 text-sm text-gray-200">
+                      <label className="inline-flex items-center gap-1.5 cursor-pointer select-none">
+                        <input
+                          type="radio"
+                          name={`eva-lang-${selectedTemplate.id}`}
+                          checked={getEvaFormLanguage(selectedTemplate) === 'th'}
+                          onChange={() => updateTemplateLanguage('th')}
+                          className="border-white/30 bg-black/40 accent-yellow-400"
+                        />
+                        ไทย
+                      </label>
+                      <label className="inline-flex items-center gap-1.5 cursor-pointer select-none">
+                        <input
+                          type="radio"
+                          name={`eva-lang-${selectedTemplate.id}`}
+                          checked={getEvaFormLanguage(selectedTemplate) === 'en'}
+                          onChange={() => updateTemplateLanguage('en')}
+                          className="border-white/30 bg-black/40 accent-yellow-400"
+                        />
+                        English
+                      </label>
+                    </div>
+                    <p className="mt-1 text-[11px] text-gray-500">
+                      เลือก English แล้วใช้ลิงก์ผู้ตอบได้เลย — ระบบแปลโจทย์ให้อัตโนมัติ
+                    </p>
+                    {englishSyncingId === selectedTemplate.id ? (
+                      <p className="mt-1 text-[11px] text-yellow-200/90">กำลังแปลเป็นภาษาอังกฤษ...</p>
+                    ) : null}
+                  </div>
                   <div className="mt-2 flex flex-wrap items-center gap-2">
                     <a
                       href={`/evaluation/form/${encodeURIComponent(selectedTemplate.id)}`}

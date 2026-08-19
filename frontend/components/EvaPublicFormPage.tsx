@@ -13,6 +13,8 @@ import {
   evaDescriptionLineClassName,
   getVisibleDescriptionLines,
   formatEvaRatingSubItemPrefix,
+  getEvaFormLanguage,
+  getEvaPublicFormCopy,
   getEvaRatingAnswerKeys,
   getEvaRatingSubItems,
   isEvaPromptRequiredForAnswer,
@@ -21,6 +23,7 @@ import {
   type EvaEvaluationTemplate,
 } from '../lib/evaTemplates';
 import { fetchEvaEditorTemplatesFromSupabase } from '../lib/evaSupabaseTemplates';
+import { localizeEvaTemplateForEnglish, resolveEvaEnglishFormTemplate, templateNeedsEnglishTranslation } from '../lib/evaTranslate';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { EvaAnswerHoverPopover } from './EvaAnswerHoverPopover';
 
@@ -37,7 +40,9 @@ const getOtherOptionLabel = (value: string) =>
 const EvaPublicFormPage: React.FC = () => {
   const { templateId } = useParams<{ templateId: string }>();
   const [template, setTemplate] = useState<EvaEvaluationTemplate | null>(null);
+  const [formTemplate, setFormTemplate] = useState<EvaEvaluationTemplate | null>(null);
   const [loadingTemplate, setLoadingTemplate] = useState(true);
+  const [translatingContent, setTranslatingContent] = useState(false);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const getMultiSelected = (key: string): string[] =>
     (answers[key] || '')
@@ -59,6 +64,9 @@ const EvaPublicFormPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [missingPromptIds, setMissingPromptIds] = useState<string[]>([]);
   const promptRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const copy = getEvaPublicFormCopy(getEvaFormLanguage(formTemplate ?? template));
+  const isEnglish = getEvaFormLanguage(formTemplate ?? template) === 'en';
+  const activeTemplate = formTemplate ?? template;
 
   useEffect(() => {
     const loadTemplate = async () => {
@@ -72,7 +80,7 @@ const EvaPublicFormPage: React.FC = () => {
       const { templates: remoteTemplates, error: loadError } = await fetchEvaEditorTemplatesFromSupabase();
       if (loadError) {
         setTemplate(findEvaTemplateByRouteId(localTemplates, templateId));
-        setError('โหลดแบบประเมินไม่สำเร็จ กรุณาลองใหม่');
+        setError(getEvaPublicFormCopy('th').loadFailed);
         setLoadingTemplate(false);
         return;
       }
@@ -89,20 +97,65 @@ const EvaPublicFormPage: React.FC = () => {
 
   useEffect(() => {
     if (!template) {
+      setFormTemplate(null);
+      setTranslatingContent(false);
+      return;
+    }
+
+    const isEn = getEvaFormLanguage(template) === 'en';
+    if (!isEn) {
+      setFormTemplate(template);
+      setTranslatingContent(false);
+      return;
+    }
+
+    const prebuilt = resolveEvaEnglishFormTemplate(template);
+    if (prebuilt) {
+      setFormTemplate(prebuilt);
+      setTranslatingContent(false);
+      return;
+    }
+
+    setFormTemplate(template);
+    if (!templateNeedsEnglishTranslation(template)) {
+      setTranslatingContent(false);
+      return;
+    }
+
+    let cancelled = false;
+    setTranslatingContent(true);
+    void localizeEvaTemplateForEnglish(template)
+      .then((localized) => {
+        if (!cancelled) setFormTemplate(localized);
+      })
+      .catch(() => {
+        /* keep Thai content */
+      })
+      .finally(() => {
+        if (!cancelled) setTranslatingContent(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [template]);
+
+  useEffect(() => {
+    if (!activeTemplate) {
       document.title = 'MindDoJo';
       return () => {
         document.title = 'MindDoJo';
       };
     }
-    document.title = `${template.name} | MindDoJo`;
+    document.title = `${activeTemplate.name} | MindDoJo`;
     return () => {
       document.title = 'MindDoJo';
     };
-  }, [template]);
+  }, [activeTemplate]);
 
   const canSubmit = useMemo(() => {
-    if (!template) return false;
-    return template.prompts.every((prompt) => {
+    if (!activeTemplate) return false;
+    return activeTemplate.prompts.every((prompt) => {
       if (!isEvaPromptRequiredForAnswer(prompt)) return true;
       const value = (answers[prompt.id] || '').trim();
       if (prompt.type === 'rating_1_5') {
@@ -138,11 +191,11 @@ const EvaPublicFormPage: React.FC = () => {
       if (prompt.type === 'description') return true;
       return value.length > 0;
     });
-  }, [template, answers]);
+  }, [activeTemplate, answers]);
 
   const getMissingPromptIds = (): string[] => {
-    if (!template) return [];
-    return template.prompts
+    if (!activeTemplate) return [];
+    return activeTemplate.prompts
       .filter((prompt) => {
         if (!isEvaPromptRequiredForAnswer(prompt)) return false;
         const value = (answers[prompt.id] || '').trim();
@@ -184,7 +237,7 @@ const EvaPublicFormPage: React.FC = () => {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!template) return;
+    if (!activeTemplate) return;
     if (!canSubmit) {
       const missingIds = getMissingPromptIds();
       setMissingPromptIds(missingIds);
@@ -193,12 +246,12 @@ const EvaPublicFormPage: React.FC = () => {
         const targetEl = promptRefs.current[firstMissingId];
         targetEl?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
-      setError('กรุณาตอบคำถามให้ครบทุกข้อ');
+      setError(copy.pleaseAnswerAll);
       return;
     }
     setError(null);
     setMissingPromptIds([]);
-    const scoredPrompts = template.prompts.filter((prompt) => prompt.type === 'scored_choice');
+    const scoredPrompts = activeTemplate.prompts.filter((prompt) => prompt.type === 'scored_choice');
     const nextScoreResult =
       scoredPrompts.length > 0
         ? {
@@ -208,9 +261,9 @@ const EvaPublicFormPage: React.FC = () => {
         : null;
     const payload = {
       id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
-      templateId: template.id,
-      templateName: template.name,
-      answers: template.prompts.flatMap((prompt) => {
+      templateId: activeTemplate.id,
+      templateName: activeTemplate.name,
+      answers: activeTemplate.prompts.flatMap((prompt) => {
         if (prompt.type === 'description') return [];
         if (prompt.type === 'rating_1_5') {
           const subItems = getEvaRatingSubItems(prompt);
@@ -237,7 +290,7 @@ const EvaPublicFormPage: React.FC = () => {
           return rows.flatMap((row, ri) => {
             const by = (answers[`${prompt.id}::ct::${ri}::by`] || '').trim();
             const how = (answers[`${prompt.id}::ct::${ri}::how`] || '').trim();
-            const rowLabel = `แถว ${ri + 1}`;
+            const rowLabel = copy.rowLabel(ri + 1);
             return [
               {
                 prompt: prompt.title,
@@ -276,7 +329,7 @@ const EvaPublicFormPage: React.FC = () => {
           return [
             {
               prompt: prompt.title,
-              subPrompt: 'ประโยคเต็ม (รวมเทมเพลต)',
+              subPrompt: copy.fullSentence,
               promptType: prompt.type,
               answer: `${lead}${a}${bridge}${b}${close}`,
             },
@@ -323,7 +376,7 @@ const EvaPublicFormPage: React.FC = () => {
       });
       if (insertError) {
         hasSupabaseError = true;
-        setError('บันทึกไม่สำเร็จ กรุณาลองใหม่');
+        setError(copy.saveFailed);
       } else {
         savedToSupabase = true;
       }
@@ -350,20 +403,20 @@ const EvaPublicFormPage: React.FC = () => {
     return (
       <div className="min-h-screen bg-transparent text-white bg-grid px-6 py-10">
         <div className="max-w-3xl mx-auto rounded-2xl border border-white/10 bg-white/5 p-6">
-          <p className="text-gray-300">กำลังโหลดแบบประเมิน...</p>
+          <p className="text-gray-300">{copy.loading}</p>
         </div>
       </div>
     );
   }
 
-  if (!template) {
+  if (!activeTemplate) {
     return (
       <div className="min-h-screen bg-transparent text-white bg-grid px-6 py-10">
         <div className="max-w-3xl mx-auto rounded-2xl border border-red-400/30 bg-red-500/10 p-6">
-          <h1 className="text-2xl font-bold text-red-200">ไม่พบแบบประเมิน</h1>
-          <p className="text-red-100/90 mt-3">ลิงก์นี้อาจไม่ถูกต้อง หรือแบบประเมินถูกลบไปแล้ว</p>
+          <h1 className="text-2xl font-bold text-red-200">{copy.notFoundTitle}</h1>
+          <p className="text-red-100/90 mt-3">{copy.notFoundBody}</p>
           <Link to="/" className="inline-block mt-5 rounded-lg bg-yellow-400 px-4 py-2 font-semibold text-black hover:bg-yellow-300 transition-colors">
-            กลับหน้าหลัก
+            {copy.backHome}
           </Link>
         </div>
       </div>
@@ -374,21 +427,21 @@ const EvaPublicFormPage: React.FC = () => {
     return (
       <div className="min-h-screen bg-transparent text-white bg-grid px-6 py-10">
         <div className="max-w-3xl mx-auto rounded-2xl border border-emerald-400/30 bg-emerald-500/10 p-6 text-center">
-          <h1 className="text-2xl font-bold text-emerald-200">ส่งคำตอบเรียบร้อย</h1>
-          <p className="text-emerald-100/90 mt-3">ขอบคุณสำหรับการทำแบบประเมิน</p>
+          <h1 className="text-2xl font-bold text-emerald-200">{copy.submittedTitle}</h1>
+          <p className="text-emerald-100/90 mt-3">{copy.submittedBody}</p>
           {scoreResult && (
             <div className="mt-5 rounded-2xl border border-yellow-400/30 bg-yellow-400/10 p-5">
-              <p className="text-sm text-yellow-100/80">คะแนนของคุณ</p>
+              <p className="text-sm text-yellow-100/80">{copy.yourScore}</p>
               <p className="mt-1 text-3xl font-black text-yellow-300">
                 {scoreResult.score} / {scoreResult.total}
               </p>
               <p className="mt-1 text-sm text-yellow-100/70">
-                คิดจากข้อที่เป็นช้อยส์แบบมีคำตอบถูก
+                {copy.scoreHint}
               </p>
             </div>
           )}
           <Link to="/" className="inline-block mt-5 rounded-lg bg-yellow-400 px-4 py-2 font-semibold text-black hover:bg-yellow-300 transition-colors">
-            กลับหน้าหลัก
+            {copy.backHome}
           </Link>
         </div>
       </div>
@@ -396,53 +449,56 @@ const EvaPublicFormPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-transparent text-white bg-grid">
+    <div className="min-h-screen bg-transparent text-white bg-grid" lang={isEnglish ? 'en' : 'th'}>
       <main className="max-w-4xl mx-auto px-6 py-10">
         <div className="rounded-2xl border border-white/10 bg-white/5 p-6 md:p-8">
           <div className="mb-6 rounded-2xl border border-yellow-300/20 bg-gradient-to-br from-yellow-400/10 via-amber-300/5 to-transparent p-4 md:p-5">
-            {template.heading?.trim() && (
+            {translatingContent ? (
+              <p className="mb-3 text-xs text-yellow-200/85">{copy.translating}</p>
+            ) : null}
+            {activeTemplate.heading?.trim() && (
               <h1
-                title={template.heading}
+                title={activeTemplate.heading}
                 className="text-2xl md:text-4xl font-black text-white leading-tight break-words [overflow-wrap:anywhere] mb-3"
               >
-                {template.heading}
+                {activeTemplate.heading}
               </h1>
             )}
             <p
               className={`text-xs md:text-sm uppercase tracking-[0.14em] text-yellow-200/75 ${
-                template.name?.trim() ? 'mb-2' : 'mb-0'
+                activeTemplate.name?.trim() ? 'mb-2' : 'mb-0'
               }`}
             >
-              แบบประเมิน
+              {copy.formKicker}
             </p>
-            {template.name?.trim() && (
+            {activeTemplate.name?.trim() && (
               <p
-                title={template.name}
+                title={activeTemplate.name}
                 className={`leading-relaxed break-words [overflow-wrap:anywhere] text-yellow-100 ${
-                  template.heading?.trim()
+                  activeTemplate.heading?.trim()
                     ? 'text-lg md:text-xl font-semibold'
                     : 'text-xl md:text-3xl font-bold'
                 }`}
               >
-                {template.name}
+                {activeTemplate.name}
               </p>
             )}
-            {template.description?.trim() && (
+            {activeTemplate.description?.trim() && (
               <p className="text-gray-300/90 text-base md:text-lg mt-3 leading-relaxed whitespace-pre-line">
-                {template.description}
+                {activeTemplate.description}
               </p>
             )}
           </div>
           <form onSubmit={submit} className="space-y-7 md:space-y-8">
             {(() => {
               let displayOrdinal = 0;
-              return template.prompts.map((prompt) => {
+              return activeTemplate.prompts.map((prompt) => {
                 if (prompt.type === 'description') {
                   const visibleLines = getVisibleDescriptionLines(prompt);
                   if (visibleLines.length === 0) return null;
                   return (
                     <div
-                      key={`${template.id}-${prompt.id}`}
+                      key={`${activeTemplate.id}-${prompt.id}`}
                       className="rounded-xl border border-amber-300/25 bg-amber-500/[0.07] px-4 py-3 md:px-5 md:py-4"
                     >
                       <div className={evaDescriptionBlockClassName(prompt)}>
@@ -471,7 +527,7 @@ const EvaPublicFormPage: React.FC = () => {
                 }
                 return (
                   <div
-                    key={`${template.id}-${prompt.id}`}
+                    key={`${activeTemplate.id}-${prompt.id}`}
                     className="block space-y-3"
                     ref={(el) => {
                       promptRefs.current[prompt.id] = el;
@@ -506,7 +562,7 @@ const EvaPublicFormPage: React.FC = () => {
                         onChange={(e) =>
                           setAnswers((prev) => ({ ...prev, [`${prompt.id}${OTHER_TEXT_KEY_SUFFIX}`]: e.target.value }))
                         }
-                        placeholder="โปรดระบุ..."
+                        placeholder={copy.pleaseSpecify}
                         className="w-full rounded-xl border border-white/15 bg-black/30 px-4 py-3 text-base"
                       />
                     )}
@@ -535,7 +591,7 @@ const EvaPublicFormPage: React.FC = () => {
                         onChange={(e) =>
                           setAnswers((prev) => ({ ...prev, [`${prompt.id}${OTHER_TEXT_KEY_SUFFIX}`]: e.target.value }))
                         }
-                        placeholder="โปรดระบุ..."
+                        placeholder={copy.pleaseSpecify}
                         className="w-full rounded-xl border border-white/15 bg-black/30 px-4 py-3 text-base"
                       />
                     )}
@@ -630,7 +686,7 @@ const EvaPublicFormPage: React.FC = () => {
                                           [`${prompt.id}::ct::${ri}::by`]: e.target.value,
                                         }))
                                       }
-                                      placeholder={row.byWhenPlaceholder || 'ระบุ...'}
+                                      placeholder={row.byWhenPlaceholder || copy.enterPlaceholder}
                                       className="w-full min-w-[8rem] rounded-lg border border-white/15 bg-black/40 px-3 py-2 text-base"
                                     />
                                   </EvaAnswerHoverPopover>
@@ -649,7 +705,7 @@ const EvaPublicFormPage: React.FC = () => {
                                           [`${prompt.id}::ct::${ri}::how`]: e.target.value,
                                         }))
                                       }
-                                      placeholder={row.howKnowPlaceholder || 'ระบุ...'}
+                                      placeholder={row.howKnowPlaceholder || copy.enterPlaceholder}
                                       className="w-full min-w-[10rem] rounded-lg border border-white/15 bg-black/40 px-3 py-2 text-base"
                                     />
                                   </EvaAnswerHoverPopover>
@@ -666,7 +722,9 @@ const EvaPublicFormPage: React.FC = () => {
                     <p className="text-sm md:text-base font-semibold text-sky-200/95 tracking-wide uppercase">
                       {prompt.fillIntroEn ?? EVA_DEFAULT_FILL_INTRO_EN}
                     </p>
-                    <p className="text-base md:text-lg text-gray-200">{prompt.fillIntroTh ?? EVA_DEFAULT_FILL_INTRO_TH}</p>
+                    {!isEnglish && (
+                      <p className="text-base md:text-lg text-gray-200">{prompt.fillIntroTh ?? EVA_DEFAULT_FILL_INTRO_TH}</p>
+                    )}
                     <div className="max-w-full">
                       <div className="flex max-w-full flex-wrap content-start items-baseline gap-x-1 gap-y-1.5 text-base md:text-lg leading-relaxed text-gray-100">
                         <span className="shrink-0 translate-y-px text-gray-400 select-none" aria-hidden>
@@ -720,7 +778,7 @@ const EvaPublicFormPage: React.FC = () => {
                   />
                 )}
                 {missingPromptIds.includes(prompt.id) && (
-                  <p className="text-sm text-red-300">กรุณาตอบคำถาม</p>
+                  <p className="text-sm text-red-300">{copy.pleaseAnswer}</p>
                 )}
               </div>
                 );
@@ -731,7 +789,7 @@ const EvaPublicFormPage: React.FC = () => {
               type="submit"
               className="rounded-xl bg-yellow-400 px-6 py-3 text-base md:text-lg font-semibold text-black hover:bg-yellow-300 transition-colors"
             >
-              ส่งแบบประเมิน
+              {copy.submit}
             </button>
           </form>
         </div>
