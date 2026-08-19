@@ -444,6 +444,7 @@ export const PrizeCatchCanvas: React.FC<Props> = ({
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const stageContainerRef = useRef<HTMLDivElement | null>(null);
+  const marioBgmStartedRef = useRef(false);
 
   // States
   const [poseDetected, setPoseDetected] = useState(false);
@@ -461,6 +462,17 @@ export const PrizeCatchCanvas: React.FC<Props> = ({
   const [prizeReleased, setPrizeReleased] = useState(false);
   const [hitCount, setHitCount] = useState(0);
   const [showFail, setShowFail] = useState(false);
+
+  const ensureMarioBgmStarted = useCallback(() => {
+    if (marioBgmStartedRef.current) return;
+    marioBgmStartedRef.current = true;
+    soundEffects.playMarioBgm();
+  }, []);
+
+  // หยุดเพลงเมื่อจบเกม (ชนะ/แพ้)
+  useEffect(() => {
+    if (showModal || showFail) soundEffects.stopMarioBgm();
+  }, [showModal, showFail]);
 
   // Fullscreen toggle handler with native API & CSS fallback
   const toggleFullscreen = useCallback(() => {
@@ -561,6 +573,10 @@ export const PrizeCatchCanvas: React.FC<Props> = ({
           e.preventDefault();
         }
       }
+      // เริ่มเพลงครั้งแรกเมื่อผู้เล่นมี interaction (กัน autoplay)
+      if (!marioBgmStartedRef.current && (e.key === ' ' || e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'ArrowUp')) {
+        ensureMarioBgmStarted();
+      }
       if ((e.key === 'ArrowUp' || e.key === ' ' || e.key === 'w' || e.key === 'W') && playerIsGroundedRef.current && !failedRef.current && !jumpLockRef.current) {
         playerVyRef.current = -19;
         playerIsGroundedRef.current = false;
@@ -591,6 +607,7 @@ export const PrizeCatchCanvas: React.FC<Props> = ({
       if (!cameraOn) {
         poseDetectedRef.current = false;
         setPoseDetected(false);
+        setCameraError(null);
         return;
       }
 
@@ -724,6 +741,7 @@ export const PrizeCatchCanvas: React.FC<Props> = ({
 
         processFrame();
       } catch (err) {
+        if (!active) return;
         console.warn('Camera access issue:', err);
         setCameraError('Webcam not active or permission required. Enable simulation mode below to test gameplay!');
         setSimulationMode(true);
@@ -1753,6 +1771,7 @@ export const PrizeCatchCanvas: React.FC<Props> = ({
       {/* Main Game Stage Container */}
       <div
         ref={stageContainerRef}
+        onClick={ensureMarioBgmStarted}
         className={`relative w-full overflow-hidden bg-slate-900 transition-all flex items-center justify-center [&:fullscreen]:w-screen [&:fullscreen]:h-screen [&:fullscreen]:bg-slate-950 [&:fullscreen]:p-0 ${
           isFullscreen
             ? 'fixed inset-0 z-50 rounded-none w-screen h-screen bg-slate-950 p-0 border-0 ring-0'
