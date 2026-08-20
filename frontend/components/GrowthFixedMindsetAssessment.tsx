@@ -103,6 +103,8 @@ const GrowthFixedMindsetAssessment: React.FC = () => {
   const [savedSnapshot, setSavedSnapshot] = useState<SavedGfResult | null>(null);
   const [pdfLoading, setPdfLoading] = useState(false);
   const [pngLoading, setPngLoading] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
+  const [exportHint, setExportHint] = useState<string | null>(null);
   const resultExportRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -248,77 +250,124 @@ const GrowthFixedMindsetAssessment: React.FC = () => {
 
   const exportBaseName = `Growth_Fixed_Mindset_${safeExportFilePart(displayUser.name)}_${new Date().toISOString().slice(0, 10)}`;
 
-  const captureResultForExport = (): Promise<HTMLCanvasElement> => {
+  const captureResultForExport = async (mode: 'png' | 'pdf' = 'png'): Promise<HTMLCanvasElement> => {
     const el = resultExportRef.current;
-    if (!el) return Promise.reject(new Error('ไม่พบพื้นที่ผลลัพธ์'));
-    const mobileScale = isMobileSafariLike() ? Math.min(2, window.devicePixelRatio || 1.5) : 2;
-    return html2canvas(el, {
+    if (!el) throw new Error('ไม่พบพื้นที่ผลลัพธ์');
+
+    el.scrollIntoView({ block: 'start', behavior: 'instant' as ScrollBehavior });
+    window.scrollTo(0, 0);
+    await new Promise<void>((resolve) => {
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+    });
+
+    await Promise.all(
+      Array.from(el.querySelectorAll('img')).map(
+        (img) =>
+          new Promise<void>((resolve) => {
+            if (img.complete) resolve();
+            else {
+              img.onload = () => resolve();
+              img.onerror = () => resolve();
+            }
+          }),
+      ),
+    );
+
+    const scale =
+      mode === 'pdf'
+        ? 2
+        : isMobileSafariLike()
+          ? Math.min(1.5, window.devicePixelRatio || 1.5)
+          : 2;
+
+    const canvas = await html2canvas(el, {
       useCORS: true,
       allowTaint: true,
       backgroundColor: '#fffbeb',
-      scale: mobileScale,
+      scale,
       logging: false,
-      windowWidth: el.scrollWidth,
-      windowHeight: el.scrollHeight,
+      scrollX: 0,
+      scrollY: -window.scrollY,
       width: el.scrollWidth,
       height: el.scrollHeight,
+      windowWidth: el.scrollWidth,
+      windowHeight: el.scrollHeight,
+      onclone: (_doc, clonedEl) => {
+        clonedEl.style.width = `${el.scrollWidth}px`;
+        clonedEl.style.maxWidth = 'none';
+        clonedEl.querySelectorAll('*').forEach((node) => {
+          if (!(node instanceof HTMLElement)) return;
+          node.style.animation = 'none';
+          node.style.transition = 'none';
+          node.style.opacity = '1';
+          node.style.transform = 'none';
+        });
+      },
     });
+
+    if (canvas.width < 16 || canvas.height < 16) {
+      throw new Error('ไม่สามารถสร้างภาพผลลัพธ์ได้ (ขนาดว่าง)');
+    }
+    return canvas;
   };
 
-  const savePngBlob = async (blob: Blob, fileName: string) => {
-    const file = new File([blob], fileName, { type: 'image/png' });
+  const downloadBlob = async (blob: Blob, fileName: string, title: string) => {
     const blobUrl = URL.createObjectURL(blob);
+    const file = new File([blob], fileName, { type: blob.type || 'application/octet-stream' });
 
-    if (typeof navigator.share === 'function' && navigator.canShare?.({ files: [file] })) {
+    if (
+      isMobileSafariLike() &&
+      typeof navigator.share === 'function' &&
+      navigator.canShare?.({ files: [file] })
+    ) {
       try {
-        await navigator.share({
-          files: [file],
-          title: 'ผล Growth vs Fixed Mindset Assessment',
-        });
+        await navigator.share({ files: [file], title });
         URL.revokeObjectURL(blobUrl);
         return;
-      } catch {
-        // ถ้าผู้ใช้ยกเลิก share sheet ให้ fallback เป็นการเปิดรูปแทน
+      } catch (err) {
+        if ((err as Error)?.name === 'AbortError') {
+          URL.revokeObjectURL(blobUrl);
+          return;
+        }
       }
-    }
-
-    if (isMobileSafariLike()) {
-      window.open(blobUrl, '_blank', 'noopener');
-      setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
-      return;
     }
 
     const link = document.createElement('a');
     link.download = fileName;
     link.href = blobUrl;
+    link.rel = 'noopener';
+    link.style.display = 'none';
+    document.body.appendChild(link);
     link.click();
-    URL.revokeObjectURL(blobUrl);
+    document.body.removeChild(link);
+
+    if (isMobileSafariLike()) {
+      window.open(blobUrl, '_blank', 'noopener,noreferrer');
+      setExportHint('เปิดรูป/ไฟล์แล้ว — กดค้างเพื่อบันทึกลงเครื่อง หรือเลือก «บันทึกรูป»');
+    }
+
+    window.setTimeout(() => URL.revokeObjectURL(blobUrl), 8000);
   };
 
   const handleDownloadPdf = async () => {
     if (!resultExportRef.current) return;
     setPdfLoading(true);
+    setExportError(null);
+    setExportHint(null);
     try {
-      const canvas = await captureResultForExport();
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const pageW = pdf.internal.pageSize.getWidth();
-      const pageH = pdf.internal.pageSize.getHeight();
-      pdf.setFillColor(255, 251, 235);
-      pdf.rect(0, 0, pageW, pageH, 'F');
-      const imgW = pageW;
-      const imgH = (canvas.height * imgW) / canvas.width;
-      const totalPages = Math.max(1, Math.ceil(imgH / pageH));
-      for (let p = 0; p < totalPages; p++) {
-        if (p > 0) {
-          pdf.addPage();
-          pdf.setFillColor(255, 251, 235);
-          pdf.rect(0, 0, pageW, pageH, 'F');
-        }
-        pdf.addImage(imgData, 'PNG', 0, -p * pageH, imgW, imgH);
-      }
-      pdf.save(`${exportBaseName}.pdf`);
+      const canvas = await captureResultForExport('pdf');
+      const imgData = canvas.toDataURL('image/png', 1);
+      const pdf = new jsPDF({
+        orientation: canvas.width > canvas.height ? 'landscape' : 'portrait',
+        unit: 'px',
+        format: [canvas.width, canvas.height],
+      });
+      pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+      const blob = pdf.output('blob');
+      await downloadBlob(blob, `${exportBaseName}.pdf`, 'ผล Growth vs Fixed Mindset Assessment');
     } catch (e) {
+      const msg = e instanceof Error ? e.message : 'ดาวน์โหลด PDF ไม่สำเร็จ';
+      setExportError(msg);
       console.warn('Export Growth/Fixed PDF:', e);
     } finally {
       setPdfLoading(false);
@@ -328,11 +377,15 @@ const GrowthFixedMindsetAssessment: React.FC = () => {
   const handleDownloadPng = async () => {
     if (!resultExportRef.current) return;
     setPngLoading(true);
+    setExportError(null);
+    setExportHint(null);
     try {
-      const canvas = await captureResultForExport();
+      const canvas = await captureResultForExport('png');
       const blob = await canvasToPngBlob(canvas);
-      await savePngBlob(blob, `${exportBaseName}.png`);
+      await downloadBlob(blob, `${exportBaseName}.png`, 'ผล Growth vs Fixed Mindset Assessment');
     } catch (e) {
+      const msg = e instanceof Error ? e.message : 'ดาวน์โหลด PNG ไม่สำเร็จ';
+      setExportError(msg);
       console.warn('Export Growth/Fixed PNG:', e);
     } finally {
       setPngLoading(false);
@@ -580,8 +633,9 @@ const GrowthFixedMindsetAssessment: React.FC = () => {
                 <img
                   src={band.imageUrl}
                   alt={band.levelTh}
+                  crossOrigin="anonymous"
                   className="w-full max-w-sm mx-auto h-auto rounded-xl border border-yellow-100"
-                  loading="lazy"
+                  loading="eager"
                   decoding="async"
                 />
 
@@ -664,12 +718,24 @@ const GrowthFixedMindsetAssessment: React.FC = () => {
               </p>
             </div>
 
+            {(exportError || exportHint) && (
+              <div
+                className={`rounded-xl border px-4 py-3 text-sm text-center ${
+                  exportError
+                    ? 'border-red-200 bg-red-50 text-red-700'
+                    : 'border-yellow-200 bg-yellow-50 text-yellow-900'
+                }`}
+              >
+                {exportError ?? exportHint}
+              </div>
+            )}
+
             <div className="flex flex-col sm:flex-row gap-3 justify-center flex-wrap">
               <button
                 type="button"
                 onClick={handleDownloadPng}
                 disabled={pngLoading}
-                className="px-6 py-3 rounded-xl font-bold border border-yellow-300 bg-white text-gray-700 hover:bg-yellow-50 disabled:opacity-50 transition-all flex items-center justify-center gap-2 shadow-sm"
+                className="w-full sm:w-auto px-6 py-3 rounded-xl font-bold border border-yellow-300 bg-white text-gray-700 hover:bg-yellow-50 disabled:opacity-50 transition-all flex items-center justify-center gap-2 shadow-sm"
               >
                 {pngLoading ? (
                   <>
@@ -687,7 +753,7 @@ const GrowthFixedMindsetAssessment: React.FC = () => {
                 type="button"
                 onClick={handleDownloadPdf}
                 disabled={pdfLoading}
-                className="px-6 py-3 rounded-xl font-bold border border-yellow-300 bg-white text-gray-700 hover:bg-yellow-50 disabled:opacity-50 transition-all flex items-center justify-center gap-2 shadow-sm"
+                className="w-full sm:w-auto px-6 py-3 rounded-xl font-bold border border-yellow-300 bg-white text-gray-700 hover:bg-yellow-50 disabled:opacity-50 transition-all flex items-center justify-center gap-2 shadow-sm"
               >
                 {pdfLoading ? (
                   <>
@@ -704,13 +770,13 @@ const GrowthFixedMindsetAssessment: React.FC = () => {
               <button
                 type="button"
                 onClick={restart}
-                className="px-6 py-3 rounded-xl font-bold border border-gray-300 bg-white text-gray-600 hover:bg-gray-50 transition-all shadow-sm"
+                className="w-full sm:w-auto px-6 py-3 rounded-xl font-bold border border-gray-300 bg-white text-gray-600 hover:bg-gray-50 transition-all shadow-sm"
               >
                 ทำแบบประเมินใหม่
               </button>
               <Link
                 to="/"
-                className="px-6 py-3 rounded-xl font-bold border border-gray-300 bg-white text-gray-600 hover:bg-gray-50 text-center transition-all shadow-sm"
+                className="w-full sm:w-auto px-6 py-3 rounded-xl font-bold border border-gray-300 bg-white text-gray-600 hover:bg-gray-50 text-center transition-all shadow-sm"
               >
                 กลับหน้าแบบประเมิน
               </Link>
