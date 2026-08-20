@@ -46,6 +46,7 @@ const AdminLayoutWithSidebar: React.FC = () => {
   const isMinddojoUsers = location.pathname === '/admin/minddojo-users';
   const isInnoClubSecondVote = location.pathname === '/admin/innoclub-2-vote';
   const isInnovationEvaluatees = location.pathname === '/admin/innovation-evaluatees';
+  const isAssessmentLinks = location.pathname === '/admin/assessment-links';
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const showLeaveManageLink = user?.email != null && ADMIN_LEAVE_MANAGER_EMAILS.includes(user.email);
   type AdminUserRow = {
@@ -404,9 +405,15 @@ const AdminLayoutWithSidebar: React.FC = () => {
         )}
         <Link
           to="/admin"
-          className={`block py-2.5 px-3 rounded-lg text-sm font-medium transition-colors ${!isLeave && !isLeaveManage && !isCourseOutingTrainer && !isCourseOutingSupport && !isStickycloud && !isMinddojoUsers && !isInnoClubSecondVote && !isInnovationEvaluatees ? 'bg-yellow-400/20 text-yellow-400' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
+          className={`block py-2.5 px-3 rounded-lg text-sm font-medium transition-colors ${!isLeave && !isLeaveManage && !isCourseOutingTrainer && !isCourseOutingSupport && !isStickycloud && !isMinddojoUsers && !isInnoClubSecondVote && !isInnovationEvaluatees && !isAssessmentLinks ? 'bg-yellow-400/20 text-yellow-400' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
         >
           ดูข้อมูล Database
+        </Link>
+        <Link
+          to="/admin/assessment-links"
+          className={`block py-2.5 px-3 rounded-lg text-sm font-medium transition-colors ${isAssessmentLinks ? 'bg-yellow-400/20 text-yellow-400' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
+        >
+          All Link & QR Code Assessment
         </Link>
         <Link
           to="/admin/minddojo-users"

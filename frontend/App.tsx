@@ -59,6 +59,7 @@ const EvaOnePageSummaryPage = lazy(() => import('./components/EvaOnePageSummaryP
 const PeerFeedbackAudienceGridPage = lazy(() => import('./components/PeerFeedbackAudienceGridPage'));
 const InnovationEvaluationPage = lazy(() => import('./components/InnovationEvaluationPage'));
 const AdminInnovationEvaluateesPage = lazy(() => import('./components/AdminInnovationEvaluateesPage'));
+const AdminAssessmentLinksQrPage = lazy(() => import('./components/AdminAssessmentLinksQrPage'));
 const WhaleDoneRolePlayDashboardPage = lazy(
   () => import('./components/WhaleDoneRolePlayDashboardPage')
 );
@@ -265,6 +266,7 @@ const App: React.FC = () => {
               <Route path="minddojo-users" element={<AdminMindDojoAssessmentUsersPage />} />
               <Route path="innoclub-2-vote" element={<AdminInnoClubSecondVotePage />} />
               <Route path="innovation-evaluatees" element={<AdminInnovationEvaluateesPage />} />
+              <Route path="assessment-links" element={<AdminAssessmentLinksQrPage />} />
               <Route
                 path="whale-done-role-play"
                 element={<Navigate to="/gamification/whale-done-role-play/dashboard" replace />}
