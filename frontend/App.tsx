@@ -30,6 +30,7 @@ const LeadershipAssessment = lazy(() => import('./components/LeadershipAssessmen
 const PersuasionAssessment = lazy(() => import('./components/PersuasionAssessment'));
 const DigitalLeadershipAssessment = lazy(() => import('./components/DigitalLeadershipAssessment'));
 const ReactiveProactiveMindsetAssessment = lazy(() => import('./components/ReactiveProactiveMindsetAssessment'));
+const GrowthFixedMindsetAssessment = lazy(() => import('./components/GrowthFixedMindsetAssessment'));
 const ConflictManagementStyleAssessment = lazy(() => import('./components/ConflictManagementStyleAssessment'));
 const KeyPrinciplesAssessment = lazy(() => import('./components/KeyPrinciplesAssessment'));
 const MindDojoAssessment = lazy(() => import('./components/MindDojoAssessment'));
@@ -287,6 +288,10 @@ const App: React.FC = () => {
           <Route
             path="/assessment/reactive-proactive-mindset"
             element={<ReactiveProactiveMindsetAssessment />}
+          />
+          <Route
+            path="/assessment/growth-fixed-mindset"
+            element={<GrowthFixedMindsetAssessment />}
           />
           <Route
             path="/assessment/conflict-management-style"

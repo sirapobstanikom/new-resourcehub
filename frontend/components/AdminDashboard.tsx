@@ -13,6 +13,7 @@ export type CollectionId =
   | 'leave_requests'
   | 'persuasion_results'
   | 'reactive_proactive_mindset_results'
+  | 'growth_fixed_mindset_results'
   | 'conflict_management_style_results'
   | 'key_principles_results'
   | 'innovation_evaluatees'
@@ -48,6 +49,11 @@ const COLLECTIONS: { id: CollectionId; label: string; description: string }[] = 
     id: 'reactive_proactive_mindset_results',
     label: 'Reactive vs Proactive Mindset',
     description: 'ผลแบบประเมิน Reactive vs Proactive (คะแนนรวม 20–100, คะแนนมิติ dimension_scores)',
+  },
+  {
+    id: 'growth_fixed_mindset_results',
+    label: 'Growth vs Fixed Mindset',
+    description: 'ผลแบบประเมิน Growth & Fixed Mindset (คะแนนรวม 20–100, คะแนนมิติ dimension_scores)',
   },
   {
     id: 'conflict_management_style_results',
@@ -404,6 +410,17 @@ create policy "Allow read innoclub_evaluation"
 {`drop policy if exists "Allow read persuasion_results admin" on public.persuasion_results;
 create policy "Allow read persuasion_results admin"
   on public.persuasion_results for select using (true);`}
+                        </code>
+                      </div>
+                    )}
+                    {isPermissionError && selectedCollection === 'growth_fixed_mindset_results' && (
+                      <div className="bg-amber-500/10 text-amber-200 rounded-xl p-4 text-sm">
+                        <p className="font-medium mb-1">ให้เห็นข้อมูล Growth vs Fixed Mindset:</p>
+                        <p className="text-gray-400 mb-2">ไปที่ Supabase → SQL Editor แล้วรัน:</p>
+                        <code className="block bg-black/30 p-3 rounded-lg text-xs overflow-x-auto whitespace-pre">
+{`drop policy if exists "Allow read growth fixed mindset results" on public.growth_fixed_mindset_results;
+create policy "Allow read growth fixed mindset results"
+  on public.growth_fixed_mindset_results for select using (true);`}
                         </code>
                       </div>
                     )}

@@ -51,6 +51,11 @@ const assessmentSeo: Record<string, Pick<SeoConfig, 'title' | 'description'>> = 
     description:
       'สำรวจแนวโน้ม Reactive และ Proactive Mindset ในการรับมือปัญหา การสื่อสาร การตัดสินใจ และความรับผิดชอบต่อผลลัพธ์',
   },
+  '/assessment/growth-fixed-mindset': {
+    title: 'Growth vs Fixed Mindset Assessment | แบบประเมิน Growth & Fixed Mindset',
+    description:
+      'สำรวจแนวโน้ม Growth Mindset และ Fixed Mindset ด้านความเชื่อเรื่องความสามารถ ความท้าทาย ความพยายาม และการเรียนรู้จากความล้มเหลว',
+  },
   '/assessment/conflict-management-style': {
     title: 'การประเมินรูปแบบการจัดการความขัดแย้ง | Conflict Management Style',
     description:

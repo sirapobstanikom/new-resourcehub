@@ -397,7 +397,7 @@ const ReactiveProactiveMindsetAssessment: React.FC = () => {
             </h1>
             <p className="text-gray-400 text-sm text-center mb-6 max-w-sm mx-auto leading-relaxed">
               สำรวจแนวโน้มวิธีคิดและพฤติกรรมของตนเองเมื่อเผชิญสถานการณ์ในการทำงาน ทั้งการรับมือกับปัญหา การสื่อสาร การตัดสินใจ
-              และการรับผิดชอบต่อผลลัพธ์ — ใช้ในห้องอบรมหรือก่อนเรียน
+              และการรับผิดชอบต่อผลลัพธ์ 
             </p>
             <form
               onSubmit={handleLoginSubmit}

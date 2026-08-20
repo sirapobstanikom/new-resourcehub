@@ -43,6 +43,14 @@ const ASSESSMENTS = [
     comingSoon: false,
   },
   {
+    id: 'growth-fixed',
+    title: 'Growth vs Fixed Mindset Assessment',
+    description:
+      'แบบประเมิน Growth & Fixed Mindset — 10 ข้อ · สเกล 4 ระดับ · สะท้อนแนวโน้ม Growth และ Fixed Mindset',
+    href: '/assessment/growth-fixed-mindset',
+    comingSoon: false,
+  },
+  {
     id: 'conflict-management-style',
     title: 'การประเมินรูปแบบการจัดการความขัดแย้ง',
     description:
