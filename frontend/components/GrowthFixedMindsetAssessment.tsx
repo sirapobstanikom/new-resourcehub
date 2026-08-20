@@ -562,19 +562,19 @@ const GrowthFixedMindsetAssessment: React.FC = () => {
           <div className="space-y-8 max-w-2xl mx-auto">
             <div ref={resultExportRef} className="space-y-8 bg-yellow-50">
               <div className="rounded-2xl border border-yellow-200 bg-white p-6 md:p-8 space-y-6 text-center shadow-md shadow-yellow-900/5">
-                <p className="text-[10px] uppercase tracking-widest text-yellow-700/80 font-semibold">
+                <p className="text-xs uppercase tracking-widest text-yellow-700 font-semibold">
                   Growth vs Fixed Mindset
                 </p>
                 <h1 className="text-2xl md:text-3xl font-black text-gray-900">ผลการประเมิน</h1>
-                <p className="text-gray-600 text-sm">{displayUser.name}</p>
-                <p className="text-xs text-gray-500 -mt-4">
+                <p className="text-gray-700 text-base font-medium">{displayUser.name}</p>
+                <p className="text-sm text-gray-500 -mt-3">
                   {displayUser.company} · {displayUser.email}
                 </p>
 
                 <div className="rounded-2xl bg-yellow-50 border border-yellow-200 p-6">
-                  <p className="text-sm text-gray-600 mb-1">คะแนนรวม</p>
+                  <p className="text-base text-gray-700 mb-1 font-medium">คะแนนรวม</p>
                   <p className="text-4xl md:text-5xl font-black text-yellow-600 tabular-nums">{totalScore}</p>
-                  <p className="text-xs text-gray-500 mt-2">ช่วงคะแนน 0–30 คะแนน</p>
+                  <p className="text-sm text-gray-500 mt-2">ช่วงคะแนน 0–30 คะแนน</p>
                 </div>
 
                 <img
@@ -586,28 +586,28 @@ const GrowthFixedMindsetAssessment: React.FC = () => {
                 />
 
                 <div className="rounded-xl border border-yellow-200 bg-yellow-50/80 p-5">
-                  <p className="text-lg font-bold text-gray-900 text-center">{band.levelTh}</p>
+                  <p className="text-xl font-bold text-gray-900 text-center leading-snug">{band.levelTh}</p>
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-yellow-200 bg-white p-6 space-y-3 shadow-md shadow-yellow-900/5">
-                <h2 className="text-sm font-bold text-gray-800 uppercase tracking-wider">เกณฑ์การแปลผล</h2>
-                <div className="space-y-2 text-xs text-gray-600">
+              <div className="rounded-2xl border border-yellow-200 bg-white p-6 md:p-7 space-y-4 shadow-md shadow-yellow-900/5">
+                <h2 className="text-base font-bold text-gray-900">เกณฑ์การแปลผล</h2>
+                <div className="space-y-3 text-sm text-gray-700">
                   {GF_BANDS.map((b) => (
                     <div
                       key={b.id}
-                      className={`flex gap-3 border-t border-yellow-100 first:border-t-0 first:pt-0 pt-2 ${
+                      className={`flex gap-3 border-t border-yellow-100 first:border-t-0 first:pt-0 pt-3 ${
                         b.id === band.id ? 'text-gray-900' : ''
                       }`}
                     >
                       <span
                         className={`shrink-0 tabular-nums font-semibold w-24 ${
-                          b.id === band.id ? 'text-yellow-700' : 'text-yellow-600/80'
+                          b.id === band.id ? 'text-yellow-700' : 'text-yellow-600'
                         }`}
                       >
                         {b.min}–{b.max}
                       </span>
-                      <span className={b.id === band.id ? 'font-semibold text-gray-900' : 'text-gray-700'}>
+                      <span className={`leading-relaxed ${b.id === band.id ? 'font-semibold text-gray-900' : ''}`}>
                         {b.levelTh}
                       </span>
                     </div>
@@ -615,35 +615,51 @@ const GrowthFixedMindsetAssessment: React.FC = () => {
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-yellow-200 bg-white p-6 space-y-4 shadow-md shadow-yellow-900/5">
-                <h2 className="text-sm font-bold text-gray-800 uppercase tracking-wider">ทำความเข้าใจ Mindset</h2>
+              <div className="rounded-2xl border border-yellow-200 bg-white p-6 md:p-7 space-y-5 shadow-md shadow-yellow-900/5">
+                <h2 className="text-base font-bold text-gray-900">ทำความเข้าใจ Mindset</h2>
                 <div className="space-y-4">
                   {GF_MINDSET_EXPLANATIONS.map((item) => (
                     <div
                       key={item.id}
-                      className={`rounded-xl border p-4 sm:p-5 ${
+                      className={`rounded-xl border p-5 sm:p-6 ${
                         item.id === 'growth'
                           ? 'border-emerald-200 bg-emerald-50'
                           : 'border-amber-200 bg-amber-50'
                       }`}
                     >
                       <h3
-                        className={`text-sm font-bold mb-2 ${
-                          item.id === 'growth' ? 'text-emerald-800' : 'text-amber-900'
+                        className={`text-base font-bold mb-3 leading-snug ${
+                          item.id === 'growth' ? 'text-emerald-900' : 'text-amber-950'
                         }`}
                       >
                         {item.title}
                       </h3>
-                      <p className="text-sm text-gray-700 leading-relaxed">{item.body}</p>
+                      <p className="text-base text-gray-800 leading-loose">{item.body}</p>
                     </div>
                   ))}
                 </div>
-                <p className="text-sm text-gray-600 leading-relaxed border-t border-yellow-100 pt-4">
+                <p className="text-base text-gray-700 leading-loose border-t border-yellow-100 pt-5">
                   {GF_MINDSET_CLOSING_NOTE}
                 </p>
               </div>
 
-              <p className="text-center text-[10px] text-gray-400 pb-2">
+              <div className="rounded-2xl border border-yellow-200 bg-white p-6 md:p-7 text-center shadow-md shadow-yellow-900/5">
+                <h2 className="text-base font-bold text-gray-900 mb-3">ช่องทางติดต่อ</h2>
+                <p className="text-base text-gray-700 leading-relaxed mb-4">
+                  สนใจหลักสูตรอบรม หรือต้องการข้อมูลเพิ่มเติมจาก MindDoJo เยี่ยมชมเว็บไซต์หลักได้ที่
+                </p>
+                <a
+                  href={GF_MAIN_SITE_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-bold bg-yellow-400 text-black hover:bg-yellow-300 transition-all"
+                >
+                  www.minddojo.co.th
+                  <span aria-hidden>↗</span>
+                </a>
+              </div>
+
+              <p className="text-center text-xs text-gray-400 pb-2">
                 MindDoJo · Growth vs Fixed Mindset Assessment
               </p>
             </div>
@@ -698,22 +714,6 @@ const GrowthFixedMindsetAssessment: React.FC = () => {
               >
                 กลับหน้าแบบประเมิน
               </Link>
-            </div>
-
-            <div className="rounded-2xl border border-yellow-200 bg-white p-6 text-center shadow-md shadow-yellow-900/5">
-              <h2 className="text-sm font-bold text-gray-800 uppercase tracking-wider mb-2">ช่องทางติดต่อ</h2>
-              <p className="text-sm text-gray-600 leading-relaxed mb-4">
-                สนใจหลักสูตรอบรม หรือต้องการข้อมูลเพิ่มเติมจาก MindDoJo เยี่ยมชมเว็บไซต์หลักได้ที่
-              </p>
-              <a
-                href={GF_MAIN_SITE_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-bold bg-yellow-400 text-black hover:bg-yellow-300 transition-all shadow-md shadow-yellow-400/20"
-              >
-                www.minddojo.co.th
-                <span aria-hidden>↗</span>
-              </a>
             </div>
           </div>
         )}
