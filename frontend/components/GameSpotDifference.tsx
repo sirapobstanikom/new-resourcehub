@@ -406,11 +406,11 @@ const GameSpotDifference: React.FC = () => {
           หน้าหลัก
         </Link>
         {phase === 'playing' && (
-          <div className="flex items-center gap-2 text-xs sm:text-sm">
-            <span className="rounded-full border border-amber-300/30 bg-black/50 px-2.5 py-1.5 text-amber-200 backdrop-blur-md">
+          <div className="flex items-center gap-2 text-sm sm:text-sm md:text-sm">
+            <span className="rounded-full border border-amber-300/30 bg-black/50 px-3 py-2 text-base font-bold text-amber-200 backdrop-blur-md sm:text-sm sm:px-2.5 sm:py-1.5 sm:font-normal">
               จับคู่แล้ว {matchedSets}/8
             </span>
-            <span className="rounded-full border border-white/10 bg-black/50 px-2.5 py-1.5 font-semibold text-white backdrop-blur-md">
+            <span className="rounded-full border border-white/10 bg-black/50 px-3 py-2 text-base font-bold text-white backdrop-blur-md sm:text-sm sm:px-2.5 sm:py-1.5 sm:font-semibold">
               ⏱ {formatMatchTime(elapsedMs)}
             </span>
           </div>
@@ -547,8 +547,8 @@ const GameSpotDifference: React.FC = () => {
       {phase === 'playing' && (
         <div className="mx-auto flex min-h-screen max-w-xl flex-col justify-center px-4 py-24 sm:px-6">
           <div className="mb-5 text-center">
-            <h2 className="text-2xl font-black text-white">จับคู่ Tech & Platforms</h2>
-            <p className="mt-1 text-sm text-zinc-400">
+            <h2 className="text-3xl font-black text-white sm:text-2xl">จับคู่ Tech & Platforms</h2>
+            <p className="mt-1 text-base leading-relaxed text-zinc-300 sm:text-sm sm:text-zinc-400">
               {registration.name} · จับคู่ถูกจะบอกสั้นๆ ว่าแพลตฟอร์มนั้นคืออะไร
             </p>
           </div>
@@ -572,7 +572,7 @@ const GameSpotDifference: React.FC = () => {
                     }`}
                   >
                     <div className="absolute inset-0 rounded-2xl border border-cyan-300/25 bg-gradient-to-br from-[#123] to-[#0a1628] shadow-lg [backface-visibility:hidden] flex items-center justify-center">
-                      <span className="text-lg font-black tracking-widest text-cyan-200/80 sm:text-xl">MD</span>
+                      <span className="text-xl font-black tracking-widest text-cyan-200/80 sm:text-xl">MD</span>
                     </div>
                     <div
                       className={`absolute inset-0 flex flex-col items-center justify-center rounded-2xl border shadow-lg [backface-visibility:hidden] [transform:rotateY(180deg)] ${
@@ -581,8 +581,8 @@ const GameSpotDifference: React.FC = () => {
                           : `border-white/20 bg-gradient-to-br ${card.tint} text-black`
                       }`}
                     >
-                      <TechMark item={card} className="h-8 w-8 sm:h-10 sm:w-10 text-sm font-black leading-none tracking-tight" />
-                      <span className="mt-1 max-w-[90%] truncate text-[9px] font-bold sm:text-[10px]">{card.label}</span>
+                      <TechMark item={card} className="h-10 w-10 sm:h-10 sm:w-10 text-base font-black leading-none tracking-tight" />
+                      <span className="mt-1 max-w-[94%] px-0.5 text-center text-xs font-bold leading-tight sm:text-[10px]">{card.label}</span>
                     </div>
                   </div>
                 </button>
@@ -739,7 +739,7 @@ function MatchFactPopup({ fact, onClose }: { fact: TechSet; onClose: () => void 
       <div
         role="dialog"
         aria-labelledby="match-fact-title"
-        className="relative w-full max-w-md overflow-hidden rounded-[28px] border border-white/15 bg-[#11141c] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.45)] sm:p-6"
+        className="relative w-full max-w-md overflow-hidden rounded-[28px] border border-white/15 bg-[#11141c] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.45)] sm:p-6"
       >
         <div className="absolute inset-x-0 top-0 h-1.5 overflow-hidden bg-white/10">
           <div className="h-full w-full origin-left bg-amber-300" style={{ animation: 'matchFactShrink 3s linear forwards' }} />
@@ -757,22 +757,22 @@ function MatchFactPopup({ fact, onClose }: { fact: TechSet; onClose: () => void 
 
         <div className="flex items-start gap-3 pr-10">
           <div
-            className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl ${
+            className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl sm:h-14 sm:w-14 ${
               fact.logoUrl ? 'bg-white' : `bg-gradient-to-br ${fact.tint}`
-            } text-sm font-black text-black`}
+            } text-base font-black text-black`}
           >
-            <TechMark item={fact} className="max-h-8 max-w-[80%] text-sm font-black" />
+            <TechMark item={fact} className="max-h-10 max-w-[80%] text-base font-black sm:max-h-8 sm:text-sm" />
           </div>
           <div>
-            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-amber-300/90">{fact.category}</p>
-            <h3 id="match-fact-title" className="mt-1 text-2xl font-black text-white">
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-amber-300/90 sm:text-[11px]">{fact.category}</p>
+            <h3 id="match-fact-title" className="mt-1 text-3xl font-black text-white sm:text-2xl">
               {fact.label}
             </h3>
-            <p className="mt-1 text-sm font-semibold text-zinc-200">{fact.blurb}</p>
+            <p className="mt-1 text-base font-semibold text-zinc-200 sm:text-sm">{fact.blurb}</p>
           </div>
         </div>
-        <p className="mt-4 text-sm leading-relaxed text-zinc-400">{fact.description}</p>
-        <p className="mt-4 text-center text-[11px] text-zinc-500">ปิดอัตโนมัติใน 3 วินาที หรือกดปิดได้เลย</p>
+        <p className="mt-4 text-base leading-relaxed text-zinc-300 sm:text-sm sm:text-zinc-400">{fact.description}</p>
+        <p className="mt-4 text-center text-xs text-zinc-400 sm:text-[11px] sm:text-zinc-500">ปิดอัตโนมัติใน 3 วินาที หรือกดปิดได้เลย</p>
       </div>
       <style>{`
         @keyframes matchFactShrink {

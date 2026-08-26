@@ -993,8 +993,7 @@ export const WebGameCanvas: React.FC<Props> = ({
         animFrameRef.current
       );
 
-      // 8. Frontmost Layer: Large Retro 8-bit INNO CLUB Title Banner
-      drawPixelBanner(ctx, 'INNO CLUB', 320, 50, 7.5);
+      // 8. Title is rendered as a CSS overlay (Lower Pixel) so it stays sharp on all screens
 
       // 9. Completed rendering frame
       animId = requestAnimationFrame(render);
@@ -1417,6 +1416,9 @@ export const WebGameCanvas: React.FC<Props> = ({
         }`}
       >
         <div className={`relative w-full h-full flex items-center justify-center ${isFullscreen ? 'p-0' : 'p-1 md:p-2'}`}>
+          <p className="absolute top-3 sm:top-4 left-1/2 -translate-x-1/2 z-20 pointer-events-none lower-pixel-font text-[26px] sm:text-4xl md:text-5xl text-[#FF332A] drop-shadow-[3px_3px_0_#000] whitespace-nowrap tracking-wide">
+            innoclub #3
+          </p>
           <canvas
             ref={canvasRef}
             width={640}

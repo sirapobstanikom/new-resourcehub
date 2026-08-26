@@ -47,6 +47,12 @@
   font-family: "Sarabun", ui-sans-serif, system-ui, sans-serif !important;
 }
 
+.lower-pixel-font {
+  font-family: "Lower Pixel", ui-monospace, monospace !important;
+  -webkit-font-smoothing: none;
+  font-smooth: never;
+}
+
 .innoclub-hogwarts-font {
   font-family: "Cinzel", "Cinzel Decorative", "Palatino Linotype", "Book Antiqua", "Times New Roman", "Sarabun", serif !important;
 }

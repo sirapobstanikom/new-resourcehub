@@ -113,22 +113,10 @@ const ICONS = {
   Lightbulb: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/></svg>
 };
 
-const LINE_GAP = 22;
+const LINE_GAP = 26;
 
 function splitTextMultiLine(text: string): string[] | null {
   const norm = text.trim();
-  if (norm === 'Innovation & Transformation' || norm === 'Innovation Transformation') {
-    return ['TRANSFORMATION', 'INNOVATION'];
-  }
-  if (norm === 'Strategic Value Creation') {
-    return ['STRATEGIC VALUE', 'CREATION'];
-  }
-  if (norm === 'Succeeding with Stakeholder' || norm === 'Succeeding with Stakeholders') {
-    return ['STAKEHOLDER', 'SUCCEEDING WITH'];
-  }
-  if (norm === 'Resilient Leadership') {
-    return ['RESILIENT', 'LEADERSHIP'];
-  }
   if (norm === 'Emotional Intelligence') {
     return ['EMOTIONAL', 'INTELLIGENCE'];
   }
@@ -144,6 +132,13 @@ function splitTextMultiLine(text: string): string[] | null {
   return null;
 }
 
+const OUTER_LABEL_STYLE: Record<string, { fontSize: string; letterSpacing: string }> = {
+  'resilient-leadership': { fontSize: '17px', letterSpacing: '0.07em' },
+  'strategic-value': { fontSize: '15.5px', letterSpacing: '0.02em' },
+  'succeeding-stakeholders': { fontSize: '14px', letterSpacing: '0.008em' },
+  'innovation-transformation': { fontSize: '13.5px', letterSpacing: '0em' },
+};
+
 const ArcText = memo(({
   id,
   text,
@@ -151,9 +146,11 @@ const ArcText = memo(({
   startAngle,
   endAngle,
   color = 'currentColor',
-  fontSize = '18px',
+  fontSize = '20px',
   fontWeight = 900,
   strokeWidth = 0,
+  letterSpacing = '0.04em',
+  pathInset = 0,
 }: {
   id: string;
   text: string;
@@ -164,13 +161,17 @@ const ArcText = memo(({
   fontSize?: string;
   fontWeight?: number;
   strokeWidth?: number;
+  letterSpacing?: string;
+  pathInset?: number;
 }) => {
   const midAngle = (startAngle + endAngle) / 2;
   const normalizedMidAngle = (midAngle + 360) % 360;
   const isUpsideDown = normalizedMidAngle > 95 && normalizedMidAngle < 265;
+  const pathStart = startAngle + pathInset;
+  const pathEnd = endAngle - pathInset;
 
-  const startRad = (startAngle - 90) * (Math.PI / 180);
-  const endRad = (endAngle - 90) * (Math.PI / 180);
+  const startRad = (pathStart - 90) * (Math.PI / 180);
+  const endRad = (pathEnd - 90) * (Math.PI / 180);
 
   const makePath = (r: number) => {
     const x1 = 500 + r * Math.cos(startRad);
@@ -196,6 +197,7 @@ const ArcText = memo(({
 
   const orderedLines = lines && isUpsideDown ? [...lines].reverse() : lines;
   const textOffset = '50%';
+  const displayText = text.toUpperCase();
 
   return (
     <>
@@ -212,10 +214,10 @@ const ArcText = memo(({
           stroke={strokeWidth > 0 ? color : undefined}
           strokeWidth={strokeWidth > 0 ? strokeWidth : undefined}
           className="arc-text"
-          style={{ fontSize, fontWeight, pointerEvents: 'none' }}
+          style={{ fontSize, fontWeight, letterSpacing, fontFamily: '"Prompt", sans-serif', pointerEvents: 'none' }}
         >
           <textPath xlinkHref={`#${id}`} startOffset={textOffset} textAnchor="middle">
-            {text}
+            {displayText}
           </textPath>
         </text>
       ) : (
@@ -231,7 +233,7 @@ const ArcText = memo(({
               fontWeight,
               fontFamily: '"Prompt", sans-serif',
               pointerEvents: 'none',
-              letterSpacing: '0.04em'
+              letterSpacing,
             }}
           >
             <textPath
@@ -381,9 +383,11 @@ const InnerSegmentGroup = memo((props: {
         startAngle={startAngle}
         endAngle={endAngle}
         color="#16243C"
-        fontSize="14px"
+        fontSize="16.5px"
         fontWeight={900}
         strokeWidth={0.6}
+        letterSpacing="0.03em"
+        pathInset={8}
       />
     </g>
   );
@@ -449,7 +453,9 @@ const OuterSegmentGroup = memo((props: {
         startAngle={startAngle}
         endAngle={endAngle}
         color={textColor}
-        fontSize="16px"
+        fontSize={OUTER_LABEL_STYLE[quadId]?.fontSize ?? '15px'}
+        letterSpacing={OUTER_LABEL_STYLE[quadId]?.letterSpacing ?? '0.03em'}
+        pathInset={12}
       />
     </g>
   );
@@ -556,11 +562,11 @@ const Wheel = memo(({
 
           <text
             x="0"
-            y="-22"
+            y="-24"
             textAnchor="middle"
             fill="#F9B732"
             style={{
-              fontSize: '21px',
+              fontSize: '25px',
               fontWeight: 900,
               fontFamily: '"Prompt", sans-serif',
               letterSpacing: '0.12em',
@@ -571,11 +577,11 @@ const Wheel = memo(({
           </text>
           <text
             x="0"
-            y="8"
+            y="10"
             textAnchor="middle"
             fill="#F9B732"
             style={{
-              fontSize: '21px',
+              fontSize: '25px',
               fontWeight: 900,
               fontFamily: '"Prompt", sans-serif',
               letterSpacing: '0.12em',
@@ -586,11 +592,11 @@ const Wheel = memo(({
           </text>
           <text
             x="0"
-            y="42"
+            y="46"
             textAnchor="middle"
             fill="#FFFFFF"
             style={{
-              fontSize: '12px',
+              fontSize: '15px',
               fontWeight: 900,
               fontFamily: '"Prompt", sans-serif',
               letterSpacing: '0.08em',
@@ -789,7 +795,7 @@ export default function App() {
                   <div style={{ padding: 10, background: '#F9B732', borderRadius: 12, color: '#111' }}>
                     {selection.quadrantId ? getCategoryIcon(selection.quadrantId) : <ICONS.Info />}
                   </div>
-                  <span style={{ fontSize: 14, color: '#F9B732', fontWeight: 800, textTransform: 'uppercase' }}>
+                  <span style={{ fontSize: 18, color: '#F9B732', fontWeight: 800, textTransform: 'uppercase' }}>
                     {String(selection.type).replace('-', ' ')}
                   </span>
                 </div>
@@ -797,21 +803,21 @@ export default function App() {
                   <ICONS.X />
                 </button>
               </div>
-              <h2 style={{ fontSize: 30, fontWeight: 900, marginBottom: 12, lineHeight: 1.2 }}>{(selection.data as any)?.name}</h2>
-              <p style={{ fontSize: 16, color: '#9ca3af', marginBottom: 20, lineHeight: 1.5 }}>{(selection.data as any)?.description}</p>
+              <h2 style={{ fontSize: 34, fontWeight: 900, marginBottom: 12, lineHeight: 1.2 }}>{(selection.data as any)?.name}</h2>
+              <p style={{ fontSize: 18, color: '#9ca3af', marginBottom: 20, lineHeight: 1.5 }}>{(selection.data as any)?.description}</p>
               
               {(
                 selection.type === 'subcategory' ||
                 selection.type === 'topic' ||
                 selection.type === 'foundation'
               ) && (
-                <button onClick={handleOpenCourse} style={{ width: '100%', padding: '14px 16px', borderRadius: 14, border: '1px solid rgba(249,183,50,.25)', background: '#F9B732', color: '#111', fontWeight: 900, fontSize: 16, cursor: 'pointer', transition: 'all 150ms ease' }} className="hover:brightness-110 active:scale-95">เปิดหลักสูตร</button>
+                <button onClick={handleOpenCourse} style={{ width: '100%', padding: '14px 16px', borderRadius: 14, border: '1px solid rgba(249,183,50,.25)', background: '#F9B732', color: '#111', fontWeight: 900, fontSize: 18, cursor: 'pointer', transition: 'all 150ms ease' }} className="hover:brightness-110 active:scale-95">เปิดหลักสูตร</button>
               )}
               
               {selection.type === 'main-category' && (
                 <div style={{ marginTop: 14 }}>
                   {(selection.data as WheelCategory).subCategories.map((s, i) => (
-                    <button key={i} onClick={() => setSelection({ type: 'subcategory', data: s, quadrantId: (selection.data as WheelCategory).id })} style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 16, background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.08)', borderRadius: 14, marginBottom: 8, color: '#fff', fontSize: 16, cursor: 'pointer', transition: 'all 150ms ease' }} className="hover:bg-white/10">{s.name}<ICONS.ChevronRight /></button>
+                    <button key={i} onClick={() => setSelection({ type: 'subcategory', data: s, quadrantId: (selection.data as WheelCategory).id })} style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 16, background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.08)', borderRadius: 14, marginBottom: 8, color: '#fff', fontSize: 18, cursor: 'pointer', transition: 'all 150ms ease' }} className="hover:bg-white/10">{s.name}<ICONS.ChevronRight /></button>
                   ))}
                 </div>
               )}
@@ -819,7 +825,7 @@ export default function App() {
               {selection.type === 'intermediate' && (
                 <div style={{ marginTop: 14 }}>
                   {(selectedQuadrant?.topics || []).map((t, i) => (
-                    <button key={i} onClick={() => setSelection({ type: 'topic', data: t, quadrantId: selection.quadrantId })} style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 16, background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.08)', borderRadius: 14, marginBottom: 8, color: '#fff', fontSize: 16, cursor: 'pointer', transition: 'all 150ms ease' }} className="hover:bg-white/10">{t.name}<ICONS.ChevronRight /></button>
+                    <button key={i} onClick={() => setSelection({ type: 'topic', data: t, quadrantId: selection.quadrantId })} style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 16, background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.08)', borderRadius: 14, marginBottom: 8, color: '#fff', fontSize: 18, cursor: 'pointer', transition: 'all 150ms ease' }} className="hover:bg-white/10">{t.name}<ICONS.ChevronRight /></button>
                   ))}
                 </div>
               )}
@@ -827,7 +833,7 @@ export default function App() {
               {selection.type === 'foundation-category' && (
                 <div style={{ marginTop: 14 }}>
                   {FOUNDATION_SKILLS.bullets.map((b, i) => (
-                    <button key={i} onClick={() => setSelection({ type: 'foundation', data: b, quadrantId: 'foundation' })} style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 16, background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.08)', borderRadius: 14, marginBottom: 8, color: '#fff', fontSize: 16, cursor: 'pointer', transition: 'all 150ms ease' }} className="hover:bg-white/10">{b.name}<ICONS.ChevronRight /></button>
+                    <button key={i} onClick={() => setSelection({ type: 'foundation', data: b, quadrantId: 'foundation' })} style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 16, background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.08)', borderRadius: 14, marginBottom: 8, color: '#fff', fontSize: 18, cursor: 'pointer', transition: 'all 150ms ease' }} className="hover:bg-white/10">{b.name}<ICONS.ChevronRight /></button>
                   ))}
                 </div>
               )}
