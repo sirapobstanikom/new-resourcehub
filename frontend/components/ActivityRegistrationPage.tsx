@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import React, { useState, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
 interface RegistrationFormData {
@@ -7,22 +7,17 @@ interface RegistrationFormData {
   email: string;
   phone: string;
   company: string;
-  activityName: string;
   notes: string;
 }
 
 const LOCAL_STORAGE_KEY = 'minddojo_activity_registrations_v1';
 
 export default function ActivityRegistrationPage() {
-  const [searchParams] = useSearchParams();
-  const defaultEventFromQuery = searchParams.get('event') || searchParams.get('activity') || '';
-
   const [formData, setFormData] = useState<RegistrationFormData>({
     fullName: '',
     email: '',
     phone: '',
     company: '',
-    activityName: defaultEventFromQuery || 'กิจกรรม / เวิร์กช็อป MindDoJo',
     notes: '',
   });
 
@@ -32,12 +27,6 @@ export default function ActivityRegistrationPage() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [showQrModal, setShowQrModal] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
-
-  useEffect(() => {
-    if (defaultEventFromQuery) {
-      setFormData((prev) => ({ ...prev, activityName: defaultEventFromQuery }));
-    }
-  }, [defaultEventFromQuery]);
 
   // Current page full URL for QR code and copy link
   const currentUrl = useMemo(() => {
@@ -138,7 +127,6 @@ export default function ActivityRegistrationPage() {
       email: formData.email.trim().toLowerCase(),
       phone: formData.phone.trim(),
       company: formData.company.trim(),
-      activity_name: formData.activityName.trim() || 'กิจกรรม MindDoJo',
       notes: formData.notes.trim() || null,
       created_at: now.toISOString(),
     };
@@ -193,7 +181,6 @@ export default function ActivityRegistrationPage() {
       email: '',
       phone: '',
       company: prev.company, // keep company for convenience if same team
-      activityName: prev.activityName,
       notes: '',
     }));
     setTouched({});
@@ -320,13 +307,6 @@ export default function ActivityRegistrationPage() {
                   <span className="text-slate-400 font-medium">บริษัท / หน่วยงาน:</span>
                   <span className="col-span-2 text-white font-medium">{submittedData.company}</span>
                 </div>
-
-                {submittedData.activityName && (
-                  <div className="grid grid-cols-3 gap-2 pt-2 border-t border-white/5">
-                    <span className="text-slate-400 font-medium">กิจกรรม:</span>
-                    <span className="col-span-2 text-yellow-300 font-medium">{submittedData.activityName}</span>
-                  </div>
-                )}
 
                 {submittedData.notes && (
                   <div className="grid grid-cols-3 gap-2 pt-2 border-t border-white/5">
@@ -517,22 +497,7 @@ export default function ActivityRegistrationPage() {
                   )}
                 </div>
 
-                {/* 5. ชื่อกิจกรรม (ถ้าต้องการระบุ) */}
-                <div>
-                  <label className="block text-sm font-semibold text-slate-200 mb-1.5 flex items-center justify-between">
-                    <span>ชื่อกิจกรรม / เวิร์กช็อป</span>
-                    <span className="text-[11px] text-slate-500 font-normal">ระบุหรือแก้ไขได้</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.activityName}
-                    onChange={(e) => handleChange('activityName', e.target.value)}
-                    placeholder="เช่น AI for Everyone Workshop"
-                    className="w-full px-4 py-2.5 rounded-xl bg-[#080B13] border border-white/10 text-slate-300 text-sm placeholder:text-slate-600 focus:outline-none focus:border-yellow-400/70 transition-all"
-                  />
-                </div>
-
-                {/* 6. หมายเหตุ (Optional) */}
+                {/* 5. หมายเหตุ (Optional) */}
                 <div>
                   <label className="block text-sm font-semibold text-slate-200 mb-1.5 flex items-center justify-between">
                     <span>หมายเหตุเพิ่มเติม (ถ้ามี)</span>
