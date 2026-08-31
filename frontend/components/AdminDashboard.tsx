@@ -19,7 +19,8 @@ export type CollectionId =
   | 'innovation_evaluatees'
   | 'innovation_evaluation_responses'
   | 'whale_done_conflict_canvas_responses'
-  | 'whale_done_accountability_commitments';
+  | 'whale_done_accountability_commitments'
+  | 'activity_registrations';
 
 const COLLECTIONS: { id: CollectionId; label: string; description: string }[] = [
   { id: 'leadership_entries', label: 'Leadership Entries', description: 'ผลแบบประเมินสมรรถนะภาวะผู้นำ' },
@@ -85,6 +86,11 @@ const COLLECTIONS: { id: CollectionId; label: string; description: string }[] = 
     id: 'whale_done_accountability_commitments',
     label: 'Whale Done — Commitment Card',
     description: 'Participant Commitment Card จากแท็บ Accountability',
+  },
+  {
+    id: 'activity_registrations',
+    label: 'ลงทะเบียนกิจกรรม (Activity Registrations)',
+    description: 'ข้อมูลผู้ลงทะเบียนเข้าร่วมกิจกรรม: ชื่อ-นามสกุล, อีเมล, เบอร์โทร, บริษัท',
   },
 ];
 

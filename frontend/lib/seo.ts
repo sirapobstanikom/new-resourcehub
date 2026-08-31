@@ -203,6 +203,15 @@ function getSeoConfig(pathname: string): SeoConfig {
     };
   }
 
+  if (basePath.startsWith('/activity-registration') || basePath.startsWith('/event-registration')) {
+    return {
+      title: 'ลงทะเบียนเข้าร่วมกิจกรรม | MindDoJo',
+      description: 'ระบบลงทะเบียนเข้าร่วมกิจกรรมและเวิร์กช็อป MindDoJo',
+      path: basePath,
+      robots: 'noindex, follow',
+    };
+  }
+
   if (
     basePath === '/login' ||
     basePath === '/register' ||

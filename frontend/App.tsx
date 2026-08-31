@@ -68,6 +68,7 @@ const ElevateAnswerKeyPage = lazy(() => import('./components/ElevateAnswerKeyPag
 const ElevatePretestPosttestEditorPage = lazy(() => import('./components/ElevatePretestPosttestEditorPage'));
 const ElevatePretestPosttestFormPage = lazy(() => import('./components/ElevatePretestPosttestFormPage'));
 const ElevatePretestPosttestDashboardPage = lazy(() => import('./components/ElevatePretestPosttestDashboardPage'));
+const ActivityRegistrationPage = lazy(() => import('./components/ActivityRegistrationPage'));
 
 function cleanupArOverlays(): void {
   document.querySelectorAll('video').forEach((v) => {
@@ -411,6 +412,19 @@ const App: React.FC = () => {
         <Routes>
           <Route path="/elevate-pretest-posttest/:bankId/:phase" element={<ElevatePretestPosttestFormPage />} />
           <Route path="*" element={<Navigate to="/elevate-pretest-posttest-editor" replace />} />
+        </Routes>
+      </Suspense>
+    );
+  }
+
+  if (pathname.startsWith('/activity-registration') || pathname.startsWith('/event-registration') || pathname.startsWith('/register-activity')) {
+    return (
+      <Suspense fallback={<RouteFallback />}>
+        <Routes>
+          <Route path="/activity-registration" element={<ActivityRegistrationPage />} />
+          <Route path="/event-registration" element={<ActivityRegistrationPage />} />
+          <Route path="/register-activity" element={<ActivityRegistrationPage />} />
+          <Route path="*" element={<Navigate to="/activity-registration" replace />} />
         </Routes>
       </Suspense>
     );

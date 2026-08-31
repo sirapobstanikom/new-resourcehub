@@ -427,6 +427,22 @@ const AdminLayoutWithSidebar: React.FC = () => {
         >
           Workshop Board MindDoJo
         </Link>
+        <a
+          href="/activity-registration"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-between py-2.5 px-3 rounded-lg text-sm font-medium text-gray-400 hover:bg-white/5 hover:text-white transition-colors group"
+        >
+          <span className="flex items-center gap-2">
+            <svg className="w-4 h-4 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+            ลงทะเบียนกิจกรรม
+          </span>
+          <svg className="w-3.5 h-3.5 text-gray-500 group-hover:text-yellow-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+          </svg>
+        </a>
         <details className="group rounded-lg">
           <summary className="list-none cursor-pointer py-2.5 px-3 rounded-lg text-sm font-medium text-gray-400 hover:bg-white/5 hover:text-white transition-colors flex items-center justify-between">
             <span>All Eva</span>
