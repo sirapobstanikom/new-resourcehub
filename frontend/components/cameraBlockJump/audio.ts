@@ -5,6 +5,8 @@ class SoundEffects {
   private marioBgmRunning = false;
   private marioBgmTimer: number | null = null;
   private marioBgmStep = 0;
+  private fileBgm: HTMLAudioElement | null = null;
+  private fileBgmSrc: string | null = null;
 
   private getContext(): AudioContext {
     if (!this.ctx) {
@@ -195,6 +197,42 @@ class SoundEffects {
       window.clearTimeout(this.marioBgmTimer);
       this.marioBgmTimer = null;
     }
+  }
+
+  /** เล่น BGM จากไฟล์ (loop) — ใช้หลังผู้ใช้กด/คลิกครั้งแรก */
+  playFileBgm(src: string, volume = 0.45) {
+    try {
+      if (this.fileBgm && this.fileBgmSrc === src) {
+        this.fileBgm.volume = volume;
+        if (!this.fileBgm.paused) return;
+        void this.fileBgm.play().catch((e) => {
+          console.warn('File BGM resume blocked:', e);
+        });
+        return;
+      }
+
+      this.stopFileBgm();
+      const audio = new Audio(src);
+      audio.loop = true;
+      audio.volume = volume;
+      audio.preload = 'auto';
+      this.fileBgm = audio;
+      this.fileBgmSrc = src;
+
+      void audio.play().catch((e) => {
+        console.warn('File BGM autoplay blocked:', e);
+      });
+    } catch (e) {
+      console.warn('File BGM error', e);
+    }
+  }
+
+  stopFileBgm() {
+    if (!this.fileBgm) return;
+    this.fileBgm.pause();
+    this.fileBgm.currentTime = 0;
+    this.fileBgm = null;
+    this.fileBgmSrc = null;
   }
 }
 

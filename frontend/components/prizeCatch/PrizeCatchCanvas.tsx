@@ -25,6 +25,7 @@ import {
   worldToScreen,
   isVisible,
 } from './level';
+import { PRIZE_CATCH_BG_URL, PRIZE_CATCH_BGM_URL, PRIZE_CATCH_THEME } from './theme';
 
 interface EmergingNumber {
   id: number;
@@ -445,6 +446,7 @@ export const PrizeCatchCanvas: React.FC<Props> = ({
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const stageContainerRef = useRef<HTMLDivElement | null>(null);
   const marioBgmStartedRef = useRef(false);
+  const bgImageRef = useRef<HTMLImageElement | null>(null);
 
   // States
   const [poseDetected, setPoseDetected] = useState(false);
@@ -466,13 +468,26 @@ export const PrizeCatchCanvas: React.FC<Props> = ({
   const ensureMarioBgmStarted = useCallback(() => {
     if (marioBgmStartedRef.current) return;
     marioBgmStartedRef.current = true;
-    soundEffects.playMarioBgm();
+    soundEffects.playFileBgm(PRIZE_CATCH_BGM_URL, 0.42);
   }, []);
 
-  // หยุดเพลงเมื่อจบเกม (ชนะ/แพ้)
   useEffect(() => {
-    if (showModal || showFail) soundEffects.stopMarioBgm();
-  }, [showModal, showFail]);
+    const img = new Image();
+    img.src = PRIZE_CATCH_BG_URL;
+    img.onload = () => {
+      bgImageRef.current = img;
+    };
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      soundEffects.stopFileBgm();
+    };
+  }, []);
+
+  const resumeBgm = useCallback(() => {
+    soundEffects.playFileBgm(PRIZE_CATCH_BGM_URL, 0.42);
+  }, []);
 
   // Fullscreen toggle handler with native API & CSS fallback
   const toggleFullscreen = useCallback(() => {
@@ -1088,32 +1103,38 @@ export const PrizeCatchCanvas: React.FC<Props> = ({
       }
 
       // --- Draw ---
-      ctx.fillStyle = '#1B8EFF';
-      ctx.fillRect(0, 0, VIEW_W, VIEW_H);
-
-      drawCloud(ctx, 40 - cameraX * 0.05, 95, 0.95);
-      drawCloud(ctx, 180 - cameraX * 0.05, 125, 0.7);
-      drawCloud(ctx, 310 - cameraX * 0.05, 90, 1.1);
-      drawCloud(ctx, 460 - cameraX * 0.05, 115, 0.85);
-      drawCloud(ctx, 560 - cameraX * 0.05, 95, 1.0);
+      const bgImg = bgImageRef.current;
+      if (bgImg?.complete && bgImg.naturalWidth > 0) {
+        ctx.drawImage(bgImg, 0, 0, VIEW_W, VIEW_H);
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.42)';
+        ctx.fillRect(0, 0, VIEW_W, VIEW_H);
+      } else {
+        const skyGrad = ctx.createLinearGradient(0, 0, 0, VIEW_H);
+        skyGrad.addColorStop(0, '#050508');
+        skyGrad.addColorStop(0.45, '#14100a');
+        skyGrad.addColorStop(0.75, '#2a1f0c');
+        skyGrad.addColorStop(1, '#3d2a0f');
+        ctx.fillStyle = skyGrad;
+        ctx.fillRect(0, 0, VIEW_W, VIEW_H);
+      }
 
       for (const seg of GROUND_SEGMENTS) {
         const sx = worldToScreen(seg.start, cameraX);
         const sw = seg.end - seg.start;
         if (sx + sw < -20 || sx > VIEW_W + 20) continue;
 
-        ctx.fillStyle = '#00A040';
+        ctx.fillStyle = '#1a1410';
         ctx.fillRect(sx, GROUND_Y, sw, 60);
-        ctx.fillStyle = '#00732C';
+        ctx.fillStyle = '#C9A227';
         ctx.fillRect(sx, GROUND_Y, sw, 4);
+        ctx.fillStyle = '#8B6914';
+        ctx.fillRect(sx, GROUND_Y + 4, sw, 8);
 
-        ctx.fillStyle = '#00CB53';
+        ctx.fillStyle = '#D4AF37';
         for (let wx = seg.start + 12; wx < seg.end - 8; wx += 24) {
           const studX = worldToScreen(wx, cameraX);
           if (studX < -10 || studX > VIEW_W + 10) continue;
-          ctx.beginPath();
-          ctx.ellipse(studX, 422, 6, 2.5, 0, 0, Math.PI * 2);
-          ctx.fill();
+          ctx.fillRect(studX - 3, 419, 6, 6);
         }
       }
 
@@ -1124,16 +1145,28 @@ export const PrizeCatchCanvas: React.FC<Props> = ({
         const lipL = worldToScreen(pitLeft - 8, cameraX);
         const lipR = worldToScreen(pitRight, cameraX);
         if (lipL > VIEW_W + 20 || lipR < -20) continue;
-        ctx.fillStyle = '#795548';
+        ctx.fillStyle = '#3d2f1a';
         ctx.fillRect(lipL, GROUND_Y, 10, 14);
         ctx.fillRect(lipR - 10, GROUND_Y, 10, 14);
+        ctx.fillStyle = '#C9A227';
+        ctx.fillRect(lipL, GROUND_Y, 10, 2);
+        ctx.fillRect(lipR - 10, GROUND_Y, 10, 2);
         ctx.fillStyle = 'rgba(0,0,0,0.25)';
         ctx.fillRect(worldToScreen(pitLeft, cameraX), GROUND_Y + 4, pitRight - pitLeft, 56);
       }
 
-      SCENERY_BUSHES.forEach((wx) => {
+      SCENERY_BUSHES.forEach((wx, i) => {
         if (!isVisible(wx, 40, cameraX)) return;
-        drawBush(ctx, worldToScreen(wx, cameraX), GROUND_Y, 0.85);
+        const heights = [72, 96, 84, 108, 76, 100, 88];
+        const widths = [20, 26, 22, 28, 20, 24, 22];
+        drawBlockyBuilding(
+          ctx,
+          worldToScreen(wx, cameraX),
+          GROUND_Y,
+          widths[i % widths.length],
+          heights[i % heights.length],
+          i % 3
+        );
       });
 
       // Finish flag
@@ -1301,8 +1334,8 @@ export const PrizeCatchCanvas: React.FC<Props> = ({
         animFrameRef.current
       );
 
-      drawPixelBanner(ctx, 'MINDDOJO', 320, 18, 5);
-      drawPixelBanner(ctx, 'WORKTECH EXPO', 320, 62, 3.4);
+      drawPixelBanner(ctx, 'MINDDOJO', 320, 18, 5, 'white');
+      drawPixelBanner(ctx, 'WORKTECH EXPO', 320, 62, 3.4, 'white');
 
       if (!prizeCaughtRef.current && !failedRef.current) {
         ctx.save();
@@ -1570,69 +1603,51 @@ export const PrizeCatchCanvas: React.FC<Props> = ({
     ctx.restore();
   }
 
-  // Helper Roblox Voxel Cloud Renderer
-  function drawCloud(ctx: CanvasRenderingContext2D, x: number, y: number, scale = 1.0) {
+  // Blocky rectangular building (flat roof, lit window grid)
+  function drawBlockyBuilding(
+    ctx: CanvasRenderingContext2D,
+    centerX: number,
+    groundY: number,
+    width: number,
+    height: number,
+    variant = 0
+  ) {
     ctx.save();
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
-    ctx.strokeStyle = 'rgba(180, 210, 255, 0.9)';
-    ctx.lineWidth = 2;
+    const bx = centerX - width / 2;
+    const by = groundY - height;
 
-    const w = 70 * scale;
-    const h = 22 * scale;
-    // Main voxel block
-    ctx.fillRect(x, y, w, h);
-    ctx.strokeRect(x, y, w, h);
-    // Top stacked voxel block
-    ctx.fillRect(x + 15 * scale, y - 12 * scale, 40 * scale, 12 * scale);
-    ctx.strokeRect(x + 15 * scale, y - 12 * scale, 40 * scale, 12 * scale);
-    // Top mini stud block
-    ctx.fillRect(x + 25 * scale, y - 18 * scale, 20 * scale, 6 * scale);
+    ctx.fillStyle = '#12100c';
+    ctx.fillRect(bx, by, width, height);
+    ctx.strokeStyle = '#C9A227';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(bx, by, width, height);
 
-    // Subtle 3D bottom shadow
-    ctx.fillStyle = 'rgba(180, 200, 230, 0.6)';
-    ctx.fillRect(x, y + h - 3, w, 3);
+    ctx.fillStyle = '#2a2218';
+    ctx.fillRect(bx - 1, by - 5, width + 2, 5);
+    ctx.strokeRect(bx - 1, by - 5, width + 2, 5);
+
+    const cellW = 7;
+    const cellH = 8;
+    const gapX = 3;
+    const gapY = 4;
+    const cols = Math.max(1, Math.floor((width - 6) / (cellW + gapX)));
+    const rows = Math.max(2, Math.floor((height - 10) / (cellH + gapY)));
+
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const lit = (r + c + variant) % 3 !== 0;
+        if (!lit) continue;
+        ctx.fillStyle = 'rgba(255, 210, 90, 0.9)';
+        ctx.fillRect(
+          bx + 4 + c * (cellW + gapX),
+          by + 6 + r * (cellH + gapY),
+          cellW,
+          cellH
+        );
+      }
+    }
     ctx.restore();
   }
-
-  // Helper Roblox Obby Blocky Tree / Pillar Renderer
-  function drawBush(ctx: CanvasRenderingContext2D, x: number, y: number, scale = 1.0) {
-    ctx.save();
-    // Blocky Roblox Tree Trunk
-    const trunkW = 14 * scale;
-    const trunkH = 35 * scale;
-    const trunkX = x - trunkW / 2;
-    const trunkY = y - trunkH;
-
-    // Brown Wood Block Trunk
-    ctx.fillStyle = '#795548';
-    ctx.fillRect(trunkX, trunkY, trunkW, trunkH);
-    ctx.strokeStyle = '#3E2723';
-    ctx.lineWidth = 1.5;
-    ctx.strokeRect(trunkX, trunkY, trunkW, trunkH);
-
-    // Neon Roblox Green Foliage (2 stacked blocky cubes)
-    ctx.fillStyle = '#00E676';
-    const leafW1 = 40 * scale;
-    const leafH1 = 20 * scale;
-    ctx.fillRect(x - leafW1 / 2, trunkY - leafH1 + 5, leafW1, leafH1);
-    ctx.strokeStyle = '#00A152';
-    ctx.lineWidth = 1.5;
-    ctx.strokeRect(x - leafW1 / 2, trunkY - leafH1 + 5, leafW1, leafH1);
-
-    ctx.fillStyle = '#00C853';
-    const leafW2 = 30 * scale;
-    const leafH2 = 16 * scale;
-    ctx.fillRect(x - leafW2 / 2, trunkY - leafH1 - leafH2 + 8, leafW2, leafH2);
-    ctx.strokeRect(x - leafW2 / 2, trunkY - leafH1 - leafH2 + 8, leafW2, leafH2);
-
-    // Roblox Top Stud
-    ctx.fillStyle = '#69F0AE';
-    ctx.fillRect(x - 6 * scale, trunkY - leafH1 - leafH2 + 4, 12 * scale, 4 * scale);
-
-    ctx.restore();
-  }
-
-
 
   // Helper 8-bit Huge Pixel Banner renderer
   function drawPixelBanner(
@@ -1640,7 +1655,8 @@ export const PrizeCatchCanvas: React.FC<Props> = ({
     text: string,
     centerX: number,
     startY: number,
-    pixelSize: number = 10
+    pixelSize: number = 10,
+    palette: 'roblox' | 'white' = 'roblox'
   ) {
     const charWidth = 5;
     const charGap = 1.5;
@@ -1689,18 +1705,29 @@ export const PrizeCatchCanvas: React.FC<Props> = ({
       renderPass(ox * pixelSize, oy * pixelSize, () => '#000000');
     }
 
-    // 3. Roblox Iconic Red & White Palette
-    const rowColors = [
-      '#FFFFFF', // row 0: Pure White Top Highlight
-      '#FFFFFF', // row 1: Pure White Top Highlight
-      '#FF332A', // row 2: Roblox Vibrant Red
-      '#E2231A', // row 3: Roblox Classic Red
-      '#E2231A', // row 4: Roblox Classic Red
-      '#B81810', // row 5: Dark Red Shadow Base
-      '#660A05', // row 6: Deep Shadow Base
-    ];
+    // 3. Fill palette
+    const rowColors =
+      palette === 'white'
+        ? [
+            '#FFFFFF',
+            '#FFFFFF',
+            '#F8F8F8',
+            '#F0F0F0',
+            '#E8E8E8',
+            '#D8D8D8',
+            '#C8C8C8',
+          ]
+        : [
+            '#FFFFFF',
+            '#FFFFFF',
+            '#FF332A',
+            '#E2231A',
+            '#E2231A',
+            '#B81810',
+            '#660A05',
+          ];
 
-    renderPass(0, 0, (r) => rowColors[r] || '#E2231A');
+    renderPass(0, 0, (r) => rowColors[r] || (palette === 'white' ? '#FFFFFF' : '#E2231A'));
 
     ctx.restore();
   }
@@ -1764,6 +1791,7 @@ export const PrizeCatchCanvas: React.FC<Props> = ({
   const resetBlock = () => {
     resetPhysics();
     void onNeedNextNumber();
+    resumeBgm();
   };
 
   return (
@@ -1772,10 +1800,10 @@ export const PrizeCatchCanvas: React.FC<Props> = ({
       <div
         ref={stageContainerRef}
         onClick={ensureMarioBgmStarted}
-        className={`relative w-full overflow-hidden bg-slate-900 transition-all flex items-center justify-center [&:fullscreen]:w-screen [&:fullscreen]:h-screen [&:fullscreen]:bg-slate-950 [&:fullscreen]:p-0 ${
+        className={`relative w-full overflow-hidden bg-black/40 transition-all flex items-center justify-center [&:fullscreen]:w-screen [&:fullscreen]:h-screen [&:fullscreen]:bg-black [&:fullscreen]:p-0 ${
           isFullscreen
-            ? 'fixed inset-0 z-50 rounded-none w-screen h-screen bg-slate-950 p-0 border-0 ring-0'
-            : 'rounded-3xl border-4 border-black ring-4 ring-yellow-400/80 shadow-[0_20px_50px_rgba(0,0,0,0.7)] aspect-[4/3]'
+            ? PRIZE_CATCH_THEME.stageFullscreen
+            : `${PRIZE_CATCH_THEME.stageFrame} aspect-[4/3]`
         }`}
       >
         <div className={`relative w-full h-full flex items-center justify-center ${isFullscreen ? 'p-0' : 'p-1 md:p-2'}`}>
@@ -1798,7 +1826,7 @@ export const PrizeCatchCanvas: React.FC<Props> = ({
         {/* Top-Right Floating Fullscreen Toggle Button */}
         <button
           onClick={toggleFullscreen}
-          className="absolute top-4 right-4 z-30 p-2.5 bg-black/80 hover:bg-black text-yellow-300 hover:text-yellow-200 border-2 border-yellow-400/70 hover:border-yellow-300 rounded-xl backdrop-blur-md shadow-xl transition-all active:scale-95 flex items-center justify-center"
+          className="absolute top-4 right-4 z-30 p-2.5 bg-black/70 hover:bg-black/90 text-amber-300 hover:text-amber-100 border-2 border-amber-400/60 hover:border-amber-300 rounded-xl backdrop-blur-md shadow-[0_0_16px_rgba(251,191,36,0.2)] transition-all active:scale-95 flex items-center justify-center"
           title={isFullscreen ? 'ออกจากหน้าจอเต็ม (Exit Fullscreen)' : 'ขยายเต็มจอ (Fullscreen)'}
         >
           {isFullscreen ? (
@@ -1812,7 +1840,7 @@ export const PrizeCatchCanvas: React.FC<Props> = ({
         {cameraOn && !cameraError && (
           <div
             onClick={() => setPipLarge(!pipLarge)}
-            className={`absolute bottom-4 right-4 rounded-2xl border-4 border-white overflow-hidden shadow-2xl bg-black cursor-pointer z-20 transition-all duration-300 ${
+            className={`absolute bottom-4 right-4 rounded-2xl border-4 border-amber-400/70 overflow-hidden shadow-[0_0_24px_rgba(251,191,36,0.25)] bg-black cursor-pointer z-20 transition-all duration-300 ${
               pipLarge ? 'w-72 h-52' : 'w-52 h-36'
             }`}
             title="Click to resize camera"
@@ -1829,14 +1857,14 @@ export const PrizeCatchCanvas: React.FC<Props> = ({
 
         {/* Camera Permission Alert Banner if needed */}
         {cameraError && (
-          <div className="absolute top-4 inset-x-4 bg-yellow-400 text-slate-950 px-4 py-3 rounded-2xl border-2 border-black font-medium shadow-xl flex items-center justify-between">
+          <div className="absolute top-4 inset-x-4 bg-amber-400 text-black px-4 py-3 rounded-2xl border-2 border-amber-200 font-medium shadow-[0_0_20px_rgba(251,191,36,0.35)] flex items-center justify-between">
             <div className="flex items-center space-x-2 text-xs">
               <Camera className="w-4 h-4 shrink-0" />
               <span className="font-bold">{cameraError}</span>
             </div>
             <button
               onClick={handleSimulateJump}
-              className="px-3.5 py-1.5 bg-black text-yellow-400 hover:bg-slate-900 rounded-xl text-xs font-black transition shadow-md"
+              className="px-3.5 py-1.5 bg-black text-amber-300 hover:bg-black/80 rounded-xl text-xs font-black transition shadow-md"
             >
               Simulate Jump
             </button>
@@ -1923,20 +1951,20 @@ export const PrizeCatchCanvas: React.FC<Props> = ({
       </div>
 
       {/* On-Screen D-Pad & Keyboard Controls Helper */}
-      <div className="w-full bg-slate-900/90 backdrop-blur-md rounded-2xl border border-slate-700/80 p-3.5 shadow-xl flex flex-wrap items-center justify-between gap-3">
+      <div className={`w-full p-3.5 flex flex-wrap items-center justify-between gap-3 ${PRIZE_CATCH_THEME.glassPanel}`}>
         <div className="flex items-center space-x-2">
-          <span className="text-xs font-black text-yellow-400 bg-black/60 px-3 py-1.5 rounded-xl border border-yellow-400/40 uppercase tracking-wide">
+          <span className={PRIZE_CATCH_THEME.badgeGold}>
             🎮 กระโดดตามถึงเส้นชัย
           </span>
-          <span className="text-[11px] text-slate-400 hidden sm:inline font-mono">
-            โหม่ง 3 ครั้ง → กระโดดข้ามหลุมถึงธง | <kbd className="px-1.5 py-0.5 bg-slate-800 border border-slate-600 rounded text-slate-200">Space</kbd> กระโดด — ตกหลุม = FAIL
+          <span className={`text-[11px] hidden sm:inline font-mono ${PRIZE_CATCH_THEME.textMuted}`}>
+            โหม่ง 3 ครั้ง → กระโดดข้ามหลุมถึงธง | <kbd className="px-1.5 py-0.5 bg-black/50 border border-amber-400/30 rounded text-amber-100">Space</kbd> กระโดด — ตกหลุม = FAIL
           </span>
         </div>
 
         <div className="flex items-center space-x-2">
           <button
             onClick={handleMoveLeft}
-            className="px-4 py-2 bg-slate-800 hover:bg-slate-700 active:bg-slate-900 text-slate-100 font-extrabold text-xs rounded-xl border border-slate-600 shadow-md transition-all active:scale-95 flex items-center space-x-1.5"
+            className={`px-4 py-2 font-extrabold text-xs rounded-xl shadow-md transition-all active:scale-95 flex items-center space-x-1.5 ${PRIZE_CATCH_THEME.btnGhost}`}
             title="Walk Character Left"
           >
             <span>⬅️ Left</span>
@@ -1944,7 +1972,7 @@ export const PrizeCatchCanvas: React.FC<Props> = ({
 
           <button
             onClick={handleCharacterJump}
-            className="px-5 py-2 bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-slate-950 font-black text-xs rounded-xl border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all active:translate-y-0.5 active:shadow-none flex items-center space-x-1.5"
+            className={`px-5 py-2 flex items-center space-x-1.5 ${PRIZE_CATCH_THEME.btnPrimary}`}
             title="Jump Character Upwards"
           >
             <span>🦘 JUMP!</span>
@@ -1952,7 +1980,7 @@ export const PrizeCatchCanvas: React.FC<Props> = ({
 
           <button
             onClick={handleMoveRight}
-            className="px-4 py-2 bg-slate-800 hover:bg-slate-700 active:bg-slate-900 text-slate-100 font-extrabold text-xs rounded-xl border border-slate-600 shadow-md transition-all active:scale-95 flex items-center space-x-1.5"
+            className={`px-4 py-2 font-extrabold text-xs rounded-xl shadow-md transition-all active:scale-95 flex items-center space-x-1.5 ${PRIZE_CATCH_THEME.btnGhost}`}
             title="Walk Character Right"
           >
             <span>Right ➡️</span>
@@ -1961,15 +1989,15 @@ export const PrizeCatchCanvas: React.FC<Props> = ({
       </div>
 
       {/* Interactive Control Deck with Tactile Pill Buttons */}
-      <div className="w-full bg-slate-900/95 backdrop-blur-lg rounded-2xl border-2 border-slate-700/80 p-4 shadow-2xl flex flex-wrap items-center justify-between gap-3">
+      <div className={`w-full p-4 flex flex-wrap items-center justify-between gap-3 ${PRIZE_CATCH_THEME.glassPanelStrong}`}>
         {/* Toggle Camera, Fullscreen & Debug HUD */}
         <div className="flex items-center space-x-2">
           <button
             onClick={() => setCameraOn(!cameraOn)}
             className={`flex items-center space-x-2 px-5 py-2.5 rounded-full text-xs font-extrabold transition-all shadow-md ${
               cameraOn
-                ? 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'
-                : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-600'
+                ? 'bg-gradient-to-r from-amber-400 to-yellow-500 text-black border-2 border-amber-200/50 shadow-[0_0_16px_rgba(251,191,36,0.3)]'
+                : `${PRIZE_CATCH_THEME.btnGhost} rounded-full`
             }`}
           >
             {cameraOn ? <Camera className="w-4 h-4" /> : <CameraOff className="w-4 h-4" />}
@@ -1980,8 +2008,8 @@ export const PrizeCatchCanvas: React.FC<Props> = ({
             onClick={toggleFullscreen}
             className={`flex items-center space-x-2 px-4 py-2.5 rounded-full text-xs font-extrabold transition-all shadow-md ${
               isFullscreen
-                ? 'bg-amber-400 text-slate-950 border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'
-                : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600'
+                ? 'bg-gradient-to-r from-amber-400 to-yellow-500 text-black border-2 border-amber-200/50 shadow-[0_0_16px_rgba(251,191,36,0.3)]'
+                : `${PRIZE_CATCH_THEME.btnGhost} rounded-full`
             }`}
             title={isFullscreen ? 'ออกจากหน้าจอเต็ม (Exit Fullscreen)' : 'ขยายเกมเต็มจอ (Fullscreen)'}
           >
@@ -1993,8 +2021,8 @@ export const PrizeCatchCanvas: React.FC<Props> = ({
             onClick={() => setDebugMode(!debugMode)}
             className={`flex items-center space-x-2 px-4 py-2.5 rounded-full text-xs font-bold transition-all ${
               debugMode
-                ? 'bg-cyan-500/20 text-cyan-300 border-2 border-cyan-400/60 shadow-[2px_2px_0px_0px_rgba(0,0,0,0.5)]'
-                : 'bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700'
+                ? 'bg-amber-400/20 text-amber-200 border-2 border-amber-400/60 shadow-[0_0_12px_rgba(251,191,36,0.2)]'
+                : `${PRIZE_CATCH_THEME.btnGhost} rounded-full`
             }`}
           >
             {debugMode ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
@@ -2002,7 +2030,7 @@ export const PrizeCatchCanvas: React.FC<Props> = ({
           </button>
         </div>
 
-        <p className="text-xs font-black text-amber-300 bg-black/60 px-3 py-1.5 rounded-xl border border-amber-400/40">
+        <p className={PRIZE_CATCH_THEME.badgeGold}>
             โหม่ง 3 ครั้ง แล้วกระโดดตามถึงเส้นชัย — ตกหลุม = FAIL
         </p>
 
@@ -2010,7 +2038,7 @@ export const PrizeCatchCanvas: React.FC<Props> = ({
         <div className="flex items-center space-x-2">
           <button
             onClick={handleSimulateJump}
-            className="flex items-center space-x-2 px-5 py-2.5 bg-yellow-400 hover:bg-yellow-300 text-slate-950 rounded-full text-xs font-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] border-2 border-black transition-all active:translate-y-0.5 active:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]"
+            className={`flex items-center space-x-2 px-5 py-2.5 rounded-full text-xs font-black border-2 border-amber-200/40 transition-all active:translate-y-0.5 ${PRIZE_CATCH_THEME.btnPrimary}`}
             title="Trigger a virtual jump to bump the block"
           >
             <Play className="w-4 h-4 fill-current" />
@@ -2019,7 +2047,7 @@ export const PrizeCatchCanvas: React.FC<Props> = ({
 
           <button
             onClick={resetBlock}
-            className="flex items-center space-x-1.5 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-full text-xs font-bold border border-slate-600 transition"
+            className={`flex items-center space-x-1.5 px-4 py-2.5 rounded-full text-xs font-bold transition ${PRIZE_CATCH_THEME.btnGhost}`}
             title="Reset block state"
           >
             <RefreshCw className="w-3.5 h-3.5" />
@@ -2030,9 +2058,9 @@ export const PrizeCatchCanvas: React.FC<Props> = ({
 
       {/* Number History Strip */}
       {assignedHistory.length > 0 && (
-        <div className="w-full bg-slate-900/90 border-2 border-slate-700/80 rounded-2xl p-3 shadow-xl flex items-center space-x-3 overflow-x-auto">
-          <div className="flex items-center space-x-1.5 text-xs font-black text-yellow-400 shrink-0">
-            <Sparkles className="w-4 h-4 text-yellow-300 animate-pulse" />
+        <div className={`w-full p-3 flex items-center space-x-3 overflow-x-auto ${PRIZE_CATCH_THEME.glassPanel}`}>
+          <div className="flex items-center space-x-1.5 text-xs font-black text-amber-300 shrink-0">
+            <Sparkles className="w-4 h-4 text-amber-200 animate-pulse" />
             <span>เลขที่แจกไปแล้ว ({assignedHistory.length}):</span>
           </div>
           <div className="flex items-center space-x-2 overflow-x-auto py-0.5">
@@ -2041,8 +2069,8 @@ export const PrizeCatchCanvas: React.FC<Props> = ({
                 key={`${num}-${idx}`}
                 className={`px-3 py-1 rounded-xl text-xs font-black border font-mono shrink-0 ${
                   idx === 0
-                    ? 'bg-gradient-to-r from-yellow-400 to-amber-500 text-slate-950 border-black shadow-md scale-105'
-                    : 'bg-slate-800 text-slate-300 border-slate-700'
+                    ? 'bg-gradient-to-r from-amber-400 to-yellow-500 text-black border-amber-200/50 shadow-[0_0_12px_rgba(251,191,36,0.3)] scale-105'
+                    : 'bg-black/50 text-amber-100/80 border-amber-900/60'
                 }`}
               >
                 #{num}
