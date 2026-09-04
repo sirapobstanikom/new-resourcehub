@@ -2,7 +2,9 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
+import * as XLSX from 'xlsx';
 import {
+  buildElevateResponsesExcelSheets,
   computeElevateDashboard,
   deleteElevateResponsesLocal,
   findElevateBankById,
@@ -41,6 +43,7 @@ const ElevatePretestPosttestDashboardPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [tick, setTick] = useState(0);
   const [exporting, setExporting] = useState(false);
+  const [exportingExcel, setExportingExcel] = useState(false);
   const [error, setError] = useState('');
   const [deletingIds, setDeletingIds] = useState<string[]>([]);
   const dashboardRef = useRef<HTMLDivElement>(null);
@@ -147,6 +150,29 @@ const ElevatePretestPosttestDashboardPage: React.FC = () => {
     }
   };
 
+  const downloadExcel = () => {
+    if (!bank) return;
+    setExportingExcel(true);
+    setError('');
+    try {
+      if (bankResponses.length === 0) {
+        setError('ยังไม่มีคำตอบสำหรับชุดนี้');
+        return;
+      }
+      const { rawRows, pairedRows, fileBaseName } = buildElevateResponsesExcelSheets(bank, responses);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rawRows), 'คำตอบทั้งหมด');
+      if (pairedRows.length > 0) {
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(pairedRows), 'สรุปรายคน');
+      }
+      XLSX.writeFile(wb, `${fileBaseName}_pretest-posttest.xlsx`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'ดาวน์โหลด Excel ไม่สำเร็จ');
+    } finally {
+      setExportingExcel(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#070707] text-zinc-400">
@@ -198,6 +224,14 @@ const ElevatePretestPosttestDashboardPage: React.FC = () => {
               className="rounded-xl bg-yellow-400 px-4 py-2 text-sm font-bold text-black hover:bg-yellow-300 disabled:opacity-60"
             >
               {exporting ? 'กำลังสร้าง PDF...' : 'ดาวน์โหลด PDF'}
+            </button>
+            <button
+              type="button"
+              onClick={downloadExcel}
+              disabled={exportingExcel}
+              className="rounded-xl border border-emerald-400/40 bg-emerald-500/15 px-4 py-2 text-sm font-bold text-emerald-100 hover:bg-emerald-500/25 disabled:opacity-60"
+            >
+              {exportingExcel ? 'กำลังสร้าง Excel...' : 'Download Excel'}
             </button>
             <Link
               to="/elevate-pretest-posttest-editor"

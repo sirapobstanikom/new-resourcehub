@@ -453,3 +453,97 @@ export function formatElevatePercent(value: number, digits = 1): string {
     maximumFractionDigits: digits,
   });
 }
+
+function sanitizeElevateFileName(name: string): string {
+  return name.replace(/[<>:"/\\|?*\u0000-\u001F]/g, '').trim().slice(0, 80) || 'elevate';
+}
+
+function formatElevateExportDateTime(iso: string): string {
+  if (!iso) return '-';
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return iso;
+  return date.toLocaleString('th-TH', {
+    timeZone: 'Asia/Bangkok',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  });
+}
+
+function questionColumnKey(question: ElevateQuestion, index: number): string {
+  const title = question.title.trim() || `ข้อ ${index + 1}`;
+  return `${index + 1}. ${title}`;
+}
+
+/** สร้างแถว Excel: คำตอบทั้งหมด + สรุปรายคน (จับคู่ Pre/Post) */
+export function buildElevateResponsesExcelSheets(
+  bank: ElevateTestBank,
+  allResponses: ElevateTestResponse[]
+): {
+  rawRows: Record<string, string | number>[];
+  pairedRows: Record<string, string | number>[];
+  fileBaseName: string;
+} {
+  const bankResponses = allResponses
+    .filter((row) => row.bankId === bank.id)
+    .sort((a, b) => (a.createdAt || '').localeCompare(b.createdAt || ''));
+
+  const questionKeysByPhase: Record<ElevateTestPhase, string[]> = {
+    pretest: bank.pretest.map((q, i) => questionColumnKey(q, i)),
+    posttest: bank.posttest.map((q, i) => questionColumnKey(q, i)),
+  };
+  const questionByPhase: Record<ElevateTestPhase, ElevateQuestion[]> = {
+    pretest: bank.pretest,
+    posttest: bank.posttest,
+  };
+
+  const allQuestionKeys = Array.from(
+    new Set([...questionKeysByPhase.pretest, ...questionKeysByPhase.posttest])
+  );
+
+  const rawRows = bankResponses.map((row, idx) => {
+    const questions = questionByPhase[row.phase] || [];
+    const keys = questionKeysByPhase[row.phase] || [];
+    const record: Record<string, string | number> = {
+      ลำดับ: idx + 1,
+      ชื่อ: row.respondentName || 'ไม่ระบุชื่อ',
+      รอบ: row.phase === 'pretest' ? 'Pretest' : 'Posttest',
+      คะแนน: row.score,
+      คะแนนเต็ม: row.total,
+      เปอร์เซ็นต์: Number(scorePercent(row.score, row.total).toFixed(1)),
+      เวลาส่ง: formatElevateExportDateTime(row.createdAt),
+    };
+    allQuestionKeys.forEach((key) => {
+      record[key] = '';
+    });
+    questions.forEach((question, qIdx) => {
+      const key = keys[qIdx];
+      if (!key) return;
+      record[key] = row.answers?.[question.id] || '';
+    });
+    return record;
+  });
+
+  const stats = computeElevateDashboard(bank.id, allResponses);
+  const pairedRows = stats.paired.map((row, idx) => ({
+    ลำดับ: idx + 1,
+    ชื่อ: row.name,
+    'Pretest %': Number(row.pretestPercent.toFixed(1)),
+    'Pretest คะแนน': `${row.pretestScore}/${row.pretestTotal}`,
+    'Posttest %': Number(row.posttestPercent.toFixed(1)),
+    'Posttest คะแนน': `${row.posttestScore}/${row.posttestTotal}`,
+    'เพิ่มขึ้น (pt)': Number(row.gainPoints.toFixed(1)),
+    'จากเดิม (%)':
+      row.gainFromBaselinePercent == null ? '' : Number(row.gainFromBaselinePercent.toFixed(1)),
+  }));
+
+  return {
+    rawRows,
+    pairedRows,
+    fileBaseName: sanitizeElevateFileName(bank.name),
+  };
+}

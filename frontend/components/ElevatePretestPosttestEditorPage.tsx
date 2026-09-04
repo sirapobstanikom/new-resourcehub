@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { BarChart3, ChevronDown, ChevronUp, Copy, ExternalLink, Plus, Trash2 } from 'lucide-react';
+import { BarChart3, ChevronDown, ChevronUp, Copy, Download, ExternalLink, Plus, Trash2 } from 'lucide-react';
+import * as XLSX from 'xlsx';
 import {
+  buildElevateResponsesExcelSheets,
   countScored,
   createEmptyBank,
   createEmptyQuestion,
@@ -8,6 +10,7 @@ import {
   elevateUniqueIdFromName,
   elevateUserFormPath,
   elevateUserFormUrl,
+  loadElevateResponsesLocal,
   loadStoredElevateBanks,
   newElevateId,
   questionTypeLabel,
@@ -22,6 +25,7 @@ import {
   deleteElevateBankFromSupabase,
   ELEVATE_PPT_TABLE_SQL,
   fetchElevateBanksFromSupabase,
+  fetchElevateResponsesFromSupabase,
   upsertAllElevateBanksToSupabase,
   upsertElevateBankToSupabase,
 } from '../lib/elevatePretestPosttestSupabase';
@@ -64,6 +68,7 @@ const ElevatePretestPosttestEditorPage: React.FC = () => {
   const [loadingRemote, setLoadingRemote] = useState(false);
   const [tableMissing, setTableMissing] = useState(false);
   const [sqlCopied, setSqlCopied] = useState(false);
+  const [exportingExcel, setExportingExcel] = useState(false);
 
   const banksRef = useRef(banks);
   const syncTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -433,6 +438,39 @@ const ElevatePretestPosttestEditorPage: React.FC = () => {
     setMessage('คัดลอกโจทย์จาก Pretest → Posttest แล้ว');
   };
 
+  const downloadBankExcel = async () => {
+    if (!selected) return;
+    setExportingExcel(true);
+    setMessage('');
+    try {
+      let responses = loadElevateResponsesLocal().filter((row) => row.bankId === selected.id);
+      if (isSupabaseConfigured) {
+        const remote = await fetchElevateResponsesFromSupabase(selected.id);
+        if (!remote.tableMissing && !remote.error && remote.responses.length > 0) {
+          responses = remote.responses;
+        }
+      }
+
+      if (responses.length === 0) {
+        setMessage('ยังไม่มีคำตอบสำหรับชุดนี้');
+        return;
+      }
+
+      const { rawRows, pairedRows, fileBaseName } = buildElevateResponsesExcelSheets(selected, responses);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rawRows), 'คำตอบทั้งหมด');
+      if (pairedRows.length > 0) {
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(pairedRows), 'สรุปรายคน');
+      }
+      XLSX.writeFile(wb, `${fileBaseName}_pretest-posttest.xlsx`);
+      setMessage(`ดาวน์โหลด Excel แล้ว (${responses.length} รายการ)`);
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : 'ดาวน์โหลด Excel ไม่สำเร็จ');
+    } finally {
+      setExportingExcel(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#070707] text-white selection:bg-yellow-300 selection:text-black">
       <header className="border-b border-yellow-400/15 bg-[#0a0a0a]">
@@ -587,6 +625,15 @@ const ElevatePretestPosttestEditorPage: React.FC = () => {
                       <BarChart3 className="h-4 w-4" />
                       Dashboard
                     </a>
+                    <button
+                      type="button"
+                      onClick={() => void downloadBankExcel()}
+                      disabled={exportingExcel}
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-400/40 bg-emerald-500/15 px-3 py-2 text-sm font-semibold text-emerald-100 hover:bg-emerald-500/25 disabled:opacity-60"
+                    >
+                      <Download className="h-4 w-4" />
+                      {exportingExcel ? 'กำลังโหลด...' : 'Download Excel'}
+                    </button>
                     <button
                       type="button"
                       onClick={deleteBank}
