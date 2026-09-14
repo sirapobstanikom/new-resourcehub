@@ -553,6 +553,26 @@ const EvaEditorPage: React.FC = () => {
     saveTemplates(next, { upsertTemplateId: selectedTemplate.id });
   };
 
+  const updateTemplateSubmittedTitle = (submittedTitle: string) => {
+    if (!selectedTemplate) return;
+    const next = templates.map((item) =>
+      item.id === selectedTemplate.id
+        ? { ...item, submittedTitle, updatedAt: new Date().toISOString() }
+        : item
+    );
+    saveTemplates(next, { upsertTemplateId: selectedTemplate.id });
+  };
+
+  const updateTemplateSubmittedBody = (submittedBody: string) => {
+    if (!selectedTemplate) return;
+    const next = templates.map((item) =>
+      item.id === selectedTemplate.id
+        ? { ...item, submittedBody, updatedAt: new Date().toISOString() }
+        : item
+    );
+    saveTemplates(next, { upsertTemplateId: selectedTemplate.id });
+  };
+
   const updateTemplateLanguage = (language: 'th' | 'en') => {
     if (!selectedTemplate) return;
     const next = templates.map((item) =>
@@ -1595,6 +1615,31 @@ const EvaEditorPage: React.FC = () => {
                     placeholder="เช่น โปรดตอบตามความคิดเห็นจริง ใช้เวลาประมาณ 3-5 นาที"
                     className="mt-1 w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm resize-y"
                   />
+                  <div className="mt-4 rounded-xl border border-emerald-400/25 bg-emerald-500/5 p-3 space-y-3">
+                    <p className="text-sm font-semibold text-emerald-200">ข้อความหลังส่งคำตอบ</p>
+                    <p className="text-[11px] text-gray-500">
+                      แสดงเมื่อผู้ตอบกดส่งแบบประเมินสำเร็จ — ว่างไว้จะใช้ข้อความเริ่มต้น
+                    </p>
+                    <div>
+                      <label className="text-sm text-gray-400">หัวข้อ</label>
+                      <input
+                        value={selectedTemplate.submittedTitle || ''}
+                        onChange={(e) => updateTemplateSubmittedTitle(e.target.value)}
+                        placeholder="ส่งคำตอบเรียบร้อย"
+                        className="mt-1 w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm text-gray-400">รายละเอียด</label>
+                      <textarea
+                        value={selectedTemplate.submittedBody || ''}
+                        onChange={(e) => updateTemplateSubmittedBody(e.target.value)}
+                        rows={2}
+                        placeholder="ขอบคุณสำหรับการทำแบบประเมิน"
+                        className="mt-1 w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm resize-y"
+                      />
+                    </div>
+                  </div>
                   <div className="mt-3">
                     <p className="text-sm text-gray-400">ภาษาบนฟอร์มผู้ตอบ</p>
                     <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1.5 text-sm text-gray-200">

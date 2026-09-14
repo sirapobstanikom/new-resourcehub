@@ -4,6 +4,10 @@ export type EvaEvaluationTemplate = {
   /** หัวข้อใหญ่บนฟอร์มผู้ตอบ (ใส่ก่อนชื่อแบบประเมินได้ หรือไม่ใส่ก็ได้) */
   heading?: string;
   description?: string;
+  /** ข้อความหลังส่งคำตอบ — หัวข้อ (ว่าง = ใช้ค่าเริ่มต้นตามภาษา) */
+  submittedTitle?: string;
+  /** ข้อความหลังส่งคำตอบ — รายละเอียด (ว่าง = ใช้ค่าเริ่มต้นตามภาษา) */
+  submittedBody?: string;
   /** ภาษา UI ของฟอร์มผู้ตอบ — คำถามยังเป็นข้อความที่พิมพ์ใน editor */
   language?: EvaFormLanguage;
   /** แปล EN ไว้ล่วงหน้า (sync กับ updatedAt) */
@@ -392,12 +396,20 @@ export function parseEvaPromptsJson(raw: unknown): {
   prompts: EvaPrompt[];
   language: EvaFormLanguage;
   englishSnapshot?: EvaEnglishSnapshot;
+  submittedTitle?: string;
+  submittedBody?: string;
 } {
   if (Array.isArray(raw)) {
     return { prompts: raw as EvaPrompt[], language: 'th' };
   }
   if (raw && typeof raw === 'object') {
-    const o = raw as { prompts?: unknown; language?: unknown; english?: unknown };
+    const o = raw as {
+      prompts?: unknown;
+      language?: unknown;
+      english?: unknown;
+      submittedTitle?: unknown;
+      submittedBody?: unknown;
+    };
     if (Array.isArray(o.prompts)) {
       let englishSnapshot: EvaEnglishSnapshot | undefined;
       if (o.english && typeof o.english === 'object') {
@@ -416,6 +428,8 @@ export function parseEvaPromptsJson(raw: unknown): {
         prompts: o.prompts as EvaPrompt[],
         language: parseEvaFormLanguage(o.language),
         englishSnapshot,
+        submittedTitle: typeof o.submittedTitle === 'string' ? o.submittedTitle : undefined,
+        submittedBody: typeof o.submittedBody === 'string' ? o.submittedBody : undefined,
       };
     }
   }
@@ -424,15 +438,22 @@ export function parseEvaPromptsJson(raw: unknown): {
 
 export function encodeEvaPromptsJson(template: EvaEvaluationTemplate): unknown {
   const language = parseEvaFormLanguage(template.language);
-  if (language === 'th') return template.prompts;
+  const submittedTitle = template.submittedTitle?.trim() || '';
+  const submittedBody = template.submittedBody?.trim() || '';
+  const hasSubmittedCopy = Boolean(submittedTitle || submittedBody);
+  const hasEnglishSnapshot =
+    Boolean(template.englishSnapshot) &&
+    template.englishSnapshot?.syncedAt === template.updatedAt;
+
+  if (language === 'th' && !hasSubmittedCopy) return template.prompts;
+
   const payload: Record<string, unknown> = {
-    language: 'en',
     prompts: template.prompts,
   };
-  if (
-    template.englishSnapshot &&
-    template.englishSnapshot.syncedAt === template.updatedAt
-  ) {
+  if (language === 'en') payload.language = 'en';
+  if (submittedTitle) payload.submittedTitle = submittedTitle;
+  if (submittedBody) payload.submittedBody = submittedBody;
+  if (hasEnglishSnapshot) {
     payload.english = template.englishSnapshot;
   }
   return payload;
