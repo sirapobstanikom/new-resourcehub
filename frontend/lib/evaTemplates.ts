@@ -534,12 +534,19 @@ export function getEvaPublicFormCopy(language: EvaFormLanguage | undefined): Eva
 export const LEGACY_DEFAULT_TEMPLATE_ID = 'eva-innoclub-default';
 
 /**
- * สร้าง id ในรูปแบบ eva-{ชื่อแบบประเมิน} (ช่องว่างเป็น - )
+ * สร้าง id ในรูปแบบ eva-{ชื่อแบบประเมิน} อ่านง่ายใน URL
+ * เก็บตัวอักษร/ตัวเลข (รวมไทย) ช่องว่างเป็น - ตัดสัญลักษณ์ที่ทำให้ลิงก์รก
  */
 export function evaBaseIdFromName(name: string): string {
   const trimmed = name.trim() || 'แบบประเมิน';
-  const slug = trimmed.replace(/\s+/g, '-');
-  return `eva-${slug}`;
+  const slug = trimmed
+    .normalize('NFC')
+    .replace(/[^\p{L}\p{N}\s_-]+/gu, '')
+    .replace(/[\s_]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 80);
+  return `eva-${slug || 'form'}`;
 }
 
 export function evaUniqueIdFromName(name: string, existingIds: ReadonlySet<string>): string {

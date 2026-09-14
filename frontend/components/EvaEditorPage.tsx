@@ -240,8 +240,20 @@ const EvaEditorPage: React.FC = () => {
     [templates, selectedId]
   );
 
-  const buildPublicLink = (id: string) =>
-    `${window.location.origin}/evaluation/form/${encodeURIComponent(id)}`;
+  const buildPublicLink = (id: string) => {
+    const origin = typeof window !== 'undefined' ? window.location.origin : '';
+    // ไม่ percent-encode ทั้งสตริง — ให้ไทย/อังกฤษอ่านง่ายตอนคัดลอก
+    // เข้ารหัสเฉพาะอักขระที่ทำให้ URL พังจริง ๆ
+    const safeId = id
+      .split('/')
+      .map((part) =>
+        part.replace(/[#?&%\\\s]/g, (ch) => encodeURIComponent(ch))
+      )
+      .join('/');
+    return `${origin}/evaluation/form/${safeId}`;
+  };
+
+  const buildPublicPath = (id: string) => `/evaluation/form/${id}`;
 
   const syncTemplateToSupabase = async (template: EvaEvaluationTemplate) => {
     if (!isSupabaseConfigured) return;
@@ -1297,10 +1309,35 @@ const EvaEditorPage: React.FC = () => {
                 <p className="text-sm font-semibold text-yellow-100">
                   {draftDashboard.label.trim() || '(ตั้งชื่อภายในก่อนหรือกรอกที่ช่องด้านบน)'}
                 </p>
-                <p className="text-[11px] text-gray-500 font-mono break-all">{draftDashboard.id}</p>
+                <div className="flex gap-2 items-stretch">
+                  <input
+                    readOnly
+                    value={`${typeof window !== 'undefined' ? window.location.origin : ''}/evaluation/dashboard?dash=${draftDashboard.id}`}
+                    onFocus={(e) => e.currentTarget.select()}
+                    className="flex-1 min-w-0 rounded-lg border border-white/15 bg-black/40 px-3 py-2 text-xs text-gray-100 font-mono"
+                  />
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      const url = `${window.location.origin}/evaluation/dashboard?dash=${draftDashboard.id}`;
+                      try {
+                        await navigator.clipboard.writeText(url);
+                        setMessage('คัดลอกลิงก์ Dashboard แล้ว');
+                      } catch {
+                        setMessage('คัดลอกลิงก์ไม่สำเร็จ');
+                      }
+                    }}
+                    className="shrink-0 rounded-lg bg-yellow-400 px-3 py-2 text-xs font-bold text-black hover:bg-yellow-300"
+                  >
+                    คัดลอก
+                  </button>
+                </div>
+                <p className="text-[11px] text-gray-500 font-mono break-all">
+                  ?dash={draftDashboard.id}
+                </p>
                 <div className="flex flex-wrap gap-2 pt-1">
                   <a
-                    href={`/evaluation/dashboard?dash=${encodeURIComponent(draftDashboard.id)}`}
+                    href={`/evaluation/dashboard?dash=${draftDashboard.id}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex rounded-lg border border-white/20 bg-white/10 px-2.5 py-1 text-xs font-medium text-gray-100 hover:bg-white/15"
@@ -1550,13 +1587,16 @@ const EvaEditorPage: React.FC = () => {
                   <p className="font-medium truncate">{item.name}</p>
                   <p className="text-xs text-gray-400 mt-1">{item.prompts.length} รายการ</p>
                 </button>
+                <p className="mt-1.5 text-[10px] leading-snug text-gray-500 break-all font-mono" title={buildPublicPath(item.id)}>
+                  {buildPublicPath(item.id)}
+                </p>
                 <a
-                  href={`/evaluation/form/${encodeURIComponent(item.id)}`}
+                  href={buildPublicPath(item.id)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-block mt-2 text-xs text-yellow-200 hover:text-yellow-100 underline underline-offset-2"
                 >
-                  ลิงก์ผู้ใช้
+                  เปิดลิงก์
                 </a>
                 <button
                   type="button"
@@ -1671,29 +1711,41 @@ const EvaEditorPage: React.FC = () => {
                       <p className="mt-1 text-[11px] text-yellow-200/90">กำลังแปลเป็นภาษาอังกฤษ...</p>
                     ) : null}
                   </div>
-                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <div className="mt-3 rounded-xl border border-yellow-400/25 bg-yellow-400/5 p-3 space-y-2">
+                    <p className="text-xs font-semibold text-yellow-100">ลิงก์สำหรับผู้ตอบแบบประเมิน</p>
+                    <div className="flex gap-2 items-stretch">
+                      <input
+                        readOnly
+                        value={buildPublicLink(selectedTemplate.id)}
+                        onFocus={(e) => e.currentTarget.select()}
+                        className="flex-1 min-w-0 rounded-lg border border-white/15 bg-black/40 px-3 py-2 text-xs text-gray-100 font-mono break-all"
+                      />
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          try {
+                            await navigator.clipboard.writeText(buildPublicLink(selectedTemplate.id));
+                            setMessage('คัดลอกลิงก์ผู้ใช้แล้ว');
+                          } catch {
+                            setMessage('คัดลอกลิงก์ไม่สำเร็จ');
+                          }
+                        }}
+                        className="shrink-0 rounded-lg bg-yellow-400 px-3 py-2 text-xs font-bold text-black hover:bg-yellow-300 transition-colors"
+                      >
+                        คัดลอก
+                      </button>
+                    </div>
+                    <p className="text-[11px] text-gray-500 break-all">
+                      path: <span className="font-mono text-gray-400">{buildPublicPath(selectedTemplate.id)}</span>
+                    </p>
                     <a
-                      href={`/evaluation/form/${encodeURIComponent(selectedTemplate.id)}`}
+                      href={buildPublicPath(selectedTemplate.id)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-xs rounded-md bg-white/10 px-2.5 py-1.5 text-gray-200 hover:bg-white/20 transition-colors"
+                      className="inline-flex text-xs rounded-md bg-white/10 px-2.5 py-1.5 text-gray-200 hover:bg-white/20 transition-colors"
                     >
-                      เปิดลิงก์ผู้ใช้
+                      เปิดลิงก์ในแท็บใหม่
                     </a>
-                    <button
-                      type="button"
-                      onClick={async () => {
-                        try {
-                          await navigator.clipboard.writeText(buildPublicLink(selectedTemplate.id));
-                          setMessage('คัดลอกลิงก์ผู้ใช้แล้ว');
-                        } catch {
-                          setMessage('คัดลอกลิงก์ไม่สำเร็จ');
-                        }
-                      }}
-                      className="text-xs rounded-md bg-yellow-400/20 border border-yellow-300/35 px-2.5 py-1.5 text-yellow-100 hover:bg-yellow-400/30 transition-colors"
-                    >
-                      คัดลอกลิงก์
-                    </button>
                   </div>
                 </div>
                 <button
