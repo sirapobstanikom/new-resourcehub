@@ -60,6 +60,7 @@ const PeerFeedbackAudienceGridPage = lazy(() => import('./components/PeerFeedbac
 const InnovationEvaluationPage = lazy(() => import('./components/InnovationEvaluationPage'));
 const AdminInnovationEvaluateesPage = lazy(() => import('./components/AdminInnovationEvaluateesPage'));
 const AdminAssessmentLinksQrPage = lazy(() => import('./components/AdminAssessmentLinksQrPage'));
+const AdminPdfCompressPage = lazy(() => import('./components/AdminPdfCompressPage'));
 const WhaleDoneRolePlayDashboardPage = lazy(
   () => import('./components/WhaleDoneRolePlayDashboardPage')
 );
@@ -268,6 +269,7 @@ const App: React.FC = () => {
               <Route path="innoclub-2-vote" element={<AdminInnoClubSecondVotePage />} />
               <Route path="innovation-evaluatees" element={<AdminInnovationEvaluateesPage />} />
               <Route path="assessment-links" element={<AdminAssessmentLinksQrPage />} />
+              <Route path="pdf-compress" element={<AdminPdfCompressPage />} />
               <Route
                 path="whale-done-role-play"
                 element={<Navigate to="/gamification/whale-done-role-play/dashboard" replace />}
