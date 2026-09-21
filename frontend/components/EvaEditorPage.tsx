@@ -1108,6 +1108,9 @@ const EvaEditorPage: React.FC = () => {
   const sanitizeFileName = (name: string) =>
     name.replace(/[<>:"/\\|?*\u0000-\u001F]/g, '').trim().slice(0, 80) || 'แบบประเมิน';
 
+  /** PostgREST: ค่าที่มี () ช่องว่าง ฯลฯ ต้องหุ้มด้วย "..." ไม่งั้น .or() จะ parse พลาดแล้วได้ผลว่าง */
+  const quotePostgrestFilterValue = (value: string) => `"${String(value).replace(/"/g, '""')}"`;
+
   const downloadTemplateResponses = async (template: EvaEvaluationTemplate) => {
     setExportingTemplateId(template.id);
     setMessage(null);
@@ -1131,10 +1134,12 @@ const EvaEditorPage: React.FC = () => {
 
     let remoteRows: Array<{ created_at?: string; answers_json?: EvaExportAnswer[] }> = [];
     if (isSupabaseConfigured) {
+      const idFilter = quotePostgrestFilterValue(template.id);
+      const nameFilter = quotePostgrestFilterValue(template.name);
       const { data, error } = await supabase
         .from('eva_editor_responses')
         .select('created_at, answers_json')
-        .or(`template_id.eq.${template.id},template_name.eq.${template.name}`)
+        .or(`template_id.eq.${idFilter},template_name.eq.${nameFilter}`)
         .order('created_at', { ascending: false });
       if (error) {
         setSyncError(`โหลดคำตอบจาก Supabase ไม่สำเร็จ: ${error.message}`);
