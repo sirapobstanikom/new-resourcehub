@@ -50,6 +50,8 @@ const InnoClubEvaluationPage = lazy(() => import('./components/InnoClubEvaluatio
 const InnoClubSecondEvaluationPage = lazy(() => import('./components/InnoClubSecondEvaluationPage'));
 const InnoClubSecondVideoPage = lazy(() => import('./components/InnoClubSecondVideoPage'));
 const AdminInnoClubSecondVotePage = lazy(() => import('./components/AdminInnoClubSecondVotePage'));
+const AdminInnoClubDashboardPage = lazy(() => import('./components/AdminInnoClubDashboardPage'));
+const InnoClubGameResultsPage = lazy(() => import('./components/InnoClubGameResultsPage'));
 const HogwartsInnoclubPage = lazy(() => import('./components/HogwartsInnoclubPage'));
 const EvaEditorPage = lazy(() => import('./components/EvaEditorPage'));
 const EvaPublicFormPage = lazy(() => import('./components/EvaPublicFormPage'));
@@ -267,6 +269,7 @@ const App: React.FC = () => {
               <Route path="rooms" element={<AdminStickycloudPage />} />
               <Route path="minddojo-users" element={<AdminMindDojoAssessmentUsersPage />} />
               <Route path="innoclub-2-vote" element={<AdminInnoClubSecondVotePage />} />
+              <Route path="innoclub-dashboard" element={<AdminInnoClubDashboardPage />} />
               <Route path="innovation-evaluatees" element={<AdminInnovationEvaluateesPage />} />
               <Route path="assessment-links" element={<AdminAssessmentLinksQrPage />} />
               <Route path="pdf-compress" element={<AdminPdfCompressPage />} />
@@ -347,6 +350,7 @@ const App: React.FC = () => {
       <Suspense fallback={<RouteFallback />}>
         <Routes>
           <Route path="/evaluation/innoclub" element={<InnoClubEvaluationPage />} />
+          <Route path="/evaluation/innoclub-game" element={<InnoClubGameResultsPage />} />
           <Route path="/evaluation/innoclub-2" element={<InnoClubSecondEvaluationPage key="innoclub-2-form" />} />
           <Route
             path="/evaluation/innoclub-2/results"
