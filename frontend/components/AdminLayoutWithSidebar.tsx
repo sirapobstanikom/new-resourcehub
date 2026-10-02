@@ -46,6 +46,7 @@ const AdminLayoutWithSidebar: React.FC = () => {
   const isMinddojoUsers = location.pathname === '/admin/minddojo-users';
   const isInnoClubSecondVote = location.pathname === '/admin/innoclub-2-vote';
   const isInnoClubDashboard = location.pathname === '/admin/innoclub-dashboard';
+  const isTeambuildingDashboard = location.pathname === '/admin/teambuilding-dashboard';
   const isInnovationEvaluatees = location.pathname === '/admin/innovation-evaluatees';
   const isAssessmentLinks = location.pathname === '/admin/assessment-links';
   const isPdfCompress = location.pathname === '/admin/pdf-compress';
@@ -407,7 +408,7 @@ const AdminLayoutWithSidebar: React.FC = () => {
         )}
         <Link
           to="/admin"
-          className={`block py-2.5 px-3 rounded-lg text-sm font-medium transition-colors ${!isLeave && !isLeaveManage && !isCourseOutingTrainer && !isCourseOutingSupport && !isStickycloud && !isMinddojoUsers && !isInnoClubSecondVote && !isInnoClubDashboard && !isInnovationEvaluatees && !isAssessmentLinks && !isPdfCompress ? 'bg-yellow-400/20 text-yellow-400' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
+          className={`block py-2.5 px-3 rounded-lg text-sm font-medium transition-colors ${!isLeave && !isLeaveManage && !isCourseOutingTrainer && !isCourseOutingSupport && !isStickycloud && !isMinddojoUsers && !isInnoClubSecondVote && !isInnoClubDashboard && !isTeambuildingDashboard && !isInnovationEvaluatees && !isAssessmentLinks && !isPdfCompress ? 'bg-yellow-400/20 text-yellow-400' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
         >
           ดูข้อมูล Database
         </Link>
@@ -457,6 +458,23 @@ const AdminLayoutWithSidebar: React.FC = () => {
         >
           InnoClub Game — กรอกทีม & คะแนน
         </Link>
+        <Link
+          to="/admin/teambuilding-dashboard"
+          className={`block py-2.5 px-3 rounded-lg text-sm font-medium transition-colors ${isTeambuildingDashboard ? 'bg-yellow-400/20 text-yellow-400' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
+        >
+          DASHBOARD TEAMBUILDING
+        </Link>
+        <a
+          href="/evaluation/teambuilding"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-between py-2.5 px-3 rounded-lg text-sm font-medium text-gray-400 hover:bg-white/5 hover:text-white transition-colors group"
+        >
+          <span>TEAMBUILDING — จอแสดงผล</span>
+          <svg className="w-3.5 h-3.5 text-gray-500 group-hover:text-yellow-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+          </svg>
+        </a>
         <a
           href="/evaluation/innoclub-game"
           target="_blank"
