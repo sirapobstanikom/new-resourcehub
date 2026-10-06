@@ -33,6 +33,8 @@ function mapEvaTemplateRow(row: EvaTemplateRow, includeHeading: boolean): EvaEva
     name: row.name,
     heading: includeHeading ? (row.heading as string) || '' : '',
     description: (row.description as string) || '',
+    submittedTitle: parsed.submittedTitle || '',
+    submittedBody: parsed.submittedBody || '',
     language: parsed.language,
     englishSnapshot: parsed.englishSnapshot,
     prompts: parsed.prompts,

@@ -50,6 +50,10 @@ const InnoClubEvaluationPage = lazy(() => import('./components/InnoClubEvaluatio
 const InnoClubSecondEvaluationPage = lazy(() => import('./components/InnoClubSecondEvaluationPage'));
 const InnoClubSecondVideoPage = lazy(() => import('./components/InnoClubSecondVideoPage'));
 const AdminInnoClubSecondVotePage = lazy(() => import('./components/AdminInnoClubSecondVotePage'));
+const AdminInnoClubDashboardPage = lazy(() => import('./components/AdminInnoClubDashboardPage'));
+const AdminTeambuildingDashboardPage = lazy(() => import('./components/AdminTeambuildingDashboardPage'));
+const TeambuildingScoreboardPage = lazy(() => import('./components/TeambuildingScoreboardPage'));
+const InnoClubGameResultsPage = lazy(() => import('./components/InnoClubGameResultsPage'));
 const HogwartsInnoclubPage = lazy(() => import('./components/HogwartsInnoclubPage'));
 const EvaEditorPage = lazy(() => import('./components/EvaEditorPage'));
 const EvaPublicFormPage = lazy(() => import('./components/EvaPublicFormPage'));
@@ -60,6 +64,7 @@ const PeerFeedbackAudienceGridPage = lazy(() => import('./components/PeerFeedbac
 const InnovationEvaluationPage = lazy(() => import('./components/InnovationEvaluationPage'));
 const AdminInnovationEvaluateesPage = lazy(() => import('./components/AdminInnovationEvaluateesPage'));
 const AdminAssessmentLinksQrPage = lazy(() => import('./components/AdminAssessmentLinksQrPage'));
+const AdminPdfCompressPage = lazy(() => import('./components/AdminPdfCompressPage'));
 const WhaleDoneRolePlayDashboardPage = lazy(
   () => import('./components/WhaleDoneRolePlayDashboardPage')
 );
@@ -266,8 +271,11 @@ const App: React.FC = () => {
               <Route path="rooms" element={<AdminStickycloudPage />} />
               <Route path="minddojo-users" element={<AdminMindDojoAssessmentUsersPage />} />
               <Route path="innoclub-2-vote" element={<AdminInnoClubSecondVotePage />} />
+              <Route path="innoclub-dashboard" element={<AdminInnoClubDashboardPage />} />
+              <Route path="teambuilding-dashboard" element={<AdminTeambuildingDashboardPage />} />
               <Route path="innovation-evaluatees" element={<AdminInnovationEvaluateesPage />} />
               <Route path="assessment-links" element={<AdminAssessmentLinksQrPage />} />
+              <Route path="pdf-compress" element={<AdminPdfCompressPage />} />
               <Route
                 path="whale-done-role-play"
                 element={<Navigate to="/gamification/whale-done-role-play/dashboard" replace />}
@@ -345,6 +353,8 @@ const App: React.FC = () => {
       <Suspense fallback={<RouteFallback />}>
         <Routes>
           <Route path="/evaluation/innoclub" element={<InnoClubEvaluationPage />} />
+          <Route path="/evaluation/innoclub-game" element={<InnoClubGameResultsPage />} />
+          <Route path="/evaluation/teambuilding" element={<TeambuildingScoreboardPage />} />
           <Route path="/evaluation/innoclub-2" element={<InnoClubSecondEvaluationPage key="innoclub-2-form" />} />
           <Route
             path="/evaluation/innoclub-2/results"

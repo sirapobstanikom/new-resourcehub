@@ -64,9 +64,17 @@ const EvaPublicFormPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [missingPromptIds, setMissingPromptIds] = useState<string[]>([]);
   const promptRefs = useRef<Record<string, HTMLDivElement | null>>({});
-  const copy = getEvaPublicFormCopy(getEvaFormLanguage(formTemplate ?? template));
-  const isEnglish = getEvaFormLanguage(formTemplate ?? template) === 'en';
   const activeTemplate = formTemplate ?? template;
+  const copy = useMemo(() => {
+    const base = getEvaPublicFormCopy(getEvaFormLanguage(activeTemplate));
+    const source = template ?? activeTemplate;
+    return {
+      ...base,
+      submittedTitle: source?.submittedTitle?.trim() || base.submittedTitle,
+      submittedBody: source?.submittedBody?.trim() || base.submittedBody,
+    };
+  }, [activeTemplate, template]);
+  const isEnglish = getEvaFormLanguage(activeTemplate) === 'en';
 
   useEffect(() => {
     const loadTemplate = async () => {
