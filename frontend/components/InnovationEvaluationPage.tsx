@@ -1,22 +1,30 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { Settings } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { isSupabaseConfigured, supabase } from '../lib/supabase';
+import { isAdminAuthenticated } from '../lib/auth';
 import {
-  CRITERIA,
-  EVALUATORS,
-  EMPTY_SCORES,
+  DEFAULT_INNOVATION_CONFIG,
+  INNOVATION_CONFIG_TABLE,
   buildEvaluateeSummaries,
+  buildResponsePayload,
   calcTotalScore,
   criterionPoints,
+  emptyScores,
+  formatEvaluatorWeightFormula,
   formatInnovationScore,
   getEvaluatorName,
-  type EvaluatorId,
+  getResponseScores,
+  isLegacyScoreField,
+  loadInnovationConfig,
+  responseTotalScore,
+  type InnovationConfig,
   type InnovationEvaluatee,
   type InnovationResponseRow,
   type InnovationScores,
-  type ScoreField,
 } from '../lib/innovationEvaluation';
+import InnovationConfigEditor from './InnovationConfigEditor';
 
 const SCORE_OPTIONS = [1, 2, 3, 4, 5] as const;
 
@@ -45,14 +53,12 @@ function PageHeader({ subtitle, action }: { subtitle: string; action?: React.Rea
 function ScorePicker({
   label,
   weight,
-  maxPoints,
   value,
   onChange,
   disabled = false,
 }: {
   label: string;
   weight: number;
-  maxPoints: number;
   value: number;
   onChange: (value: number) => void;
   disabled?: boolean;
@@ -62,13 +68,13 @@ function ScorePicker({
     <section className="rounded-2xl border border-white/10 bg-white/[0.05] p-4">
       <div className="mb-3 flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h3 className="text-sm font-bold leading-snug text-white sm:text-base">{label}</h3>
+          <h3 className="whitespace-pre-line text-sm font-bold leading-snug text-white sm:text-base">{label}</h3>
           <p className="mt-1 text-xs text-zinc-400">
-            คะแนน 1–5 · น้ำหนัก {weight}% · คะแนนเต็ม {maxPoints} คะแนน
+            คะแนน 1–5 · น้ำหนัก {weight}% · คะแนนเต็ม {weight} คะแนน
           </p>
         </div>
         <span className="shrink-0 rounded-full border border-yellow-400/25 bg-yellow-400/10 px-3 py-1 text-xs font-bold text-yellow-200">
-          {value > 0 ? `${formatInnovationScore(points)} / ${maxPoints}` : '—'}
+          {value > 0 ? `${formatInnovationScore(points)} / ${weight}` : '—'}
         </span>
       </div>
       <div className="grid grid-cols-5 gap-2">
@@ -96,16 +102,39 @@ function ScorePicker({
 }
 
 function InnovationEvaluationFormPage() {
-  const [evaluatorId, setEvaluatorId] = useState<EvaluatorId | ''>('');
+  const isAdmin = isAdminAuthenticated();
+  const [config, setConfig] = useState<InnovationConfig>(DEFAULT_INNOVATION_CONFIG);
+  const [configTableMissing, setConfigTableMissing] = useState(false);
+  const [showConfigEditor, setShowConfigEditor] = useState(false);
+  const [configMessage, setConfigMessage] = useState('');
+  const [evaluatorId, setEvaluatorId] = useState('');
   const [evaluateeId, setEvaluateeId] = useState('');
-  const [scores, setScores] = useState<InnovationScores>(EMPTY_SCORES);
+  const [scores, setScores] = useState<InnovationScores>(() => emptyScores(DEFAULT_INNOVATION_CONFIG.criteria));
   const [note, setNote] = useState('');
   const [evaluatees, setEvaluatees] = useState<InnovationEvaluatee[]>([]);
   const [existingResponseId, setExistingResponseId] = useState<number | null>(null);
-  const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [successTeamLabel, setSuccessTeamLabel] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const result = await loadInnovationConfig();
+      if (cancelled) return;
+      setConfig(result.config);
+      setConfigTableMissing(result.tableMissing);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (evaluatorId && !config.evaluators.some((e) => e.id === evaluatorId)) {
+      setEvaluatorId('');
+    }
+  }, [config.evaluators, evaluatorId]);
 
   const loadEvaluatees = useCallback(async () => {
     if (!isSupabaseConfigured) return;
@@ -129,7 +158,7 @@ function InnovationEvaluationFormPage() {
   useEffect(() => {
     if (!evaluatorId || !evaluateeId || !isSupabaseConfigured) {
       setExistingResponseId(null);
-      setScores(EMPTY_SCORES);
+      setScores(emptyScores(config.criteria));
       setNote('');
       return;
     }
@@ -148,32 +177,27 @@ function InnovationEvaluationFormPage() {
       }
       if (data) {
         const row = data as InnovationResponseRow;
+        const saved = getResponseScores(row);
         setExistingResponseId(row.id);
-        setScores({
-          score_business_clarity: row.score_business_clarity,
-          score_open_innovation: row.score_open_innovation,
-          score_idea_value: row.score_idea_value,
-          score_feasibility: row.score_feasibility,
-          score_pitching_quality: row.score_pitching_quality,
-        });
+        setScores(Object.fromEntries(config.criteria.map((c) => [c.id, saved[c.id] || 0])));
         setNote(row.note || '');
       } else {
         setExistingResponseId(null);
-        setScores(EMPTY_SCORES);
+        setScores(emptyScores(config.criteria));
         setNote('');
       }
     })();
     return () => {
       cancelled = true;
     };
-  }, [evaluatorId, evaluateeId]);
+  }, [evaluatorId, evaluateeId, config.criteria]);
 
-  const totalScore = useMemo(() => calcTotalScore(scores), [scores]);
-  const allScoresFilled = CRITERIA.every((criterion) => scores[criterion.field] >= 1 && scores[criterion.field] <= 5);
+  const totalScore = useMemo(() => calcTotalScore(scores, config.criteria), [scores, config.criteria]);
+  const allScoresFilled = config.criteria.every((c) => (scores[c.id] || 0) >= 1 && (scores[c.id] || 0) <= 5);
   const canSubmit = Boolean(evaluatorId && evaluateeId && allScoresFilled);
 
-  const setScore = (field: ScoreField, value: number) => {
-    setScores((prev) => ({ ...prev, [field]: value }));
+  const setScore = (criterionId: string, value: number) => {
+    setScores((prev) => ({ ...prev, [criterionId]: value }));
   };
 
   const submit = async (e: React.FormEvent) => {
@@ -189,27 +213,39 @@ function InnovationEvaluationFormPage() {
       return;
     }
     setSaving(true);
-    const payload = {
-      evaluatee_id: evaluateeId,
-      evaluator_id: evaluatorId,
-      ...scores,
-      total_score: Number(totalScore.toFixed(2)),
-      note: note.trim() || null,
-      updated_at: new Date().toISOString(),
+    const save = (includeScoresJson: boolean) => {
+      const payload = {
+        evaluatee_id: evaluateeId,
+        evaluator_id: evaluatorId,
+        ...buildResponsePayload(scores, config.criteria, { includeScoresJson }),
+        total_score: Number(totalScore.toFixed(2)),
+        note: note.trim() || null,
+        updated_at: new Date().toISOString(),
+      };
+      return existingResponseId
+        ? supabase.from('innovation_evaluation_responses').update(payload).eq('id', existingResponseId)
+        : supabase.from('innovation_evaluation_responses').insert(payload);
     };
-    const { error: saveError } = existingResponseId
-      ? await supabase.from('innovation_evaluation_responses').update(payload).eq('id', existingResponseId)
-      : await supabase.from('innovation_evaluation_responses').insert(payload);
+
+    let { error: saveError } = await save(true);
+    // ยังไม่ได้รัน SQL เพิ่มคอลัมน์ scores_json — บันทึกแบบเดิมได้ถ้าใช้แค่เกณฑ์เดิม
+    if (saveError && /scores_json/i.test(saveError.message) && config.criteria.every((c) => isLegacyScoreField(c.id))) {
+      ({ error: saveError } = await save(false));
+    }
     setSaving(false);
     if (saveError) {
-      setError(saveError.message);
+      setError(
+        /scores_json/i.test(saveError.message)
+          ? 'ยังไม่ได้รัน SQL ตั้งค่าแบบประเมินบน Supabase — ให้ Admin เปิด "ตั้งค่า" แล้วคัดลอก SQL ไปรัน'
+          : saveError.message,
+      );
       return;
     }
     const selected = evaluatees.find((item) => item.id === evaluateeId);
     const teamLabel = selected?.team_name?.trim() || selected?.name?.trim() || 'ผู้ถูกประเมิน';
     setSuccessTeamLabel(teamLabel);
     setEvaluateeId('');
-    setScores(EMPTY_SCORES);
+    setScores(emptyScores(config.criteria));
     setNote('');
     setExistingResponseId(null);
   };
@@ -217,17 +253,50 @@ function InnovationEvaluationFormPage() {
   return (
     <div className="min-h-screen bg-[#080808] text-white">
       <PageHeader
-        subtitle="กรอกคะแนนตามเกณฑ์ 5 ข้อ"
+        subtitle={`กรอกคะแนนตามเกณฑ์ ${config.criteria.length} ข้อ`}
         action={
-          <Link
-            to="/evaluation/innovation/dashboard"
-            className="rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs font-bold text-zinc-300 hover:bg-white/10"
-          >
-            Dashboard
-          </Link>
+          <div className="flex items-center gap-2">
+            {isAdmin && (
+              <button
+                type="button"
+                onClick={() => {
+                  setConfigMessage('');
+                  setShowConfigEditor(true);
+                }}
+                className="inline-flex items-center gap-1.5 rounded-full border border-yellow-400/30 bg-yellow-400/10 px-3 py-2 text-xs font-bold text-yellow-200 hover:bg-yellow-400/20"
+              >
+                <Settings className="h-3.5 w-3.5" />
+                ตั้งค่า
+              </button>
+            )}
+            <Link
+              to="/evaluation/innovation/dashboard"
+              className="rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs font-bold text-zinc-300 hover:bg-white/10"
+            >
+              Dashboard
+            </Link>
+          </div>
         }
       />
+      {showConfigEditor && (
+        <InnovationConfigEditor
+          config={config}
+          tableMissing={configTableMissing}
+          onClose={() => setShowConfigEditor(false)}
+          onSaved={(next) => {
+            setConfig(next);
+            setConfigTableMissing(false);
+            setShowConfigEditor(false);
+            setConfigMessage('บันทึกการตั้งค่าแบบประเมินแล้ว');
+          }}
+        />
+      )}
       <main className="mx-auto max-w-3xl space-y-4 px-4 py-6 pb-24">
+        {configMessage && (
+          <div className="rounded-2xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
+            {configMessage}
+          </div>
+        )}
         {error && <div className="rounded-2xl border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">{error}</div>}
 
         {successTeamLabel && (
@@ -260,7 +329,7 @@ function InnovationEvaluationFormPage() {
           <section className="rounded-2xl border border-white/10 bg-white/[0.05] p-4">
             <label className="mb-2 block text-sm font-bold text-white">ผู้ประเมิน *</label>
             <div className="grid gap-2 sm:grid-cols-2">
-              {EVALUATORS.map((evaluator) => {
+              {config.evaluators.map((evaluator) => {
                 const selected = evaluatorId === evaluator.id;
                 return (
                   <button
@@ -307,14 +376,13 @@ function InnovationEvaluationFormPage() {
             )}
           </section>
 
-          {CRITERIA.map((criterion) => (
+          {config.criteria.map((criterion) => (
             <ScorePicker
-              key={criterion.field}
+              key={criterion.id}
               label={criterion.label}
               weight={criterion.weight}
-              maxPoints={criterion.maxPoints}
-              value={scores[criterion.field]}
-              onChange={(value) => setScore(criterion.field, value)}
+              value={scores[criterion.id] || 0}
+              onChange={(value) => setScore(criterion.id, value)}
               disabled={!evaluateeId}
             />
           ))}
@@ -357,6 +425,7 @@ function InnovationEvaluationFormPage() {
 }
 
 function InnovationEvaluationDashboardPage() {
+  const [config, setConfig] = useState<InnovationConfig>(DEFAULT_INNOVATION_CONFIG);
   const [evaluatees, setEvaluatees] = useState<InnovationEvaluatee[]>([]);
   const [responses, setResponses] = useState<InnovationResponseRow[]>([]);
   const [loading, setLoading] = useState(false);
@@ -368,7 +437,8 @@ function InnovationEvaluationDashboardPage() {
     if (!isSupabaseConfigured) return;
     if (!options?.silent) setLoading(true);
     setError('');
-    const [evaluateeResult, responseResult] = await Promise.all([
+    const [configResult, evaluateeResult, responseResult] = await Promise.all([
+      loadInnovationConfig(),
       supabase
         .from('innovation_evaluatees')
         .select('id, name, team_name, sort_order, is_active')
@@ -379,6 +449,7 @@ function InnovationEvaluationDashboardPage() {
         .order('created_at', { ascending: false }),
     ]);
     if (!options?.silent) setLoading(false);
+    setConfig(configResult.config);
     if (evaluateeResult.error || responseResult.error) {
       setError(evaluateeResult.error?.message || responseResult.error?.message || 'โหลดข้อมูลไม่สำเร็จ');
       return;
@@ -408,6 +479,7 @@ function InnovationEvaluationDashboardPage() {
         { event: '*', schema: 'public', table: 'innovation_evaluatees' },
         refreshSilently,
       )
+      .on('postgres_changes', { event: '*', schema: 'public', table: INNOVATION_CONFIG_TABLE }, refreshSilently)
       .subscribe((status) => {
         setLiveConnected(status === 'SUBSCRIBED');
       });
@@ -421,18 +493,26 @@ function InnovationEvaluationDashboardPage() {
     };
   }, [loadData]);
 
-  const summaries = useMemo(() => buildEvaluateeSummaries(evaluatees, responses), [evaluatees, responses]);
+  const summaries = useMemo(
+    () => buildEvaluateeSummaries(evaluatees, responses, config),
+    [evaluatees, responses, config],
+  );
 
   const exportExcel = () => {
-    const rows = summaries.map((summary, index) => ({
-      อันดับ: index + 1,
-      ผู้ถูกประเมิน: summary.name,
-      ทีม: summary.teamName,
-      'Dr. Keita Ono': summary.keitaScore != null ? formatInnovationScore(summary.keitaScore) : '—',
-      'Jeerawat Yaowanich': summary.jeerawatScore != null ? formatInnovationScore(summary.jeerawatScore) : '—',
-      'คะแนนรวม (เฉลี่ย 50/50)': summary.finalScore != null ? formatInnovationScore(summary.finalScore) : '—',
-      'จำนวนผู้ประเมิน': summary.responseCount,
-    }));
+    const rows = summaries.map((summary, index) => {
+      const row: Record<string, string | number> = {
+        อันดับ: index + 1,
+        ผู้ถูกประเมิน: summary.name,
+        ทีม: summary.teamName,
+      };
+      config.evaluators.forEach((evaluator) => {
+        const score = summary.evaluatorScores[evaluator.id];
+        row[`${evaluator.name} (${evaluator.weight}%)`] = score != null ? formatInnovationScore(score) : '—';
+      });
+      row['คะแนนรวม (ถ่วงน้ำหนัก)'] = summary.finalScore != null ? formatInnovationScore(summary.finalScore) : '—';
+      row['จำนวนผู้ประเมิน'] = summary.responseCount;
+      return row;
+    });
     const ws = XLSX.utils.json_to_sheet(rows);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Innovation Summary');
@@ -507,7 +587,7 @@ function InnovationEvaluationDashboardPage() {
           </article>
           <article className="rounded-2xl border border-yellow-400/20 bg-yellow-400/10 p-4">
             <p className="text-xs text-yellow-200/70">สูตรคะแนนรวม</p>
-            <p className="mt-1 text-sm font-bold text-yellow-100">Dr. Keita Ono 50% + Jeerawat Yaowanich 50%</p>
+            <p className="mt-1 text-sm font-bold text-yellow-100">{formatEvaluatorWeightFormula(config)}</p>
           </article>
         </section>
 
@@ -539,18 +619,17 @@ function InnovationEvaluationDashboardPage() {
                     />
                   </div>
                   <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                    <p className="rounded-lg bg-black/30 px-3 py-2 text-xs text-zinc-300">
-                      Dr. Keita Ono:{' '}
-                      <span className="font-bold text-white">
-                        {summary.keitaScore != null ? formatInnovationScore(summary.keitaScore) : 'ยังไม่ประเมิน'}
-                      </span>
-                    </p>
-                    <p className="rounded-lg bg-black/30 px-3 py-2 text-xs text-zinc-300">
-                      Jeerawat Yaowanich:{' '}
-                      <span className="font-bold text-white">
-                        {summary.jeerawatScore != null ? formatInnovationScore(summary.jeerawatScore) : 'ยังไม่ประเมิน'}
-                      </span>
-                    </p>
+                    {config.evaluators.map((evaluator) => {
+                      const score = summary.evaluatorScores[evaluator.id];
+                      return (
+                        <p key={evaluator.id} className="rounded-lg bg-black/30 px-3 py-2 text-xs text-zinc-300">
+                          {evaluator.name} ({evaluator.weight}%):{' '}
+                          <span className="font-bold text-white">
+                            {score != null ? formatInnovationScore(score) : 'ยังไม่ประเมิน'}
+                          </span>
+                        </p>
+                      );
+                    })}
                   </div>
                 </article>
               ))}
@@ -566,9 +645,9 @@ function InnovationEvaluationDashboardPage() {
                 <tr className="border-b border-white/10 text-xs text-zinc-500">
                   <th className="px-3 py-2">ผู้ถูกประเมิน</th>
                   <th className="px-3 py-2">ผู้ประเมิน</th>
-                  {CRITERIA.map((criterion) => (
-                    <th key={criterion.field} className="px-3 py-2">
-                      {criterion.weight}%
+                  {config.criteria.map((criterion, index) => (
+                    <th key={criterion.id} className="px-3 py-2" title={criterion.label}>
+                      ข้อ {index + 1} ({criterion.weight}%)
                     </th>
                   ))}
                   <th className="px-3 py-2">รวม</th>
@@ -577,16 +656,19 @@ function InnovationEvaluationDashboardPage() {
               <tbody>
                 {responses.map((row) => {
                   const evaluatee = evaluatees.find((item) => item.id === row.evaluatee_id);
+                  const rowScores = getResponseScores(row);
                   return (
                     <tr key={row.id} className="border-b border-white/5 text-zinc-300">
                       <td className="px-3 py-2 font-medium text-white">{evaluatee?.name || row.evaluatee_id}</td>
-                      <td className="px-3 py-2">{getEvaluatorName(row.evaluator_id)}</td>
-                      {CRITERIA.map((criterion) => (
-                        <td key={criterion.field} className="px-3 py-2">
-                          {row[criterion.field]}
+                      <td className="px-3 py-2">{getEvaluatorName(config, row.evaluator_id)}</td>
+                      {config.criteria.map((criterion) => (
+                        <td key={criterion.id} className="px-3 py-2">
+                          {rowScores[criterion.id] ?? '—'}
                         </td>
                       ))}
-                      <td className="px-3 py-2 font-bold text-yellow-300">{formatInnovationScore(Number(row.total_score))}</td>
+                      <td className="px-3 py-2 font-bold text-yellow-300">
+                        {formatInnovationScore(responseTotalScore(row, config))}
+                      </td>
                     </tr>
                   );
                 })}
