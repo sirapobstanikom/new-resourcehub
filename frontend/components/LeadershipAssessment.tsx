@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import BrandLogo from './BrandLogo';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import {
@@ -17,6 +18,7 @@ import {
 } from '../data/leadershipWheelData';
 import { getLeadershipFeedback, type LeadershipResultPayload } from '../services/openai';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import LeadershipLoginScreen from './LeadershipLoginScreen';
 
 type Step = 'login' | 'assessment' | 'result';
 
@@ -346,12 +348,19 @@ const LeadershipAssessment: React.FC = () => {
         </div>
       )}
 
+      {step === 'login' && (
+        <LeadershipLoginScreen
+          user={user}
+          onChange={(field, value) => setUser((u) => ({ ...u, [field]: value }))}
+          onSubmit={handleLoginSubmit}
+        />
+      )}
+
+      {step !== 'login' && (
+      <>
       <header className="flex justify-between items-center px-6 py-6 max-w-4xl mx-auto w-full">
         <Link to="/" className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-yellow-400 rounded-lg flex items-center justify-center glow-yellow">
-            <span className="text-black font-semibold text-xl">M</span>
-          </div>
-          <span className="text-xl font-semibold tracking-tighter">MindDoJo</span>
+          <BrandLogo className="text-[28px]" />
         </Link>
         {step === 'assessment' && (
           <span className="text-gray-500 text-sm font-medium">
@@ -361,71 +370,6 @@ const LeadershipAssessment: React.FC = () => {
       </header>
 
       <main className="flex-1 px-6 py-8 max-w-3xl mx-auto w-full pb-24">
-        {/* Login */}
-        {step === 'login' && (
-          <div className="max-w-md mx-auto">
-            <h1 className="text-2xl md:text-3xl font-black tracking-tight mb-2 text-center">
-              แบบประเมินสมรรถนะภาวะผู้นำ
-            </h1>
-            <p className="text-gray-400 text-sm text-center mb-8">
-              Dynamic Leadership Capability Wheel Self Assessment
-            </p>
-            <form
-              onSubmit={handleLoginSubmit}
-              className="rounded-2xl border border-white/10 bg-white/5 p-6 md:p-8 space-y-5"
-            >
-              <div>
-                <label htmlFor="lead-name" className="block text-sm font-medium text-gray-400 mb-2">
-                  ชื่อ
-                </label>
-                <input
-                  id="lead-name"
-                  type="text"
-                  value={user.name}
-                  onChange={(e) => setUser((u) => ({ ...u, name: e.target.value }))}
-                  placeholder="กรอกชื่อ"
-                  required
-                  className="w-full px-4 py-3 rounded-xl bg-black/50 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-yellow-400"
-                />
-              </div>
-              <div>
-                <label htmlFor="lead-email" className="block text-sm font-medium text-gray-400 mb-2">
-                  อีเมล
-                </label>
-                <input
-                  id="lead-email"
-                  type="email"
-                  value={user.email}
-                  onChange={(e) => setUser((u) => ({ ...u, email: e.target.value }))}
-                  placeholder="กรอกอีเมล"
-                  required
-                  className="w-full px-4 py-3 rounded-xl bg-black/50 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-yellow-400"
-                />
-              </div>
-              <div>
-                <label htmlFor="lead-company" className="block text-sm font-medium text-gray-400 mb-2">
-                  บริษัท
-                </label>
-                <input
-                  id="lead-company"
-                  type="text"
-                  value={user.company}
-                  onChange={(e) => setUser((u) => ({ ...u, company: e.target.value }))}
-                  placeholder="กรอกชื่อบริษัท"
-                  required
-                  className="w-full px-4 py-3 rounded-xl bg-black/50 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-yellow-400"
-                />
-              </div>
-              <button
-                type="submit"
-                className="w-full py-3 rounded-xl font-bold bg-yellow-400 text-black hover:bg-yellow-300 shadow-lg shadow-yellow-400/20 transition-all"
-              >
-                เข้าสู่แบบทดสอบ
-              </button>
-            </form>
-          </div>
-        )}
-
         {/* Assessment */}
         {step === 'assessment' && currentDimension && (
           <div className="space-y-8">
@@ -652,6 +596,8 @@ const LeadershipAssessment: React.FC = () => {
           © {new Date().getFullYear()} MindDoJo CO., LTD.
         </div>
       </footer>
+      </>
+      )}
     </div>
   );
 };

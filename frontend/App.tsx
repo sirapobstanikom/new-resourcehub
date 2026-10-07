@@ -1,5 +1,6 @@
 import React, { useState, lazy, Suspense, useEffect } from 'react';
 import { Routes, Route, Link, useNavigate, useParams, Navigate, useLocation } from 'react-router-dom';
+import BrandLogo from './components/BrandLogo';
 import { JOURNEY_DATA, UPDATES_DATA, getToolById, getUpdateById } from './constants';
 import { Tool, InnovationUpdate } from './types';
 import JourneyCard from './components/JourneyCard';
@@ -467,14 +468,9 @@ const App: React.FC = () => {
         <header className="pt-24 pb-16 px-6 relative">
           <div className="max-w-7xl mx-auto text-center relative z-10">
             <div className="flex justify-center mb-8">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-yellow-400 rounded-lg flex items-center justify-center glow-yellow">
-                  <span className="text-black font-semibold text-xl">M</span>
-                </div>
-                <Link to="/" className="text-2xl font-semibold tracking-tighter text-glow hover:opacity-90">
-                  MindDoJo
-                </Link>
-              </div>
+              <Link to="/" className="transition-opacity hover:opacity-90">
+                <BrandLogo className="text-[36px]" />
+              </Link>
             </div>
 
             <h1 className="text-5xl md:text-7xl font-semibold mb-6 tracking-tight leading-tight">
@@ -535,12 +531,7 @@ const App: React.FC = () => {
 
       <footer className="py-12 border-t border-white/5 bg-black/50 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-yellow-400 rounded flex items-center justify-center">
-              <span className="text-black font-bold text-lg">M</span>
-            </div>
-            <span className="font-bold tracking-tight">MindDoJo</span>
-          </div>
+          <BrandLogo className="text-[24px]" />
           <div className="text-gray-500 text-sm">
             © 2008 MindDoJo CO., LTD. All rights reserved.
           </div>

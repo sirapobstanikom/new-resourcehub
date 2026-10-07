@@ -1,5 +1,6 @@
 import React, { useEffect, useCallback, useMemo, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import BrandLogo from './BrandLogo';
 import * as XLSX from 'xlsx';
 import { isSupabaseConfigured, supabase } from '../lib/supabase';
 
@@ -64,9 +65,8 @@ function LogoHeader({ subtitle }: { subtitle: string }) {
     <header className="sticky top-0 z-20 border-b border-yellow-400/15 bg-[#080808]/90 px-4 py-4 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-3">
         <Link to="/" className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-yellow-400 text-lg font-black text-black shadow-[0_0_24px_rgba(250,204,21,0.24)]">
-            M
-          </div>
+          <BrandLogo className="text-[24px]" />
+          <span className="h-8 w-px bg-white/15" aria-hidden />
           <div>
             <p className="text-sm font-black text-white">Storylining Workshop</p>
             <p className="text-xs font-semibold text-yellow-300">{subtitle}</p>

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import BrandLogo from './BrandLogo';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
 const SCORE_OPTIONS = [1, 2, 3, 4, 5] as const;
@@ -138,10 +139,7 @@ const InnoClubEvaluationPage: React.FC = () => {
             หน้าหลัก
           </Link>
           <div className="flex items-center gap-2 rounded-xl border border-yellow-200 bg-yellow-400 px-2 py-1.5 text-black shadow-[0_0_16px_rgba(250,204,21,0.35)] lg:px-3 lg:py-2">
-            <div className="w-8 h-8 lg:w-9 lg:h-9 bg-yellow-300 rounded-lg flex items-center justify-center border border-yellow-100">
-              <span className="text-black font-bold text-sm lg:text-base">M</span>
-            </div>
-            <span className="font-semibold tracking-tight text-sm lg:text-base text-black">MindDoJo</span>
+            <BrandLogo className="text-[20px] lg:text-[24px]" tone="dark" />
           </div>
         </div>
       </header>

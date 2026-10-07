@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, Navigate, useParams } from 'react-router-dom';
+import BrandLogo from './BrandLogo';
 import {
   EMPLOYEE_R1,
   EMPLOYEE_R2,
@@ -779,10 +780,7 @@ const WhaleDoneRolePlayPage: React.FC = () => {
       <header className="px-4 sm:px-6 py-4 sm:py-6 max-w-4xl mx-auto w-full">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <Link to="/" className="flex items-center gap-3 shrink-0">
-            <div className="w-10 h-10 bg-yellow-400 rounded-lg flex items-center justify-center glow-yellow">
-              <span className="text-black font-semibold text-xl">M</span>
-            </div>
-            <span className="text-xl font-semibold tracking-tighter">MindDoJo</span>
+            <BrandLogo className="text-[28px]" />
           </Link>
 
           <div className="flex flex-col gap-2 w-full sm:flex-1 sm:min-w-0">

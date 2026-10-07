@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { InnovationUpdate } from '../types';
+import BrandLogo from './BrandLogo';
 
 interface UpdateDetailProps {
   update: InnovationUpdate;
@@ -18,11 +19,9 @@ const UpdateDetail: React.FC<UpdateDetailProps> = ({ update, onBack }) => {
         >
           <span className="text-xl">←</span> Back to Updates
         </button>
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-yellow-400 rounded flex items-center justify-center">
-            <span className="text-black font-semibold">M</span>
-          </div>
-          <span className="font-semibold tracking-tighter">MindDoJo NEWS</span>
+        <div className="flex items-center gap-2">
+          <BrandLogo className="text-[24px]" />
+          <span className="font-semibold tracking-tighter text-yellow-400">NEWS</span>
         </div>
       </div>
 

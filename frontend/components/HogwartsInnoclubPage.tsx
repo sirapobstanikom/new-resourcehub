@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import BrandLogo from './BrandLogo';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { isAdminAuthenticated } from '../lib/auth';
 
@@ -408,8 +409,7 @@ const HogwartsInnoclubPage: React.FC = () => {
               to="/"
               className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-amber-200/25 bg-white/10 text-amber-100 hover:bg-white/20 transition-colors"
             >
-              <span className="w-6 h-6 rounded-md bg-amber-300 text-black font-black flex items-center justify-center text-xs">M</span>
-              <span className="text-sm font-semibold">MindDojo</span>
+              <BrandLogo className="text-[18px]" />
             </Link>
             <button
               type="button"

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import BrandLogo from './BrandLogo';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
@@ -71,9 +72,7 @@ const RegisterPage: React.FC = () => {
       <div className="w-full max-w-md">
         <div className="bg-neutral-900/80 border border-white/10 rounded-[32px] p-10 shadow-2xl backdrop-blur-sm">
           <div className="flex flex-col items-center mb-10">
-            <div className="w-14 h-14 bg-yellow-400 rounded-xl flex items-center justify-center glow-yellow mb-4">
-              <span className="text-black font-semibold text-2xl">M</span>
-            </div>
+            <BrandLogo className="mb-5 text-[34px]" />
             <h1 className="text-2xl font-semibold tracking-tight text-center">
               สมัครสมาชิก <span className="text-yellow-400">MindDoJo</span>
             </h1>

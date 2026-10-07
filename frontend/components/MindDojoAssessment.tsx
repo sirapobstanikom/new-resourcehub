@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 import { Link, useNavigate } from 'react-router-dom';
+import BrandLogo from './BrandLogo';
 import { useAuth } from '../contexts/AuthContext';
 import { isAuthenticated, setAuthenticated, validateResourceHubCredentials } from '../lib/auth';
 import { isSupabaseConfigured } from '../lib/supabase';
@@ -915,9 +916,7 @@ const MindDojoAssessment: React.FC = () => {
         <div className="flex-1 flex items-center justify-center p-6">
           <div className="w-full max-w-md bg-neutral-900/80 border border-white/10 rounded-[28px] p-8 shadow-2xl backdrop-blur-sm">
             <div className="flex flex-col items-center mb-6">
-              <div className="w-12 h-12 bg-yellow-400 rounded-xl flex items-center justify-center mb-3">
-                <span className="text-black font-bold text-xl">M</span>
-              </div>
+              <BrandLogo className="mb-4 text-[30px]" />
               <h1 className="text-xl font-semibold text-center">MindDoJo AI Assessment</h1>
               <p className="text-gray-500 text-sm mt-2 text-center">
                 สมัครสมาชิกด้วย username / รหัสผ่าน

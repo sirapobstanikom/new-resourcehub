@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import BrandLogo from './BrandLogo';
 import { getDigitalLeadershipFeedback } from '../services/openai';
 import {
   DLC_SECTIONS,
@@ -257,10 +258,7 @@ const DigitalLeadershipAssessment: React.FC = () => {
 
       <header className="flex justify-between items-center px-6 py-6 max-w-4xl mx-auto w-full">
         <Link to="/" className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-yellow-400 rounded-lg flex items-center justify-center glow-yellow">
-            <span className="text-black font-semibold text-xl">M</span>
-          </div>
-          <span className="text-xl font-semibold tracking-tighter">MindDoJo</span>
+          <BrandLogo className="text-[28px]" />
         </Link>
         {step === 'assessment' && (
           <span className="text-gray-500 text-sm font-medium">

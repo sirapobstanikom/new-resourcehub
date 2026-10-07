@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import BrandLogo from '../BrandLogo';
 
 const KP_ARTWORK_URL =
   'https://axaasphuaaadzjoffznj.supabase.co/storage/v1/object/public/images/artwork.png';
@@ -113,10 +114,9 @@ const KeyPrinciplesLoginView: React.FC<KeyPrinciplesLoginViewProps> = ({
                   </div>
                 </div>
 
-                <div className="hidden lg:flex items-center gap-3 mb-7">
-                  <div className="w-12 h-12 rounded-2xl bg-yellow-400 flex items-center justify-center shadow-lg shadow-yellow-400/30">
-                    <span className="text-black font-black text-xl">M</span>
-                  </div>
+                <div className="hidden lg:flex items-center gap-4 mb-7">
+                  <BrandLogo className="text-[26px]" />
+                  <span className="h-9 w-px bg-white/15" aria-hidden />
                   <div>
                     <h2 className="text-xl font-bold text-white">ลงทะเบียน</h2>
                     <p className="text-xs text-gray-500 mt-0.5">กรอกข้อมูลแล้วเริ่มทำแบบประเมินได้ทันที</p>

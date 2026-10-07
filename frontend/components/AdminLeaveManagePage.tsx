@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, Navigate } from 'react-router-dom';
+import BrandLogo from './BrandLogo';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { formatTotalHoursAsDaysHalves, requestedLeaveHoursEquivalent } from '../lib/leaveUnits';
@@ -489,10 +490,7 @@ const AdminLeaveManagePage: React.FC = () => {
       <header className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 px-4 sm:px-6 py-4 sm:py-6 border-b border-white/10">
         <div className="flex flex-wrap items-center gap-2 sm:gap-4 min-w-0">
           <Link to="/admin/leave" className="flex items-center gap-2 sm:gap-3 shrink-0">
-            <div className="w-9 h-9 sm:w-10 sm:h-10 bg-yellow-400 rounded-lg flex items-center justify-center glow-yellow">
-              <span className="text-black font-semibold text-lg sm:text-xl">M</span>
-            </div>
-            <span className="text-base sm:text-xl font-semibold tracking-tighter">MindDoJo</span>
+            <BrandLogo className="text-[22px] sm:text-[28px]" />
           </Link>
           <span className="hidden sm:inline text-gray-500">|</span>
           <span className="text-amber-400 font-semibold text-sm sm:text-base truncate">จัดการคำขอลา</span>

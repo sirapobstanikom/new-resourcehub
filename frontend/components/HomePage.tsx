@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import BrandLogo from './BrandLogo';
 import { useAuth } from '../contexts/AuthContext';
 import { isAuthenticated } from '../lib/auth';
 
@@ -99,10 +100,7 @@ const HomePage: React.FC = () => {
       {/* Header */}
       <header className="flex justify-between items-center px-6 py-6 max-w-6xl mx-auto w-full">
         <Link to="/" className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-yellow-400 rounded-lg flex items-center justify-center glow-yellow">
-            <span className="text-black font-semibold text-xl">M</span>
-          </div>
-          <span className="text-xl font-semibold tracking-tighter">MindDoJo</span>
+          <BrandLogo className="text-[28px]" />
         </Link>
         <div className="flex items-center gap-3">
           {loggedIn ? (
@@ -347,12 +345,7 @@ const HomePage: React.FC = () => {
       {/* Footer */}
       <footer className="py-8 border-t border-white/5">
         <div className="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row justify-between items-center gap-4">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 bg-yellow-400 rounded flex items-center justify-center">
-              <span className="text-black font-bold text-sm">M</span>
-            </div>
-            <span className="font-bold tracking-tight text-sm">MindDoJo</span>
-          </div>
+          <BrandLogo className="text-[20px]" />
           <span className="text-gray-500 text-sm">
             © {new Date().getFullYear()} MindDoJo CO., LTD.
           </span>

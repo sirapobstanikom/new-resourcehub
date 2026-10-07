@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import BrandLogo from './BrandLogo';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import {
@@ -470,11 +471,8 @@ const ConflictManagementStyleAssessment: React.FC = () => {
 
       <header className="sticky top-0 z-40 border-b border-white/5 bg-black/40 backdrop-blur-xl supports-[backdrop-filter]:bg-black/25">
         <div className="max-w-3xl mx-auto w-full px-4 sm:px-6 py-4 flex justify-between items-center gap-4">
-          <Link to="/" className="flex items-center gap-3 shrink-0 group">
-            <div className="w-10 h-10 bg-gradient-to-br from-yellow-400 to-amber-400 rounded-xl flex items-center justify-center shadow-lg shadow-yellow-500/20 group-hover:scale-[1.02] transition-transform">
-              <span className="text-black font-black text-lg">M</span>
-            </div>
-            <span className="text-lg font-bold tracking-tight text-white/95 hidden min-[380px]:inline">MindDoJo</span>
+          <Link to="/" className="flex items-center shrink-0 transition-opacity hover:opacity-85">
+            <BrandLogo className="text-[22px] sm:text-[26px]" />
           </Link>
           {step === 'assessment' && (
             <div className="flex flex-col items-end gap-1 min-w-0">

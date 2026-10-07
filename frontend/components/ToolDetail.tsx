@@ -4,6 +4,7 @@ import { Tool } from '../types';
 import CommentSection from './CommentSection';
 import AIChatSidebar from './AIChatSidebar';
 import MobileAIChatFAB from './MobileAIChatFAB';
+import BrandLogo from './BrandLogo';
 
 interface ToolDetailProps {
   tool: Tool;
@@ -22,12 +23,7 @@ const ToolDetail: React.FC<ToolDetailProps> = ({ tool, onBack, onAskAI }) => {
         >
           <span className="text-xl">←</span> Back to Hub
         </button>
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-yellow-400 rounded flex items-center justify-center">
-            <span className="text-black font-semibold">M</span>
-          </div>
-          <span className="font-semibold">MindDoJo</span>
-        </div>
+        <BrandLogo className="text-[24px]" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-16">

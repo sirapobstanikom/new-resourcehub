@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import BrandLogo from './BrandLogo';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
 interface RegistrationFormData {
@@ -201,12 +202,9 @@ export default function ActivityRegistrationPage() {
       <header className="relative z-10 border-b border-white/10 bg-[#0B0F19]/80 backdrop-blur-md sticky top-0 px-4 py-3 sm:py-4">
         <div className="max-w-4xl mx-auto flex items-center justify-between gap-4">
           <Link to="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-yellow-400 to-amber-500 flex items-center justify-center font-black text-black text-xl shadow-[0_0_20px_rgba(250,204,21,0.3)] group-hover:scale-105 transition-transform">
-              M
-            </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-extrabold text-base sm:text-lg tracking-tight text-white">MindDoJo</span>
+                <BrandLogo className="text-[22px] sm:text-[26px] transition-opacity group-hover:opacity-85" />
                 <span className="text-[10px] sm:text-xs font-semibold px-2 py-0.5 rounded-full bg-yellow-400/15 text-yellow-300 border border-yellow-400/30">
                   Registration
                 </span>
