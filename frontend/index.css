@@ -35,6 +35,10 @@
     min-height: 100dvh;
     height: auto;
   }
+  /* html2canvas วัด baseline ของฟอนต์ด้วยรูป GIF 1px แบบ inline — preflight `img { display: block }` ทำให้ข้อความในไฟล์ export เลื่อนลง */
+  img[src^="data:image/gif"] {
+    display: inline;
+  }
   #root {
     min-height: 100%;
     overflow-x: hidden;

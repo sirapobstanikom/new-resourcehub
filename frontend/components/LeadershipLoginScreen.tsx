@@ -1,10 +1,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import BrandLogo from './BrandLogo';
-
-const BRAND_YELLOW = '#FED201';
-const RIBBON_BG = '/images/leadership/ribbon-bg.jpg';
-const HEADLINE_FONT = { fontFamily: "'Poppins', 'Anuphan', sans-serif" };
+import {
+  LEADERSHIP_HEADLINE_FONT as HEADLINE_FONT,
+  LEADERSHIP_RIBBON_BG as RIBBON_BG,
+  LEADERSHIP_YELLOW as BRAND_YELLOW,
+} from '../lib/leadershipTheme';
 
 type LoginUser = { name: string; email: string; company: string };
 

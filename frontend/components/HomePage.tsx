@@ -78,7 +78,7 @@ const ASSESSMENTS = [
     id: 'MBTI',
     title: 'MBTI Assessment',
     description: 'วิเคราะห์บุคลิกภาพของคุณ',
-    href: 'https://www.minddojo.co.th/mbti-register',
+    href: '/assessment/mbti',
     comingSoon: false,
   },
   {
@@ -102,23 +102,6 @@ const HomePage: React.FC = () => {
         <Link to="/" className="flex items-center gap-3">
           <BrandLogo className="text-[28px]" />
         </Link>
-        <div className="flex items-center gap-3">
-          {loggedIn ? (
-            <Link
-              to="/resourcehub"
-              className="px-5 py-2.5 rounded-xl font-bold bg-yellow-400 text-black hover:bg-yellow-300 transition-colors"
-            >
-              ResourceHub
-            </Link>
-          ) : (
-            <Link
-              to="/login"
-              className="px-5 py-2.5 rounded-xl font-bold bg-white/10 text-white hover:bg-white/20 border border-white/10 transition-colors"
-            >
-              เข้าสู่ระบบ
-            </Link>
-          )}
-        </div>
       </header>
 
       {/* Hero */}

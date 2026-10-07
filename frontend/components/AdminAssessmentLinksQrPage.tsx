@@ -23,7 +23,7 @@ const BUILTIN_LINKS: LinkItem[] = [
   { id: 'conflict-management-style', title: 'Conflict Management Style', href: '/assessment/conflict-management-style', category: 'assessment' },
   { id: 'key-principles', title: 'Key Principles Assessment', href: '/assessment/key-principles', category: 'assessment' },
   { id: 'disc', title: 'DISC Assessment', href: '/assessment/disc', category: 'assessment' },
-  { id: 'mbti', title: 'MBTI Assessment', href: 'https://www.minddojo.co.th/mbti-register', category: 'assessment' },
+  { id: 'mbti', title: 'MBTI Assessment', href: '/assessment/mbti', category: 'assessment' },
   { id: 'eva-innoclub', title: 'แบบประเมิน InnoClub', href: '/evaluation/innoclub', category: 'eva' },
   { id: 'eva-innoclub-2', title: 'แบบประเมิน InnoClub ครั้งที่ 2', href: '/evaluation/innoclub-2', category: 'eva' },
   { id: 'eva-innovation', title: 'แบบประเมิน Innovation', href: '/evaluation/innovation', category: 'eva' },

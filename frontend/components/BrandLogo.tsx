@@ -40,8 +40,48 @@ const BrandLogo: React.FC<BrandLogoProps> = ({ className = 'text-[28px]', tone =
         left: CROP.offsetLeft,
         filter: tone === 'dark' ? 'brightness(0)' : undefined,
       }}
+      data-brand-logo-tone={tone}
     />
   </span>
 );
+
+let darkLogoDataUrl: Promise<string> | null = null;
+
+/** html2canvas ignores CSS `filter`, so exports need a pre-blackened copy of the logo. */
+const getDarkLogoDataUrl = (): Promise<string> => {
+  darkLogoDataUrl ??= new Promise<string>((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return reject(new Error('Canvas 2D context unavailable'));
+      ctx.drawImage(img, 0, 0);
+      ctx.globalCompositeOperation = 'source-in';
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      resolve(canvas.toDataURL('image/png'));
+    };
+    img.onerror = () => reject(new Error('Failed to load logo'));
+    img.src = MINDDOJO_LOGO_URL;
+  }).catch((err) => {
+    darkLogoDataUrl = null;
+    throw err;
+  });
+  return darkLogoDataUrl;
+};
+
+/** Pass as html2canvas `onclone` to render `tone="dark"` logos correctly. */
+export const prepareBrandLogosForExport = async (): Promise<(doc: Document) => void> => {
+  const dark = await getDarkLogoDataUrl();
+  return (doc) => {
+    doc.querySelectorAll<HTMLImageElement>('img[data-brand-logo-tone="dark"]').forEach((img) => {
+      img.src = dark;
+      img.style.filter = '';
+    });
+  };
+};
 
 export default BrandLogo;

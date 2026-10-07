@@ -13,6 +13,7 @@ export type CollectionId =
   | 'innoclub_second_vote_options'
   | 'leave_requests'
   | 'persuasion_results'
+  | 'mbti_results'
   | 'reactive_proactive_mindset_results'
   | 'growth_fixed_mindset_results'
   | 'conflict_management_style_results'
@@ -46,6 +47,11 @@ const COLLECTIONS: { id: CollectionId; label: string; description: string }[] = 
     id: 'persuasion_results',
     label: 'Persuasion Test',
     description: 'ผลแบบประเมิน Persuasion (คะแนนช่องทางโน้มน้าวใจ dominant_channels)',
+  },
+  {
+    id: 'mbti_results',
+    label: 'MBTI Assessment',
+    description: 'ผลแบบทดสอบ MBTI 32 ข้อ (ชื่อ อายุ บริษัท อีเมล, mbti_type, คะแนน E/I S/N T/F J/P ใน scores)',
   },
   {
     id: 'reactive_proactive_mindset_results',

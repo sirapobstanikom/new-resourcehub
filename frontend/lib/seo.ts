@@ -71,6 +71,11 @@ const assessmentSeo: Record<string, Pick<SeoConfig, 'title' | 'description'>> = 
     description:
       'ทำแบบประเมิน DISC เพื่อเข้าใจสไตล์บุคลิกภาพ การสื่อสาร และแนวทางการทำงานร่วมกับผู้อื่นอย่างมีประสิทธิภาพ',
   },
+  '/assessment/mbti': {
+    title: 'MBTI Personality Test (Free) | แบบทดสอบบุคลิกภาพ MBTI',
+    description:
+      'แบบทดสอบ MBTI 32 ข้อ วิเคราะห์บุคลิกภาพ 16 แบบจากคู่ตัวอักษร E-I, S-N, T-F และ J-P พร้อมคะแนนโดยละเอียดของแต่ละคู่',
+  },
 };
 
 function absoluteUrl(path: string): string {

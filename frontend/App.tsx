@@ -1,5 +1,5 @@
 import React, { useState, lazy, Suspense, useEffect } from 'react';
-import { Routes, Route, Link, useNavigate, useParams, Navigate, useLocation } from 'react-router-dom';
+import { Routes, Route, Link, useNavigate, useParams, Navigate, useLocation, useNavigationType } from 'react-router-dom';
 import BrandLogo from './components/BrandLogo';
 import { JOURNEY_DATA, UPDATES_DATA, getToolById, getUpdateById } from './constants';
 import { Tool, InnovationUpdate } from './types';
@@ -27,6 +27,7 @@ const AdminStickycloudPage = lazy(() => import('./components/AdminStickycloudPag
 const JoinRoomPage = lazy(() => import('./components/JoinRoomPage'));
 const RoomWorkspacePage = lazy(() => import('./components/RoomWorkspacePage'));
 const DiscAssessment = lazy(() => import('./components/DiscAssessment'));
+const MbtiAssessment = lazy(() => import('./components/MbtiAssessment'));
 const LeadershipAssessment = lazy(() => import('./components/LeadershipAssessment'));
 const PersuasionAssessment = lazy(() => import('./components/PersuasionAssessment'));
 const DigitalLeadershipAssessment = lazy(() => import('./components/DigitalLeadershipAssessment'));
@@ -197,6 +198,7 @@ function AdminLayout({ children }: { children: React.ReactNode }) {
 
 const App: React.FC = () => {
   const location = useLocation();
+  const navigationType = useNavigationType();
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const resourceHubLoggedIn = isAuthenticated();
@@ -211,6 +213,11 @@ const App: React.FC = () => {
   useEffect(() => {
     updateSeoTags(pathname);
   }, [pathname]);
+
+  useEffect(() => {
+    if (navigationType === 'POP' || location.hash) return;
+    window.scrollTo(0, 0);
+  }, [pathname, navigationType]);
 
   useEffect(() => {
     const isArPage = pathname === '/gamification/game-ar' || pathname === '/game-ar';
@@ -293,6 +300,7 @@ const App: React.FC = () => {
       <Suspense fallback={<RouteFallback />}>
         <Routes>
           <Route path="/assessment/disc" element={<DiscAssessment />} />
+          <Route path="/assessment/mbti" element={<MbtiAssessment />} />
           <Route path="/assessment/leadership" element={<LeadershipAssessment />} />
           <Route path="/assessment/leaderships" element={<LeadershipAssessment />} />
           <Route path="/assessment/persuasion" element={<PersuasionAssessment />} />
