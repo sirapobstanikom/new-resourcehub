@@ -2,21 +2,31 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import BrandLogo, { prepareBrandLogosForExport } from './BrandLogo';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import type { FaceLandmarker } from '@mediapipe/tasks-vision';
 import {
-  FACE_EXPRESSION_KEYS,
+  DEFAULT_NORMS,
+  FACE_METRIC_IDS,
   FACE_MOOD_IDS,
   FACE_MOODS,
-  averageExpressionScores,
+  averageMetrics,
+  buildNorms,
   calculateMoodScores,
   classifyFaceMood,
-  emptyExpressionScores,
-  type FaceExpressionScores,
+  extractFaceMetrics,
+  headPose,
+  isFaceMetrics,
+  medianMetrics,
+  toStoredMetrics,
+  metricLabel,
+  metricLevels,
+  moodEvidence,
+  type FaceMetrics,
   type FaceMood,
   type FaceMoodScores,
+  type FaceNorms,
 } from '../lib/faceMoodData';
-import { buildMeshEdges, drawFaceHud, withForeheadPoints, type HudPoint } from '../lib/faceScanHud';
+import { drawFaceHud, type HudMesh, type HudPoint } from '../lib/faceScanHud';
 
-type FaceApi = typeof import('@vladmandic/face-api');
 type Phase = 'register' | 'scan' | 'result';
 type CameraStatus = 'loading' | 'ready' | 'error';
 
@@ -36,37 +46,86 @@ interface FaceBox {
 interface ScanResult {
   mood: FaceMood;
   moodScores: FaceMoodScores;
-  expressions: FaceExpressionScores;
+  metrics: FaceMetrics;
+  norms: FaceNorms;
   photo: string;
   scannedAt: string;
 }
 
+interface FaceEngine {
+  landmarker: FaceLandmarker;
+  mesh: HudMesh;
+}
+
 const REGISTRATION_KEY = 'minddojo.face_scan.registration';
-const MODEL_URL = `${import.meta.env.BASE_URL}models/face-api`;
+const MEDIAPIPE_WASM_URL = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.35/wasm';
+const FACE_MODEL_URL = `${import.meta.env.BASE_URL}models/mediapipe/face_landmarker.task`;
 const SCAN_DURATION_MS = 3000;
-const MIN_FACE_SAMPLES = 4;
+const MIN_FACE_SAMPLES = 10;
+const DETECT_INTERVAL_MS = 33;
+const FACE_LOST_GRACE_MS = 400;
+const NORM_SAMPLE_LIMIT = 1000;
+const SCAN_TIMEOUT_MS = 15000;
+/** มุมหันสูงสุดที่ยังวัดโครงหน้าได้แม่น (องศา) */
+const MAX_YAW = 15;
+const MAX_PITCH = 18;
+const MAX_ROLL = 12;
 const YELLOW = '#FED201';
 const EMPTY_REG: Registration = { name: '', company: '', email: '' };
 const PREVIEW_EMOJIS = FACE_MOOD_IDS.map((id) => FACE_MOODS[id].emoji);
+const HUD_KEY_POINTS = [1, 10, 33, 133, 362, 263, 61, 291, 152];
 
-let faceApiPromise: Promise<FaceApi> | null = null;
+let enginePromise: Promise<FaceEngine> | null = null;
 
-const loadFaceApi = (): Promise<FaceApi> => {
-  faceApiPromise ??= (async () => {
-    const faceapi = await import('@vladmandic/face-api');
-    await (faceapi.tf as unknown as { ready: () => Promise<void> }).ready();
-    await Promise.all([
-      faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
-      faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL),
-      faceapi.nets.faceLandmark68TinyNet.loadFromUri(MODEL_URL),
-    ]);
-    return faceapi;
+const loadFaceEngine = (): Promise<FaceEngine> => {
+  enginePromise ??= (async () => {
+    const { FaceLandmarker, FilesetResolver } = await import('@mediapipe/tasks-vision');
+    const fileset = await FilesetResolver.forVisionTasks(MEDIAPIPE_WASM_URL);
+    const create = (delegate: 'GPU' | 'CPU') =>
+      FaceLandmarker.createFromOptions(fileset, {
+        baseOptions: { modelAssetPath: FACE_MODEL_URL, delegate },
+        runningMode: 'VIDEO',
+        numFaces: 1,
+        outputFaceBlendshapes: true,
+        outputFacialTransformationMatrixes: true,
+      });
+    const landmarker = await create('GPU').catch(() => create('CPU'));
+    const toEdges = (connections: { start: number; end: number }[]) =>
+      connections.map(({ start, end }) => [start, end] as [number, number]);
+    return {
+      landmarker,
+      mesh: {
+        tessellation: toEdges(FaceLandmarker.FACE_LANDMARKS_TESSELATION),
+        contours: toEdges(FaceLandmarker.FACE_LANDMARKS_CONTOURS),
+        keyPoints: HUD_KEY_POINTS,
+      },
+    };
   })().catch((err) => {
-    faceApiPromise = null;
+    enginePromise = null;
     throw err;
   });
-  return faceApiPromise;
+  return enginePromise;
 };
+
+const topReadouts = <T extends string>(ids: readonly T[], values: Record<T, number>, label: (id: T) => string, count: number) =>
+  [...ids]
+    .sort((a, b) => values[b] - values[a])
+    .slice(0, count)
+    .map((id) => ({ label: label(id), value: values[id] }));
+
+const poseHintFor = ({ yaw, pitch, roll }: { yaw: number; pitch: number; roll: number }): string | null => {
+  if (Math.abs(yaw) > MAX_YAW) return 'หันหน้าตรงเข้าหากล้อง';
+  if (Math.abs(pitch) > MAX_PITCH) return 'อย่าก้มหรือเงยหน้า — วางกล้องให้อยู่ระดับสายตา';
+  if (Math.abs(roll) > MAX_ROLL) return 'ตั้งศีรษะให้ตรง ไม่เอียงซ้าย-ขวา';
+  return null;
+};
+
+/** ลักษณะที่ต่างจากคนทั่วไปมากที่สุด — value = ความห่างจากค่ากลาง (0 = เหมือนคนทั่วไป, 1 = ต่างสุด) */
+const topDeviations = (levels: FaceMetrics, count: number) =>
+  [...FACE_METRIC_IDS]
+    .sort((a, b) => Math.abs(levels[b] - 0.5) - Math.abs(levels[a] - 0.5))
+    .slice(0, count)
+    .map((id) => ({ label: metricLabel(id, levels[id]), value: Math.abs(levels[id] - 0.5) * 2 }));
 
 const loadRegistration = (): Registration => {
   try {
@@ -141,18 +200,42 @@ const GameFaceScan: React.FC = () => {
   const [scanError, setScanError] = useState<string | null>(null);
   const [result, setResult] = useState<ScanResult | null>(null);
   const [pngLoading, setPngLoading] = useState(false);
+  const [poseHint, setPoseHint] = useState<string | null>(null);
+  const normsRef = useRef<FaceNorms>(DEFAULT_NORMS);
+
+  useEffect(() => {
+    if (!isSupabaseConfigured) return;
+    let cancelled = false;
+    (async () => {
+      const { data, error } = await supabase
+        .from('face_scan_results')
+        .select('email, metrics')
+        .order('created_at', { ascending: false })
+        .limit(NORM_SAMPLE_LIMIT);
+      if (cancelled || error || !data) return;
+      const byPerson = new Map<string, FaceMetrics[]>();
+      for (const row of data as { email: string; metrics: unknown }[]) {
+        if (!isFaceMetrics(row.metrics)) continue;
+        const key = row.email.trim().toLowerCase();
+        byPerson.set(key, [...(byPerson.get(key) ?? []), row.metrics]);
+      }
+      normsRef.current = buildNorms([...byPerson.values()].map(medianMetrics));
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const resultRef = useRef<HTMLDivElement>(null);
   const scanningRef = useRef(false);
   const scanStartRef = useRef(0);
-  const samplesRef = useRef<FaceExpressionScores[]>([]);
+  const scanElapsedRef = useRef(0);
+  const samplesRef = useRef<FaceMetrics[]>([]);
   const faceDetectedRef = useRef(false);
   const lastFaceBoxRef = useRef<FaceBox | null>(null);
   const finishScanRef = useRef<() => void>(() => {});
   const overlayRef = useRef<HTMLCanvasElement>(null);
-  const hudTargetRef = useRef<{ points: HudPoint[]; confidence: number; seenAt: number } | null>(null);
-  const liveMoodRef = useRef<FaceMoodScores | null>(null);
 
   const saveResult = async (scan: ScanResult, sampleCount: number) => {
     if (!isSupabaseConfigured) return;
@@ -163,7 +246,7 @@ const GameFaceScan: React.FC = () => {
       mood_id: scan.mood.id,
       mood_title: scan.mood.title,
       mood_scores: scan.moodScores,
-      expressions: scan.expressions,
+      metrics: toStoredMetrics(scan.metrics),
       sample_count: sampleCount,
       scanned_at: scan.scannedAt,
     });
@@ -177,14 +260,17 @@ const GameFaceScan: React.FC = () => {
     const samples = samplesRef.current;
     const video = videoRef.current;
     if (samples.length < MIN_FACE_SAMPLES || !video) {
-      setScanError('มองไม่เห็นใบหน้าชัดเจน ลองหันหน้าเข้ากล้องในที่ที่มีแสงสว่าง แล้วสแกนใหม่');
+      setScanError('วัดใบหน้าไม่ได้ — มองตรงเข้ากล้อง ไม่ก้ม/เงย/หันข้าง ในที่ที่มีแสงสว่าง แล้วสแกนใหม่');
       return;
     }
-    const moodScores = calculateMoodScores(samples);
+    const metrics = medianMetrics(samples);
+    const norms = normsRef.current;
+    const moodScores = calculateMoodScores(metrics, norms);
     const scan: ScanResult = {
       mood: classifyFaceMood(moodScores),
       moodScores,
-      expressions: averageExpressionScores(samples),
+      metrics,
+      norms,
       photo: capturePhoto(video, lastFaceBoxRef.current),
       scannedAt: new Date().toISOString(),
     };
@@ -197,63 +283,73 @@ const GameFaceScan: React.FC = () => {
     if (phase !== 'scan') return;
     const session = { active: true };
     let stream: MediaStream | null = null;
-    let timer: number | undefined;
     let frameId: number | undefined;
-    hudTargetRef.current = null;
-    liveMoodRef.current = null;
 
     setCameraStatus('loading');
     setCameraError(null);
     setFaceDetected(false);
     faceDetectedRef.current = false;
 
-    const detectLoop = async (faceapi: FaceApi, video: HTMLVideoElement) => {
-      const options = new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.5 });
-      const tick = async () => {
-        if (!session.active) return;
-        if (video.readyState >= 2) {
-          const detection = await faceapi.detectSingleFace(video, options).withFaceLandmarks(true).withFaceExpressions();
-          if (!session.active) return;
-          const found = Boolean(detection);
-          if (found !== faceDetectedRef.current) {
-            faceDetectedRef.current = found;
-            setFaceDetected(found);
-          }
-          if (detection) {
-            hudTargetRef.current = {
-              points: withForeheadPoints(detection.landmarks.positions.map(({ x, y }) => ({ x, y }))),
-              confidence: detection.detection.score,
-              seenAt: performance.now(),
-            };
-          }
-          if (scanningRef.current) {
-            if (detection) {
-              const { x, y, width, height } = detection.detection.box;
-              lastFaceBoxRef.current = { x, y, width, height };
-              const sample = emptyExpressionScores();
-              for (const key of FACE_EXPRESSION_KEYS) sample[key] = detection.expressions[key];
-              samplesRef.current.push(sample);
-              liveMoodRef.current = calculateMoodScores(samplesRef.current.slice(-8));
-            }
-            const progress = Math.min((performance.now() - scanStartRef.current) / SCAN_DURATION_MS, 1);
-            setScanProgress(progress);
-            if (progress >= 1) {
-              finishScanRef.current();
-              return;
-            }
+    const runLoop = ({ landmarker, mesh }: FaceEngine, video: HTMLVideoElement) => {
+      let lastDetectAt = 0;
+      let lastSeenAt = 0;
+      let lastLoopAt = 0;
+      let lastProgressShown = 0;
+      let frontal = false;
+      let shownHint: string | null = null;
+      let target: HudPoint[] | null = null;
+      let smoothed: HudPoint[] | null = null;
+      let liveMetrics: FaceMetrics | null = null;
+
+      const updateHint = (hint: string | null) => {
+        if (hint === shownHint) return;
+        shownHint = hint;
+        setPoseHint(hint);
+      };
+
+      const detect = (now: number) => {
+        const res = landmarker.detectForVideo(video, now);
+        const landmarks = res.faceLandmarks[0];
+        const blendshapes = res.faceBlendshapes[0];
+        const matrix = res.facialTransformationMatrixes?.[0];
+        if (landmarks && blendshapes) {
+          lastSeenAt = now;
+          const hint = matrix ? poseHintFor(headPose(matrix.data)) : null;
+          frontal = hint === null;
+          updateHint(hint);
+          target = landmarks.map(({ x, y }) => ({ x: x * video.videoWidth, y: y * video.videoHeight }));
+          const metrics = extractFaceMetrics(
+            landmarks,
+            Object.fromEntries(blendshapes.categories.map((c) => [c.categoryName, c.score])),
+            video.videoWidth,
+            video.videoHeight,
+          );
+          liveMetrics = liveMetrics
+            ? (Object.fromEntries(FACE_METRIC_IDS.map((id) => [id, liveMetrics![id] + (metrics[id] - liveMetrics![id]) * 0.25])) as FaceMetrics)
+            : metrics;
+          if (scanningRef.current && frontal) {
+            samplesRef.current.push(metrics);
+            const xs = target.map((p) => p.x);
+            const ys = target.map((p) => p.y);
+            const minX = Math.min(...xs);
+            const minY = Math.min(...ys);
+            lastFaceBoxRef.current = { x: minX, y: minY, width: Math.max(...xs) - minX, height: Math.max(...ys) - minY };
           }
         }
-        timer = window.setTimeout(tick, 60);
+        const found = now - lastSeenAt < FACE_LOST_GRACE_MS;
+        if (found !== faceDetectedRef.current) {
+          faceDetectedRef.current = found;
+          setFaceDetected(found);
+        }
+        if (!found) {
+          target = null;
+          liveMetrics = null;
+          frontal = false;
+          updateHint(null);
+        }
       };
-      await tick();
-    };
 
-    const drawLoop = (video: HTMLVideoElement) => {
-      let smoothed: HudPoint[] | null = null;
-      let edges: ReturnType<typeof buildMeshEdges> | null = null;
       const draw = (now: number) => {
-        if (!session.active) return;
-        frameId = requestAnimationFrame(draw);
         const canvas = overlayRef.current;
         const ctx = canvas?.getContext('2d');
         if (!canvas || !ctx) return;
@@ -266,16 +362,14 @@ const GameFaceScan: React.FC = () => {
         }
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         ctx.clearRect(0, 0, cw, ch);
-
-        const target = hudTargetRef.current;
-        if (!target || now - target.seenAt > 500 || !video.videoWidth) {
+        const current = target;
+        if (!current) {
           smoothed = null;
           return;
         }
         smoothed = smoothed
-          ? smoothed.map((p, i) => ({ x: p.x + (target.points[i].x - p.x) * 0.35, y: p.y + (target.points[i].y - p.y) * 0.35 }))
-          : target.points;
-        edges ??= buildMeshEdges(target.points);
+          ? smoothed.map((p, i) => ({ x: p.x + (current[i].x - p.x) * 0.5, y: p.y + (current[i].y - p.y) * 0.5 }))
+          : current;
 
         const scale = Math.max(cw / video.videoWidth, ch / video.videoHeight);
         const offsetX = (cw - video.videoWidth * scale) / 2;
@@ -283,36 +377,55 @@ const GameFaceScan: React.FC = () => {
         const points = smoothed.map((p) => ({ x: cw - (offsetX + p.x * scale), y: offsetY + p.y * scale }));
 
         const scanning = scanningRef.current;
-        const live = liveMoodRef.current;
+        const recent = samplesRef.current.slice(-12);
+        const liveMoods = scanning && recent.length > 0 ? calculateMoodScores(averageMetrics(recent), normsRef.current) : null;
+        const liveLevels = liveMetrics ? metricLevels(liveMetrics, normsRef.current) : null;
         drawFaceHud(
           ctx,
           cw,
           ch,
           {
             points,
-            confidence: target.confidence,
             scanning,
-            progress: scanning ? Math.min((now - scanStartRef.current) / SCAN_DURATION_MS, 1) : 0,
-            readouts:
-              scanning && live
-                ? [...FACE_MOOD_IDS]
-                    .sort((a, b) => live[b] - live[a])
-                    .slice(0, 3)
-                    .map((id) => ({ label: `${FACE_MOODS[id].emoji} ${FACE_MOODS[id].title}`, value: live[id] }))
-                : [],
+            progress: scanning ? Math.min(scanElapsedRef.current / SCAN_DURATION_MS, 1) : 0,
+            moodReadouts: liveMoods ? topReadouts(FACE_MOOD_IDS, liveMoods, (id) => `${FACE_MOODS[id].emoji} ${FACE_MOODS[id].title}`, 3) : [],
+            sensorReadouts: liveLevels ? topDeviations(liveLevels, 4) : [],
             time: now,
           },
-          edges,
+          mesh,
         );
       };
-      frameId = requestAnimationFrame(draw);
+
+      const loop = (now: number) => {
+        if (!session.active) return;
+        frameId = requestAnimationFrame(loop);
+        if (video.readyState >= 2 && video.videoWidth > 0 && now - lastDetectAt >= DETECT_INTERVAL_MS) {
+          lastDetectAt = now;
+          detect(now);
+        }
+        if (scanningRef.current) {
+          if (frontal && faceDetectedRef.current) scanElapsedRef.current += Math.min(now - lastLoopAt, 100);
+          const progress = Math.min(scanElapsedRef.current / SCAN_DURATION_MS, 1);
+          if (Math.abs(progress - lastProgressShown) >= 0.02 || progress >= 1) {
+            lastProgressShown = progress;
+            setScanProgress(progress);
+          }
+          if (progress >= 1 || now - scanStartRef.current > SCAN_TIMEOUT_MS) {
+            lastProgressShown = 0;
+            finishScanRef.current();
+          }
+        }
+        lastLoopAt = now;
+        draw(now);
+      };
+      frameId = requestAnimationFrame(loop);
     };
 
     (async () => {
       try {
         if (!navigator.mediaDevices?.getUserMedia) throw new Error('unsupported');
-        const [faceapi, media] = await Promise.all([
-          loadFaceApi(),
+        const [engine, media] = await Promise.all([
+          loadFaceEngine(),
           navigator.mediaDevices.getUserMedia({
             audio: false,
             video: { facingMode: 'user', width: { ideal: 960 }, height: { ideal: 720 } },
@@ -325,8 +438,7 @@ const GameFaceScan: React.FC = () => {
         await video.play();
         if (!session.active) return;
         setCameraStatus('ready');
-        void detectLoop(faceapi, video);
-        drawLoop(video);
+        runLoop(engine, video);
       } catch (err) {
         if (!session.active) return;
         setCameraStatus('error');
@@ -340,7 +452,6 @@ const GameFaceScan: React.FC = () => {
 
     return () => {
       session.active = false;
-      window.clearTimeout(timer);
       if (frameId !== undefined) cancelAnimationFrame(frameId);
       scanningRef.current = false;
       stream?.getTracks().forEach((track) => track.stop());
@@ -371,8 +482,8 @@ const GameFaceScan: React.FC = () => {
     if (scanningRef.current || !faceDetectedRef.current) return;
     samplesRef.current = [];
     lastFaceBoxRef.current = null;
-    liveMoodRef.current = null;
     scanStartRef.current = performance.now();
+    scanElapsedRef.current = 0;
     scanningRef.current = true;
     setScanError(null);
     setScanProgress(0);
@@ -426,8 +537,8 @@ const GameFaceScan: React.FC = () => {
               ))}
             </div>
             <p className="mt-5 text-sm text-white/60">
-              ไม่ต้องยิ้ม ไม่ต้องทำหน้า — แค่มองกล้องตามปกติ AI จะอ่านแนวโน้มจากหน้านิ่งของคุณว่าไปทางใจดี ดุ เศร้า ซึม ตื่นเต้น กังวล
-              หรือเบื่อโลก ภายใน 3 วินาที
+              ไม่ต้องยิ้ม ไม่ต้องทำหน้า — แค่มองกล้องตามปกติ ระบบจะวัดใบหน้า 478 จุดและกล้ามเนื้อ 52 ตำแหน่ง เช่น มุมปาก คิ้ว และหนังตา
+              แล้วบอกว่าหน้านิ่งของคุณไปทางใจดี ดุ เศร้า ซึม ตื่นเต้น กังวล หรือเบื่อโลก ภายใน 3 วินาที
             </p>
           </section>
 
@@ -481,19 +592,23 @@ const GameFaceScan: React.FC = () => {
       ? cameraStatus === 'error'
         ? 'เปิดกล้องไม่สำเร็จ'
         : 'กำลังเปิดกล้องและโหลดระบบวิเคราะห์ใบหน้า...'
-      : scanning
-        ? `กำลังสแกน... ${Math.max(0, (SCAN_DURATION_MS / 1000) * (1 - scanProgress)).toFixed(1)} วินาที`
-        : faceDetected
-          ? 'พบใบหน้าแล้ว พร้อมสแกน'
-          : 'ยังไม่พบใบหน้า — หันหน้าเข้ากล้องให้อยู่ในกรอบ';
-    const guideColor = scanning ? YELLOW : faceDetected ? '#4ADE80' : 'rgba(255,255,255,0.45)';
+      : faceDetected && poseHint
+        ? `${poseHint}${scanning ? ' (หยุดสแกนชั่วคราว)' : ''}`
+        : scanning
+          ? `กำลังสแกน... ${Math.max(0, (SCAN_DURATION_MS / 1000) * (1 - scanProgress)).toFixed(1)} วินาที`
+          : faceDetected
+            ? 'พบใบหน้าแล้ว พร้อมสแกน'
+            : 'ยังไม่พบใบหน้า — หันหน้าเข้ากล้องให้อยู่ในกรอบ';
+    const guideColor = faceDetected && poseHint ? '#FB923C' : scanning ? YELLOW : faceDetected ? '#4ADE80' : 'rgba(255,255,255,0.45)';
 
     return (
       <PageShell>
         <div className="mx-auto max-w-xl text-center">
           <p className="text-sm text-white/60">สวัสดีคุณ {reg.name}</p>
           <h1 className="mt-1 text-2xl font-extrabold sm:text-3xl">วางใบหน้าให้อยู่ในกรอบ แล้วกดสแกน</h1>
-          <p className="mt-2 text-sm text-white/60">ทำหน้าตามปกติ ไม่ต้องยิ้ม — ระบบจะอ่านแนวโน้มจากหน้านิ่งของคุณ</p>
+          <p className="mt-2 text-sm text-white/60">
+            ทำหน้าตามปกติ ไม่ต้องยิ้ม มองตรงเข้ากล้องระดับสายตา — ระบบจะวัดโครงหน้าตอนนิ่งของคุณ
+          </p>
 
           <div className="relative mx-auto mt-6 aspect-[3/4] w-full max-w-md overflow-hidden rounded-3xl border border-white/10 bg-black sm:aspect-[4/3]">
             <video ref={videoRef} playsInline muted className="h-full w-full -scale-x-100 object-cover contrast-110 saturate-[0.8]" />
@@ -586,9 +701,11 @@ const GameFaceScan: React.FC = () => {
 
   if (!result) return null;
 
-  const { mood, moodScores, expressions, photo } = result;
+  const { mood, moodScores, metrics, norms, photo } = result;
   const sortedMoods = [...FACE_MOOD_IDS].sort((a, b) => moodScores[b] - moodScores[a]);
-  const stillness = Math.round(expressions.neutral * 100);
+  const levels = metricLevels(metrics, norms);
+  const sortedMetrics = [...FACE_METRIC_IDS].sort((a, b) => Math.abs(levels[b] - 0.5) - Math.abs(levels[a] - 0.5)).slice(0, 8);
+  const evidence = moodEvidence(mood.id, metrics, norms);
   const scannedDate = new Date(result.scannedAt).toLocaleDateString('th-TH', { dateStyle: 'long' });
 
   return (
@@ -629,33 +746,76 @@ const GameFaceScan: React.FC = () => {
               </h1>
               <p className="mt-1 text-sm font-semibold uppercase tracking-[0.2em] text-white/60">{mood.subtitle}</p>
               <p className="mt-4 text-[15px] leading-relaxed text-white/85">{mood.description}</p>
+              {evidence.length > 0 && (
+                <div className="mt-3 flex flex-wrap justify-center gap-1.5 sm:justify-start">
+                  <span className="text-xs text-white/50">วัดได้จาก:</span>
+                  {evidence.map(({ id, label }) => (
+                    <span key={id} className="rounded-full border px-2.5 py-0.5 text-xs font-semibold" style={{ borderColor: `${mood.accent}80`, color: mood.accent }}>
+                      {label}
+                    </span>
+                  ))}
+                </div>
+              )}
               <p className="mt-3 rounded-2xl bg-white/5 px-4 py-3 text-sm leading-relaxed text-white/70">💡 {mood.tip}</p>
             </div>
           </div>
 
           <div className="border-t border-white/10 px-6 py-6 sm:px-8">
-            <p className="text-center text-xs font-bold uppercase tracking-[0.3em] text-white/50">แนวโน้มของใบหน้า</p>
-            <p className="mt-1 text-center text-xs text-white/40">ความนิ่งของใบหน้าขณะสแกน {stillness}%</p>
-            <div className="mt-4 grid gap-x-8 gap-y-3 sm:grid-cols-2">
-              {sortedMoods.map((id) => {
-                const pct = Math.round(moodScores[id] * 100);
-                return (
-                  <div key={id}>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-white/80">
-                        {FACE_MOODS[id].emoji} {FACE_MOODS[id].title}
-                      </span>
-                      <span className="font-bold text-white">{pct}%</span>
-                    </div>
-                    <div className="mt-1 h-2 overflow-hidden rounded-full bg-white/10">
-                      <div
-                        className="h-full rounded-full"
-                        style={{ width: `${pct}%`, backgroundColor: id === sortedMoods[0] ? mood.accent : 'rgba(255,255,255,0.45)' }}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
+            <div className="grid gap-8 sm:grid-cols-2">
+              <section>
+                <p className="text-xs font-bold uppercase tracking-[0.3em] text-white/50">แนวโน้มของใบหน้า</p>
+                <div className="mt-4 space-y-3">
+                  {sortedMoods.map((id) => {
+                    const pct = Math.round(moodScores[id] * 100);
+                    return (
+                      <div key={id}>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-white/80">
+                            {FACE_MOODS[id].emoji} {FACE_MOODS[id].title}
+                          </span>
+                          <span className="font-bold text-white">{pct}%</span>
+                        </div>
+                        <div className="mt-1 h-2 overflow-hidden rounded-full bg-white/10">
+                          <div
+                            className="h-full rounded-full"
+                            style={{ width: `${pct}%`, backgroundColor: id === sortedMoods[0] ? mood.accent : 'rgba(255,255,255,0.45)' }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </section>
+              <section>
+                <p className="text-xs font-bold uppercase tracking-[0.3em] text-white/50">ค่าที่วัดได้เทียบคนทั่วไป</p>
+                <div className="mt-4 space-y-3">
+                  {sortedMetrics.map((id) => {
+                    const level = levels[id];
+                    const high = level >= 0.5;
+                    const pct = Math.min(Math.round((high ? level : 1 - level) * 100), 99);
+                    return (
+                      <div key={id}>
+                        <div className="flex justify-between gap-2 text-sm">
+                          <span className="text-white/80">{metricLabel(id, level)}</span>
+                          <span className="shrink-0 text-xs text-white/60">
+                            เด่นกว่า <span className="font-bold text-white">{pct}%</span> ของคน
+                          </span>
+                        </div>
+                        <div className="relative mt-1 h-2 rounded-full bg-white/10">
+                          <div
+                            className="absolute inset-y-0 rounded-full bg-cyan-400"
+                            style={high ? { left: '50%', width: `${(level - 0.5) * 100}%` } : { right: '50%', width: `${(0.5 - level) * 100}%` }}
+                          />
+                          <div className="absolute -inset-y-0.5 left-1/2 w-0.5 bg-white/70" />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <p className="mt-3 text-[11px] leading-relaxed text-white/40">
+                  วัดโครงหน้า 478 จุดจากทุกเฟรมที่หน้าตรงระหว่างสแกน 3 วินาที แล้วเทียบกับคนที่สแกนก่อนหน้าทั้งหมด · เส้นกลาง = คนทั่วไป
+                </p>
+              </section>
             </div>
           </div>
         </div>

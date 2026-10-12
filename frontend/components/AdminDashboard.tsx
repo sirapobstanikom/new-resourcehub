@@ -57,7 +57,7 @@ const COLLECTIONS: { id: CollectionId; label: string; description: string }[] = 
   {
     id: 'face_scan_results',
     label: 'Face Mood Scan',
-    description: 'ผลเกมสแกนใบหน้า (ชื่อ บริษัท อีเมล, mood_title, แนวโน้มใบหน้าใน mood_scores, ค่าสีหน้าดิบใน expressions) — ไม่มีการเก็บรูปภาพ',
+    description: 'ผลเกมสแกนใบหน้า (ชื่อ บริษัท อีเมล, mood_title, แนวโน้มใบหน้าใน mood_scores, ค่ากล้ามเนื้อใบหน้าที่วัดได้ใน metrics) — ไม่มีการเก็บรูปภาพ',
   },
   {
     id: 'reactive_proactive_mindset_results',

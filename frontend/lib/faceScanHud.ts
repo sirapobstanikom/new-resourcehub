@@ -10,69 +10,22 @@ export interface HudReadout {
 
 export interface HudFrame {
   points: HudPoint[];
-  confidence: number;
   scanning: boolean;
   progress: number;
-  readouts: HudReadout[];
+  moodReadouts: HudReadout[];
+  sensorReadouts: HudReadout[];
   time: number;
 }
 
-type Edge = [number, number];
+export interface HudMesh {
+  tessellation: [number, number][];
+  contours: [number, number][];
+  keyPoints: number[];
+}
 
 const CYAN = '34, 211, 238';
 const YELLOW = '254, 210, 1';
-const FOREHEAD_SOURCES = [17, 18, 19, 20, 21, 22, 23, 24, 25, 26];
-const KEY_POINTS = [30, 36, 39, 42, 45, 48, 54, 8];
 const FONT = '"Anuphan", ui-monospace, monospace';
-
-const CONTOURS: { from: number; to: number; closed: boolean }[] = [
-  { from: 0, to: 16, closed: false },
-  { from: 17, to: 21, closed: false },
-  { from: 22, to: 26, closed: false },
-  { from: 27, to: 30, closed: false },
-  { from: 31, to: 35, closed: false },
-  { from: 36, to: 41, closed: true },
-  { from: 42, to: 47, closed: true },
-  { from: 48, to: 59, closed: true },
-  { from: 60, to: 67, closed: true },
-];
-
-const CONTOUR_EDGES: Edge[] = CONTOURS.flatMap(({ from, to, closed }) => {
-  const edges: Edge[] = [];
-  for (let i = from; i < to; i++) edges.push([i, i + 1]);
-  if (closed) edges.push([to, from]);
-  return edges;
-});
-
-/** เติมจุดหน้าผากจากคิ้ว เพื่อให้ตาข่ายคลุมทั้งใบหน้า (68 จุดเดิมไม่มีหน้าผาก) */
-export function withForeheadPoints(points: HudPoint[]): HudPoint[] {
-  const anchor = points[33];
-  const forehead = FOREHEAD_SOURCES.map((i) => ({
-    x: points[i].x + (points[i].x - anchor.x) * 0.15,
-    y: points[i].y + (points[i].y - anchor.y) * 0.55,
-  }));
-  return [...points, ...forehead];
-}
-
-/** เส้นตาข่ายเชื่อมจุดที่ใกล้กันที่สุด คำนวณครั้งเดียวจากใบหน้าแรกเพื่อให้โครงคงที่ */
-export function buildMeshEdges(points: HudPoint[], neighbours = 3): Edge[] {
-  const seen = new Set<string>();
-  const edges: Edge[] = [];
-  points.forEach((p, i) => {
-    points
-      .map((q, j) => ({ j, d: (p.x - q.x) ** 2 + (p.y - q.y) ** 2 }))
-      .filter(({ j }) => j !== i)
-      .sort((a, b) => a.d - b.d)
-      .slice(0, neighbours)
-      .forEach(({ j }) => {
-        const key = i < j ? `${i}-${j}` : `${j}-${i}`;
-        if (seen.has(key)) return;
-        seen.add(key);
-        edges.push([Math.min(i, j), Math.max(i, j)]);
-      });
-  });
-  return edges;
-}
 
 const boundsOf = (points: HudPoint[]) => {
   let minX = Infinity;
@@ -106,17 +59,57 @@ const drawBrackets = (ctx: CanvasRenderingContext2D, x: number, y: number, w: nu
   ctx.stroke();
 };
 
-export function drawFaceHud(ctx: CanvasRenderingContext2D, width: number, height: number, frame: HudFrame, edges: Edge[]) {
+const drawPanel = (
+  ctx: CanvasRenderingContext2D,
+  title: string,
+  rows: HudReadout[],
+  x: number,
+  y: number,
+  width: number,
+  color: string,
+) => {
+  const rowH = 20;
+  const height = 24 + rows.length * rowH;
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
+  ctx.strokeStyle = `rgba(${color}, 0.6)`;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.rect(x, y, width, height);
+  ctx.fill();
+  ctx.stroke();
+  ctx.textBaseline = 'top';
+  ctx.textAlign = 'left';
+  ctx.font = `700 10px ${FONT}`;
+  ctx.fillStyle = `rgba(${color}, 1)`;
+  ctx.fillText(title, x + 8, y + 7);
+  rows.forEach((r, i) => {
+    const ry = y + 24 + i * rowH;
+    ctx.font = `600 11px ${FONT}`;
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.92)';
+    ctx.textAlign = 'left';
+    ctx.fillText(r.label, x + 8, ry);
+    ctx.textAlign = 'right';
+    ctx.fillText(`${Math.round(r.value * 100)}%`, x + width - 8, ry);
+    ctx.textAlign = 'left';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.12)';
+    ctx.fillRect(x + 8, ry + 14, width - 16, 2);
+    ctx.fillStyle = `rgba(${i === 0 ? YELLOW : CYAN}, 1)`;
+    ctx.fillRect(x + 8, ry + 14, (width - 16) * Math.min(r.value, 1), 2);
+  });
+  return height;
+};
+
+export function drawFaceHud(ctx: CanvasRenderingContext2D, width: number, height: number, frame: HudFrame, mesh: HudMesh) {
   const { points, scanning, progress, time } = frame;
   const accent = scanning ? YELLOW : CYAN;
   const intensity = scanning ? 1 : 0.6;
   const b = boundsOf(points);
-  const pad = b.width * 0.14;
+  const pad = b.width * 0.1;
   const box = { x: b.minX - pad, y: b.minY - pad, w: b.width + pad * 2, h: b.height + pad * 2 };
   const cx = box.x + box.w / 2;
   const cy = box.y + box.h / 2;
   const sweepY = box.y + box.h * (0.5 - 0.5 * Math.cos((time / 1400) * Math.PI));
-  const sweepRange = Math.max(8, box.h * 0.07);
+  const sweepRange = Math.max(8, box.h * 0.06);
   const s = Math.min(Math.max(box.w / 220, 0.55), 1.5);
   const compact = box.w < 190;
 
@@ -125,7 +118,7 @@ export function drawFaceHud(ctx: CanvasRenderingContext2D, width: number, height
   ctx.lineJoin = 'round';
 
   // วงแหวนเรดาร์ + ขีดสเกลหมุนรอบใบหน้า
-  const radius = Math.max(box.w, box.h) * 0.62;
+  const radius = Math.max(box.w, box.h) * 0.6;
   ctx.strokeStyle = `rgba(${CYAN}, ${0.18 * intensity})`;
   ctx.lineWidth = 1;
   ctx.beginPath();
@@ -167,100 +160,92 @@ export function drawFaceHud(ctx: CanvasRenderingContext2D, width: number, height
   ctx.lineTo(box.x + box.w, sweepY);
   ctx.stroke();
 
-  // ตาข่ายใบหน้า
-  ctx.lineWidth = 0.8;
-  ctx.strokeStyle = `rgba(${CYAN}, ${0.32 * intensity})`;
+  // ตาข่ายใบหน้า 478 จุด
+  ctx.lineWidth = 0.6;
+  ctx.strokeStyle = `rgba(${CYAN}, ${0.28 * intensity})`;
   ctx.beginPath();
-  for (const [i, j] of edges) {
+  for (const [i, j] of mesh.tessellation) {
+    ctx.moveTo(points[i].x, points[i].y);
+    ctx.lineTo(points[j].x, points[j].y);
+  }
+  ctx.stroke();
+
+  // เส้นที่แถบสแกนกำลังผ่านจะสว่างขึ้น
+  ctx.lineWidth = 1;
+  ctx.strokeStyle = `rgba(${YELLOW}, ${0.75 * intensity})`;
+  ctx.beginPath();
+  for (const [i, j] of mesh.tessellation) {
     const p = points[i];
     const q = points[j];
-    if (!p || !q) continue;
+    if (Math.abs((p.y + q.y) / 2 - sweepY) > sweepRange) continue;
     ctx.moveTo(p.x, p.y);
     ctx.lineTo(q.x, q.y);
   }
   ctx.stroke();
 
   ctx.lineWidth = 1.6;
-  ctx.strokeStyle = `rgba(${CYAN}, ${0.85 * intensity})`;
+  ctx.strokeStyle = `rgba(${CYAN}, ${0.9 * intensity})`;
   ctx.shadowColor = `rgba(${CYAN}, 0.8)`;
   ctx.shadowBlur = 8;
   ctx.beginPath();
-  for (const [i, j] of CONTOUR_EDGES) {
+  for (const [i, j] of mesh.contours) {
     ctx.moveTo(points[i].x, points[i].y);
     ctx.lineTo(points[j].x, points[j].y);
   }
   ctx.stroke();
 
-  // จุด landmark — จุดที่แถบสแกนผ่านจะสว่างขึ้น
-  points.forEach((p, i) => {
-    const near = Math.max(0, 1 - Math.abs(p.y - sweepY) / sweepRange);
-    const key = KEY_POINTS.includes(i);
-    const r = ((key ? 2.6 : 1.5) + near * 2) * s;
-    ctx.fillStyle = near > 0.2 || (key && scanning) ? `rgba(${YELLOW}, 1)` : `rgba(${CYAN}, ${0.9 * intensity})`;
+  for (const i of mesh.keyPoints) {
+    const p = points[i];
+    ctx.fillStyle = scanning ? `rgba(${YELLOW}, 1)` : `rgba(${CYAN}, 1)`;
     ctx.shadowColor = ctx.fillStyle;
-    ctx.shadowBlur = 6 + near * 10;
+    ctx.shadowBlur = 10;
     ctx.beginPath();
-    ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+    ctx.arc(p.x, p.y, 2.8 * s, 0, Math.PI * 2);
     ctx.fill();
-  });
+  }
   ctx.shadowBlur = 0;
 
   // กรอบมุม + ข้อความสถานะ
   drawBrackets(ctx, box.x, box.y, box.w, box.h, `rgba(${accent}, 0.95)`);
   ctx.font = `700 ${compact ? 10 : 11}px ${FONT}`;
   ctx.textBaseline = 'bottom';
+  ctx.textAlign = 'left';
   ctx.fillStyle = `rgba(${accent}, 1)`;
   const blink = Math.floor(time / 450) % 2 === 0 ? '●' : '○';
   const status = `${blink} ${scanning ? 'ANALYZING' : 'FACE LOCKED'}`;
-  const conf = `CONF ${Math.round(frame.confidence * 100)}%`;
-  const detail = scanning ? `SCAN ${Math.round(progress * 100)}%` : `MESH ${points.length} PTS`;
+  const meshInfo = `MESH ${points.length} PTS`;
+  const detail = scanning ? `SCAN ${Math.round(progress * 100)}%` : '52 MUSCLE SENSORS';
   if (compact) {
-    ctx.fillText(conf, box.x, box.y - 6);
+    ctx.fillText(meshInfo, box.x, box.y - 6);
     ctx.fillText(status, box.x, box.y - 20);
     ctx.textBaseline = 'top';
     ctx.fillText(detail, box.x, box.y + box.h + 6);
   } else {
     ctx.fillText(status, box.x, box.y - 6);
     ctx.textAlign = 'right';
-    ctx.fillText(conf, box.x + box.w, box.y - 6);
+    ctx.fillText(meshInfo, box.x + box.w, box.y - 6);
     ctx.textBaseline = 'top';
     ctx.fillText(detail, box.x + box.w, box.y + box.h + 6);
     ctx.textAlign = 'left';
     ctx.fillText(`X${Math.round(cx).toString().padStart(4, '0')} Y${Math.round(cy).toString().padStart(4, '0')}`, box.x, box.y + box.h + 6);
   }
 
-  // แผงค่าแนวโน้มแบบสด
-  if (scanning && frame.readouts.length > 0) {
-    const panelW = 132;
-    const rowH = 20;
-    const panelH = 24 + frame.readouts.length * rowH;
-    const fitsRight = box.x + box.w + 14 + panelW <= width;
-    const px = fitsRight ? box.x + box.w + 14 : Math.max(8, box.x - 14 - panelW);
-    const py = Math.min(Math.max(8, cy - panelH / 2), height - panelH - 8);
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
-    ctx.strokeStyle = `rgba(${YELLOW}, 0.6)`;
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.rect(px, py, panelW, panelH);
-    ctx.fill();
-    ctx.stroke();
-    ctx.font = `700 10px ${FONT}`;
-    ctx.fillStyle = `rgba(${YELLOW}, 1)`;
-    ctx.fillText('MOOD VECTOR', px + 8, py + 7);
-    frame.readouts.forEach((r, i) => {
-      const y = py + 24 + i * rowH;
-      ctx.font = `600 11px ${FONT}`;
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.92)';
-      ctx.textAlign = 'left';
-      ctx.fillText(r.label, px + 8, y);
-      ctx.textAlign = 'right';
-      ctx.fillText(`${Math.round(r.value * 100)}%`, px + panelW - 8, y);
-      ctx.textAlign = 'left';
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.12)';
-      ctx.fillRect(px + 8, y + 14, panelW - 16, 2);
-      ctx.fillStyle = `rgba(${i === 0 ? YELLOW : CYAN}, 1)`;
-      ctx.fillRect(px + 8, y + 14, (panelW - 16) * r.value, 2);
-    });
+  // แผงค่าที่วัดได้แบบสด (ซ้าย) และแนวโน้มหน้า (ขวา)
+  if (scanning) {
+    const panelW = 138;
+    const gap = 14;
+    const placePanel = (rows: HudReadout[], title: string, side: 'left' | 'right', color: string) => {
+      if (rows.length === 0) return;
+      const panelH = 24 + rows.length * 20;
+      const fitsPreferred = side === 'right' ? box.x + box.w + gap + panelW <= width : box.x - gap - panelW >= 0;
+      const onRight = side === 'right' ? fitsPreferred : !fitsPreferred;
+      const px = onRight ? Math.min(box.x + box.w + gap, width - panelW - 8) : Math.max(8, box.x - gap - panelW);
+      const offset = side === 'left' && !fitsPreferred ? panelH + 8 : 0;
+      const py = Math.min(Math.max(8, cy - panelH / 2 + offset), height - panelH - 8);
+      drawPanel(ctx, title, rows, px, py, panelW, color);
+    };
+    placePanel(frame.sensorReadouts, 'SENSOR DATA', 'left', CYAN);
+    placePanel(frame.moodReadouts, 'MOOD VECTOR', 'right', YELLOW);
   }
 
   ctx.restore();

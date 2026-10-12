@@ -7,13 +7,15 @@ create table if not exists public.face_scan_results (
   mood_id text not null,
   mood_title text not null,
   mood_scores jsonb not null default '{}'::jsonb,
-  expressions jsonb not null default '{}'::jsonb,
+  metrics jsonb not null default '{}'::jsonb,
   sample_count int,
   scanned_at timestamptz not null default now(),
   created_at timestamptz not null default now()
 );
 
 alter table public.face_scan_results add column if not exists mood_scores jsonb not null default '{}'::jsonb;
+alter table public.face_scan_results add column if not exists metrics jsonb not null default '{}'::jsonb;
+alter table public.face_scan_results drop column if exists expressions;
 
 create index if not exists face_scan_results_created_at_idx on public.face_scan_results (created_at desc);
 
