@@ -47,6 +47,7 @@ const GameCameraBlockJump = lazy(() => import('./components/GameCameraBlockJump'
 const GamePrizeCatch = lazy(() => import('./components/GamePrizeCatch'));
 const GameSkillConnector = lazy(() => import('./components/GameSkillConnector'));
 const GameAiHrChallenge = lazy(() => import('./components/GameAiHrChallenge'));
+const GameFaceScan = lazy(() => import('./components/GameFaceScan'));
 const WhaleDoneRolePlayPage = lazy(() => import('./components/WhaleDoneRolePlayPage'));
 const InnoClubEvaluationPage = lazy(() => import('./components/InnoClubEvaluationPage'));
 const InnoClubSecondEvaluationPage = lazy(() => import('./components/InnoClubSecondEvaluationPage'));
@@ -340,6 +341,7 @@ const App: React.FC = () => {
           <Route path="/gamification/prize-catch" element={<GamePrizeCatch />} />
           <Route path="/gamification/skill-connector" element={<GameSkillConnector />} />
           <Route path="/gamification/ai-hr-challenge" element={<GameAiHrChallenge />} />
+          <Route path="/gamification/face-scan" element={<GameFaceScan />} />
           <Route path="/gamification/whale-done-role-play" element={<Navigate to="/gamification/whale-done-role-play/v1" replace />} />
           <Route path="/gamification/whale-done-role-play/dashboard" element={<WhaleDoneRolePlayDashboardPage />} />
           <Route path="/gamification/whale-done-role-play/:version" element={<WhaleDoneRolePlayPage />} />

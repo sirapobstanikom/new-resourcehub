@@ -12,6 +12,7 @@
     "@google/genai": "^1.42.0",
     "@mediapipe/pose": "^0.5.1675469404",
     "@supabase/supabase-js": "^2.97.0",
+    "@vladmandic/face-api": "^1.7.15",
     "canvas-confetti": "^1.9.4",
     "html2canvas": "^1.4.1",
     "jspdf": "^4.2.0",

@@ -313,6 +313,18 @@ const HomePage: React.FC = () => {
               ตอบโจทย์ HR 3 ข้อ — อ่านเฉลยทีละข้อ แล้วรับคะแนน AI และของรางวัล (~2 นาที)
             </p>
           </Link>
+          <Link
+            to="/gamification/face-scan"
+            className="block rounded-2xl border border-white/10 p-6 text-left transition-all bg-white/5 hover:bg-white/10 hover:border-pink-400/30 group"
+          >
+            <div className="w-12 h-12 rounded-xl bg-pink-500/20 flex items-center justify-center mb-4 group-hover:bg-pink-500/30 transition-colors">
+              <span className="text-2xl" aria-hidden>🙂</span>
+            </div>
+            <h3 className="font-bold text-lg mb-2 text-white">Face Mood Scan</h3>
+            <p className="text-gray-500 text-sm">
+              ลงทะเบียนแล้วสแกนหน้านิ่ง ๆ — AI บอกว่าหน้าคุณมีแนวโน้มไปทางใจดี ดุ เศร้า หรือซึม
+            </p>
+          </Link>
         </div>
       </section>
 

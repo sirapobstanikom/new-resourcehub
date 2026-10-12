@@ -14,6 +14,7 @@ export type CollectionId =
   | 'leave_requests'
   | 'persuasion_results'
   | 'mbti_results'
+  | 'face_scan_results'
   | 'reactive_proactive_mindset_results'
   | 'growth_fixed_mindset_results'
   | 'conflict_management_style_results'
@@ -52,6 +53,11 @@ const COLLECTIONS: { id: CollectionId; label: string; description: string }[] = 
     id: 'mbti_results',
     label: 'MBTI Assessment',
     description: 'ผลแบบทดสอบ MBTI 32 ข้อ (ชื่อ อายุ บริษัท อีเมล, mbti_type, คะแนน E/I S/N T/F J/P ใน scores)',
+  },
+  {
+    id: 'face_scan_results',
+    label: 'Face Mood Scan',
+    description: 'ผลเกมสแกนใบหน้า (ชื่อ บริษัท อีเมล, mood_title, แนวโน้มใบหน้าใน mood_scores, ค่าสีหน้าดิบใน expressions) — ไม่มีการเก็บรูปภาพ',
   },
   {
     id: 'reactive_proactive_mindset_results',
