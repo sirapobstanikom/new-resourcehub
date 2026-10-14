@@ -26,6 +26,7 @@ import {
   type FaceNorms,
 } from '../lib/faceMoodData';
 import { drawFaceHud, type HudMesh, type HudPoint } from '../lib/faceScanHud';
+import { getFaceMoodVerdict } from '../services/faceMoodAi';
 
 type Phase = 'register' | 'scan' | 'result';
 type CameraStatus = 'loading' | 'ready' | 'error';
@@ -50,6 +51,10 @@ interface ScanResult {
   norms: FaceNorms;
   photo: string;
   scannedAt: string;
+  /** ใครเป็นผู้สรุปแบบหน้า: GPT จากค่าที่วัดได้ หรือสูตรสำรองเมื่อเรียก AI ไม่สำเร็จ */
+  source: 'pending' | 'ai' | 'formula';
+  aiSummary?: string;
+  aiTip?: string;
 }
 
 interface FaceEngine {
@@ -58,6 +63,8 @@ interface FaceEngine {
 }
 
 const REGISTRATION_KEY = 'minddojo.face_scan.registration';
+/** เปลี่ยนเมื่อแก้ข้อความยินยอม เพื่อแยกว่าผู้ใช้ยินยอมกับข้อความฉบับไหน */
+const CONSENT_VERSION = 'face-scan-pdpa-v1';
 const MEDIAPIPE_WASM_URL = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.35/wasm';
 const FACE_MODEL_URL = `${import.meta.env.BASE_URL}models/mediapipe/face_landmarker.task`;
 const SCAN_DURATION_MS = 3000;
@@ -191,6 +198,8 @@ const GameFaceScan: React.FC = () => {
   const [phase, setPhase] = useState<Phase>('register');
   const [reg, setReg] = useState<Registration>(loadRegistration);
   const [regError, setRegError] = useState<string | null>(null);
+  const [consent, setConsent] = useState(false);
+  const [consentAt, setConsentAt] = useState<string | null>(null);
   const [cameraStatus, setCameraStatus] = useState<CameraStatus>('loading');
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [cameraAttempt, setCameraAttempt] = useState(0);
@@ -236,10 +245,11 @@ const GameFaceScan: React.FC = () => {
   const lastFaceBoxRef = useRef<FaceBox | null>(null);
   const finishScanRef = useRef<() => void>(() => {});
   const overlayRef = useRef<HTMLCanvasElement>(null);
+  const scanTokenRef = useRef(0);
 
   const saveResult = async (scan: ScanResult, sampleCount: number) => {
-    if (!isSupabaseConfigured) return;
-    const { error } = await supabase.from('face_scan_results').insert({
+    if (!isSupabaseConfigured || !consentAt) return;
+    const row = {
       name: reg.name,
       company: reg.company,
       email: reg.email,
@@ -249,7 +259,18 @@ const GameFaceScan: React.FC = () => {
       metrics: toStoredMetrics(scan.metrics),
       sample_count: sampleCount,
       scanned_at: scan.scannedAt,
-    });
+    };
+    let { error } = await supabase
+      .from('face_scan_results')
+      .insert({
+        ...row,
+        mood_source: scan.source,
+        ai_summary: scan.aiSummary ?? null,
+        consent_at: consentAt,
+        consent_version: CONSENT_VERSION,
+      });
+    // ตารางที่ยังไม่ได้รัน SQL เพิ่มคอลัมน์ AI/consent — บันทึกส่วนหลักไว้ก่อน
+    if (error?.code === 'PGRST204') ({ error } = await supabase.from('face_scan_results').insert(row));
     if (error) console.warn('Face scan save to DB:', error.message);
   };
 
@@ -266,17 +287,35 @@ const GameFaceScan: React.FC = () => {
     const metrics = medianMetrics(samples);
     const norms = normsRef.current;
     const moodScores = calculateMoodScores(metrics, norms);
-    const scan: ScanResult = {
+    const pending: ScanResult = {
       mood: classifyFaceMood(moodScores),
       moodScores,
       metrics,
       norms,
       photo: capturePhoto(video, lastFaceBoxRef.current),
       scannedAt: new Date().toISOString(),
+      source: 'pending',
     };
-    setResult(scan);
+    const token = ++scanTokenRef.current;
+    setResult(pending);
     setPhase('result');
-    void saveResult(scan, samples.length);
+
+    void (async () => {
+      const verdict = await getFaceMoodVerdict(metrics, norms);
+      if (token !== scanTokenRef.current) return;
+      const final: ScanResult = verdict
+        ? {
+            ...pending,
+            mood: FACE_MOODS[verdict.moodId],
+            moodScores: verdict.moodScores,
+            source: 'ai',
+            aiSummary: verdict.summary,
+            aiTip: verdict.tip,
+          }
+        : { ...pending, source: 'formula' };
+      setResult(final);
+      void saveResult(final, samples.length);
+    })();
   };
 
   useEffect(() => {
@@ -470,7 +509,12 @@ const GameFaceScan: React.FC = () => {
       setRegError('กรุณากรอกอีเมลให้ถูกต้อง');
       return;
     }
+    if (!consent) {
+      setRegError('กรุณาให้ความยินยอมในการเก็บข้อมูลใบหน้าก่อนเริ่มสแกน');
+      return;
+    }
     setReg(trimmed);
+    setConsentAt(new Date().toISOString());
     setRegError(null);
     try {
       localStorage.setItem(REGISTRATION_KEY, JSON.stringify(trimmed));
@@ -491,6 +535,7 @@ const GameFaceScan: React.FC = () => {
   };
 
   const scanAgain = () => {
+    scanTokenRef.current += 1;
     setResult(null);
     setScanError(null);
     setPhase('scan');
@@ -569,16 +614,56 @@ const GameFaceScan: React.FC = () => {
                 </label>
               ))}
             </div>
+            <div className="mt-5 rounded-2xl border border-white/10 bg-black/30 p-4">
+              <label htmlFor="face-scan-consent" className="flex cursor-pointer items-start gap-3">
+                <input
+                  id="face-scan-consent"
+                  type="checkbox"
+                  checked={consent}
+                  onChange={(e) => {
+                    setConsent(e.target.checked);
+                    if (e.target.checked) setRegError(null);
+                  }}
+                  className="mt-0.5 h-5 w-5 shrink-0 cursor-pointer accent-[#FED201]"
+                />
+                <span className="text-sm leading-relaxed text-white/80">
+                  ข้าพเจ้ายินยอมให้ MindDojo เก็บและใช้ข้อมูลใบหน้าที่วัดได้ ร่วมกับชื่อ บริษัท และอีเมล เพื่อแสดงผลเกมนี้
+                  ตามพระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562 (PDPA)
+                </span>
+              </label>
+              <details className="mt-3 pl-8 text-xs leading-relaxed text-white/55">
+                <summary className="cursor-pointer font-semibold text-white/70 hover:text-white">อ่านรายละเอียดการเก็บข้อมูล</summary>
+                <ul className="mt-2 list-disc space-y-1.5 pl-4">
+                  <li>
+                    <b className="text-white/75">ข้อมูลที่เก็บ:</b> ชื่อ บริษัท อีเมล ค่าตัวเลขที่วัดจากใบหน้า 15 ค่า (เช่น ระดับมุมปาก คิ้ว หนังตา)
+                    ผลแบบหน้า และคำสรุปจาก AI — <b className="text-white/75">ไม่เก็บรูปภาพหรือวิดีโอใบหน้า</b>
+                  </li>
+                  <li>
+                    <b className="text-white/75">วัตถุประสงค์:</b> ประมวลผลและแสดงผลเกม และใช้ค่าตัวเลขแบบไม่ระบุตัวตนเป็นค่าเฉลี่ยอ้างอิงสำหรับผู้เล่นคนถัดไป
+                  </li>
+                  <li>
+                    <b className="text-white/75">การส่งข้อมูลให้ผู้อื่น:</b> ค่าตัวเลขจากใบหน้า (ไม่มีชื่อ อีเมล หรือรูป) จะถูกส่งให้บริการ AI ของ OpenAI
+                    ซึ่งอาจประมวลผลนอกประเทศไทย เพื่อสรุปแบบหน้า
+                  </li>
+                  <li>
+                    <b className="text-white/75">สิทธิ์ของคุณ:</b> ขอเข้าถึง แก้ไข หรือลบข้อมูล และถอนความยินยอมได้ทุกเมื่อ โดยติดต่อผู้จัดกิจกรรม
+                    การถอนความยินยอมไม่กระทบการประมวลผลที่ทำไปก่อนหน้า
+                  </li>
+                  <li>ผลลัพธ์มีไว้เพื่อความสนุก ไม่ใช้ประเมินบุคลิกภาพ การจ้างงาน หรือการตัดสินใจใด ๆ เกี่ยวกับตัวคุณ</li>
+                </ul>
+              </details>
+            </div>
             {regError && <p className="mt-4 text-sm font-semibold text-red-400">{regError}</p>}
             <button
               type="submit"
-              className="mt-6 w-full rounded-full py-3.5 text-base font-bold text-black shadow-lg transition-transform hover:scale-[1.02] active:scale-[0.98]"
+              disabled={!consent}
+              className="mt-6 w-full rounded-full py-3.5 text-base font-bold text-black shadow-lg transition-transform enabled:hover:scale-[1.02] enabled:active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40"
               style={{ backgroundColor: YELLOW }}
             >
               เข้าสู่การสแกนใบหน้า
             </button>
             <p className="mt-4 text-center text-xs leading-relaxed text-white/45">
-              ระบบวิเคราะห์ใบหน้าบนอุปกรณ์ของคุณเท่านั้น ไม่มีการอัปโหลดหรือบันทึกรูปภาพ
+              ระบบวัดใบหน้าบนอุปกรณ์ของคุณ ไม่มีการอัปโหลดหรือบันทึกรูปภาพ — ส่งเฉพาะค่าตัวเลขที่วัดได้ให้ AI สรุปผล
             </p>
           </form>
         </div>
@@ -701,7 +786,9 @@ const GameFaceScan: React.FC = () => {
 
   if (!result) return null;
 
-  const { mood, moodScores, metrics, norms, photo } = result;
+  const { mood, moodScores, metrics, norms, photo, source, aiSummary, aiTip } = result;
+  const pending = source === 'pending';
+  const accent = pending ? 'rgba(255,255,255,0.25)' : mood.accent;
   const sortedMoods = [...FACE_MOOD_IDS].sort((a, b) => moodScores[b] - moodScores[a]);
   const levels = metricLevels(metrics, norms);
   const sortedMetrics = [...FACE_METRIC_IDS].sort((a, b) => Math.abs(levels[b] - 0.5) - Math.abs(levels[a] - 0.5)).slice(0, 8);
@@ -719,20 +806,22 @@ const GameFaceScan: React.FC = () => {
 
           <div className="grid items-center gap-6 px-6 pb-8 pt-6 sm:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] sm:px-8">
             <div className="relative mx-auto w-full max-w-[280px]">
-              <div className="overflow-hidden rounded-3xl border-4" style={{ borderColor: mood.accent }}>
+              <div className="overflow-hidden rounded-3xl border-4 transition-colors" style={{ borderColor: accent }}>
                 {photo ? (
                   <img src={photo} alt="ภาพใบหน้าที่สแกน" className="aspect-square w-full object-cover" />
                 ) : (
-                  <div className="flex aspect-square w-full items-center justify-center bg-white/5 text-7xl">{mood.emoji}</div>
+                  <div className="flex aspect-square w-full items-center justify-center bg-white/5 text-7xl">{pending ? '🤖' : mood.emoji}</div>
                 )}
               </div>
-              <span
-                className="absolute -bottom-4 -right-4 flex h-16 w-16 items-center justify-center rounded-2xl border-4 border-[#0d0d12] text-4xl"
-                style={{ backgroundColor: mood.accent }}
-                aria-hidden
-              >
-                {mood.emoji}
-              </span>
+              {!pending && (
+                <span
+                  className="absolute -bottom-4 -right-4 flex h-16 w-16 items-center justify-center rounded-2xl border-4 border-[#0d0d12] text-4xl"
+                  style={{ backgroundColor: mood.accent }}
+                  aria-hidden
+                >
+                  {mood.emoji}
+                </span>
+              )}
             </div>
 
             <div className="text-center sm:text-left">
@@ -740,33 +829,56 @@ const GameFaceScan: React.FC = () => {
               <p className="mt-2 text-sm text-white/70">
                 {reg.name} · {reg.company}
               </p>
-              <p className="mt-4 text-sm text-white/60">ใบหน้าของคุณมีแนวโน้มเป็น...</p>
-              <h1 className="text-4xl font-extrabold sm:text-5xl" style={{ color: mood.accent }}>
-                {mood.title}
-              </h1>
-              <p className="mt-1 text-sm font-semibold uppercase tracking-[0.2em] text-white/60">{mood.subtitle}</p>
-              <p className="mt-4 text-[15px] leading-relaxed text-white/85">{mood.description}</p>
-              {evidence.length > 0 && (
-                <div className="mt-3 flex flex-wrap justify-center gap-1.5 sm:justify-start">
-                  <span className="text-xs text-white/50">วัดได้จาก:</span>
-                  {evidence.map(({ id, label }) => (
-                    <span key={id} className="rounded-full border px-2.5 py-0.5 text-xs font-semibold" style={{ borderColor: `${mood.accent}80`, color: mood.accent }}>
-                      {label}
-                    </span>
-                  ))}
+              {pending ? (
+                <div className="mt-6 flex flex-col items-center gap-3 sm:items-start" aria-live="polite">
+                  <span className="h-10 w-10 animate-spin rounded-full border-4 border-white/20 border-t-[#FED201]" />
+                  <p className="text-lg font-bold text-white">AI กำลังสรุปผล...</p>
+                  <p className="text-sm leading-relaxed text-white/60">
+                    วิเคราะห์ค่าที่วัดได้ {FACE_METRIC_IDS.length} ค่าจากโครงหน้าและกล้ามเนื้อใบหน้าของคุณ เทียบกับคนทั่วไป
+                  </p>
                 </div>
+              ) : (
+                <>
+                  <p className="mt-4 text-sm text-white/60">ใบหน้าของคุณมีแนวโน้มเป็น...</p>
+                  <h1 className="text-4xl font-extrabold sm:text-5xl" style={{ color: mood.accent }}>
+                    {mood.title}
+                  </h1>
+                  <p className="mt-1 text-sm font-semibold uppercase tracking-[0.2em] text-white/60">{mood.subtitle}</p>
+                  {source === 'ai' && aiSummary ? (
+                    <div className="mt-4">
+                      <p className="text-[11px] font-bold uppercase tracking-[0.25em]" style={{ color: mood.accent }}>
+                        ✦ AI วิเคราะห์
+                      </p>
+                      <p className="mt-1 text-[15px] leading-relaxed text-white/85">{aiSummary}</p>
+                    </div>
+                  ) : (
+                    <p className="mt-4 text-[15px] leading-relaxed text-white/85">{mood.description}</p>
+                  )}
+                  {evidence.length > 0 && (
+                    <div className="mt-3 flex flex-wrap justify-center gap-1.5 sm:justify-start">
+                      <span className="text-xs text-white/50">วัดได้จาก:</span>
+                      {evidence.map(({ id, label }) => (
+                        <span key={id} className="rounded-full border px-2.5 py-0.5 text-xs font-semibold" style={{ borderColor: `${mood.accent}80`, color: mood.accent }}>
+                          {label}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  <p className="mt-3 rounded-2xl bg-white/5 px-4 py-3 text-sm leading-relaxed text-white/70">💡 {aiTip || mood.tip}</p>
+                </>
               )}
-              <p className="mt-3 rounded-2xl bg-white/5 px-4 py-3 text-sm leading-relaxed text-white/70">💡 {mood.tip}</p>
             </div>
           </div>
 
           <div className="border-t border-white/10 px-6 py-6 sm:px-8">
             <div className="grid gap-8 sm:grid-cols-2">
               <section>
-                <p className="text-xs font-bold uppercase tracking-[0.3em] text-white/50">แนวโน้มของใบหน้า</p>
-                <div className="mt-4 space-y-3">
+                <p className="text-xs font-bold uppercase tracking-[0.3em] text-white/50">
+                  แนวโน้มของใบหน้า{source === 'ai' ? ' (สรุปโดย AI)' : ''}
+                </p>
+                <div className={`mt-4 space-y-3 ${pending ? 'animate-pulse opacity-30' : ''}`}>
                   {sortedMoods.map((id) => {
-                    const pct = Math.round(moodScores[id] * 100);
+                    const pct = pending ? 0 : Math.round(moodScores[id] * 100);
                     return (
                       <div key={id}>
                         <div className="flex justify-between text-sm">
@@ -824,7 +936,7 @@ const GameFaceScan: React.FC = () => {
           <button
             type="button"
             onClick={handleDownloadPng}
-            disabled={pngLoading}
+            disabled={pngLoading || pending}
             className="rounded-full px-6 py-3 text-sm font-bold text-black shadow-lg transition-transform hover:scale-[1.03] disabled:opacity-60"
             style={{ backgroundColor: YELLOW }}
           >
