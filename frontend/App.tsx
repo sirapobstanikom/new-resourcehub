@@ -96,8 +96,8 @@ function cleanupArOverlays(): void {
 
 function RouteFallback() {
   return (
-    <div className="min-h-screen bg-transparent text-white flex items-center justify-center">
-      <p className="text-zinc-400 text-sm font-medium tracking-wide">กำลังโหลด...</p>
+    <div className="md-page items-center justify-center">
+      <p className="text-sm font-medium tracking-wide text-gray-500">กำลังโหลด...</p>
     </div>
   );
 }
@@ -473,40 +473,40 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-transparent text-white bg-grid flex flex-col selection:bg-yellow-400 selection:text-black">
+    <div className="md-page">
       {!isDetailView && (
-        <header className="pt-24 pb-16 px-6 relative">
-          <div className="max-w-7xl mx-auto text-center relative z-10">
-            <div className="flex justify-center mb-8">
+        <header className="relative px-6 pb-12 pt-16">
+          <div className="relative z-10 mx-auto max-w-7xl text-center">
+            <div className="mb-8 flex justify-center">
               <Link to="/" className="transition-opacity hover:opacity-90">
-                <BrandLogo className="text-[36px]" />
+                <BrandLogo className="text-[36px]" tone="dark" />
               </Link>
             </div>
 
-            <h1 className="text-5xl md:text-7xl font-semibold mb-6 tracking-tight leading-tight">
-              MindDoJo <span className="text-yellow-400">Resourcehub</span>
+            <h1 className="mb-6 text-5xl font-semibold tracking-tight leading-tight text-gray-900 md:text-7xl">
+              MindDoJo <span className="text-yellow-500">Resourcehub</span>
             </h1>
-            <p className="text-gray-400 text-lg max-w-2xl mx-auto mb-12">
+            <p className="mx-auto mb-12 max-w-2xl text-lg text-gray-500">
               Explore our curated library of strategic frameworks and operational tools designed for modern organizational growth.
             </p>
 
-            <div className="flex justify-center items-center gap-4 flex-wrap">
+            <div className="flex flex-wrap items-center justify-center gap-4">
               <Link
                 to="/resourcehub"
-                className={`px-8 py-3 rounded-xl font-bold transition-all ${
+                className={`rounded-full px-8 py-3 font-bold transition-all ${
                   isTools
-                    ? 'bg-yellow-400 text-black shadow-lg shadow-yellow-400/20'
-                    : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                    ? 'bg-[#FFCC00] text-black shadow-sm'
+                    : 'border border-[#D6D4CC] bg-white text-gray-600 hover:border-gray-300'
                 }`}
               >
                 Operational Tools
               </Link>
               <Link
                 to="/updates"
-                className={`px-8 py-3 rounded-xl font-bold transition-all ${
+                className={`rounded-full px-8 py-3 font-bold transition-all ${
                   isUpdates
-                    ? 'bg-yellow-400 text-black shadow-lg shadow-yellow-400/20'
-                    : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                    ? 'bg-[#FFCC00] text-black shadow-sm'
+                    : 'border border-[#D6D4CC] bg-white text-gray-600 hover:border-gray-300'
                 }`}
               >
                 Industry Updates
@@ -519,7 +519,7 @@ const App: React.FC = () => {
                     await signOut();
                     navigate('/');
                   }}
-                  className="px-5 py-3 rounded-xl font-medium bg-white/5 text-gray-400 hover:bg-red-500/20 hover:text-red-400 border border-white/10 transition-all"
+                  className="rounded-full border border-[#D6D4CC] bg-white px-5 py-3 font-medium text-gray-600 transition-all hover:border-red-200 hover:bg-red-50 hover:text-red-600"
                 >
                   ออกจากระบบ
                 </button>
@@ -529,7 +529,7 @@ const App: React.FC = () => {
         </header>
       )}
 
-      <main className={`flex-1 max-w-[1440px] mx-auto w-full px-6 pb-24 ${isDetailView ? 'pt-8' : 'pt-12'}`}>
+      <main className={`mx-auto w-full max-w-[1440px] flex-1 px-6 pb-24 ${isDetailView ? 'pt-8' : 'pt-4'}`}>
         <Routes>
           <Route path="/resourcehub" element={<ProtectedLayout><ToolsPage /></ProtectedLayout>} />
           <Route path="/updates" element={<ProtectedLayout><UpdatesPage /></ProtectedLayout>} />
@@ -539,12 +539,10 @@ const App: React.FC = () => {
         </Routes>
       </main>
 
-      <footer className="py-12 border-t border-white/5 bg-black/50 backdrop-blur-md">
-        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
-          <BrandLogo className="text-[24px]" />
-          <div className="text-gray-500 text-sm">
-            © 2008 MindDoJo CO., LTD. All rights reserved.
-          </div>
+      <footer className="border-t border-[#D6D4CC] bg-white/70 py-12 backdrop-blur-md">
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-6 px-6 md:flex-row">
+          <BrandLogo className="text-[24px]" tone="dark" />
+          <div className="text-sm text-gray-500">© 2008 MindDoJo CO., LTD. All rights reserved.</div>
         </div>
       </footer>
     </div>

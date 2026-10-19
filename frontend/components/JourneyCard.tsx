@@ -9,21 +9,21 @@ interface JourneyCardProps {
 
 const JourneyCard: React.FC<JourneyCardProps> = ({ category, onToolClick }) => {
   return (
-    <div className="group relative flex flex-col min-h-[420px] sm:min-h-[480px] lg:h-[560px] w-full bg-neutral-900/50 border border-white/10 rounded-2xl sm:rounded-[28px] lg:rounded-[32px] overflow-hidden transition-all duration-500 hover:border-yellow-400/30 hover:bg-neutral-900/80">
+    <div className="group relative flex flex-col min-h-[420px] sm:min-h-[480px] lg:h-[560px] w-full md-card overflow-hidden transition-all duration-500 hover:border-yellow-300/80 hover:shadow-md">
       {/* Background Image with Gradient Overlay */}
       <div
-        className="absolute inset-0 z-0 bg-cover bg-center grayscale group-hover:grayscale-0 transition-all duration-1000 opacity-20 group-hover:opacity-40 scale-110 group-hover:scale-100"
+        className="absolute inset-0 z-0 bg-cover bg-center grayscale group-hover:grayscale-0 transition-all duration-1000 opacity-30 group-hover:opacity-50 scale-110 group-hover:scale-100"
         style={{ backgroundImage: `url(${category.image})` }}
       />
-      <div className="absolute inset-0 z-10 bg-gradient-to-t from-neutral-900 via-neutral-900/60 to-transparent" />
+      <div className="absolute inset-0 z-10 bg-gradient-to-t from-white via-white/85 to-white/40" />
 
       <div className="relative z-20 flex flex-col h-full p-5 sm:p-6 lg:p-8">
         <div className="mb-auto shrink-0">
-          <span className="text-yellow-400 text-[10px] sm:text-xs font-bold uppercase tracking-widest mb-2 sm:mb-4 block">Section</span>
-          <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white leading-tight mb-3 sm:mb-4 group-hover:text-yellow-400 transition-colors line-clamp-2">
+          <span className="text-[#FFCC00] text-[10px] sm:text-xs font-bold uppercase tracking-widest mb-2 sm:mb-4 block">Section</span>
+          <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 leading-tight mb-3 sm:mb-4 group-hover:text-yellow-700 transition-colors line-clamp-2">
             {category.title}
           </h3>
-          <div className="w-10 sm:w-12 h-0.5 sm:h-1 bg-yellow-400/30 rounded-full group-hover:w-20 sm:group-hover:w-24 transition-all duration-500" />
+          <div className="w-10 sm:w-12 h-0.5 sm:h-1 bg-[#FFCC00]/50 rounded-full group-hover:w-20 sm:group-hover:w-24 transition-all duration-500" />
         </div>
 
         <div className="space-y-2 sm:space-y-3 mt-4 sm:mt-6 lg:mt-8 min-h-0">
@@ -34,7 +34,7 @@ const JourneyCard: React.FC<JourneyCardProps> = ({ category, onToolClick }) => {
                 key={tool.id}
                 type="button"
                 onClick={() => onToolClick(tool)}
-                className="w-full text-left py-3 sm:py-4 px-3 sm:px-4 rounded-xl sm:rounded-2xl bg-white/5 border border-white/5 text-xs sm:text-sm font-medium hover:bg-yellow-400 hover:text-black hover:border-yellow-400 transition-all transform hover:-translate-y-0.5 sm:hover:-translate-y-1 active:scale-[0.98] min-h-[44px] sm:min-h-[48px]"
+                className="w-full text-left py-3 sm:py-4 px-3 sm:px-4 rounded-xl sm:rounded-2xl bg-white/90 border border-[#D6D4CC] text-xs sm:text-sm font-medium text-gray-800 hover:bg-[#FFCC00] hover:text-black hover:border-[#FFCC00] transition-all transform hover:-translate-y-0.5 sm:hover:-translate-y-1 active:scale-[0.98] min-h-[44px] sm:min-h-[48px] shadow-sm"
               >
                 {tool.name}
               </button>

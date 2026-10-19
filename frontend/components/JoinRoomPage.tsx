@@ -44,9 +44,9 @@ const JoinRoomPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen min-h-[100dvh] bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white flex flex-col selection:bg-amber-400 selection:text-slate-900">
+    <div className="md-page relative">
       <div className="flex-1 flex flex-col items-center justify-center px-4 sm:px-6 py-8 sm:py-12" style={{ paddingTop: 'max(2rem, env(safe-area-inset-top))', paddingBottom: 'max(2rem, env(safe-area-inset-bottom))' }}>
-        <Link to="/" className="absolute top-4 left-4 sm:top-6 sm:left-6 flex items-center gap-2 text-slate-400 hover:text-white transition text-sm min-h-[44px] min-w-[44px] items-center touch-manipulation" style={{ top: 'max(1rem, env(safe-area-inset-top))' }}>
+        <Link to="/" className="absolute top-4 left-4 sm:top-6 sm:left-6 flex items-center gap-2 text-gray-500 hover:text-gray-900 transition text-sm min-h-[44px] min-w-[44px] items-center touch-manipulation" style={{ top: 'max(1rem, env(safe-area-inset-top))' }}>
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
@@ -54,18 +54,16 @@ const JoinRoomPage: React.FC = () => {
         </Link>
 
         <div className="w-full max-w-md">
-          {/* Logo & Title */}
           <div className="text-center mb-8 sm:mb-10">
-            <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 shadow-2xl shadow-amber-500/30 mb-4 sm:mb-6">
-              <span className="font-black text-slate-900 text-xl sm:text-2xl">WB</span>
+            <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-[#FFCC00] shadow-md shadow-yellow-400/25 mb-4 sm:mb-6">
+              <span className="font-black text-gray-900 text-xl sm:text-2xl">WB</span>
             </div>
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-2 px-2">Workshop Board MindDoJo</h1>
-            <p className="text-slate-400 text-sm sm:text-base">ใส่รหัสห้องที่ได้รับจากผู้จัด เพื่อเข้า workspace ร่วมกัน</p>
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-2 px-2">Workshop Board MindDoJo</h1>
+            <p className="text-gray-500 text-sm sm:text-base">ใส่รหัสห้องที่ได้รับจากผู้จัด เพื่อเข้า workspace ร่วมกัน</p>
           </div>
 
-          {/* Card */}
-          <div className="rounded-2xl bg-slate-800/80 border border-slate-700/50 p-5 sm:p-8 shadow-2xl backdrop-blur-sm">
-            <label className="block text-sm font-semibold text-slate-300 mb-3">รหัสห้อง</label>
+          <div className="md-card p-5 sm:p-8">
+            <label className="block text-sm font-semibold text-gray-700 mb-3">รหัสห้อง</label>
             <input
               type="text"
               value={roomCode}
@@ -75,10 +73,10 @@ const JoinRoomPage: React.FC = () => {
               }}
               placeholder="เช่น ABC123"
               maxLength={12}
-              className="w-full px-4 sm:px-5 py-4 rounded-xl bg-slate-700/50 border border-slate-600 text-white text-center text-xl sm:text-2xl font-mono tracking-[0.3em] sm:tracking-[0.4em] placeholder-slate-500 focus:border-amber-400/50 focus:ring-2 focus:ring-amber-400/20 outline-none transition min-h-[52px] touch-manipulation"
+              className="md-input text-center text-xl sm:text-2xl font-mono tracking-[0.3em] sm:tracking-[0.4em] min-h-[52px] touch-manipulation"
             />
             {error && (
-              <p className="mt-3 text-sm text-red-400 flex items-center gap-2">
+              <p className="mt-3 text-sm text-red-600 flex items-center gap-2">
                 <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
@@ -89,7 +87,7 @@ const JoinRoomPage: React.FC = () => {
               type="button"
               onClick={handleJoin}
               disabled={joining}
-              className="w-full mt-6 py-4 min-h-[52px] rounded-xl font-bold bg-gradient-to-r from-amber-400 to-amber-500 text-slate-900 hover:from-amber-300 hover:to-amber-400 disabled:opacity-50 transition shadow-lg shadow-amber-500/25 flex items-center justify-center gap-2 touch-manipulation"
+              className="md-btn-primary w-full mt-6 min-h-[52px] !rounded-xl disabled:opacity-50 flex items-center justify-center gap-2 touch-manipulation"
             >
               {joining ? (
                 <>
@@ -110,7 +108,7 @@ const JoinRoomPage: React.FC = () => {
             </button>
           </div>
 
-          <p className="mt-8 text-center text-sm text-slate-500">
+          <p className="mt-8 text-center text-sm text-gray-500">
             รหัสห้องจะถูกส่งจากผู้จัด workshop หรือ facilitator
           </p>
         </div>

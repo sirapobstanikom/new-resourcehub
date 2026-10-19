@@ -496,8 +496,10 @@ const HiddenFoxGame: React.FC = () => {
     resetToIdle();
   }, [phase, roundResult, resetToIdle, saveRunOnce]);
 
+  const lightChrome = phase === 'idle' || phase === 'registering';
+
   return (
-    <div className="fox-protocol-app">
+    <div className={`fox-protocol-app${lightChrome ? ' fox-chrome-light' : ''}`}>
       <link
         href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Nunito:wght@400;700;900&display=swap"
         rel="stylesheet"

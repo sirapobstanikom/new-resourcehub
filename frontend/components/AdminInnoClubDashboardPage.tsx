@@ -115,11 +115,11 @@ const AdminInnoClubDashboardPage: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-full text-white">
-      <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-4 sm:px-6 py-4 sm:py-6 border-b border-white/10">
+    <div className="flex flex-col min-h-full text-gray-900">
+      <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-4 sm:px-6 py-4 sm:py-6 border-b border-[#D6D4CC]">
         <div className="min-w-0">
           <p className="text-xs uppercase tracking-[0.18em] text-yellow-400/80">InnoClub Game</p>
-          <h1 className="text-xl sm:text-2xl font-bold text-yellow-300 mt-1">กรอกทีม & คะแนนเงิน</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-yellow-800 mt-1">กรอกทีม & คะแนนเงิน</h1>
           <p className="text-sm text-gray-400 mt-1">
             คะแนน = เงินในเกมพัฒนาธุรกิจ · หน้าผลลัพธ์จะโชว์ Top 4 แล้วเปิดอันดับ 1
           </p>
@@ -128,7 +128,7 @@ const AdminInnoClubDashboardPage: React.FC = () => {
           <button
             type="button"
             onClick={() => void loadTeams()}
-            className="rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-xs font-semibold text-gray-200 hover:bg-white/10"
+            className="rounded-xl border border-[#D6D4CC] bg-white px-3 py-2 text-xs font-semibold text-gray-800 hover:bg-gray-100"
           >
             รีเฟรช
           </button>
@@ -147,7 +147,7 @@ const AdminInnoClubDashboardPage: React.FC = () => {
           <div className="rounded-xl border border-red-400/40 bg-red-500/10 px-4 py-3 text-sm text-red-200">
             {error}
             {tableMissing && (
-              <pre className="mt-3 whitespace-pre-wrap rounded-lg bg-black/40 p-3 text-[11px] text-red-100/90 overflow-x-auto">
+              <pre className="mt-3 whitespace-pre-wrap rounded-lg bg-gray-100 p-3 text-[11px] text-red-100/90 overflow-x-auto">
                 {INNOCLUB_GAME_SQL}
               </pre>
             )}
@@ -159,21 +159,21 @@ const AdminInnoClubDashboardPage: React.FC = () => {
           </div>
         )}
 
-        <section className="rounded-2xl border border-white/10 bg-white/5 p-4 sm:p-5">
-          <h2 className="text-sm font-semibold text-yellow-300">เพิ่มทีม</h2>
+        <section className="rounded-2xl border border-[#D6D4CC] bg-white p-4 sm:p-5">
+          <h2 className="text-sm font-semibold text-yellow-800">เพิ่มทีม</h2>
           <form onSubmit={addTeam} className="mt-3 grid gap-3 sm:grid-cols-[1fr_160px_auto]">
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="ชื่อทีม"
-              className="rounded-xl border border-white/15 bg-black/30 px-3 py-2.5 text-sm text-white placeholder:text-gray-500"
+              className="rounded-xl border border-[#D6D4CC] bg-gray-100 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-500"
             />
             <input
               value={money}
               onChange={(e) => setMoney(e.target.value)}
               placeholder="เงิน (คะแนน)"
               inputMode="decimal"
-              className="rounded-xl border border-white/15 bg-black/30 px-3 py-2.5 text-sm text-white placeholder:text-gray-500"
+              className="rounded-xl border border-[#D6D4CC] bg-gray-100 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-500"
             />
             <button
               type="submit"
@@ -186,7 +186,7 @@ const AdminInnoClubDashboardPage: React.FC = () => {
         </section>
 
         <section className="rounded-2xl border border-yellow-300/20 bg-gradient-to-br from-yellow-500/10 to-transparent p-4 sm:p-5">
-          <h2 className="text-sm font-semibold text-yellow-300">พรีวิว Top 4 (หน้าผลลัพธ์)</h2>
+          <h2 className="text-sm font-semibold text-yellow-800">พรีวิว Top 4 (หน้าผลลัพธ์)</h2>
           {top4.length === 0 ? (
             <p className="mt-3 text-sm text-gray-500">ยังไม่มีทีม</p>
           ) : (
@@ -194,20 +194,20 @@ const AdminInnoClubDashboardPage: React.FC = () => {
               {top4.map((team) => (
                 <li
                   key={team.id}
-                  className="rounded-xl border border-white/10 bg-black/30 px-3 py-3"
+                  className="rounded-xl border border-[#D6D4CC] bg-gray-100 px-3 py-3"
                 >
-                  <p className="text-[11px] text-yellow-200/80">#{team.rank}</p>
-                  <p className="mt-1 font-semibold text-white">{team.name}</p>
-                  <p className="mt-1 text-sm text-amber-200">฿{formatMoney(team.money)}</p>
+                  <p className="text-[11px] text-yellow-900/80">#{team.rank}</p>
+                  <p className="mt-1 font-semibold text-gray-900">{team.name}</p>
+                  <p className="mt-1 text-sm text-amber-900">฿{formatMoney(team.money)}</p>
                 </li>
               ))}
             </ol>
           )}
         </section>
 
-        <section className="rounded-2xl border border-white/10 bg-white/5 p-4 sm:p-5">
+        <section className="rounded-2xl border border-[#D6D4CC] bg-white p-4 sm:p-5">
           <div className="flex items-center justify-between gap-3">
-            <h2 className="text-sm font-semibold text-yellow-300">ทีมทั้งหมด ({teams.length})</h2>
+            <h2 className="text-sm font-semibold text-yellow-800">ทีมทั้งหมด ({teams.length})</h2>
             {loading && <p className="text-xs text-gray-500">กำลังโหลด...</p>}
           </div>
 
@@ -218,7 +218,7 @@ const AdminInnoClubDashboardPage: React.FC = () => {
               {teams.map((team) => (
                 <div
                   key={team.id}
-                  className="grid gap-3 rounded-xl border border-white/10 bg-black/25 p-3 sm:grid-cols-[1fr_160px_auto]"
+                  className="grid gap-3 rounded-xl border border-[#D6D4CC] bg-gray-50 p-3 sm:grid-cols-[1fr_160px_auto]"
                 >
                   <input
                     defaultValue={team.name}
@@ -228,7 +228,7 @@ const AdminInnoClubDashboardPage: React.FC = () => {
                       if (!next || next === team.name) return;
                       void updateTeam(team.id, { name: next });
                     }}
-                    className="rounded-lg border border-white/15 bg-black/40 px-3 py-2 text-sm text-white"
+                    className="rounded-lg border border-[#D6D4CC] bg-gray-100 px-3 py-2 text-sm text-gray-900"
                   />
                   <input
                     defaultValue={String(team.money)}
@@ -239,7 +239,7 @@ const AdminInnoClubDashboardPage: React.FC = () => {
                       if (next === team.money) return;
                       void updateTeam(team.id, { money: next });
                     }}
-                    className="rounded-lg border border-white/15 bg-black/40 px-3 py-2 text-sm text-white"
+                    className="rounded-lg border border-[#D6D4CC] bg-gray-100 px-3 py-2 text-sm text-gray-900"
                   />
                   <div className="flex items-center gap-2">
                     <button
@@ -248,7 +248,7 @@ const AdminInnoClubDashboardPage: React.FC = () => {
                       className={`rounded-lg px-3 py-2 text-xs font-semibold ${
                         team.is_active
                           ? 'border border-emerald-400/30 bg-emerald-500/10 text-emerald-300'
-                          : 'border border-white/15 bg-white/5 text-gray-400'
+                          : 'border border-[#D6D4CC] bg-white text-gray-400'
                       }`}
                     >
                       {team.is_active ? 'ใช้งาน' : 'ปิด'}

@@ -46,11 +46,11 @@ interface FieldProps {
 
 const Field: React.FC<FieldProps> = ({ id, label, type = 'text', value, placeholder, icon, autoComplete, onChange }) => (
   <div>
-    <label htmlFor={id} className="mb-1.5 block text-xs font-semibold text-gray-200 sm:text-sm">
+    <label htmlFor={id} className="mb-1.5 block text-xs font-semibold text-gray-700 sm:text-sm">
       {label}
     </label>
     <div className="group relative">
-      <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[#828282] transition-colors group-focus-within:text-[#FED201]">
+      <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[#828282] transition-colors group-focus-within:text-[#FFCC00]">
         {icon}
       </span>
       <input
@@ -61,28 +61,28 @@ const Field: React.FC<FieldProps> = ({ id, label, type = 'text', value, placehol
         placeholder={placeholder}
         autoComplete={autoComplete}
         required
-        className="w-full rounded-lg border border-[#474747] bg-[#1E1E1E]/90 py-2.5 pl-10 pr-3 text-sm text-white placeholder-[#828282] transition-colors focus:border-[#FED201] focus:outline-none focus:ring-2 focus:ring-[#FED201]/20 sm:py-3"
+        className="md-input py-2.5 pl-10 pr-3 text-sm sm:py-3"
       />
     </div>
   </div>
 );
 
 const LeadershipLoginScreen: React.FC<LeadershipLoginScreenProps> = ({ user, onChange, onSubmit }) => (
-  <div className="relative flex min-h-[100dvh] w-full flex-col overflow-hidden bg-[#1E1E1E] text-white">
+  <div className="md-page relative flex min-h-[100dvh] w-full flex-col overflow-hidden">
     <img
       src={RIBBON_BG}
       alt=""
       aria-hidden="true"
       className="pointer-events-none absolute inset-0 h-full w-full select-none object-cover object-[78%_center] lg:object-center"
     />
-    <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/70 lg:bg-gradient-to-r lg:from-black/60 lg:via-black/10 lg:to-black/40" />
+    <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#F3F2ED]/40 via-transparent to-[#F3F2ED]/90 lg:bg-gradient-to-r lg:from-[#F3F2ED]/80 lg:via-[#F3F2ED]/30 lg:to-[#F3F2ED]/70" />
 
     <header className="relative z-10 mx-auto flex w-full max-w-7xl items-center gap-3 px-5 pt-5 sm:px-8 sm:pt-7 lg:px-12">
       <Link to="/" className="flex items-center">
-        <BrandLogo className="text-[24px] sm:text-[26px]" />
+        <BrandLogo className="text-[24px] sm:text-[26px]" tone="dark" />
       </Link>
-      <span className="hidden h-5 w-px bg-white/30 sm:block" />
-      <span className="hidden text-[10px] font-medium uppercase tracking-[0.2em] text-gray-300 sm:block">
+      <span className="hidden h-5 w-px bg-gray-300 sm:block" />
+      <span className="hidden text-[10px] font-medium uppercase tracking-[0.2em] text-gray-600 sm:block">
         World-Class Knowledge for Future Leaders
       </span>
     </header>
@@ -93,15 +93,15 @@ const LeadershipLoginScreen: React.FC<LeadershipLoginScreenProps> = ({ user, onC
           className="text-[clamp(3rem,13vw,4.5rem)] font-extrabold uppercase leading-[0.95] tracking-tight sm:text-[clamp(4.5rem,13vw,7rem)] lg:text-[clamp(5rem,8vw,8.5rem)]"
           style={HEADLINE_FONT}
         >
-          <span className="block text-white">Lead</span>
-          <span className="block text-[#828282]">The</span>
+          <span className="block text-gray-900">Lead</span>
+          <span className="block text-gray-500">The</span>
           <span className="block" style={{ color: BRAND_YELLOW }}>
             Change
           </span>
         </h1>
         <div className="mt-5 h-0.5 w-12 sm:mt-7" style={{ backgroundColor: BRAND_YELLOW }} />
         <p
-          className="mt-4 text-[10px] font-medium uppercase leading-relaxed tracking-[0.35em] text-gray-300 sm:text-xs"
+          className="mt-4 text-[10px] font-medium uppercase leading-relaxed tracking-[0.35em] text-gray-600 sm:text-xs"
           style={HEADLINE_FONT}
         >
           <span className="lg:hidden">
@@ -126,16 +126,16 @@ const LeadershipLoginScreen: React.FC<LeadershipLoginScreenProps> = ({ user, onC
       <section className="w-full lg:w-[400px] lg:shrink-0 xl:w-[420px]">
         <form
           onSubmit={onSubmit}
-          className="rounded-2xl border border-white/10 bg-[#2a2a2a]/75 p-5 shadow-2xl shadow-black/60 backdrop-blur-md sm:p-8"
+          className="md-card p-5 shadow-md sm:p-8"
         >
           <div className="mb-5 text-center sm:mb-6">
-            <h2 className="text-2xl font-bold leading-tight sm:text-3xl">
+            <h2 className="text-2xl font-bold leading-tight text-gray-900 sm:text-3xl">
               แบบประเมิน
               <span className="block" style={{ color: BRAND_YELLOW }}>
                 สมรรถนะภาวะผู้นำ
               </span>
             </h2>
-            <p className="mt-2 text-xs text-gray-300 sm:text-sm">Dynamic Leadership Capability Wheel Self Assessment</p>
+            <p className="mt-2 text-xs text-gray-500 sm:text-sm">Dynamic Leadership Capability Wheel Self Assessment</p>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
@@ -173,13 +173,13 @@ const LeadershipLoginScreen: React.FC<LeadershipLoginScreenProps> = ({ user, onC
 
           <button
             type="submit"
-            className="mt-6 w-full rounded-lg py-3 text-sm font-bold text-black shadow-lg shadow-[#FED201]/20 transition-all hover:brightness-105 active:scale-[0.99] sm:text-base"
+            className="mt-6 w-full rounded-lg py-3 text-sm font-bold text-black shadow-lg shadow-[#FFCC00]/20 transition-all hover:brightness-105 active:scale-[0.99] sm:text-base"
             style={{ backgroundColor: BRAND_YELLOW }}
           >
             เข้าสู่แบบทดสอบ
           </button>
         </form>
-        <p className="mt-4 text-center text-[11px] text-[#828282]">© {new Date().getFullYear()} MindDojo Co., Ltd.</p>
+        <p className="mt-4 text-center text-[11px] text-gray-500">© {new Date().getFullYear()} MindDojo Co., Ltd.</p>
       </section>
     </main>
   </div>

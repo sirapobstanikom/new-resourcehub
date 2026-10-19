@@ -4,10 +4,19 @@
 
 /* สไตล์พื้นฐาน — ใส่หลัง Tailwind base เพื่อให้ชนะ preflight */
 @layer base {
+  :root {
+    --md-bg: #f3f2ed;
+    --md-surface: #ffffff;
+    --md-ink: #0a0a0a;
+    --md-muted: #4b5563;
+    --md-border: #d6d4cc;
+    --md-yellow: #ffcc00;
+    --md-yellow-hover: #f0b800;
+  }
   html {
     -webkit-text-size-adjust: 100%;
     -webkit-tap-highlight-color: transparent;
-    color-scheme: dark;
+    color-scheme: light;
     overflow-x: hidden;
     overflow-y: auto;
     height: auto;
@@ -20,14 +29,12 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
-    background-color: #050506 !important;
+    background-color: var(--md-bg) !important;
     background-image:
-      radial-gradient(ellipse 100% 70% at 50% -15%, rgba(250, 204, 21, 0.07), transparent 55%),
-      radial-gradient(ellipse 50% 40% at 100% 0%, rgba(255, 255, 255, 0.04), transparent),
-      radial-gradient(ellipse 40% 35% at 0% 100%, rgba(250, 204, 21, 0.04), transparent),
-      linear-gradient(180deg, #0c0c10 0%, #050506 45%, #020203 100%) !important;
+      radial-gradient(ellipse 90% 55% at 50% -10%, rgba(245, 196, 0, 0.18), transparent 55%),
+      radial-gradient(ellipse 45% 35% at 100% 0%, rgba(255, 255, 255, 0.65), transparent) !important;
     background-attachment: fixed;
-    color: #f4f4f5 !important;
+    color: var(--md-ink) !important;
     margin: 0 !important;
     overflow-x: hidden !important;
     overflow-y: auto !important;
@@ -82,18 +89,53 @@
   pointer-events: none;
   background-size: 56px 56px;
   background-image:
-    linear-gradient(to right, rgba(255, 255, 255, 0.045) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.045) 1px, transparent 1px);
+    linear-gradient(to right, rgba(17, 17, 17, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(17, 17, 17, 0.04) 1px, transparent 1px);
   mask-image: radial-gradient(ellipse 85% 70% at 50% 30%, black 25%, transparent 78%);
   -webkit-mask-image: radial-gradient(ellipse 85% 70% at 50% 30%, black 25%, transparent 78%);
 }
 
 .glow-yellow {
-  box-shadow: 0 0 20px rgba(250, 204, 21, 0.3);
+  box-shadow: 0 0 20px rgba(254, 210, 1, 0.35);
 }
 
 .text-glow {
-  text-shadow: 0 0 10px rgba(250, 204, 21, 0.5);
+  text-shadow: 0 0 10px rgba(254, 210, 1, 0.35);
+}
+
+@layer components {
+  .md-page {
+    @apply min-h-dvh flex flex-col text-gray-900 selection:bg-yellow-400 selection:text-black;
+    background-color: var(--md-bg);
+  }
+  .md-card {
+    @apply rounded-2xl border bg-white;
+    border-color: var(--md-border);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.06);
+  }
+  .md-input {
+    @apply w-full rounded-xl border bg-white px-4 py-3 text-base text-gray-900 outline-none transition placeholder:text-gray-400 focus:ring-2;
+    border-color: var(--md-border);
+  }
+  .md-input:focus {
+    border-color: var(--md-yellow);
+    --tw-ring-color: rgba(245, 196, 0, 0.35);
+  }
+  .md-btn-primary {
+    @apply inline-flex items-center justify-center rounded-full px-6 py-3 text-sm font-bold text-black transition active:scale-[0.98];
+    background-color: var(--md-yellow);
+    box-shadow: 0 2px 0 rgba(0, 0, 0, 0.12), 0 8px 20px rgba(245, 196, 0, 0.35);
+  }
+  .md-btn-primary:hover {
+    background-color: var(--md-yellow-hover);
+  }
+  .md-btn-ghost {
+    @apply inline-flex items-center justify-center rounded-full border bg-white px-5 py-2.5 text-sm font-semibold text-gray-800 transition hover:bg-gray-50;
+    border-color: var(--md-border);
+  }
+  .md-btn-ghost:hover {
+    border-color: #bdbab0;
+  }
 }
 
 /* Animations (สำหรับหน้า /assessment/disc) */

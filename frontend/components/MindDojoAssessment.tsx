@@ -898,7 +898,7 @@ const MindDojoAssessment: React.FC = () => {
 
   if (authLoading && !resourceHub && !isMindDojoAssessmentLoggedIn()) {
     return (
-      <div className="min-h-[100dvh] bg-transparent text-white flex items-center justify-center bg-grid">
+      <div className="md-page items-center justify-center">
         <p className="text-zinc-400 text-sm">กำลังตรวจสอบการเข้าสู่ระบบ...</p>
       </div>
     );
@@ -906,24 +906,24 @@ const MindDojoAssessment: React.FC = () => {
 
   if (!loggedIn) {
     return (
-      <div className="min-h-[100dvh] bg-transparent text-white bg-grid flex flex-col">
-        <header className="px-4 py-3 border-b border-white/10 flex items-center justify-between max-w-md mx-auto w-full">
-          <Link to="/" className="text-gray-400 hover:text-white text-sm">
+      <div className="md-page flex flex-col">
+        <header className="px-4 py-3 border-b border-gray-200 bg-white/90 backdrop-blur-xl flex items-center justify-between max-w-md mx-auto w-full">
+          <Link to="/" className="text-gray-400 hover:text-gray-900 text-sm">
             ← กลับหน้าหลัก
           </Link>
           <span className="text-yellow-400 text-sm font-semibold">MindDoJo AI Assessment</span>
         </header>
         <div className="flex-1 flex items-center justify-center p-6">
-          <div className="w-full max-w-md bg-neutral-900/80 border border-white/10 rounded-[28px] p-8 shadow-2xl backdrop-blur-sm">
+          <div className="w-full max-w-md md-card rounded-[28px] p-8 shadow-md">
             <div className="flex flex-col items-center mb-6">
-              <BrandLogo className="mb-4 text-[30px]" />
+              <BrandLogo className="mb-4 text-[30px]" tone="dark" />
               <h1 className="text-xl font-semibold text-center">MindDoJo AI Assessment</h1>
               <p className="text-gray-500 text-sm mt-2 text-center">
                 สมัครสมาชิกด้วย username / รหัสผ่าน
 
               </p>
             </div>
-            <div className="flex rounded-xl bg-white/5 p-1 mb-4">
+            <div className="flex rounded-xl bg-gray-100 p-1 mb-4">
               <button
                 type="button"
                 onClick={() => {
@@ -931,7 +931,7 @@ const MindDojoAssessment: React.FC = () => {
                   setLoginMsg(null);
                 }}
                 className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-colors ${
-                  authMode === 'login' ? 'bg-yellow-400 text-black' : 'text-gray-400 hover:text-white'
+                  authMode === 'login' ? 'bg-yellow-400 text-black' : 'text-gray-400 hover:text-gray-900'
                 }`}
               >
                 เข้าสู่ระบบ
@@ -943,7 +943,7 @@ const MindDojoAssessment: React.FC = () => {
                   setLoginMsg(null);
                 }}
                 className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-colors ${
-                  authMode === 'register' ? 'bg-yellow-400 text-black' : 'text-gray-400 hover:text-white'
+                  authMode === 'register' ? 'bg-yellow-400 text-black' : 'text-gray-400 hover:text-gray-900'
                 }`}
               >
                 สมัครสมาชิก
@@ -955,7 +955,7 @@ const MindDojoAssessment: React.FC = () => {
                 <input
                   value={loginUser}
                   onChange={(e) => setLoginUser(e.target.value.replace(/[^a-zA-Z0-9_]/g, '').toLowerCase())}
-                  className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white focus:border-yellow-400 focus:outline-none font-mono text-sm"
+                  className="md-input font-mono text-sm"
                   autoComplete="username"
                   placeholder="เฉพาะ a-z ตัวเลข _ (3–32 ตัว)"
                   minLength={3}
@@ -969,7 +969,7 @@ const MindDojoAssessment: React.FC = () => {
                   type="password"
                   value={loginPass}
                   onChange={(e) => setLoginPass(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white focus:border-yellow-400 focus:outline-none"
+                  className="md-input"
                   autoComplete={authMode === 'register' ? 'new-password' : 'current-password'}
                   required
                   minLength={authMode === 'register' ? 6 : undefined}
@@ -982,7 +982,7 @@ const MindDojoAssessment: React.FC = () => {
                     type="password"
                     value={regPass2}
                     onChange={(e) => setRegPass2(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white focus:border-yellow-400 focus:outline-none"
+                    className="md-input"
                     autoComplete="new-password"
                     required
                     minLength={6}
@@ -1035,11 +1035,11 @@ const MindDojoAssessment: React.FC = () => {
   const lastSimMessageId = simMessages[simMessages.length - 1]?.id;
 
   return (
-    <div className="h-[100dvh] max-h-[100dvh] flex flex-col overflow-hidden bg-transparent text-white bg-grid">
-      <header className="shrink-0 px-3 sm:px-4 lg:px-8 xl:px-10 py-2 sm:py-2.5 border-b border-white/10 flex items-center gap-2 w-full max-w-full sm:max-w-2xl md:max-w-3xl lg:max-w-6xl xl:max-w-7xl 2xl:max-w-[min(90rem,calc(100vw-3rem))] mx-auto">
+    <div className="h-[100dvh] max-h-[100dvh] flex flex-col overflow-hidden md-page">
+      <header className="shrink-0 px-3 sm:px-4 lg:px-8 xl:px-10 py-2 sm:py-2.5 border-b border-gray-200 bg-white/90 backdrop-blur-xl flex items-center gap-2 w-full max-w-full sm:max-w-2xl md:max-w-3xl lg:max-w-6xl xl:max-w-7xl 2xl:max-w-[min(90rem,calc(100vw-3rem))] mx-auto">
         <Link
           to="/"
-          className="text-gray-400 hover:text-white text-xs sm:text-sm shrink-0 touch-manipulation py-1"
+          className="text-gray-400 hover:text-gray-900 text-xs sm:text-sm shrink-0 touch-manipulation py-1"
         >
           ← กลับ
         </Link>
@@ -1059,7 +1059,7 @@ const MindDojoAssessment: React.FC = () => {
                 clearMindDojoAssessmentSession();
                 window.location.reload();
               }}
-              className="text-[10px] sm:text-xs text-gray-500 hover:text-white underline touch-manipulation"
+              className="text-[10px] sm:text-xs text-gray-500 hover:text-gray-900 underline touch-manipulation"
             >
               ออกจากระบบ
             </button>
@@ -1069,7 +1069,7 @@ const MindDojoAssessment: React.FC = () => {
 
       <main className="flex-1 flex flex-col min-h-0 w-full max-w-full sm:max-w-2xl md:max-w-3xl lg:max-w-6xl xl:max-w-7xl 2xl:max-w-[min(90rem,calc(100vw-3rem))] mx-auto px-2.5 sm:px-4 lg:px-8 xl:px-10 pt-2 lg:pt-3 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
         <div className="flex-1 flex flex-col min-h-0 gap-2 overflow-hidden">
-            <div className="flex-1 min-h-0 flex flex-col rounded-2xl border border-white/10 bg-zinc-950/45 backdrop-blur-md overflow-hidden ring-1 ring-white/5 shadow-lg shadow-black/30">
+            <div className="flex-1 min-h-0 flex flex-col md-card overflow-hidden shadow-md">
               <div
                 ref={chatScrollRef}
                 className="flex-1 min-h-0 overflow-y-auto overscroll-y-contain p-3 sm:p-4 lg:p-5 xl:p-6 space-y-2.5 sm:space-y-3 lg:space-y-4 touch-pan-y [scrollbar-gutter:stable]"
@@ -1093,7 +1093,7 @@ const MindDojoAssessment: React.FC = () => {
                             decoding="async"
                             referrerPolicy="no-referrer"
                           />
-                          <div className="min-w-0 max-w-[min(100%,42rem)] rounded-2xl px-3 py-2.5 sm:px-4 sm:py-3 lg:px-5 lg:py-3.5 text-sm lg:text-base leading-relaxed bg-white/5">
+                          <div className="min-w-0 max-w-[min(100%,42rem)] rounded-2xl px-3 py-2.5 sm:px-4 sm:py-3 lg:px-5 lg:py-3.5 text-sm lg:text-base leading-relaxed bg-gray-50 border border-gray-200">
                             <span className="text-[10px] lg:text-xs font-semibold text-gray-500 block mb-1">
                               MindDoJo
                             </span>
@@ -1153,7 +1153,7 @@ const MindDojoAssessment: React.FC = () => {
                             },
                           ]);
                         }}
-                        className="flex-1 py-2.5 sm:py-3 px-3 sm:px-4 rounded-xl font-bold bg-white/10 border border-white/15 hover:bg-white/15 disabled:opacity-50 text-sm touch-manipulation"
+                        className="flex-1 py-2.5 sm:py-3 px-3 sm:px-4 rounded-xl font-bold md-btn-ghost border-gray-200 hover:bg-gray-50 disabled:opacity-50 text-sm touch-manipulation"
                       >
                         สร้างสถานการณ์เอง
                       </button>
@@ -1201,7 +1201,7 @@ const MindDojoAssessment: React.FC = () => {
                             },
                           ]);
                         }}
-                        className="text-left rounded-xl border border-white/15 bg-white/5 hover:border-yellow-400/40 hover:bg-white/[0.08] p-3 sm:p-4 transition-colors disabled:opacity-50 touch-manipulation"
+                        className="text-left rounded-xl border border-gray-200 bg-white hover:border-yellow-400/60 hover:bg-yellow-50/50 p-3 sm:p-4 transition-colors disabled:opacity-50 touch-manipulation"
                       >
                         <div className="flex items-start justify-between gap-2">
                           <span className="text-yellow-400 font-bold text-xs sm:text-sm">
@@ -1220,8 +1220,8 @@ const MindDojoAssessment: React.FC = () => {
                 )}
 
                 {phase === 'confirm' && scenario && (
-                  <div className="rounded-xl sm:rounded-2xl border border-white/15 bg-white/[0.06] p-4 sm:p-5">
-                    <h3 className="font-bold text-white text-sm sm:text-base mb-2 sm:mb-3">ยืนยันก่อนเริ่ม</h3>
+                  <div className="rounded-xl sm:rounded-2xl md-card border-yellow-100 bg-yellow-50/30 p-4 sm:p-5">
+                    <h3 className="font-bold text-gray-900 text-sm sm:text-base mb-2 sm:mb-3">ยืนยันก่อนเริ่ม</h3>
                     <ul className="text-xs sm:text-sm text-gray-300 space-y-1.5 list-disc list-inside mb-3 sm:mb-4">
                       <li>บทบาทคุณ: {scenario.userRole}</li>
                       <li>คู่สนทนา: {scenario.counterpart}</li>
@@ -1262,7 +1262,7 @@ const MindDojoAssessment: React.FC = () => {
 
                 {showSimChat && (
                   <>
-                    <p className="text-[10px] sm:text-xs lg:text-sm text-amber-400/90 uppercase tracking-wider pt-1 border-t border-white/10 mt-1">
+                    <p className="text-[10px] sm:text-xs lg:text-sm text-amber-400/90 uppercase tracking-wider pt-1 border-t border-gray-200 mt-1">
                       จำลองสถานการณ์
                     </p>
                     {scenario && !showScenarioBriefing && (
@@ -1281,14 +1281,14 @@ const MindDojoAssessment: React.FC = () => {
                             <p className="text-[10px] sm:text-xs uppercase tracking-wider text-amber-300 font-bold">
                               บริบทสถานการณ์
                             </p>
-                            <h3 className="text-sm sm:text-base font-bold text-white mt-1">
+                            <h3 className="text-sm sm:text-base font-bold text-gray-900 mt-1">
                               อ่านภาพรวมก่อนตอบในแชท
                             </h3>
                           </div>
                           <button
                             type="button"
                             onClick={() => setShowScenarioBriefing(false)}
-                            className="shrink-0 rounded-lg border border-white/10 px-2 py-1 text-[11px] text-gray-400 hover:text-white hover:bg-white/10"
+                            className="shrink-0 rounded-lg border border-gray-200 px-2 py-1 text-[11px] text-gray-500 hover:text-gray-900 hover:bg-gray-50"
                           >
                             ซ่อน
                           </button>
@@ -1353,7 +1353,7 @@ const MindDojoAssessment: React.FC = () => {
                             decoding="async"
                             referrerPolicy="no-referrer"
                           />
-                          <div className="min-w-0 max-w-[min(100%,42rem)] rounded-2xl px-3 py-2.5 sm:px-4 sm:py-3 lg:px-5 lg:py-3.5 text-sm lg:text-base leading-relaxed bg-white/5">
+                          <div className="min-w-0 max-w-[min(100%,42rem)] rounded-2xl px-3 py-2.5 sm:px-4 sm:py-3 lg:px-5 lg:py-3.5 text-sm lg:text-base leading-relaxed bg-gray-50 border border-gray-200">
                             <span className="text-[10px] lg:text-xs font-semibold text-gray-500 block mb-1">
                               {simPersona ? `${simPersona.name} • ${simPersona.position} • ${simPersona.mbti}` : 'สถานการณ์'}
                             </span>
@@ -1402,7 +1402,7 @@ const MindDojoAssessment: React.FC = () => {
               </div>
             )}
 
-            <div className="shrink-0 pt-1 border-t border-white/10">
+            <div className="shrink-0 pt-1 border-t border-gray-200">
               {phase === 'awaiting_result' && (
                 <p className="text-[10px] sm:text-xs text-gray-500 mb-1.5 px-0.5">
                   การจำลองเสร็จแล้ว กดปุ่มเพื่อสร้าง Dashboard ผลการประเมิน
@@ -1422,7 +1422,7 @@ const MindDojoAssessment: React.FC = () => {
                         : 'พิมพ์ข้อความ...'
                   }
                   rows={2}
-                  className="flex-1 min-h-[44px] lg:min-h-[52px] max-h-28 lg:max-h-40 rounded-xl bg-white/5 border border-white/10 px-3 py-2.5 lg:px-4 lg:py-3 text-base sm:text-sm lg:text-base text-white placeholder-gray-500 focus:border-yellow-400 focus:outline-none resize-y disabled:opacity-50 leading-snug"
+                  className="flex-1 min-h-[44px] lg:min-h-[52px] max-h-28 lg:max-h-40 md-input min-h-[44px] lg:min-h-[52px] max-h-28 lg:max-h-40 px-3 py-2.5 lg:px-4 lg:py-3 text-base sm:text-sm lg:text-base resize-y max-h-28 lg:max-h-40 focus:border-yellow-400 focus:outline-none resize-y disabled:opacity-50 leading-snug"
                 />
                 <button
                   type="button"

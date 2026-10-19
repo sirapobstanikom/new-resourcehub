@@ -133,7 +133,7 @@ const AdminInnoClubSecondVotePage: React.FC = () => {
 
   return (
     <div className="flex flex-col min-h-full">
-      <header className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 px-4 sm:px-6 py-4 sm:py-6 border-b border-white/10">
+      <header className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 px-4 sm:px-6 py-4 sm:py-6 border-b border-[#D6D4CC]">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-yellow-400">Admin — InnoClub ครั้งที่ 2 Vote</h1>
           <p className="text-sm text-gray-400 mt-1">ตั้งค่าว่าให้ผู้เข้าร่วมโหวตทีม/ผลงานใดได้บ้าง</p>
@@ -152,12 +152,12 @@ const AdminInnoClubSecondVotePage: React.FC = () => {
 
       <main className="flex-1 max-w-5xl mx-auto w-full px-3 sm:px-6 py-5 sm:py-8">
         {!isSupabaseConfigured ? (
-          <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-6 text-amber-200">
+          <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-6 text-amber-900">
             ยังไม่ได้ตั้งค่า Supabase
           </div>
         ) : (
           <div className="space-y-6">
-            <section className="rounded-2xl border border-white/10 bg-white/5 p-5 sm:p-6">
+            <section className="rounded-2xl border border-[#D6D4CC] bg-white p-5 sm:p-6">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
                 <div>
                   <h2 className="font-bold text-lg text-gray-100">เพิ่มตัวเลือกโหวต</h2>
@@ -174,14 +174,14 @@ const AdminInnoClubSecondVotePage: React.FC = () => {
                   value={label}
                   onChange={(e) => setLabel(e.target.value)}
                   placeholder="ชื่อทีม/ผลงาน"
-                  className="px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-gray-500 focus:outline-none focus:border-yellow-400"
+                  className="px-4 py-3 rounded-xl bg-gray-100 border border-gray-200 text-gray-900 placeholder-gray-500 focus:outline-none focus:border-yellow-400"
                 />
                 <input
                   type="number"
                   value={sortOrder}
                   onChange={(e) => setSortOrder(e.target.value)}
                   placeholder="ลำดับ"
-                  className="px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-gray-500 focus:outline-none focus:border-yellow-400"
+                  className="px-4 py-3 rounded-xl bg-gray-100 border border-gray-200 text-gray-900 placeholder-gray-500 focus:outline-none focus:border-yellow-400"
                 />
                 <button
                   type="submit"
@@ -200,13 +200,13 @@ const AdminInnoClubSecondVotePage: React.FC = () => {
               </div>
             )}
 
-            <section className="rounded-2xl border border-white/10 bg-white/5 overflow-hidden">
-              <div className="px-4 sm:px-6 py-4 border-b border-white/10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <section className="rounded-2xl border border-[#D6D4CC] bg-white overflow-hidden">
+              <div className="px-4 sm:px-6 py-4 border-b border-[#D6D4CC] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <h2 className="font-bold text-lg">รายการที่ตั้งไว้</h2>
                 <button
                   type="button"
                   onClick={loadOptions}
-                  className="px-4 py-2 rounded-xl text-sm font-medium bg-white/10 text-white hover:bg-white/20 border border-white/10"
+                  className="px-4 py-2 rounded-xl text-sm font-medium bg-gray-100 text-gray-900 hover:bg-gray-200 border border-[#D6D4CC]"
                 >
                   โหลดใหม่
                 </button>
@@ -225,7 +225,7 @@ const AdminInnoClubSecondVotePage: React.FC = () => {
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-sm min-w-[680px]">
                     <thead>
-                      <tr className="border-b border-white/10 text-gray-400">
+                      <tr className="border-b border-[#D6D4CC] text-gray-400">
                         <th className="px-4 py-3 font-semibold">เปิดใช้</th>
                         <th className="px-4 py-3 font-semibold">รูป</th>
                         <th className="px-4 py-3 font-semibold">ชื่อทีม/ผลงาน</th>
@@ -235,7 +235,7 @@ const AdminInnoClubSecondVotePage: React.FC = () => {
                     </thead>
                     <tbody>
                       {options.map((option) => (
-                        <tr key={option.id} className="border-b border-white/5 hover:bg-white/[0.03]">
+                        <tr key={option.id} className="border-b border-gray-100 hover:bg-white/[0.03]">
                           <td className="px-4 py-3">
                             <input
                               type="checkbox"
@@ -268,7 +268,7 @@ const AdminInnoClubSecondVotePage: React.FC = () => {
                                 <button
                                   type="button"
                                   onClick={() => updateOption(option.id, { image_url: null })}
-                                  className="rounded-lg border border-white/10 px-2 py-2 text-xs text-gray-400 hover:text-white"
+                                  className="rounded-lg border border-[#D6D4CC] px-2 py-2 text-xs text-gray-400 hover:text-gray-900"
                                 >
                                   ลบรูป
                                 </button>
@@ -289,7 +289,7 @@ const AdminInnoClubSecondVotePage: React.FC = () => {
                                 if (next) updateOption(option.id, { label: next });
                                 else loadOptions();
                               }}
-                              className="w-full px-3 py-2 rounded-lg bg-white/10 border border-white/15 text-white focus:outline-none focus:border-yellow-400"
+                              className="w-full px-3 py-2 rounded-lg bg-gray-100 border border-[#D6D4CC] text-gray-900 focus:outline-none focus:border-yellow-400"
                             />
                           </td>
                           <td className="px-4 py-3">
@@ -310,7 +310,7 @@ const AdminInnoClubSecondVotePage: React.FC = () => {
                                 const next = e.target.value === '' ? null : Number(e.target.value);
                                 updateOption(option.id, { sort_order: Number.isFinite(next) ? next : null });
                               }}
-                              className="w-24 px-3 py-2 rounded-lg bg-white/10 border border-white/15 text-white focus:outline-none focus:border-yellow-400"
+                              className="w-24 px-3 py-2 rounded-lg bg-gray-100 border border-[#D6D4CC] text-gray-900 focus:outline-none focus:border-yellow-400"
                             />
                           </td>
                           <td className="px-4 py-3 text-right">
@@ -330,7 +330,7 @@ const AdminInnoClubSecondVotePage: React.FC = () => {
               )}
             </section>
 
-            <Link to="/admin" className="inline-flex text-sm text-gray-400 hover:text-white">
+            <Link to="/admin" className="inline-flex text-sm text-gray-400 hover:text-gray-900">
               กลับหน้า Database
             </Link>
           </div>

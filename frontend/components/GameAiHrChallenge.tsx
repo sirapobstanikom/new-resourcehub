@@ -69,7 +69,7 @@ function Field({
     icon === 'user' ? User : icon === 'mail' ? Mail : icon === 'building' ? Building2 : Users;
   return (
     <label htmlFor={id} className="block">
-      <span className="mb-1.5 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-stone-500">
+      <span className="mb-1.5 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-gray-500">
         <Icon className="h-3.5 w-3.5" aria-hidden />
         {label}
       </span>
@@ -82,9 +82,7 @@ function Field({
         inputMode={inputMode}
         placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}
-        className={`w-full rounded-xl border px-4 py-3 text-base text-stone-900 outline-none transition ${
-          valid ? 'border-emerald-400/60 bg-white' : 'border-stone-200 bg-stone-50'
-        } focus:border-violet-500 focus:ring-2 focus:ring-violet-200`}
+        className={`md-input ${valid ? 'border-emerald-400/60' : ''}`}
       />
     </label>
   );
@@ -231,24 +229,16 @@ const GameAiHrChallenge: React.FC = () => {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#0a0b12] text-white selection:bg-violet-400 selection:text-black">
-      <div className="pointer-events-none absolute inset-0" aria-hidden>
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(139,92,246,0.18),transparent_45%),radial-gradient(ellipse_at_bottom_right,rgba(245,158,11,0.12),transparent_40%)]" />
-        <div className="absolute inset-0 opacity-[0.07] [background-image:linear-gradient(rgba(255,255,255,0.07)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.07)_1px,transparent_1px)] [background-size:40px_40px]" />
-      </div>
-
+    <div className="md-page relative overflow-hidden">
       <div className="fixed top-4 left-4 right-4 z-20 flex items-center justify-between gap-3">
-        <Link
-          to="/"
-          className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/50 px-4 py-2 text-sm font-medium text-white/90 backdrop-blur-md hover:bg-white/10"
-        >
+        <Link to="/" className="md-btn-ghost inline-flex items-center gap-2 !px-4 !py-2">
           <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
           หน้าหลัก
         </Link>
         {(phase === 'playing' || phase === 'revealing') && (
-          <span className="rounded-full border border-violet-400/30 bg-black/50 px-3 py-1.5 text-xs font-semibold text-violet-200 backdrop-blur-md">
+          <span className="md-card rounded-full px-3 py-1.5 text-xs font-semibold text-violet-800">
             ข้อ {Math.min(caseIndex + 1, caseQueue.length)}/{caseQueue.length}
           </span>
         )}
@@ -257,16 +247,12 @@ const GameAiHrChallenge: React.FC = () => {
       {phase === 'register' && (
         <div className="relative mx-auto grid min-h-screen max-w-6xl items-center gap-8 px-4 py-24 lg:grid-cols-[1.05fr_0.95fr]">
           <div className="order-2 lg:order-1">
-            <p className="text-[11px] font-bold uppercase tracking-[0.32em] text-violet-300/90">
-              MindDoJo · AI HR Challenge
-            </p>
-            <h1 className="mt-3 text-4xl font-black tracking-tight text-white sm:text-5xl">
-              คุณจะแก้ปัญหานี้อย่างไร?
-            </h1>
-            <p className="mt-4 max-w-lg text-base leading-relaxed text-zinc-400">
+            <p className="text-[11px] font-bold uppercase tracking-[0.32em] text-[#FFCC00]">MindDoJo · AI HR Challenge</p>
+            <h1 className="mt-3 text-4xl font-black tracking-tight text-gray-900 sm:text-5xl">คุณจะแก้ปัญหานี้อย่างไร?</h1>
+            <p className="mt-4 max-w-lg text-base leading-relaxed text-gray-600">
               ตอบโจทย์ HR 3 ข้อ — อ่านเฉลยทีละข้อ แล้วรับคะแนน AI และของรางวัล (~2 นาที)
             </p>
-            <ul className="mt-6 space-y-2 text-sm text-zinc-300">
+            <ul className="mt-6 space-y-2 text-sm text-gray-600">
               <li className="flex items-start gap-2">
                 <span className="text-emerald-400">✓</span> เก็บข้อมูลลูกค้า (Lead)
               </li>
@@ -280,18 +266,16 @@ const GameAiHrChallenge: React.FC = () => {
                 <span className="text-emerald-400">✓</span> สะท้อนภาพลักษณ์ MindDoJo
               </li>
             </ul>
-            <div className="mt-6 flex flex-wrap gap-2 text-xs font-semibold text-zinc-300">
-              <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5">3 ข้อ</span>
-              <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5">เฉลยทันที</span>
-              <span className="rounded-full border border-violet-400/20 bg-violet-400/10 px-3 py-1.5 text-violet-200">
-                AI Score
-              </span>
+            <div className="mt-6 flex flex-wrap gap-2 text-xs font-semibold text-gray-600">
+              <span className="md-card rounded-full px-3 py-1.5 !shadow-none">3 ข้อ</span>
+              <span className="md-card rounded-full px-3 py-1.5 !shadow-none">เฉลยทันที</span>
+              <span className="rounded-full border border-violet-300 bg-violet-50 px-3 py-1.5 text-violet-800">AI Score</span>
             </div>
           </div>
 
           <form
             onSubmit={handleRegistration}
-            className="order-1 lg:order-2 relative overflow-hidden rounded-[32px] bg-[#f4efe6] p-6 text-stone-900 shadow-[0_30px_80px_rgba(0,0,0,0.35)] sm:p-8"
+            className="order-1 lg:order-2 md-card relative overflow-hidden rounded-[32px] p-6 sm:p-8"
           >
             <div className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-violet-500 via-fuchsia-400 to-amber-400" />
             <div className="flex items-center justify-between gap-3">
@@ -384,11 +368,7 @@ const GameAiHrChallenge: React.FC = () => {
               </p>
             ) : null}
 
-            <button
-              type="submit"
-              disabled={registering || !formReady}
-              className="mt-6 w-full rounded-2xl bg-stone-950 px-5 py-4 text-base font-black text-violet-200 shadow-[0_12px_30px_rgba(0,0,0,0.18)] transition hover:bg-black disabled:cursor-not-allowed disabled:bg-stone-300 disabled:text-stone-500"
-            >
+            <button type="submit" disabled={registering || !formReady} className="md-btn-primary mt-6 w-full !rounded-2xl !py-4 !text-base disabled:cursor-not-allowed disabled:opacity-50">
               {registering ? 'กำลังเริ่มเกม...' : formReady ? 'เริ่ม AI HR Challenge' : 'กรอกข้อมูลให้ครบก่อน'}
             </button>
             <p className="mt-3 text-center text-xs text-stone-400">
@@ -402,7 +382,7 @@ const GameAiHrChallenge: React.FC = () => {
 
       {phase === 'playing' && activeCase && (
         <div className="relative mx-auto flex min-h-screen max-w-2xl flex-col justify-center px-4 py-24">
-          <p className="text-center text-[11px] font-bold uppercase tracking-[0.28em] text-violet-300/80">
+          <p className="text-center text-[11px] font-bold uppercase tracking-[0.28em] text-violet-700">
             Step 2 · โจทย์องค์กร ({caseIndex + 1}/{caseQueue.length})
           </p>
           <div className="mx-auto mt-4 flex gap-1.5">
@@ -410,16 +390,14 @@ const GameAiHrChallenge: React.FC = () => {
               <span
                 key={i}
                 className={`h-1.5 w-10 rounded-full transition ${
-                  i < caseIndex ? 'bg-emerald-400' : i === caseIndex ? 'bg-violet-400' : 'bg-white/15'
+                  i < caseIndex ? 'bg-emerald-400' : i === caseIndex ? 'bg-violet-400' : 'bg-gray-200'
                 }`}
               />
             ))}
           </div>
-          <h2 className="mt-2 text-center text-sm font-semibold text-amber-300/90">{activeCase.title}</h2>
-          <p className="mt-4 text-center text-2xl font-black leading-snug text-white sm:text-3xl">
-            {activeCase.scenario}
-          </p>
-          <p className="mt-3 text-center text-lg text-zinc-300">{activeCase.question}</p>
+          <h2 className="mt-2 text-center text-sm font-semibold text-amber-700">{activeCase.title}</h2>
+          <p className="mt-4 text-center text-2xl font-black leading-snug text-gray-900 sm:text-3xl">{activeCase.scenario}</p>
+          <p className="mt-3 text-center text-lg text-gray-600">{activeCase.question}</p>
 
           <div className="mt-8 space-y-3">
             {OPTION_IDS.map((id) => (
@@ -427,12 +405,12 @@ const GameAiHrChallenge: React.FC = () => {
                 key={id}
                 type="button"
                 onClick={() => handleSelectOption(id)}
-                className="group flex w-full items-start gap-4 rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-left transition hover:border-violet-400/40 hover:bg-violet-500/10 active:scale-[0.99]"
+                className="md-card group flex w-full items-start gap-4 rounded-2xl px-5 py-4 text-left transition hover:border-violet-300 active:scale-[0.99]"
               >
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-500/20 text-lg font-black text-violet-200 group-hover:bg-violet-500/30">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-100 text-lg font-black text-violet-800 group-hover:bg-violet-200">
                   {id}
                 </span>
-                <span className="pt-1.5 text-base leading-relaxed text-zinc-100">{activeCase.options[id]}</span>
+                <span className="pt-1.5 text-base leading-relaxed text-gray-800">{activeCase.options[id]}</span>
               </button>
             ))}
           </div>
@@ -441,34 +419,32 @@ const GameAiHrChallenge: React.FC = () => {
 
       {phase === 'revealing' && selectedOption != null && activeCase && (
         <div className="relative mx-auto flex min-h-screen max-w-2xl flex-col justify-center px-4 py-24">
-          <p className="text-center text-[11px] font-bold uppercase tracking-[0.28em] text-emerald-300/90">
+          <p className="text-center text-[11px] font-bold uppercase tracking-[0.28em] text-emerald-700">
             Step 3 · เฉลย ข้อ {caseIndex + 1}/{caseQueue.length}
           </p>
 
           <div
-            className={`mt-6 rounded-3xl border p-6 sm:p-8 ${
-              isCorrect
-                ? 'border-emerald-400/40 bg-emerald-500/10'
-                : 'border-amber-400/40 bg-amber-500/10'
+            className={`md-card mt-6 rounded-3xl p-6 sm:p-8 ${
+              isCorrect ? 'border-emerald-300 bg-emerald-50' : 'border-amber-300 bg-amber-50'
             }`}
           >
-            <p className="text-center text-lg font-bold text-white">
+            <p className="text-center text-lg font-bold text-gray-900">
               {isCorrect ? '✅ ตอบถูกแล้ว!' : '💡 คำตอบที่เหมาะสมที่สุดคือ B'}
             </p>
             {!isCorrect && (
-              <p className="mt-2 text-center text-sm text-zinc-400">
+              <p className="mt-2 text-center text-sm text-gray-600">
                 คุณเลือก {selectedOption} — มาดูแนวคิดที่ HR มืออาชีพมักเลือกกัน
               </p>
             )}
-            <div className="mt-5 rounded-2xl bg-black/30 px-5 py-4">
-              <p className="text-sm font-semibold text-violet-200">
+            <div className="mt-5 rounded-2xl bg-white px-5 py-4 border border-[#D6D4CC]">
+              <p className="text-sm font-semibold text-violet-800">
                 ตัวเลือก {activeCase.correctOption}: {activeCase.options[activeCase.correctOption]}
               </p>
-              <p className="mt-3 text-base leading-relaxed text-zinc-200">{activeCase.explanation}</p>
+              <p className="mt-3 text-base leading-relaxed text-gray-700">{activeCase.explanation}</p>
             </div>
           </div>
 
-          <p className="mt-6 text-center text-sm text-zinc-500">
+          <p className="mt-6 text-center text-sm text-gray-500">
             {isLastQuestion
               ? 'อ่าน Insight แล้วกดปุ่มด้านล่างเพื่อดูคะแนน'
               : 'อ่าน Insight แล้วกดปุ่มด้านล่างเพื่อไปข้อถัดไป'}
@@ -476,7 +452,7 @@ const GameAiHrChallenge: React.FC = () => {
           <button
             type="button"
             onClick={advanceFromReveal}
-            className="mx-auto mt-4 rounded-xl border border-violet-400/40 bg-violet-500/20 px-6 py-3 text-sm font-semibold text-violet-100 hover:bg-violet-500/30"
+            className="md-btn-primary mx-auto mt-4 !rounded-xl !px-6 !py-3 !text-sm"
           >
             {isLastQuestion ? 'ดูคะแนน →' : 'ข้อถัดไป →'}
           </button>
@@ -490,7 +466,7 @@ const GameAiHrChallenge: React.FC = () => {
               <Brain className="h-16 w-16 animate-pulse text-violet-400" aria-hidden />
               <Sparkles className="absolute -right-1 -top-1 h-6 w-6 animate-bounce text-amber-300" aria-hidden />
             </div>
-            <p className="text-lg font-semibold text-violet-200">AI กำลังวิเคราะห์แนวคิด HR จาก 3 ข้อ...</p>
+            <p className="text-lg font-semibold text-violet-800">AI กำลังวิเคราะห์แนวคิด HR จาก 3 ข้อ...</p>
             <div className="flex gap-1">
               {[0, 1, 2].map((i) => (
                 <span
@@ -506,16 +482,14 @@ const GameAiHrChallenge: React.FC = () => {
 
       {phase === 'result' && score != null && prize != null && (
         <div className="relative mx-auto flex min-h-screen max-w-lg flex-col justify-center px-4 py-24">
-          <div className="rounded-[32px] border border-white/10 bg-gradient-to-b from-white/10 to-white/5 p-8 text-center shadow-2xl shadow-violet-500/10">
-            <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-violet-300/90">
-              MindDoJo HR Challenge
-            </p>
-            <p className="mt-4 text-7xl font-black tabular-nums text-violet-300">
+          <div className="md-card rounded-[32px] p-8 text-center shadow-md">
+            <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-violet-700">MindDoJo HR Challenge</p>
+            <p className="mt-4 text-7xl font-black tabular-nums text-violet-600">
               {score}
-              <span className="text-3xl text-zinc-500">/100</span>
+              <span className="text-3xl text-gray-400">/100</span>
             </p>
-            <p className="mt-2 text-xl font-bold text-amber-200">{resultTitle}</p>
-            <p className="mt-1 text-sm text-zinc-400">
+            <p className="mt-2 text-xl font-bold text-amber-700">{resultTitle}</p>
+            <p className="mt-1 text-sm text-gray-500">
               ตอบถูก {correctCount}/{HR_CHALLENGE_QUESTIONS_PER_ROUND} ข้อ
             </p>
 
@@ -530,13 +504,13 @@ const GameAiHrChallenge: React.FC = () => {
                       : 'border-white/10 bg-white/5'
               }`}
             >
-              <p className="text-sm font-semibold text-zinc-400">ของรางวัลที่ได้รับ</p>
-              <p className="mt-1 text-lg font-black text-white">{prize.label}</p>
-              <p className="mt-1 text-xs text-zinc-400">{prize.detail}</p>
+              <p className="text-sm font-semibold text-gray-500">ของรางวัลที่ได้รับ</p>
+              <p className="mt-1 text-lg font-black text-gray-900">{prize.label}</p>
+              <p className="mt-1 text-xs text-gray-500">{prize.detail}</p>
             </div>
 
-            <div className="mt-5 rounded-xl bg-black/25 px-4 py-3 text-left text-xs text-zinc-400">
-              <p className="font-semibold text-zinc-300">เกณฑ์รางวัล</p>
+            <div className="mt-5 rounded-xl bg-gray-50 px-4 py-3 text-left text-xs text-gray-500 border border-[#D6D4CC]">
+              <p className="font-semibold text-gray-700">เกณฑ์รางวัล</p>
               <ul className="mt-2 space-y-1">
                 <li>0–33 คะแนน (ถูก 0–1 ข้อ) → สติกเกอร์ MindDoJo</li>
                 <li>34–89 คะแนน (ถูก 2 ข้อ) → แก้ว / สมุด MindDoJo</li>
@@ -544,27 +518,20 @@ const GameAiHrChallenge: React.FC = () => {
               </ul>
             </div>
 
-            {saveError ? <p className="mt-4 text-sm text-amber-400">{saveError}</p> : null}
+            {saveError ? <p className="mt-4 text-sm text-amber-700">{saveError}</p> : null}
 
-            <button
-              type="button"
-              onClick={playAgain}
-              className="mt-6 w-full rounded-2xl bg-violet-500 px-5 py-4 text-base font-black text-white hover:bg-violet-400 transition"
-            >
+            <button type="button" onClick={playAgain} className="md-btn-primary mt-6 w-full !rounded-2xl !py-4 !text-base">
               เล่นชุดใหม่ (3 ข้อ)
             </button>
             <a
               href="https://minddojo.co.th"
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-3 block w-full rounded-2xl border border-amber-400/30 bg-amber-400/10 px-5 py-3 text-sm font-semibold text-amber-200 hover:bg-amber-400/20 transition"
+              className="md-btn-ghost mt-3 block w-full !rounded-2xl !py-3 !text-sm !font-semibold"
             >
               พูดคุยกับทีม MindDoJo →
             </a>
-            <Link
-              to="/"
-              className="mt-3 block w-full rounded-2xl border border-white/10 px-5 py-3 text-sm font-medium text-zinc-400 hover:bg-white/5 transition"
-            >
+            <Link to="/" className="md-btn-ghost mt-3 block w-full !rounded-2xl !py-3 !text-sm">
               กลับหน้าหลัก
             </Link>
           </div>

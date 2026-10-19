@@ -110,8 +110,8 @@ const LinkCard: React.FC<{
   onEdit: (item: LinkItem) => void;
   onDelete: (id: string) => void;
 }> = ({ item, copiedId, onCopy, onEdit, onDelete }) => (
-  <article className="rounded-2xl border border-white/10 bg-white/[0.04] p-5 flex flex-col items-center text-center shadow-lg shadow-black/20">
-    <h3 className="text-base font-bold text-white leading-snug min-h-[2.5rem]">{item.title}</h3>
+  <article className="rounded-2xl border border-[#D6D4CC] bg-gray-50 p-5 flex flex-col items-center text-center shadow-lg shadow-black/20">
+    <h3 className="text-base font-bold text-gray-900 leading-snug min-h-[2.5rem]">{item.title}</h3>
     <img
       src={qrImageUrl(item.url)}
       alt={`QR code ${item.title}`}
@@ -122,7 +122,7 @@ const LinkCard: React.FC<{
       href={item.url}
       target="_blank"
       rel="noopener noreferrer"
-      className="mt-3 text-xs text-yellow-400/90 hover:text-yellow-300 break-all leading-relaxed"
+      className="mt-3 text-xs text-yellow-400/90 hover:text-yellow-800 break-all leading-relaxed"
     >
       {item.url}
     </a>
@@ -130,7 +130,7 @@ const LinkCard: React.FC<{
       <button
         type="button"
         onClick={() => onCopy(item.id, item.url)}
-        className="flex-1 py-2 rounded-xl text-sm font-bold border border-white/15 text-gray-200 hover:bg-white/10 transition-colors"
+        className="flex-1 py-2 rounded-xl text-sm font-bold border border-[#D6D4CC] text-gray-800 hover:bg-gray-100 transition-colors"
       >
         {copiedId === item.id ? 'คัดลอกแล้ว' : 'คัดลอกลิงก์'}
       </button>
@@ -148,7 +148,7 @@ const LinkCard: React.FC<{
       <button
         type="button"
         onClick={() => onEdit(item)}
-        className="flex-1 py-2 rounded-xl text-sm font-bold border border-white/15 text-gray-200 hover:bg-white/10 transition-colors"
+        className="flex-1 py-2 rounded-xl text-sm font-bold border border-[#D6D4CC] text-gray-800 hover:bg-gray-100 transition-colors"
       >
         แก้ไข
       </button>
@@ -275,14 +275,14 @@ const AdminAssessmentLinksQrPage: React.FC = () => {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="ชื่อ เช่น Growth Mindset"
-            className="w-full px-4 py-3 rounded-xl bg-black/50 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-yellow-400"
+            className="w-full px-4 py-3 rounded-xl bg-black/50 border border-[#D6D4CC] text-gray-900 placeholder-gray-500 focus:outline-none focus:border-yellow-400"
           />
           <input
             type="text"
             value={href}
             onChange={(e) => setHref(e.target.value)}
             placeholder="ลิงก์ เช่น /assessment/disc หรือ https://..."
-            className="w-full px-4 py-3 rounded-xl bg-black/50 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-yellow-400"
+            className="w-full px-4 py-3 rounded-xl bg-black/50 border border-[#D6D4CC] text-gray-900 placeholder-gray-500 focus:outline-none focus:border-yellow-400"
           />
           <button
             type="submit"
@@ -292,7 +292,7 @@ const AdminAssessmentLinksQrPage: React.FC = () => {
           </button>
         </div>
         <div className="flex flex-wrap items-center gap-4 text-sm">
-          <label className="inline-flex items-center gap-2 text-gray-300 cursor-pointer">
+          <label className="inline-flex items-center gap-2 text-gray-700 cursor-pointer">
             <input
               type="radio"
               name="link-category"
@@ -302,7 +302,7 @@ const AdminAssessmentLinksQrPage: React.FC = () => {
             />
             Assessment
           </label>
-          <label className="inline-flex items-center gap-2 text-gray-300 cursor-pointer">
+          <label className="inline-flex items-center gap-2 text-gray-700 cursor-pointer">
             <input
               type="radio"
               name="link-category"
@@ -316,7 +316,7 @@ const AdminAssessmentLinksQrPage: React.FC = () => {
             <button
               type="button"
               onClick={resetForm}
-              className="text-gray-400 hover:text-white underline underline-offset-2"
+              className="text-gray-400 hover:text-gray-900 underline underline-offset-2"
             >
               ยกเลิกการแก้ไข
             </button>

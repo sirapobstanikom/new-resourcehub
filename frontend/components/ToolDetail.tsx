@@ -14,41 +14,41 @@ interface ToolDetailProps {
 
 const ToolDetail: React.FC<ToolDetailProps> = ({ tool, onBack, onAskAI }) => {
   return (
-    <div className="bg-transparent text-white min-h-screen">
+    <div className="bg-transparent text-gray-900 min-h-screen">
       {/* Navigation */}
       <div className="flex justify-between items-center mb-12 py-4">
         <button 
           onClick={onBack}
-          className="text-gray-400 hover:text-yellow-400 flex items-center gap-2 font-medium transition-colors"
+          className="text-gray-500 hover:text-yellow-600 flex items-center gap-2 font-medium transition-colors"
         >
           <span className="text-xl">←</span> Back to Hub
         </button>
-        <BrandLogo className="text-[24px]" />
+        <BrandLogo className="text-[24px]" tone="dark" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-16">
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-16">
           <header>
-            <h1 className="text-5xl md:text-6xl font-extrabold mb-6 tracking-tight leading-tight">{tool.name}</h1>
-            <p className="text-xl text-gray-400 leading-relaxed max-w-3xl">
+            <h1 className="text-5xl md:text-6xl font-extrabold mb-6 tracking-tight leading-tight text-gray-900">{tool.name}</h1>
+            <p className="text-xl text-gray-600 leading-relaxed max-w-3xl">
               {tool.longDescription || tool.description}
             </p>
           </header>
 
           {tool.usageInstructions && (
-            <section className="bg-neutral-900/50 border border-white/10 rounded-3xl p-8 md:p-12">
-              <h2 className="text-2xl font-bold mb-8 flex items-center gap-4 text-yellow-400">
-                <span className="w-8 h-8 rounded-full bg-yellow-400/10 flex items-center justify-center text-sm">1</span>
+            <section className="md-card p-8 md:p-12">
+              <h2 className="text-2xl font-bold mb-8 flex items-center gap-4 text-yellow-700">
+                <span className="w-8 h-8 rounded-full bg-[#FFCC00]/25 flex items-center justify-center text-sm text-gray-900">1</span>
                 Instructions & Guidance
               </h2>
-              <p className="text-lg font-semibold text-gray-200 mb-8">{tool.usageInstructions}</p>
+              <p className="text-lg font-semibold text-gray-800 mb-8">{tool.usageInstructions}</p>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {tool.blocks?.map((block, idx) => (
-                  <div key={idx} className="p-6 bg-white/5 rounded-2xl border border-white/5 hover:border-yellow-400/30 transition-all">
-                    <h4 className="text-yellow-400 font-bold mb-2 text-sm uppercase tracking-widest">{block.title}</h4>
-                    <p className="text-gray-400 text-sm leading-relaxed">{block.detail}</p>
+                  <div key={idx} className="p-6 bg-gray-50 rounded-2xl border border-[#D6D4CC] hover:border-yellow-300/60 transition-all">
+                    <h4 className="text-yellow-700 font-bold mb-2 text-sm uppercase tracking-widest">{block.title}</h4>
+                    <p className="text-gray-600 text-sm leading-relaxed">{block.detail}</p>
                   </div>
                 ))}
               </div>
@@ -57,22 +57,22 @@ const ToolDetail: React.FC<ToolDetailProps> = ({ tool, onBack, onAskAI }) => {
 
           {tool.exampleImage && (
             <section>
-              <h2 className="text-2xl font-bold mb-8 flex items-center gap-4 text-yellow-400">
-                <span className="w-8 h-8 rounded-full bg-yellow-400/10 flex items-center justify-center text-sm">2</span>
+              <h2 className="text-2xl font-bold mb-8 flex items-center gap-4 text-yellow-700">
+                <span className="w-8 h-8 rounded-full bg-[#FFCC00]/25 flex items-center justify-center text-sm text-gray-900">2</span>
                 Template Visualization
               </h2>
-              <div className="rounded-3xl overflow-hidden border border-white/10 bg-neutral-900 shadow-2xl">
+              <div className="rounded-3xl overflow-hidden border border-[#D6D4CC] bg-white shadow-sm">
                 <img 
                   src={tool.exampleImage} 
                   alt="Framework Example" 
-                  className="w-full h-auto opacity-80 hover:opacity-100 transition-opacity" 
+                  className="w-full h-auto opacity-90 hover:opacity-100 transition-opacity" 
                 />
               </div>
             </section>
           )}
 
           {tool.source && (
-            <div className="p-8 bg-white/5 rounded-2xl border border-white/5 italic text-gray-500 text-sm">
+            <div className="p-8 bg-gray-50 rounded-2xl border border-[#D6D4CC] italic text-gray-500 text-sm">
               Source: {tool.source}
             </div>
           )}
@@ -86,7 +86,7 @@ const ToolDetail: React.FC<ToolDetailProps> = ({ tool, onBack, onAskAI }) => {
             <AIChatSidebar toolName={tool.name} />
 
             {(tool.templateUrl || (tool.additionalResources && tool.additionalResources.length > 0)) && (
-              <div className="bg-yellow-400 p-8 rounded-3xl text-black shadow-xl shadow-yellow-400/10">
+              <div className="bg-[#FFCC00] p-8 rounded-3xl text-black shadow-md shadow-yellow-400/20">
                 {tool.templateUrl && (
                   <>
                     <h3 className="text-2xl font-black mb-4 leading-tight">Professional Templates</h3>
@@ -96,7 +96,7 @@ const ToolDetail: React.FC<ToolDetailProps> = ({ tool, onBack, onAskAI }) => {
                         href={tool.templateUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="block w-full bg-black text-white text-center font-bold py-4 rounded-xl hover:bg-neutral-900 transition-all transform hover:-translate-y-1 shadow-lg"
+                        className="block w-full bg-gray-900 text-white text-center font-bold py-4 rounded-xl hover:bg-gray-800 transition-all transform hover:-translate-y-1 shadow-lg"
                       >
                         Download PDF Template
                       </a>

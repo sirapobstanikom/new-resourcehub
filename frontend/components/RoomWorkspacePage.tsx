@@ -435,14 +435,14 @@ const RoomWorkspacePage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white flex items-center justify-center">
+      <div className="md-page flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 rounded-2xl bg-amber-400/20 border border-amber-400/30 flex items-center justify-center animate-pulse">
             <svg className="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </div>
-          <p className="text-slate-400 text-sm">กำลังโหลดห้อง...</p>
+          <p className="text-gray-500 text-sm">กำลังโหลดห้อง...</p>
         </div>
       </div>
     );
@@ -450,14 +450,14 @@ const RoomWorkspacePage: React.FC = () => {
 
   if (error || !room) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white flex flex-col items-center justify-center gap-6 p-6">
+      <div className="md-page flex flex-col items-center justify-center gap-6 p-6">
         <div className="w-16 h-16 rounded-2xl bg-red-500/20 flex items-center justify-center">
           <svg className="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>
         </div>
-        <p className="text-red-300 text-center">{error || 'ไม่พบห้อง'}</p>
-        <Link to="/room" className="px-5 py-2.5 rounded-xl font-medium bg-amber-400 text-slate-900 hover:bg-amber-300 transition shadow-lg shadow-amber-400/20">
+        <p className="text-red-600 text-center">{error || 'ไม่พบห้อง'}</p>
+        <Link to="/room" className="md-btn-primary !rounded-xl">
           กลับไปใส่รหัสห้อง
         </Link>
       </div>
@@ -470,14 +470,14 @@ const RoomWorkspacePage: React.FC = () => {
   const isWildIdeas = bgType === 'wild_ideas';
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white flex flex-col selection:bg-amber-400 selection:text-slate-900 min-h-[100dvh]">
+    <div className="md-page flex flex-col selection:bg-amber-400 selection:text-slate-900 min-h-[100dvh]">
       {/* Header — โทรศัพท์: กดเมนูบอร์ด + ชื่อ/รหัส + Add Post-it */}
-      <header className="shrink-0 flex items-center justify-between gap-2 px-3 py-3 sm:px-5 sm:py-3.5 bg-slate-800/90 border-b border-slate-700/50 backdrop-blur-sm" style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-top))' }}>
+      <header className="shrink-0 flex items-center justify-between gap-2 px-3 py-3 sm:px-5 sm:py-3.5 bg-white border-b border-[#D6D4CC] shadow-sm backdrop-blur-sm" style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-top))' }}>
         <div className="flex items-center gap-2 min-w-0 flex-1">
           <button
             type="button"
             onClick={() => setMobileBoardsOpen(true)}
-            className="md:hidden flex items-center justify-center w-11 h-11 rounded-xl bg-slate-700/50 text-white hover:bg-slate-600/50 transition touch-manipulation"
+            className="md:hidden flex items-center justify-center w-11 h-11 rounded-xl bg-gray-100 text-gray-900 hover:bg-gray-200 border border-[#D6D4CC] transition touch-manipulation"
             aria-label="เปิดเมนูบอร์ด"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -489,23 +489,23 @@ const RoomWorkspacePage: React.FC = () => {
               <span className="font-black text-slate-900 text-sm">WB</span>
             </div>
             <div className="min-w-0">
-              <span className="font-semibold text-white truncate block text-sm sm:text-base">{room.name}</span>
-              <span className="text-xs text-slate-400 font-mono hidden sm:inline">รหัส: {room.room_code}</span>
+              <span className="font-semibold text-gray-900 truncate block text-sm sm:text-base">{room.name}</span>
+              <span className="text-xs text-gray-500 font-mono hidden sm:inline">รหัส: {room.room_code}</span>
             </div>
           </div>
-          <span className="hidden sm:inline-flex px-2.5 py-1 rounded-lg bg-slate-700/80 text-slate-300 text-xs font-mono border border-slate-600/50 shrink-0">
+          <span className="hidden sm:inline-flex px-2.5 py-1 rounded-lg bg-gray-100 text-gray-600 text-xs font-mono border border-[#D6D4CC] shrink-0">
             {room.room_code}
           </span>
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          <Link to="/room" className="hidden sm:inline text-sm text-slate-400 hover:text-white transition py-2">
+          <Link to="/room" className="hidden sm:inline text-sm text-gray-500 hover:text-gray-900 transition py-2">
             ออกจากห้อง
           </Link>
           <button
             type="button"
             onClick={handleAddSticky}
             disabled={addingSticky || !currentBoardId}
-            className="flex items-center justify-center gap-1.5 min-h-[44px] min-w-[44px] px-3 py-2.5 sm:px-4 sm:gap-2 rounded-xl font-semibold bg-gradient-to-r from-amber-400 to-amber-500 text-slate-900 hover:from-amber-300 hover:to-amber-400 disabled:opacity-50 disabled:cursor-not-allowed transition shadow-lg shadow-amber-500/25 touch-manipulation"
+            className="flex items-center justify-center gap-1.5 min-h-[44px] min-w-[44px] px-3 py-2.5 sm:px-4 sm:gap-2 rounded-xl font-semibold bg-[#FFCC00] text-black hover:bg-yellow-300 disabled:opacity-50 disabled:cursor-not-allowed transition shadow-lg shadow-amber-500/25 touch-manipulation"
           >
             <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -520,10 +520,10 @@ const RoomWorkspacePage: React.FC = () => {
         {mobileBoardsOpen && (
           <>
             <div className="md:hidden fixed inset-0 bg-black/60 z-40" onClick={() => setMobileBoardsOpen(false)} aria-hidden />
-            <aside className="md:hidden fixed top-0 left-0 bottom-0 w-[min(85vw,280px)] z-50 flex flex-col py-5 px-4 bg-slate-800 border-r border-slate-700 shadow-2xl" style={{ paddingLeft: 'max(1rem, env(safe-area-inset-left))', paddingTop: 'max(1rem, env(safe-area-inset-top))', paddingBottom: 'env(safe-area-inset-bottom)' }}>
+            <aside className="md:hidden fixed top-0 left-0 bottom-0 w-[min(85vw,280px)] z-50 flex flex-col py-5 px-4 bg-white border-r border-[#D6D4CC] shadow-2xl" style={{ paddingLeft: 'max(1rem, env(safe-area-inset-left))', paddingTop: 'max(1rem, env(safe-area-inset-top))', paddingBottom: 'env(safe-area-inset-bottom)' }}>
               <div className="flex items-center justify-between mb-3">
                 <h2 className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Workshop Boards</h2>
-                <button type="button" onClick={() => setMobileBoardsOpen(false)} className="w-10 h-10 rounded-xl text-slate-400 hover:bg-slate-700/50 hover:text-white flex items-center justify-center touch-manipulation" aria-label="ปิด">
+                <button type="button" onClick={() => setMobileBoardsOpen(false)} className="w-10 h-10 rounded-xl text-slate-400 hover:bg-gray-100 hover:text-gray-900 flex items-center justify-center touch-manipulation" aria-label="ปิด">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                 </button>
               </div>
@@ -534,7 +534,7 @@ const RoomWorkspacePage: React.FC = () => {
                     type="button"
                     onClick={() => { setCurrentBoardId(b.id); setMobileBoardsOpen(false); }}
                     className={`w-full text-left px-3 py-3 rounded-xl text-sm font-medium transition-all touch-manipulation min-h-[48px] ${
-                      currentBoardId === b.id ? 'bg-amber-400/20 text-amber-300 border border-amber-400/30' : 'text-slate-400 hover:bg-slate-700/50 hover:text-white border border-transparent'
+                      currentBoardId === b.id ? 'bg-[#FFCC00]/20 text-gray-900 border border-[#FFCC00]/40' : 'text-slate-400 hover:bg-gray-100 hover:text-gray-900 border border-transparent'
                     }`}
                   >
                     {b.name}
@@ -554,7 +554,7 @@ const RoomWorkspacePage: React.FC = () => {
         )}
 
         {/* Left: Boards (Desktop) */}
-        <aside className="hidden md:flex w-60 shrink-0 border-r border-slate-700/50 bg-slate-800/50 flex-col py-5">
+        <aside className="hidden md:flex w-60 shrink-0 border-r border-[#D6D4CC] bg-white flex-col py-5">
           <h2 className="px-4 text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-3">Workshop Boards</h2>
           <nav className="flex-1 overflow-y-auto px-3 space-y-1">
             {boards.map((b) => (
@@ -563,7 +563,7 @@ const RoomWorkspacePage: React.FC = () => {
                 type="button"
                 onClick={() => setCurrentBoardId(b.id)}
                 className={`w-full text-left px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                  currentBoardId === b.id ? 'bg-amber-400/20 text-amber-300 border border-amber-400/30 shadow-sm' : 'text-slate-400 hover:bg-slate-700/50 hover:text-white border border-transparent'
+                  currentBoardId === b.id ? 'bg-[#FFCC00]/20 text-gray-900 border border-[#FFCC00]/40 shadow-sm' : 'text-slate-400 hover:bg-gray-100 hover:text-gray-900 border border-transparent'
                 }`}
               >
                 {b.name}
@@ -583,9 +583,9 @@ const RoomWorkspacePage: React.FC = () => {
         {/* Main canvas */}
         <main
           ref={canvasRef}
-          className="flex-1 overflow-auto min-h-0 bg-slate-800/30 pb-24 md:pb-0"
+          className="flex-1 overflow-auto min-h-0 bg-[#F3F2ED] pb-24 md:pb-0"
           style={{
-            backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(148,163,184,0.15) 1px, transparent 0)',
+            backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(0,0,0,0.06) 1px, transparent 0)',
             backgroundSize: '24px 24px',
             minHeight: 'calc(100dvh - 56px)',
           }}
@@ -599,10 +599,10 @@ const RoomWorkspacePage: React.FC = () => {
             onDoubleClick={handleCanvasDoubleClick}
           >
             {isBmc && (
-              <div className="absolute inset-0 grid grid-cols-3 grid-rows-3 gap-px p-4 bg-slate-700/30 rounded-2xl m-4 border border-slate-600/30">
+              <div className="absolute inset-0 grid grid-cols-3 grid-rows-3 gap-px p-4 bg-white rounded-2xl m-4 border border-[#D6D4CC] shadow-sm">
                 {BMC_BLOCKS.map((title, i) => (
-                  <div key={i} className="rounded-xl bg-slate-800/60 border border-slate-600/40 p-4 flex flex-col backdrop-blur-sm">
-                    <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{title}</span>
+                  <div key={i} className="rounded-xl bg-gray-50 border border-[#D6D4CC] p-4 flex flex-col backdrop-blur-sm">
+                    <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">{title}</span>
                     <div className="flex-1 min-h-[60px]" />
                   </div>
                 ))}
@@ -610,10 +610,10 @@ const RoomWorkspacePage: React.FC = () => {
             )}
 
             {isLean && (
-              <div className="absolute inset-0 grid grid-cols-2 grid-rows-5 gap-px p-4 bg-slate-700/30 rounded-2xl m-4 border border-slate-600/30">
+              <div className="absolute inset-0 grid grid-cols-2 grid-rows-5 gap-px p-4 bg-white rounded-2xl m-4 border border-[#D6D4CC] shadow-sm">
                 {['Problem', 'Solution', 'Unique Value Proposition', 'Unfair Advantage', 'Customer Segments', 'Key Metrics', 'Channels', 'Early Adopters', 'Cost Structure', 'Revenue Streams'].map((t, i) => (
-                  <div key={i} className="rounded-xl bg-slate-800/60 border border-slate-600/40 p-3 flex items-start">
-                    <span className="text-xs text-slate-400">{t}</span>
+                  <div key={i} className="rounded-xl bg-gray-50 border border-[#D6D4CC] p-3 flex items-start">
+                    <span className="text-xs text-gray-500">{t}</span>
                   </div>
                 ))}
               </div>
@@ -621,13 +621,13 @@ const RoomWorkspacePage: React.FC = () => {
 
             {isWildIdeas && (
               <div className="absolute inset-0 flex gap-6 p-8 m-4">
-                <div className="flex-1 rounded-2xl border-2 border-slate-600/50 bg-slate-800/60 p-6 flex flex-col shadow-xl">
-                  <h3 className="text-sm font-bold text-amber-400/90 uppercase tracking-widest mb-4">Wild Ideas</h3>
-                  <div className="flex-1 min-h-[200px] rounded-xl bg-slate-900/30 border border-slate-700/50" />
+                <div className="flex-1 rounded-2xl border-2 border-[#D6D4CC] bg-white p-6 flex flex-col shadow-xl">
+                  <h3 className="text-sm font-bold text-yellow-700 uppercase tracking-widest mb-4">Wild Ideas</h3>
+                  <div className="flex-1 min-h-[200px] rounded-xl bg-gray-50 border border-[#D6D4CC]" />
                 </div>
-                <div className="flex-1 rounded-2xl border-2 border-slate-600/50 bg-slate-800/60 p-6 flex flex-col shadow-xl">
+                <div className="flex-1 rounded-2xl border-2 border-[#D6D4CC] bg-white p-6 flex flex-col shadow-xl">
                   <h3 className="text-sm font-bold text-emerald-400/90 uppercase tracking-widest mb-4">Practical Solutions</h3>
-                  <div className="flex-1 min-h-[200px] rounded-xl bg-slate-900/30 border border-slate-700/50" />
+                  <div className="flex-1 min-h-[200px] rounded-xl bg-gray-50 border border-[#D6D4CC]" />
                 </div>
               </div>
             )}
@@ -709,15 +709,15 @@ const RoomWorkspacePage: React.FC = () => {
         </main>
 
         {/* Right: เลือกสีโพสต์อิท / สติกเกอร์ (Desktop) */}
-        <aside className="hidden md:flex w-52 shrink-0 border-l border-slate-700/50 bg-slate-800/50 flex-col p-4">
-          <div className="rounded-xl bg-slate-700/40 border border-slate-600/50 p-4">
-            <h3 className="text-sm font-semibold text-white mb-1 flex items-center gap-2">
+        <aside className="hidden md:flex w-52 shrink-0 border-l border-[#D6D4CC] bg-white flex-col p-4">
+          <div className="md-card !rounded-xl p-4">
+            <h3 className="text-sm font-semibold text-gray-900 mb-1 flex items-center gap-2">
               <span className="w-8 h-8 rounded-lg flex items-center justify-center bg-amber-400/20">
                 <svg className="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" /></svg>
               </span>
               เลือกสีโพสต์อิท
             </h3>
-            <p className="text-xs text-slate-400 mb-3">กดเลือกสี แล้วกด Add Post-it หรือดับเบิลคลิกที่ canvas</p>
+            <p className="text-xs text-gray-500 mb-3">กดเลือกสี แล้วกด Add Post-it หรือดับเบิลคลิกที่ canvas</p>
             <div className="grid grid-cols-2 gap-2">
               {STICKY_COLORS.map((c) => (
                 <button
@@ -733,7 +733,7 @@ const RoomWorkspacePage: React.FC = () => {
                   title={c.name}
                 >
                   <span className="w-8 h-8 rounded-lg shrink-0 shadow-md" style={{ backgroundColor: c.hex }} />
-                  <span className="text-sm font-medium text-slate-200 capitalize truncate">{c.name}</span>
+                  <span className="text-sm font-medium text-gray-700 capitalize truncate">{c.name}</span>
                 </button>
               ))}
             </div>
@@ -743,7 +743,7 @@ const RoomWorkspacePage: React.FC = () => {
       </div>
 
       {/* Mobile: ปุ่มเลือกสติกเกอร์ + แถบสี */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-slate-800/98 border-t border-slate-700/50 backdrop-blur-sm" style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-[#D6D4CC] backdrop-blur-sm" style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
         <div className="px-3 pt-3">
           <button
             type="button"
@@ -756,7 +756,7 @@ const RoomWorkspacePage: React.FC = () => {
         </div>
         {paletteOpen && (
           <div className="px-3 py-3 border-t border-slate-700/50">
-            <p className="text-xs text-slate-400 mb-2">เลือกสีแล้วกด Add Post-it หรือแตะสองครั้งที่ canvas</p>
+            <p className="text-xs text-gray-500 mb-2">เลือกสีแล้วกด Add Post-it หรือแตะสองครั้งที่ canvas</p>
             <div className="grid grid-cols-3 gap-2">
               {STICKY_COLORS.map((c) => (
                 <button
@@ -771,7 +771,7 @@ const RoomWorkspacePage: React.FC = () => {
                   }}
                 >
                   <span className="w-10 h-10 rounded-lg shrink-0 shadow" style={{ backgroundColor: c.hex }} />
-                  <span className="text-sm font-medium text-white capitalize truncate">{c.name}</span>
+                  <span className="text-sm font-medium text-gray-900 capitalize truncate">{c.name}</span>
                 </button>
               ))}
             </div>
@@ -779,7 +779,7 @@ const RoomWorkspacePage: React.FC = () => {
         )}
         <div className="flex items-center justify-between gap-2 px-3 py-2 border-t border-slate-700/30">
           <span className="text-xs text-slate-500">สีที่เลือก: <span className="font-medium text-slate-300" style={{ textShadow: '0 0 0 1px var(--tw-shadow-color)' }}>{STICKY_COLORS.find((c) => c.hex === selectedColor)?.name ?? '—'}</span></span>
-          <Link to="/room" className="text-sm text-slate-400 hover:text-white py-2 px-3 rounded-lg hover:bg-slate-700/50 touch-manipulation min-h-[44px] flex items-center">
+          <Link to="/room" className="text-sm text-gray-500 hover:text-gray-900 py-2 px-3 rounded-lg hover:bg-slate-700/50 touch-manipulation min-h-[44px] flex items-center">
             ออกจากห้อง
           </Link>
         </div>
@@ -787,38 +787,38 @@ const RoomWorkspacePage: React.FC = () => {
 
       {/* Modal: New Board */}
       {newBoardOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/80 backdrop-blur-sm p-4" onClick={() => setNewBoardOpen(false)}>
-          <div className="bg-slate-800 rounded-2xl border border-slate-600/50 p-6 max-w-sm w-full shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" onClick={() => setNewBoardOpen(false)}>
+          <div className="md-card rounded-2xl p-6 max-w-sm w-full shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center gap-2 mb-6">
               <div className="w-10 h-10 rounded-xl bg-amber-400/20 flex items-center justify-center">
                 <svg className="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
                 </svg>
               </div>
-              <h3 className="text-lg font-semibold text-white">สร้าง Board ใหม่</h3>
+              <h3 className="text-lg font-semibold text-gray-900">สร้าง Board ใหม่</h3>
             </div>
             <input
               type="text"
               value={newBoardName}
               onChange={(e) => setNewBoardName(e.target.value)}
               placeholder="ชื่อบอร์ด"
-              className="w-full px-4 py-3 rounded-xl bg-slate-700/50 border border-slate-600 text-white placeholder-slate-500 focus:border-amber-400/50 focus:ring-2 focus:ring-amber-400/20 outline-none transition mb-4"
+              className="w-full px-4 py-3 rounded-xl md-input placeholder-slate-500 focus:border-amber-400/50 focus:ring-2 focus:ring-amber-400/20 outline-none transition mb-4"
             />
             <label className="block text-sm font-medium text-slate-400 mb-2">Template</label>
             <select
               value={newBoardTemplate}
               onChange={(e) => setNewBoardTemplate(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl bg-slate-700/50 border border-slate-600 text-white focus:border-amber-400/50 outline-none transition mb-6"
+              className="w-full px-4 py-3 rounded-xl md-input focus:border-amber-400/50 outline-none transition mb-6"
             >
               {BOARD_TEMPLATES.map((t) => (
                 <option key={t.value} value={t.value}>{t.label}</option>
               ))}
             </select>
             <div className="flex gap-3">
-              <button type="button" onClick={() => setNewBoardOpen(false)} className="flex-1 py-3 rounded-xl border border-slate-600 text-slate-400 hover:bg-slate-700/50 font-medium transition">
+              <button type="button" onClick={() => setNewBoardOpen(false)} className="flex-1 py-3 rounded-xl md-btn-ghost !rounded-xl flex-1 font-medium transition">
                 ยกเลิก
               </button>
-              <button type="button" onClick={handleNewBoard} className="flex-1 py-3 rounded-xl bg-amber-400 text-slate-900 font-semibold hover:bg-amber-300 transition shadow-lg shadow-amber-500/20">
+              <button type="button" onClick={handleNewBoard} className="flex-1 md-btn-primary !rounded-xl">
                 สร้าง
               </button>
             </div>

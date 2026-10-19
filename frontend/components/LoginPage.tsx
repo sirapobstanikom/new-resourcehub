@@ -29,20 +29,22 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-transparent text-white bg-grid flex items-center justify-center p-6">
+    <div className="md-page items-center justify-center p-6">
       <div className="w-full max-w-md">
-        <div className="bg-neutral-900/80 border border-white/10 rounded-[32px] p-10 shadow-2xl backdrop-blur-sm">
-          <div className="flex flex-col items-center mb-10">
-            <BrandLogo className="mb-5 text-[34px]" />
-            <h1 className="text-2xl font-semibold tracking-tight text-center">
-              Minddojo <span className="text-yellow-400">Resourcehub</span>
+        <div className="md-card rounded-[32px] p-10 shadow-md">
+          <div className="mb-10 flex flex-col items-center">
+            <BrandLogo className="mb-5 text-[34px]" tone="dark" />
+            <h1 className="text-center text-2xl font-semibold tracking-tight text-gray-900">
+              Minddojo <span className="text-yellow-500">Resourcehub</span>
             </h1>
-            <p className="text-gray-500 text-sm mt-2">เข้าสู่ระบบเพื่อใช้งาน</p>
+            <p className="mt-2 text-sm text-gray-500">เข้าสู่ระบบเพื่อใช้งาน</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label htmlFor="username" className="block text-sm font-medium text-gray-400 mb-2">Username</label>
+              <label htmlFor="username" className="mb-2 block text-sm font-medium text-gray-600">
+                Username
+              </label>
               <input
                 id="username"
                 type="text"
@@ -51,11 +53,13 @@ const LoginPage: React.FC = () => {
                 placeholder="กรอก username"
                 required
                 autoComplete="username"
-                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-all"
+                className="md-input"
               />
             </div>
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-400 mb-2">รหัสผ่าน</label>
+              <label htmlFor="password" className="mb-2 block text-sm font-medium text-gray-600">
+                รหัสผ่าน
+              </label>
               <input
                 id="password"
                 type="password"
@@ -64,25 +68,27 @@ const LoginPage: React.FC = () => {
                 placeholder="••••••••"
                 required
                 autoComplete="current-password"
-                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-all"
+                className="md-input"
               />
             </div>
             {message && (
-              <div className={`p-3 rounded-xl text-sm ${message.type === 'success' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+              <div
+                className={`rounded-xl p-3 text-sm ${
+                  message.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-600'
+                }`}
+              >
                 {message.text}
               </div>
             )}
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3 rounded-xl font-bold bg-yellow-400 text-black hover:bg-yellow-300 shadow-lg shadow-yellow-400/20 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
-            >
+            <button type="submit" disabled={loading} className="md-btn-primary w-full !rounded-xl disabled:opacity-60">
               {loading ? 'กำลังดำเนินการ...' : 'เข้าสู่ระบบ'}
             </button>
           </form>
 
-          <p className="text-center text-gray-500 text-sm mt-6">
-            <Link to="/" className="text-gray-400 hover:underline">← กลับหน้าหลัก</Link>
+          <p className="mt-6 text-center text-sm text-gray-500">
+            <Link to="/" className="text-gray-600 hover:underline">
+              ← กลับหน้าหลัก
+            </Link>
           </p>
         </div>
       </div>

@@ -201,17 +201,9 @@ const GameSkillConnector: React.FC = () => {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#0a0a0a] text-white selection:bg-yellow-300 selection:text-black">
-      <div className="pointer-events-none absolute inset-0" aria-hidden>
-        <div className="absolute -top-24 left-1/4 h-72 w-72 rounded-full bg-yellow-400/12 blur-[110px]" />
-        <div className="absolute bottom-0 right-0 h-80 w-80 rounded-full bg-teal-400/12 blur-[120px]" />
-      </div>
-
+    <div className="md-page relative overflow-hidden">
       <div className="fixed top-4 left-4 z-20">
-        <Link
-          to="/"
-          className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/50 px-4 py-2 text-sm font-medium text-white/90 backdrop-blur-md hover:bg-white/10"
-        >
+        <Link to="/" className="md-btn-ghost inline-flex items-center gap-2 !px-4 !py-2">
           <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
@@ -221,15 +213,15 @@ const GameSkillConnector: React.FC = () => {
 
       {phase === 'select' && (
         <div className="relative mx-auto flex min-h-screen max-w-4xl flex-col items-center justify-center px-4 py-24">
-          <p className="text-sm font-semibold text-yellow-300">เกมต่อเส้นทักษะ</p>
-          <h1 className="mt-2 text-center text-3xl font-black tracking-tight sm:text-5xl">Skill Connector</h1>
-          <ol className="mt-6 max-w-md space-y-2 text-base leading-relaxed text-zinc-200">
+          <p className="text-sm font-semibold text-[#FFCC00]">เกมต่อเส้นทักษะ</p>
+          <h1 className="mt-2 text-center text-3xl font-black tracking-tight text-gray-900 sm:text-5xl">Skill Connector</h1>
+          <ol className="mt-6 max-w-md space-y-2 text-base leading-relaxed text-gray-600">
             <li>
-              1. กดช่องติดปุ่ม <span className="font-bold text-yellow-200">เริ่ม</span>
+              1. กดช่องติดปุ่ม <span className="font-bold text-amber-700">เริ่ม</span>
             </li>
             <li>2. กดช่องที่ติดกันต่อไปเรื่อย ๆ</li>
             <li>
-              3. ไปให้ถึงปุ่ม <span className="font-bold text-teal-200">เส้นชัย</span>
+              3. ไปให้ถึงปุ่ม <span className="font-bold text-teal-700">เส้นชัย</span>
             </li>
           </ol>
 
@@ -239,14 +231,12 @@ const GameSkillConnector: React.FC = () => {
                 key={item.id}
                 type="button"
                 onClick={() => startMission(item)}
-                className="rounded-3xl border border-white/10 bg-white/[0.04] p-6 text-left transition hover:border-yellow-400/40 hover:bg-white/[0.07]"
+                className="md-card rounded-3xl p-6 text-left transition hover:border-yellow-300 hover:shadow-md"
               >
-                <p className="text-sm font-semibold text-teal-300">{item.size}×{item.size} ช่อง</p>
-                <h2 className="mt-2 text-xl font-black text-white">{item.titleTh}</h2>
-                <p className="mt-2 text-sm leading-relaxed text-zinc-400">{item.tagline}</p>
-                <span className="mt-5 inline-flex rounded-full bg-yellow-400 px-4 py-2 text-sm font-black text-black">
-                  เริ่มเล่น
-                </span>
+                <p className="text-sm font-semibold text-teal-700">{item.size}×{item.size} ช่อง</p>
+                <h2 className="mt-2 text-xl font-black text-gray-900">{item.titleTh}</h2>
+                <p className="mt-2 text-sm leading-relaxed text-gray-500">{item.tagline}</p>
+                <span className="md-btn-primary mt-5 inline-flex !py-2 !text-sm">เริ่มเล่น</span>
               </button>
             ))}
           </div>
@@ -256,15 +246,15 @@ const GameSkillConnector: React.FC = () => {
       {(phase === 'playing' || phase === 'won') && (
         <div className="relative mx-auto flex min-h-screen max-w-5xl flex-col items-center justify-center px-3 py-20">
           <div className="mb-5 text-center">
-            <h2 className="text-2xl font-black sm:text-3xl">{mission.titleTh}</h2>
-            <p className="mt-2 text-base text-zinc-200">
-              กดช่องติดกัน จาก <span className="font-bold text-yellow-200">เริ่ม</span> ไป{' '}
-              <span className="font-bold text-teal-200">เส้นชัย</span>
+            <h2 className="text-2xl font-black text-gray-900 sm:text-3xl">{mission.titleTh}</h2>
+            <p className="mt-2 text-base text-gray-600">
+              กดช่องติดกัน จาก <span className="font-bold text-amber-700">เริ่ม</span> ไป{' '}
+              <span className="font-bold text-teal-700">เส้นชัย</span>
             </p>
             {path.length === 0 ? (
-              <p className="mt-1 text-sm font-semibold text-yellow-300">กดช่องซ้ายสุดแถวกลางก่อน</p>
+              <p className="mt-1 text-sm font-semibold text-amber-700">กดช่องซ้ายสุดแถวกลางก่อน</p>
             ) : (
-              <p className="mt-1 text-sm text-zinc-500">ต่อแล้ว {path.length} ช่อง · กดช่องล่าสุดอีกครั้งเพื่อย้อนกลับ</p>
+              <p className="mt-1 text-sm text-gray-500">ต่อแล้ว {path.length} ช่อง · กดช่องล่าสุดอีกครั้งเพื่อย้อนกลับ</p>
             )}
           </div>
 
@@ -293,7 +283,7 @@ const GameSkillConnector: React.FC = () => {
                         ? 'border-teal-300 bg-teal-400/15 shadow-[0_0_24px_rgba(45,212,191,0.28)]'
                         : isNext
                           ? 'border-yellow-400/80 bg-yellow-400/10 animate-pulse'
-                          : 'border-white/10 bg-[#141414]'
+                          : 'border-[#D6D4CC] bg-gray-100'
                     }`}
                     aria-label={skill.labelTh}
                   >
@@ -317,7 +307,7 @@ const GameSkillConnector: React.FC = () => {
                       )}
                       <span
                         className={`mt-1 max-w-[96%] text-center text-[10px] font-bold leading-tight sm:text-xs ${
-                          inPath ? 'text-white' : isNext ? 'text-yellow-100' : 'text-zinc-400'
+                          inPath ? 'text-gray-900' : isNext ? 'text-amber-800' : 'text-gray-500'
                         }`}
                       >
                         {skill.labelTh}
@@ -336,7 +326,7 @@ const GameSkillConnector: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setPath([])}
-                className="rounded-full border border-white/15 px-4 py-2.5 text-sm font-semibold text-zinc-300 hover:bg-white/5"
+                className="md-btn-ghost !rounded-full !px-4 !py-2.5 !text-sm"
               >
                 เริ่มใหม่
               </button>
@@ -353,12 +343,12 @@ const GameSkillConnector: React.FC = () => {
       )}
 
       {phase === 'won' && (
-        <div className="fixed inset-0 z-40 flex items-end justify-center bg-black/70 p-4 backdrop-blur-sm sm:items-center">
-          <div className="relative w-full max-w-lg overflow-hidden rounded-[28px] border border-yellow-400/30 bg-[#111111] p-6 shadow-2xl sm:p-8">
-            <div className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-yellow-400 via-white to-teal-400" />
-            <p className="text-sm font-semibold text-teal-300">เยี่ยมมาก</p>
-            <h3 className="mt-2 text-2xl font-black text-white">คุณชนะแล้ว!</h3>
-            <p className="mt-3 text-base leading-relaxed text-zinc-200">{mission.winMessage}</p>
+        <div className="fixed inset-0 z-40 flex items-end justify-center bg-black/40 p-4 backdrop-blur-sm sm:items-center">
+          <div className="md-card relative w-full max-w-lg overflow-hidden rounded-[28px] p-6 shadow-lg sm:p-8">
+            <div className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-[#FFCC00] via-white to-teal-400" />
+            <p className="text-sm font-semibold text-teal-700">เยี่ยมมาก</p>
+            <h3 className="mt-2 text-2xl font-black text-gray-900">คุณชนะแล้ว!</h3>
+            <p className="mt-3 text-base leading-relaxed text-gray-600">{mission.winMessage}</p>
 
             <div className="mt-5 flex flex-wrap gap-2">
               {pathSkills.map((skill) => {
@@ -366,7 +356,7 @@ const GameSkillConnector: React.FC = () => {
                 return (
                   <span
                     key={skill.id}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-yellow-400/20 bg-yellow-400/10 px-3 py-1.5 text-xs font-semibold text-yellow-100"
+                    className="inline-flex items-center gap-1.5 rounded-full border border-yellow-300 bg-yellow-50 px-3 py-1.5 text-xs font-semibold text-amber-900"
                   >
                     <Icon className="h-3.5 w-3.5" />
                     {skill.labelTh}
@@ -380,7 +370,7 @@ const GameSkillConnector: React.FC = () => {
                 href="https://www.minddojo.co.th/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex-1 rounded-2xl bg-yellow-400 px-4 py-3.5 text-center text-sm font-black text-black hover:bg-yellow-300"
+                className="md-btn-primary flex-1 !rounded-2xl !py-3.5 !text-sm"
               >
                 ดูหลักสูตร MindDoJo
               </a>
@@ -388,7 +378,7 @@ const GameSkillConnector: React.FC = () => {
                 href="https://www.minddojo.co.th/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex-1 rounded-2xl border border-teal-300/40 px-4 py-3.5 text-center text-sm font-bold text-teal-200 hover:bg-teal-400/10"
+                className="md-btn-ghost flex-1 !rounded-2xl !py-3.5 !text-sm !font-bold !text-teal-800"
               >
                 สนใจเรียน คลิกที่นี่
               </a>
@@ -396,7 +386,7 @@ const GameSkillConnector: React.FC = () => {
             <button
               type="button"
               onClick={() => setPhase('select')}
-              className="mt-3 w-full py-2 text-sm text-zinc-500 hover:text-white"
+              className="mt-3 w-full py-2 text-sm text-gray-500 hover:text-gray-900"
             >
               เล่นอีกครั้ง
             </button>
@@ -429,7 +419,7 @@ function SideNode({
               : 'border-yellow-400/40 bg-black'
             : active
               ? 'border-teal-300 bg-teal-400/20 shadow-[0_0_34px_rgba(45,212,191,0.45)]'
-              : 'border-white/15 bg-black'
+              : 'border-gray-200 bg-white'
         }`}
       >
         {isStart ? (

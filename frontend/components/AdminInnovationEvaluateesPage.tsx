@@ -106,7 +106,7 @@ const AdminInnovationEvaluateesPage: React.FC = () => {
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-xs text-gray-500">Admin Innovation</p>
-          <h1 className="text-xl sm:text-2xl font-bold text-white">จัดการรายชื่อผู้ถูกประเมิน</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">จัดการรายชื่อผู้ถูกประเมิน</h1>
           <p className="mt-1 text-sm text-gray-400">
             สร้างรายชื่อสำหรับแบบประเมิน Innovation · เปิดใช้งาน {activeCount} คน
           </p>
@@ -116,7 +116,7 @@ const AdminInnovationEvaluateesPage: React.FC = () => {
             href="/evaluation/innovation"
             target="_blank"
             rel="noopener noreferrer"
-            className="rounded-xl border border-yellow-400/30 bg-yellow-400/10 px-4 py-2 text-sm font-medium text-yellow-200 hover:bg-yellow-400/20"
+            className="rounded-xl border border-yellow-400/30 bg-yellow-400/10 px-4 py-2 text-sm font-medium text-yellow-900 hover:bg-yellow-400/20"
           >
             เปิดแบบประเมิน
           </a>
@@ -124,18 +124,18 @@ const AdminInnovationEvaluateesPage: React.FC = () => {
             href="/evaluation/innovation/dashboard"
             target="_blank"
             rel="noopener noreferrer"
-            className="rounded-xl border border-white/15 bg-white/5 px-4 py-2 text-sm font-medium text-white hover:bg-white/10"
+            className="rounded-xl border border-[#D6D4CC] bg-white px-4 py-2 text-sm font-medium text-gray-900 hover:bg-gray-100"
           >
             Dashboard
           </a>
-          <Link to="/admin" className="rounded-xl border border-white/10 px-4 py-2 text-sm text-gray-300 hover:bg-white/5">
+          <Link to="/admin" className="rounded-xl border border-[#D6D4CC] px-4 py-2 text-sm text-gray-700 hover:bg-white">
             กลับ Admin
           </Link>
         </div>
       </div>
 
       {!isSupabaseConfigured ? (
-        <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-6 text-amber-200">
+        <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-6 text-amber-900">
           <p className="font-medium">ยังไม่ได้ตั้งค่า Supabase</p>
         </div>
       ) : (
@@ -154,8 +154,8 @@ const AdminInnovationEvaluateesPage: React.FC = () => {
             </div>
           )}
 
-          <form onSubmit={addEvaluatee} className="mb-6 rounded-2xl border border-white/10 bg-white/5 p-4 sm:p-5">
-            <h2 className="mb-4 font-semibold text-white">เพิ่มผู้ถูกประเมิน</h2>
+          <form onSubmit={addEvaluatee} className="mb-6 rounded-2xl border border-[#D6D4CC] bg-white p-4 sm:p-5">
+            <h2 className="mb-4 font-semibold text-gray-900">เพิ่มผู้ถูกประเมิน</h2>
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="sm:col-span-2">
                 <label className="mb-1 block text-xs text-gray-400">ชื่อผู้ถูกประเมิน *</label>
@@ -163,7 +163,7 @@ const AdminInnovationEvaluateesPage: React.FC = () => {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="เช่น ทีม Alpha / ชื่อผู้นำเสนอ"
-                  className="w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2.5 text-white outline-none focus:border-yellow-400/40"
+                  className="w-full rounded-xl border border-[#D6D4CC] bg-gray-100 px-3 py-2.5 text-gray-900 outline-none focus:border-yellow-400/40"
                 />
               </div>
               <div>
@@ -172,7 +172,7 @@ const AdminInnovationEvaluateesPage: React.FC = () => {
                   value={teamName}
                   onChange={(e) => setTeamName(e.target.value)}
                   placeholder="เช่น Innovation Lab"
-                  className="w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2.5 text-white outline-none focus:border-yellow-400/40"
+                  className="w-full rounded-xl border border-[#D6D4CC] bg-gray-100 px-3 py-2.5 text-gray-900 outline-none focus:border-yellow-400/40"
                 />
               </div>
               <div>
@@ -182,7 +182,7 @@ const AdminInnovationEvaluateesPage: React.FC = () => {
                   onChange={(e) => setSortOrder(e.target.value)}
                   inputMode="numeric"
                   placeholder="1"
-                  className="w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2.5 text-white outline-none focus:border-yellow-400/40"
+                  className="w-full rounded-xl border border-[#D6D4CC] bg-gray-100 px-3 py-2.5 text-gray-900 outline-none focus:border-yellow-400/40"
                 />
               </div>
             </div>
@@ -195,9 +195,9 @@ const AdminInnovationEvaluateesPage: React.FC = () => {
             </button>
           </form>
 
-          <section className="rounded-2xl border border-white/10 bg-white/5 overflow-hidden">
-            <div className="border-b border-white/10 px-4 py-3 sm:px-5">
-              <h2 className="font-semibold text-white">รายชื่อทั้งหมด</h2>
+          <section className="rounded-2xl border border-[#D6D4CC] bg-white overflow-hidden">
+            <div className="border-b border-[#D6D4CC] px-4 py-3 sm:px-5">
+              <h2 className="font-semibold text-gray-900">รายชื่อทั้งหมด</h2>
               <p className="text-xs text-gray-500">{loading ? 'กำลังโหลด...' : `${evaluatees.length} รายการ`}</p>
             </div>
             {evaluatees.length === 0 ? (
@@ -213,7 +213,7 @@ const AdminInnovationEvaluateesPage: React.FC = () => {
                           const next = e.target.value.trim();
                           if (next && next !== evaluatee.name) updateEvaluatee(evaluatee.id, { name: next });
                         }}
-                        className="w-full rounded-lg border border-white/10 bg-black/25 px-3 py-2 text-sm font-medium text-white"
+                        className="w-full rounded-lg border border-[#D6D4CC] bg-gray-50 px-3 py-2 text-sm font-medium text-gray-900"
                       />
                       <div className="grid gap-2 sm:grid-cols-2">
                         <input
@@ -225,7 +225,7 @@ const AdminInnovationEvaluateesPage: React.FC = () => {
                               updateEvaluatee(evaluatee.id, { team_name: next || null });
                             }
                           }}
-                          className="rounded-lg border border-white/10 bg-black/25 px-3 py-2 text-xs text-gray-300"
+                          className="rounded-lg border border-[#D6D4CC] bg-gray-50 px-3 py-2 text-xs text-gray-700"
                         />
                         <input
                           defaultValue={String(evaluatee.sort_order)}
@@ -236,7 +236,7 @@ const AdminInnovationEvaluateesPage: React.FC = () => {
                               updateEvaluatee(evaluatee.id, { sort_order: parsed });
                             }
                           }}
-                          className="rounded-lg border border-white/10 bg-black/25 px-3 py-2 text-xs text-gray-300"
+                          className="rounded-lg border border-[#D6D4CC] bg-gray-50 px-3 py-2 text-xs text-gray-700"
                         />
                       </div>
                     </div>
@@ -247,7 +247,7 @@ const AdminInnovationEvaluateesPage: React.FC = () => {
                         className={`rounded-lg px-3 py-2 text-xs font-medium ${
                           evaluatee.is_active
                             ? 'border border-emerald-400/30 bg-emerald-500/10 text-emerald-300'
-                            : 'border border-white/15 bg-white/5 text-gray-400'
+                            : 'border border-[#D6D4CC] bg-white text-gray-400'
                         }`}
                       >
                         {evaluatee.is_active ? 'เปิดใช้งาน' : 'ปิดชั่วคราว'}

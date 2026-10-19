@@ -31,17 +31,17 @@ const INTRO_TITLE = 'Digital Leadership Competency Assessment';
 const INTRO_BODY = (
   <>
     <p className="mb-4">
-      แบบประเมินนี้วัดความพร้อมด้าน <strong className="text-white">Digital Leadership &amp; AI</strong> ในมิติ AI
+      แบบประเมินนี้วัดความพร้อมด้าน <strong className="text-gray-900">Digital Leadership &amp; AI</strong> ในมิติ AI
       Mindset, AI Literacy, AI Application และ AI Leadership &amp; Governance
     </p>
-    <p className="mb-4 text-gray-400">
+    <p className="mb-4 text-gray-600">
       จำนวน <strong className="text-yellow-400/90">{getDlcTotalQuestionCount()}</strong> ข้อ (4 มิติ × มิติละ 5 ข้อ) รูปแบบ{' '}
       <strong className="text-yellow-400/90">Scale 1–5</strong> — 1 คือไม่เห็นด้วยเลย ถึง 5 คือเห็นด้วยมาก ใช้เวลาประมาณ{' '}
       <strong className="text-yellow-400/90">5–8 นาที</strong>
     </p>
-    <div className="text-left bg-white/5 rounded-xl p-4 border border-white/10">
-      <p className="font-semibold text-white text-sm mb-2">วิธีทำแบบประเมิน</p>
-      <ol className="text-gray-400 text-sm space-y-1.5 list-decimal list-inside">
+    <div className="text-left bg-gray-50 rounded-xl p-4 border border-gray-200">
+      <p className="font-semibold text-gray-900 text-sm mb-2">วิธีทำแบบประเมิน</p>
+      <ol className="text-gray-600 text-sm space-y-1.5 list-decimal list-inside">
         <li>อ่านข้อความแต่ละข้อแล้วเลือกระดับที่สะท้อนคุณมากที่สุด</li>
         <li>ทำครบทั้ง 4 Section แล้วกดดูผลลัพธ์</li>
         <li>ผลรวมจะถูกแปลงเป็นดัชนี 5–25 เพื่อสรุประดับ Beginner ถึง AI Leader</li>
@@ -228,7 +228,7 @@ const DigitalLeadershipAssessment: React.FC = () => {
   }, [resultFetchKey, savedSnapshot?.aiFeedback, aiRefresh]);
 
   return (
-    <div className="min-h-screen bg-transparent text-white bg-grid flex flex-col selection:bg-yellow-400 selection:text-black">
+    <div className="md-page">
       {showIntroModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" aria-modal="true" role="dialog">
           <div
@@ -236,14 +236,13 @@ const DigitalLeadershipAssessment: React.FC = () => {
             onClick={handleCloseIntroAndStart}
             aria-hidden="true"
           />
-          <div className="relative w-full max-w-lg rounded-3xl border border-white/20 bg-gradient-to-b from-neutral-900/95 to-black/95 shadow-2xl shadow-yellow-400/10 overflow-hidden max-h-[90vh] overflow-y-auto">
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(250,204,21,0.12),transparent)] pointer-events-none" />
+          <div className="relative w-full max-w-lg rounded-3xl border border-yellow-200 bg-white shadow-2xl shadow-yellow-900/10 overflow-hidden max-h-[90vh] overflow-y-auto">
             <div className="relative p-8 md:p-10 text-center">
-              <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-yellow-400/20 border border-yellow-400/30 flex items-center justify-center">
+              <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-yellow-100 border border-yellow-200 flex items-center justify-center">
                 <span className="text-3xl">📊</span>
               </div>
-              <h2 className="text-xl md:text-2xl font-black text-white tracking-tight mb-4">{INTRO_TITLE}</h2>
-              <div className="text-sm md:text-base leading-relaxed mb-8 text-gray-400 text-left">{INTRO_BODY}</div>
+              <h2 className="text-xl md:text-2xl font-black text-gray-900 tracking-tight mb-4">{INTRO_TITLE}</h2>
+              <div className="text-sm md:text-base leading-relaxed mb-8 text-gray-600 text-left">{INTRO_BODY}</div>
               <button
                 type="button"
                 onClick={handleCloseIntroAndStart}
@@ -258,7 +257,7 @@ const DigitalLeadershipAssessment: React.FC = () => {
 
       <header className="flex justify-between items-center px-6 py-6 max-w-4xl mx-auto w-full">
         <Link to="/" className="flex items-center gap-3">
-          <BrandLogo className="text-[28px]" />
+          <BrandLogo className="text-[28px]" tone="dark" />
         </Link>
         {step === 'assessment' && (
           <span className="text-gray-500 text-sm font-medium">
@@ -273,15 +272,15 @@ const DigitalLeadershipAssessment: React.FC = () => {
             <h1 className="text-2xl md:text-3xl font-black tracking-tight mb-2 text-center">
               Digital Leadership Competency Assessment
             </h1>
-            <p className="text-gray-400 text-sm text-center mb-8">
+            <p className="text-gray-500 text-sm text-center mb-8">
               20 ข้อ · Scale 1–5 · MindDoJo
             </p>
             <form
               onSubmit={handleLoginSubmit}
-              className="rounded-2xl border border-white/10 bg-white/5 p-6 md:p-8 space-y-5"
+              className="md-card p-6 md:p-8 space-y-5"
             >
               <div>
-                <label htmlFor="dlc-name" className="block text-sm font-medium text-gray-400 mb-2">
+                <label htmlFor="dlc-name" className="block text-sm font-medium text-gray-700 mb-2">
                   ชื่อ
                 </label>
                 <input
@@ -291,11 +290,11 @@ const DigitalLeadershipAssessment: React.FC = () => {
                   onChange={(e) => setUser((u) => ({ ...u, name: e.target.value }))}
                   placeholder="กรอกชื่อ"
                   required
-                  className="w-full px-4 py-3 rounded-xl bg-black/50 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-yellow-400"
+                  className="md-input"
                 />
               </div>
               <div>
-                <label htmlFor="dlc-email" className="block text-sm font-medium text-gray-400 mb-2">
+                <label htmlFor="dlc-email" className="block text-sm font-medium text-gray-700 mb-2">
                   อีเมล
                 </label>
                 <input
@@ -305,11 +304,11 @@ const DigitalLeadershipAssessment: React.FC = () => {
                   onChange={(e) => setUser((u) => ({ ...u, email: e.target.value }))}
                   placeholder="กรอกอีเมล"
                   required
-                  className="w-full px-4 py-3 rounded-xl bg-black/50 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-yellow-400"
+                  className="md-input"
                 />
               </div>
               <div>
-                <label htmlFor="dlc-company" className="block text-sm font-medium text-gray-400 mb-2">
+                <label htmlFor="dlc-company" className="block text-sm font-medium text-gray-700 mb-2">
                   บริษัท
                 </label>
                 <input
@@ -319,7 +318,7 @@ const DigitalLeadershipAssessment: React.FC = () => {
                   onChange={(e) => setUser((u) => ({ ...u, company: e.target.value }))}
                   placeholder="กรอกชื่อบริษัท"
                   required
-                  className="w-full px-4 py-3 rounded-xl bg-black/50 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-yellow-400"
+                  className="md-input"
                 />
               </div>
               <button
@@ -340,7 +339,7 @@ const DigitalLeadershipAssessment: React.FC = () => {
                 Section {sectionIndex + 1} / {totalSections}
               </span>
             </div>
-            <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
+            <div className="h-1.5 rounded-full bg-gray-200 overflow-hidden">
               <div
                 className="h-full bg-yellow-400 rounded-full transition-all duration-300"
                 style={{ width: `${progress}%` }}
@@ -354,12 +353,12 @@ const DigitalLeadershipAssessment: React.FC = () => {
                 return (
                   <div
                     key={q.id}
-                    className="rounded-2xl border border-white/10 bg-white/5 p-5 md:p-6 space-y-4"
+                    className="md-card p-5 md:p-6 space-y-4"
                   >
-                    <p className="text-xs font-bold text-yellow-400/90 uppercase tracking-widest">
+                    <p className="text-xs font-bold text-yellow-600 uppercase tracking-widest">
                       ข้อที่ {globalIdx + 1} / {totalQuestions}
                     </p>
-                    <p className="text-white text-sm md:text-base leading-relaxed font-medium">{q.text}</p>
+                    <p className="text-gray-900 text-sm md:text-base leading-relaxed font-medium">{q.text}</p>
                     <div className="flex flex-col gap-2">
                       <p className="text-xs text-gray-500">เลือก 1–5</p>
                       <div className="flex flex-wrap gap-2">
@@ -371,8 +370,8 @@ const DigitalLeadershipAssessment: React.FC = () => {
                             title={DLC_SCALE_LABELS[v]}
                             className={`min-w-[2.75rem] px-3 py-2 rounded-xl text-sm font-bold border-2 transition-all ${
                               answers[q.id] === v
-                                ? 'bg-yellow-400/25 border-yellow-400 text-white'
-                                : 'bg-white/5 border-white/10 text-gray-400 hover:border-white/25'
+                                ? 'bg-yellow-50 border-yellow-400 text-gray-900'
+                                : 'bg-white border-gray-200 text-gray-500 hover:border-gray-300'
                             }`}
                           >
                             {v}
@@ -395,7 +394,7 @@ const DigitalLeadershipAssessment: React.FC = () => {
                 type="button"
                 onClick={handlePrevSection}
                 disabled={sectionIndex === 0}
-                className="px-5 py-2.5 rounded-xl font-bold border border-white/10 text-gray-400 hover:bg-white/5 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                className="md-btn-ghost disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 ← ก่อนหน้า
               </button>
@@ -413,38 +412,38 @@ const DigitalLeadershipAssessment: React.FC = () => {
 
         {step === 'result' && (
           <div className="space-y-10 max-w-xl mx-auto">
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-6 md:p-8 space-y-6 text-center">
+            <div className="md-card p-6 md:p-8 space-y-6 text-center">
               <p className="text-[10px] uppercase tracking-widest text-gray-500">Digital Leadership</p>
-              <h1 className="text-2xl md:text-3xl font-black text-white">ผลการประเมิน</h1>
-              <p className="text-gray-400 text-sm">{displayUser.name}</p>
+              <h1 className="text-2xl md:text-3xl font-black text-gray-900">ผลการประเมิน</h1>
+              <p className="text-gray-500 text-sm">{displayUser.name}</p>
 
-              <div className="rounded-2xl bg-black/40 border border-yellow-400/20 p-6">
-                <p className="text-sm text-gray-400 mb-1">ดัชนีรวม (ช่วง 5–25)</p>
+              <div className="rounded-2xl bg-yellow-50 border border-yellow-200 p-6">
+                <p className="text-sm text-gray-600 mb-1">ดัชนีรวม (ช่วง 5–25)</p>
                 <p className="text-4xl md:text-5xl font-black text-yellow-400 tabular-nums">
                   {overallIndex.toFixed(1)}
                 </p>
                 <p className="text-xs text-gray-500 mt-2">คะแนนดิบรวม {rawSum} / 100</p>
               </div>
 
-              <div className="text-left rounded-xl border border-white/10 bg-white/[0.04] p-5">
-                <p className="text-lg font-bold text-white flex items-center gap-2">
+              <div className="text-left rounded-xl border border-gray-200 bg-gray-50 p-5">
+                <p className="text-lg font-bold text-gray-900 flex items-center gap-2">
                   <span aria-hidden>{DLC_BAND_DOT[band]}</span>
                   {bandInfo.levelEn}
                 </p>
-                <p className="text-gray-300 text-sm mt-2">{bandInfo.line1}</p>
-                <p className="text-yellow-400/90 text-sm mt-2 font-medium">{bandInfo.line2}</p>
+                <p className="text-gray-600 text-sm mt-2">{bandInfo.line1}</p>
+                <p className="text-yellow-700 text-sm mt-2 font-medium">{bandInfo.line2}</p>
               </div>
             </div>
 
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-6 space-y-4">
-              <h2 className="text-sm font-bold text-gray-300 uppercase tracking-wider">คะแนนแต่ละมิติ (5–25)</h2>
+            <div className="md-card p-6 space-y-4">
+              <h2 className="text-sm font-bold text-gray-700 uppercase tracking-wider">คะแนนแต่ละมิติ (5–25)</h2>
               {DLC_SECTIONS.map((s) => {
                 const idx = getDlcSectionIndex(s, displayAnswers);
                 const pct = ((idx - 5) / 20) * 100;
                 return (
                   <div key={s.id}>
-                    <div className="flex justify-between text-xs text-gray-400 mb-1">
-                      <span className="text-white font-medium pr-2">{s.title.replace(/^Section \d+: /, '')}</span>
+                    <div className="flex justify-between text-xs text-gray-500 mb-1">
+                      <span className="text-gray-900 font-medium pr-2">{s.title.replace(/^Section \d+: /, '')}</span>
                       <span className="tabular-nums shrink-0">{idx} / 25</span>
                     </div>
                     <div className="h-2 rounded-full bg-white/10 overflow-hidden">
@@ -458,15 +457,15 @@ const DigitalLeadershipAssessment: React.FC = () => {
               })}
             </div>
 
-            <div className="rounded-2xl border border-yellow-400/25 bg-white/[0.06] p-6 space-y-4">
-              <h2 className="text-sm font-bold text-yellow-400/90 uppercase tracking-wider">
+            <div className="rounded-2xl border border-yellow-200 bg-yellow-50/80 p-6 space-y-4">
+              <h2 className="text-sm font-bold text-yellow-800 uppercase tracking-wider">
                 คำแนะนำจาก AI
               </h2>
               <p className="text-xs text-gray-500 -mt-2">
                 วิเคราะห์จากดัชนีรวม คะแนนแต่ละมิติ และระดับสรุป — เพื่อแนะนำการพัฒนาต่อยอด
               </p>
               {aiLoading && (
-                <div className="flex items-center gap-3 text-gray-400">
+                <div className="flex items-center gap-3 text-gray-600">
                   <div
                     className="w-5 h-5 border-2 border-yellow-400 border-t-transparent rounded-full animate-spin shrink-0"
                     aria-hidden
@@ -475,7 +474,7 @@ const DigitalLeadershipAssessment: React.FC = () => {
                 </div>
               )}
               {!aiLoading && aiFeedback && (
-                <div className="whitespace-pre-wrap text-gray-200 text-sm leading-relaxed border-t border-white/10 pt-4">
+                <div className="whitespace-pre-wrap text-gray-700 text-sm leading-relaxed border-t border-gray-200 pt-4">
                   {aiFeedback}
                 </div>
               )}
@@ -493,8 +492,8 @@ const DigitalLeadershipAssessment: React.FC = () => {
               )}
             </div>
 
-            <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4 text-xs text-gray-500 space-y-1">
-              <p className="font-semibold text-gray-400">เกณฑ์สรุประดับ</p>
+            <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 text-xs text-gray-500 space-y-1">
+              <p className="font-semibold text-gray-700">เกณฑ์สรุประดับ</p>
               <p>5–10 Beginner · 11–17 Developing · 18–21 Advanced · 22–25 AI Leader</p>
             </div>
 
@@ -502,7 +501,7 @@ const DigitalLeadershipAssessment: React.FC = () => {
               <button
                 type="button"
                 onClick={restart}
-                className="px-6 py-3 rounded-xl font-bold border border-white/15 text-gray-300 hover:bg-white/5 transition-all"
+                className="md-btn-ghost px-6 py-3"
               >
                 ทำแบบประเมินใหม่
               </button>

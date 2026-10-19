@@ -776,11 +776,11 @@ const WhaleDoneRolePlayPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-transparent text-white bg-grid flex flex-col selection:bg-yellow-400 selection:text-black">
+    <div className="md-page">
       <header className="px-4 sm:px-6 py-4 sm:py-6 max-w-4xl mx-auto w-full">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <Link to="/" className="flex items-center gap-3 shrink-0">
-            <BrandLogo className="text-[28px]" />
+            <BrandLogo className="text-[28px]" tone="dark" />
           </Link>
 
           <div className="flex flex-col gap-2 w-full sm:flex-1 sm:min-w-0">

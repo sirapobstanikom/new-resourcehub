@@ -43,7 +43,7 @@ const EvaDashboardLoginPage: React.FC = () => {
 
   if (loadingConfig) {
     return (
-      <div className="min-h-screen bg-transparent text-white bg-grid px-4 py-6 sm:px-6 sm:py-10">
+      <div className="md-page px-4 py-6 sm:px-6 sm:py-10">
         <div className="max-w-md mx-auto rounded-3xl border border-white/10 bg-gradient-to-br from-white/10 via-white/5 to-black/30 p-6 text-center">
           <p className="text-sm text-gray-300">กำลังโหลดการตั้งค่า Dashboard...</p>
         </div>
@@ -53,7 +53,7 @@ const EvaDashboardLoginPage: React.FC = () => {
 
   if (!instance || !dashConfig) {
     return (
-      <div className="min-h-screen bg-transparent text-white bg-grid px-4 py-6 sm:px-6 sm:py-10">
+      <div className="md-page px-4 py-6 sm:px-6 sm:py-10">
         <div className="max-w-md mx-auto rounded-3xl border border-white/10 bg-gradient-to-br from-white/10 via-white/5 to-black/30 p-6 text-center space-y-3">
           <h1 className="text-xl font-bold text-yellow-300">ไม่พบ Dashboard</h1>
           <p className="text-sm text-gray-400">
@@ -86,7 +86,7 @@ const EvaDashboardLoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-transparent text-white bg-grid px-4 py-6 sm:px-6 sm:py-10">
+    <div className="md-page px-4 py-6 sm:px-6 sm:py-10">
       <div className="max-w-md mx-auto rounded-3xl border border-white/10 bg-gradient-to-br from-white/10 via-white/5 to-black/30 p-5 sm:p-8 shadow-2xl shadow-black/30">
         <h1 className="text-2xl sm:text-3xl font-bold text-yellow-300">{dashConfig.loginTitle}</h1>
         <p className="text-gray-300 mt-2 text-sm sm:text-base whitespace-pre-line">{dashConfig.loginSubtitle}</p>

@@ -64,8 +64,8 @@ const INTRO_BODY = (
       แบบทดสอบมีข้อคำถามทั้งสิ้น <strong className="text-yellow-400/90">{getTotalPersuasionQuestionCount()}</strong> ข้อ
       ในแต่ละข้อจะมีข้อความให้อ่าน 2 ข้อความ แนะนำให้อ่านทั้งสองข้อความก่อน แล้วค่อยตัดสินใจเลือกข้อความใดข้อความหนึ่งที่ตรงกับตัวคุณมากที่สุด
     </p>
-    <div className="text-left bg-white/5 rounded-xl p-4 border border-white/10">
-      <p className="font-semibold text-white text-sm mb-2">วิธีการทำแบบทดสอบ</p>
+    <div className="text-left bg-gray-50 rounded-xl p-4 border border-gray-200">
+      <p className="font-semibold text-gray-900 text-sm mb-2">วิธีการทำแบบทดสอบ</p>
       <ol className="text-gray-400 text-sm space-y-1.5 list-decimal list-inside">
         <li>อ่านทั้งสองข้อความในแต่ละข้อ</li>
         <li>เลือกข้อความใดข้อความหนึ่งที่ตรงกับตัวตนของคุณมากที่สุด</li>
@@ -180,7 +180,7 @@ const PersuasionAssessment: React.FC = () => {
     return html2canvas(el, {
       useCORS: true,
       allowTaint: true,
-      backgroundColor: '#0a0a0a',
+      backgroundColor: '#F3F2ED',
       scale: 2,
       logging: false,
       windowHeight: el.scrollHeight,
@@ -213,7 +213,7 @@ const PersuasionAssessment: React.FC = () => {
       const pdf = new jsPDF({ orientation: 'portrait', unit: 'px', format: 'a4' });
       const pageW = pdf.internal.pageSize.getWidth();
       const pageH = pdf.internal.pageSize.getHeight();
-      pdf.setFillColor(10, 10, 10);
+      pdf.setFillColor(247, 247, 245);
       pdf.rect(0, 0, pageW, pageH, 'F');
       const scale = Math.min(pageW / canvas.width, pageH / canvas.height);
       const drawW = canvas.width * scale;
@@ -250,7 +250,7 @@ const PersuasionAssessment: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-transparent text-white bg-grid flex flex-col selection:bg-yellow-400 selection:text-black">
+    <div className="md-page">
       {showIntroModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" aria-modal="true" role="dialog">
           <div
@@ -258,13 +258,12 @@ const PersuasionAssessment: React.FC = () => {
             onClick={handleCloseIntroAndStartAssessment}
             aria-hidden="true"
           />
-          <div className="relative w-full max-w-lg rounded-3xl border border-white/20 bg-gradient-to-b from-neutral-900/95 to-black/95 shadow-2xl shadow-yellow-400/10 overflow-hidden">
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(250,204,21,0.12),transparent)] pointer-events-none" />
+          <div className="relative w-full max-w-lg rounded-3xl border border-yellow-200 bg-white shadow-2xl shadow-yellow-900/10 overflow-hidden">
             <div className="relative p-8 md:p-10 text-center">
-              <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-yellow-400/20 border border-yellow-400/30 flex items-center justify-center">
+              <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-yellow-100 border border-yellow-200 flex items-center justify-center">
                 <span className="text-3xl">💬</span>
               </div>
-              <h2 className="text-2xl md:text-3xl font-black text-white tracking-tight mb-4">{INTRO_TITLE}</h2>
+              <h2 className="text-2xl md:text-3xl font-black text-gray-900 tracking-tight mb-4">{INTRO_TITLE}</h2>
               <div className="text-sm md:text-base leading-relaxed mb-8 text-gray-400">{INTRO_BODY}</div>
               <button
                 type="button"
@@ -280,7 +279,7 @@ const PersuasionAssessment: React.FC = () => {
 
       <header className="flex justify-between items-center px-6 py-6 max-w-4xl mx-auto w-full">
         <Link to="/" className="flex items-center gap-3">
-          <BrandLogo className="text-[28px]" />
+          <BrandLogo className="text-[28px]" tone="dark" />
         </Link>
         {step === 'assessment' && (
           <span className="text-gray-500 text-sm font-medium">
@@ -300,10 +299,10 @@ const PersuasionAssessment: React.FC = () => {
             </p>
             <form
               onSubmit={handleLoginSubmit}
-              className="rounded-2xl border border-white/10 bg-white/5 p-6 md:p-8 space-y-5"
+              className="md-card p-6 md:p-8 space-y-5"
             >
               <div>
-                <label htmlFor="persuasion-name" className="block text-sm font-medium text-gray-400 mb-2">ชื่อ</label>
+                <label htmlFor="persuasion-name" className="block text-sm font-medium text-gray-700 mb-2">ชื่อ</label>
                 <input
                   id="persuasion-name"
                   type="text"
@@ -311,11 +310,11 @@ const PersuasionAssessment: React.FC = () => {
                   onChange={(e) => setUser((u) => ({ ...u, name: e.target.value }))}
                   placeholder="กรอกชื่อ"
                   required
-                  className="w-full px-4 py-3 rounded-xl bg-black/50 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-yellow-400"
+                  className="md-input"
                 />
               </div>
               <div>
-                <label htmlFor="persuasion-email" className="block text-sm font-medium text-gray-400 mb-2">อีเมล</label>
+                <label htmlFor="persuasion-email" className="block text-sm font-medium text-gray-700 mb-2">อีเมล</label>
                 <input
                   id="persuasion-email"
                   type="email"
@@ -323,11 +322,11 @@ const PersuasionAssessment: React.FC = () => {
                   onChange={(e) => setUser((u) => ({ ...u, email: e.target.value }))}
                   placeholder="กรอกอีเมล"
                   required
-                  className="w-full px-4 py-3 rounded-xl bg-black/50 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-yellow-400"
+                  className="md-input"
                 />
               </div>
               <div>
-                <label htmlFor="persuasion-company" className="block text-sm font-medium text-gray-400 mb-2">บริษัท</label>
+                <label htmlFor="persuasion-company" className="block text-sm font-medium text-gray-700 mb-2">บริษัท</label>
                 <input
                   id="persuasion-company"
                   type="text"
@@ -335,7 +334,7 @@ const PersuasionAssessment: React.FC = () => {
                   onChange={(e) => setUser((u) => ({ ...u, company: e.target.value }))}
                   placeholder="กรอกชื่อบริษัท"
                   required
-                  className="w-full px-4 py-3 rounded-xl bg-black/50 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-yellow-400"
+                  className="md-input"
                 />
               </div>
               <button
@@ -354,7 +353,7 @@ const PersuasionAssessment: React.FC = () => {
               <span>ข้อที่ {startIdx + 1}–{endIdx} / {totalQuestions}</span>
               <span>หน้า {pageIndex + 1} / {totalPages}</span>
             </div>
-            <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
+            <div className="h-1.5 rounded-full bg-gray-200 overflow-hidden">
               <div
                 className="h-full bg-yellow-400 rounded-full transition-all duration-300"
                 style={{ width: `${progress}%` }}
@@ -367,12 +366,12 @@ const PersuasionAssessment: React.FC = () => {
                 return (
                   <div
                     key={q.id}
-                    className="rounded-2xl border border-white/10 bg-white/5 p-5 md:p-6 space-y-4"
+                    className="md-card p-5 md:p-6 space-y-4"
                   >
                     <p className="text-xs font-bold text-yellow-400/90 uppercase tracking-widest mb-2">
                       ข้อที่ {globalIdx + 1} / {totalQuestions}
                     </p>
-                    <h4 className="font-bold text-white text-sm mb-4">
+                    <h4 className="font-bold text-gray-900 text-sm mb-4">
                       ข้อไหนเป็นตัวตนของคุณมากที่สุด?
                     </h4>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -381,8 +380,8 @@ const PersuasionAssessment: React.FC = () => {
                         onClick={() => setAnswer(q.id, 1)}
                         className={`text-left p-4 rounded-xl border-2 transition-all ${
                           answers[q.id] === 1
-                            ? 'bg-yellow-400/20 border-yellow-400 text-white'
-                            : 'bg-white/5 border-white/10 text-gray-400 hover:border-white/20 hover:bg-white/10'
+                            ? 'bg-yellow-50 border-yellow-400 text-gray-900'
+                            : 'bg-white border-gray-200 text-gray-500 hover:border-gray-300 hover:bg-gray-50'
                         }`}
                       >
                         <span className="font-bold text-yellow-400/90 mr-2">1 :</span>
@@ -393,8 +392,8 @@ const PersuasionAssessment: React.FC = () => {
                         onClick={() => setAnswer(q.id, 2)}
                         className={`text-left p-4 rounded-xl border-2 transition-all ${
                           answers[q.id] === 2
-                            ? 'bg-yellow-400/20 border-yellow-400 text-white'
-                            : 'bg-white/5 border-white/10 text-gray-400 hover:border-white/20 hover:bg-white/10'
+                            ? 'bg-yellow-50 border-yellow-400 text-gray-900'
+                            : 'bg-white border-gray-200 text-gray-500 hover:border-gray-300 hover:bg-gray-50'
                         }`}
                       >
                         <span className="font-bold text-yellow-400/90 mr-2">2 :</span>
@@ -411,7 +410,7 @@ const PersuasionAssessment: React.FC = () => {
                 type="button"
                 onClick={() => { setPageIndex((p) => p - 1); window.scrollTo(0, 0); }}
                 disabled={pageIndex === 0}
-                className="px-5 py-2.5 rounded-xl font-bold border border-white/10 text-gray-400 hover:bg-white/5 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                className="md-btn-ghost disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 ← ก่อนหน้า
               </button>
@@ -523,22 +522,22 @@ const PersuasionAssessment: React.FC = () => {
             pieHole: 0.38,
             is3D: true,
             pieSliceText: 'label',
-            pieSliceTextStyle: { color: '#ffffff', fontSize: sliceFontSize, bold: true },
-            titleTextStyle: { color: '#fbbf24', fontSize: chartHeight <= 400 ? 14 : 16 },
+            pieSliceTextStyle: { color: '#111827', fontSize: sliceFontSize, bold: true },
+            titleTextStyle: { color: '#854d0e', fontSize: chartHeight <= 400 ? 14 : 16 },
             legend: 'none',
             slices,
             backgroundColor: 'transparent',
             // เพิ่มพื้นที่ให้กราฟ/ข้อความมากขึ้น
             chartArea: { left: 16, top: chartHeight <= 400 ? 38 : 50, width: '90%', height: '78%' },
-            pieSliceBorderColor: '#1f2937',
+            pieSliceBorderColor: '#D6D4CC',
             pieSliceBorderWidth: 2,
             tooltip: { trigger: 'selection' },
           };
           return (
             <div className="space-y-10">
-              <div ref={resultCardRef} className="rounded-2xl border border-white/10 bg-white/5 p-6 md:p-8 space-y-8 overflow-visible">
+              <div ref={resultCardRef} className="md-card p-6 md:p-8 space-y-8 overflow-visible">
                 <div className="text-center">
-                  <h1 className="text-2xl md:text-4xl font-black text-white mb-2">
+                  <h1 className="text-2xl md:text-4xl font-black text-gray-900 mb-2">
                     6 Channel Persuasion Test
                   </h1>
                   <p className="text-lg md:text-xl text-yellow-400/90 font-semibold">
@@ -550,7 +549,7 @@ const PersuasionAssessment: React.FC = () => {
                 </div>
 
                 {/* Pie Chart 3D (Google Charts - ไม่มี trial) */}
-                <div className="w-full max-w-4xl mx-auto rounded-xl bg-black/20 flex flex-col items-center justify-center overflow-visible relative" style={{ minHeight: chartHeight }}>
+                <div className="w-full max-w-4xl mx-auto rounded-xl bg-gray-50 border border-gray-200 flex flex-col items-center justify-center overflow-visible relative" style={{ minHeight: chartHeight }}>
                   <Chart
                     chartType="PieChart"
                     data={chartData}
@@ -571,12 +570,12 @@ const PersuasionAssessment: React.FC = () => {
                   {/* แสดงข้อมูลชิ้นคะแนนสูงสุดตั้งแต่โหลด (เหมือนทูลทิปที่โผล่ตอนกด) */}
                   {maxSliceInfo && (
                     <div
-                      className="absolute bottom-3 left-1/2 -translate-x-1/2 px-4 py-2 rounded-lg bg-gray-800/95 border border-white/20 shadow-xl text-center pointer-events-none"
+                      className="absolute bottom-3 left-1/2 -translate-x-1/2 px-4 py-2 rounded-lg bg-white border border-gray-200 shadow-md text-center pointer-events-none"
                       style={{ whiteSpace: 'nowrap' }}
                       role="status"
                       aria-label={`คะแนนมากที่สุด: ${maxSliceInfo.label} ${maxSliceInfo.pct}%`}
                     >
-                      <span className="text-gray-200 text-sm">{maxSliceInfo.label}</span>
+                      <span className="text-gray-700 text-sm">{maxSliceInfo.label}</span>
                       <span className="text-yellow-400 font-bold text-sm ml-1.5">{maxSliceInfo.pct}%</span>
                     </div>
                   )}
@@ -606,7 +605,7 @@ const PersuasionAssessment: React.FC = () => {
                         className={`rounded-xl border p-3 transition-colors min-w-0 ${
                           isDominant
                             ? 'bg-yellow-400/10 border-yellow-400/30'
-                            : 'bg-white/[0.03] border-white/10'
+                            : 'bg-gray-50 border-gray-200'
                         }`}
                       >
                         <div className="flex items-start justify-between gap-3">
@@ -614,14 +613,14 @@ const PersuasionAssessment: React.FC = () => {
                             <div className="flex items-center gap-2 flex-wrap">
                               <span
                                 className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold tabular-nums ${
-                                  isDominant ? 'bg-yellow-400/20 text-yellow-300' : 'bg-white/10 text-gray-300'
+                                  isDominant ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-600'
                                 }`}
                               >
                                 {rank + 1}
                               </span>
                               <span
                                 className={`text-sm font-semibold break-words leading-snug ${
-                                  isDominant ? 'text-yellow-400/95' : 'text-gray-300'
+                                  isDominant ? 'text-yellow-800' : 'text-gray-700'
                                 }`}
                                 title={`${item.label} (${PERSUASION_CHANNEL_LABELS[item.id]})`}
                               >
@@ -653,7 +652,7 @@ const PersuasionAssessment: React.FC = () => {
                         </div>
 
                         <div className="mt-3">
-                          <div className="h-3 sm:h-3.5 rounded-full bg-white/10 overflow-hidden">
+                          <div className="h-3 sm:h-3.5 rounded-full bg-gray-200 overflow-hidden">
                             <div
                               className={`h-full rounded-full transition-all duration-500 ${
                                 isDominant ? 'shadow-[0_0_18px_rgba(250,204,21,0.20)]' : ''
@@ -674,7 +673,7 @@ const PersuasionAssessment: React.FC = () => {
                 {dominantChannels.length > 0 && (
                   <div className="rounded-2xl border border-yellow-400/30 bg-yellow-400/10 p-5 md:p-6">
                     <p className="text-sm font-bold text-yellow-400/90 mb-2">ความถนัดของคุณ</p>
-                    <p className="text-gray-300 text-sm leading-relaxed">
+                    <p className="text-gray-700 text-sm leading-relaxed">
                       {PERSUASION_CHANNEL_DESCRIPTIONS[dominantChannels[0]]}
                     </p>
                     {dominantChannels.length > 1 && (
@@ -686,7 +685,7 @@ const PersuasionAssessment: React.FC = () => {
                 )}
 
                 {isPieChartReady && (
-                  <div className="pt-4 border-t border-white/10" data-no-capture="true">
+                  <div className="pt-4 border-t border-gray-200" data-no-capture="true">
                     <p className="text-gray-400 text-sm mb-4">ดาวน์โหลดผลลัพธ์</p>
                     <div className="flex flex-wrap gap-3">
                       <button
@@ -737,7 +736,7 @@ const PersuasionAssessment: React.FC = () => {
         })()}
       </main>
 
-      <footer className="py-6 border-t border-white/5">
+      <footer className="py-6 border-t border-gray-200">
         <div className="max-w-4xl mx-auto px-6 text-center text-gray-500 text-sm">
           © {new Date().getFullYear()} MindDoJo CO., LTD.
         </div>

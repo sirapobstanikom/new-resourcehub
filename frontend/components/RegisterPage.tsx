@@ -61,27 +61,27 @@ const RegisterPage: React.FC = () => {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-transparent text-white bg-grid flex items-center justify-center p-6">
+      <div className="md-page items-center justify-center p-6">
         <div className="text-gray-400">กำลังโหลด...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-transparent text-white bg-grid flex items-center justify-center p-6">
+    <div className="md-page items-center justify-center p-6">
       <div className="w-full max-w-md">
-        <div className="bg-neutral-900/80 border border-white/10 rounded-[32px] p-10 shadow-2xl backdrop-blur-sm">
+        <div className="md-card rounded-[32px] p-10 shadow-md">
           <div className="flex flex-col items-center mb-10">
-            <BrandLogo className="mb-5 text-[34px]" />
-            <h1 className="text-2xl font-semibold tracking-tight text-center">
-              สมัครสมาชิก <span className="text-yellow-400">MindDoJo</span>
+            <BrandLogo className="mb-5 text-[34px]" tone="dark" />
+            <h1 className="text-center text-2xl font-semibold tracking-tight text-gray-900">
+              สมัครสมาชิก <span className="text-yellow-500">MindDoJo</span>
             </h1>
-            <p className="text-gray-500 text-sm mt-2">สร้างบัญชีเพื่อเข้า ResourceHub</p>
+            <p className="mt-2 text-sm text-gray-500">สร้างบัญชีเพื่อเข้า ResourceHub</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label htmlFor="reg-email" className="block text-sm font-medium text-gray-400 mb-2">
+              <label htmlFor="reg-email" className="mb-2 block text-sm font-medium text-gray-600">
                 อีเมล
               </label>
               <input
@@ -92,12 +92,12 @@ const RegisterPage: React.FC = () => {
                 placeholder="your@email.com"
                 required
                 autoComplete="email"
-                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-all"
+                className="w-full px-4 py-3 rounded-xl md-input"
               />
             </div>
 
             <div>
-              <label htmlFor="reg-password" className="block text-sm font-medium text-gray-400 mb-2">
+              <label htmlFor="reg-password" className="mb-2 block text-sm font-medium text-gray-600">
                 รหัสผ่าน (อย่างน้อย 6 ตัวอักษร)
               </label>
               <input
@@ -109,12 +109,12 @@ const RegisterPage: React.FC = () => {
                 required
                 minLength={6}
                 autoComplete="new-password"
-                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-all"
+                className="w-full px-4 py-3 rounded-xl md-input"
               />
             </div>
 
             <div>
-              <label htmlFor="reg-confirm" className="block text-sm font-medium text-gray-400 mb-2">
+              <label htmlFor="reg-confirm" className="mb-2 block text-sm font-medium text-gray-600">
                 ยืนยันรหัสผ่าน
               </label>
               <input
@@ -126,14 +126,14 @@ const RegisterPage: React.FC = () => {
                 required
                 minLength={6}
                 autoComplete="new-password"
-                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-all"
+                className="w-full px-4 py-3 rounded-xl md-input"
               />
             </div>
 
             {message && (
               <div
-                className={`p-3 rounded-xl text-sm ${
-                  message.type === 'success' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
+                className={`rounded-xl p-3 text-sm ${
+                  message.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-600'
                 }`}
               >
                 {message.text}

@@ -70,21 +70,21 @@ function parseStoredAnswers(raw: Record<string, unknown> | undefined): Record<nu
 
 const INTRO_BODY = (
   <>
-    <p className="mb-4 text-gray-300 leading-relaxed">
+    <p className="mb-4 text-gray-600 leading-relaxed">
       แบบประเมินนี้มีวัตถุประสงค์เพื่อให้ท่านสำรวจแนวโน้มวิธีคิดและพฤติกรรมของตนเองเมื่อต้องเผชิญกับสถานการณ์ในการทำงาน ทั้งในด้านการรับมือกับปัญหา
       การสื่อสาร การตัดสินใจ และการรับผิดชอบต่อผลลัพธ์
     </p>
     <p className="mb-4 text-gray-400 text-sm leading-relaxed">
       โปรดอ่านข้อความแต่ละข้อ และให้คะแนนตามความเป็นจริงมากที่สุด โดยไม่มีคำตอบที่ถูกหรือผิด
     </p>
-    <div className="rounded-xl border border-white/10 overflow-hidden text-left text-xs mb-4">
-      <div className="grid grid-cols-2 bg-white/10 px-3 py-2 font-semibold text-white">
+    <div className="rounded-xl border border-yellow-200 overflow-hidden text-left text-xs mb-4">
+      <div className="grid grid-cols-2 bg-yellow-50 px-3 py-2 font-semibold text-gray-800">
         <span>คะแนน</span>
         <span>ความหมาย</span>
       </div>
       {([1, 2, 3, 4, 5] as const).map((s) => (
-        <div key={s} className="grid grid-cols-2 border-t border-white/10 px-3 py-2 text-gray-300">
-          <span className="tabular-nums text-yellow-400/90 font-bold">{s}</span>
+        <div key={s} className="grid grid-cols-2 border-t border-yellow-100 px-3 py-2 text-gray-700">
+          <span className="tabular-nums text-yellow-600 font-bold">{s}</span>
           <span>{RP_SCALE_LABELS[s]}</span>
         </div>
       ))}
@@ -259,7 +259,7 @@ const ReactiveProactiveMindsetAssessment: React.FC = () => {
     return html2canvas(el, {
       useCORS: true,
       allowTaint: true,
-      backgroundColor: '#0a0a0a',
+      backgroundColor: '#F3F2ED',
       scale: mobileScale,
       logging: false,
       windowWidth: el.scrollWidth,
@@ -344,7 +344,7 @@ const ReactiveProactiveMindsetAssessment: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-transparent text-white bg-grid flex flex-col selection:bg-yellow-400 selection:text-black">
+    <div className="md-page">
       {showIntroModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" aria-modal="true" role="dialog">
           <div
@@ -352,7 +352,7 @@ const ReactiveProactiveMindsetAssessment: React.FC = () => {
             onClick={handleCloseIntroAndStart}
             aria-hidden="true"
           />
-          <div className="relative w-full max-w-lg rounded-3xl border border-white/20 bg-gradient-to-b from-neutral-900/95 to-black/95 shadow-2xl shadow-emerald-400/10 overflow-hidden max-h-[90vh] overflow-y-auto">
+          <div className="relative w-full max-w-lg rounded-3xl border border-yellow-200 bg-white shadow-2xl shadow-yellow-900/10 overflow-hidden max-h-[90vh] overflow-y-auto">
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(52,211,153,0.12),transparent)] pointer-events-none" />
             <div className="relative p-8 md:p-10 text-center">
               <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-emerald-400/20 border border-emerald-400/35 flex items-center justify-center">
@@ -361,7 +361,7 @@ const ReactiveProactiveMindsetAssessment: React.FC = () => {
                 </span>
               </div>
               <p className="text-[10px] uppercase tracking-widest text-emerald-400/90 mb-2">{SUBTITLE}</p>
-              <h2 className="text-xl md:text-2xl font-black text-white tracking-tight mb-4">{ASSESSMENT_TITLE}</h2>
+              <h2 className="text-xl md:text-2xl font-black text-gray-900 tracking-tight mb-4">{ASSESSMENT_TITLE}</h2>
               <div className="text-sm md:text-base mb-8 text-left">{INTRO_BODY}</div>
               <button
                 type="button"
@@ -377,7 +377,7 @@ const ReactiveProactiveMindsetAssessment: React.FC = () => {
 
       <header className="flex justify-between items-center px-6 py-6 max-w-4xl mx-auto w-full">
         <Link to="/" className="flex items-center gap-3">
-          <BrandLogo className="text-[28px]" />
+          <BrandLogo className="text-[28px]" tone="dark" />
         </Link>
         {step === 'assessment' && (
           <span className="text-gray-500 text-sm font-medium">
@@ -399,10 +399,10 @@ const ReactiveProactiveMindsetAssessment: React.FC = () => {
             </p>
             <form
               onSubmit={handleLoginSubmit}
-              className="rounded-2xl border border-white/10 bg-white/5 p-6 md:p-8 space-y-5"
+              className="md-card p-6 md:p-8 space-y-5"
             >
               <div>
-                <label htmlFor="rp-name" className="block text-sm font-medium text-gray-400 mb-2">
+                <label htmlFor="rp-name" className="block text-sm font-medium text-gray-700 mb-2">
                   ชื่อ
                 </label>
                 <input
@@ -412,11 +412,11 @@ const ReactiveProactiveMindsetAssessment: React.FC = () => {
                   onChange={(e) => setUser((u) => ({ ...u, name: e.target.value }))}
                   placeholder="กรอกชื่อ"
                   required
-                  className="w-full px-4 py-3 rounded-xl bg-black/50 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-yellow-400"
+                  className="md-input"
                 />
               </div>
               <div>
-                <label htmlFor="rp-email" className="block text-sm font-medium text-gray-400 mb-2">
+                <label htmlFor="rp-email" className="block text-sm font-medium text-gray-700 mb-2">
                   อีเมล
                 </label>
                 <input
@@ -426,11 +426,11 @@ const ReactiveProactiveMindsetAssessment: React.FC = () => {
                   onChange={(e) => setUser((u) => ({ ...u, email: e.target.value }))}
                   placeholder="กรอกอีเมล"
                   required
-                  className="w-full px-4 py-3 rounded-xl bg-black/50 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-yellow-400"
+                  className="md-input"
                 />
               </div>
               <div>
-                <label htmlFor="rp-company" className="block text-sm font-medium text-gray-400 mb-2">
+                <label htmlFor="rp-company" className="block text-sm font-medium text-gray-700 mb-2">
                   บริษัท / องค์กร
                 </label>
                 <input
@@ -440,7 +440,7 @@ const ReactiveProactiveMindsetAssessment: React.FC = () => {
                   onChange={(e) => setUser((u) => ({ ...u, company: e.target.value }))}
                   placeholder="บริษัท"
                   required
-                  className="w-full px-4 py-3 rounded-xl bg-black/50 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-yellow-400"
+                  className="md-input"
                 />
               </div>
               <button
@@ -463,7 +463,7 @@ const ReactiveProactiveMindsetAssessment: React.FC = () => {
                 หน้า {sectionIndex + 1} / {totalSections}
               </span>
             </div>
-            <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
+            <div className="h-1.5 rounded-full bg-gray-200 overflow-hidden">
               <div
                 className="h-full bg-gradient-to-r from-emerald-500/90 to-yellow-400 rounded-full transition-all duration-300"
                 style={{ width: `${progress}%` }}
@@ -479,12 +479,12 @@ const ReactiveProactiveMindsetAssessment: React.FC = () => {
                   <div
                     key={num}
                     id={`rp-question-${num}`}
-                    className="rounded-2xl border border-white/10 bg-white/5 p-5 md:p-6 space-y-4 shadow-lg shadow-black/20 scroll-mt-28"
+                    className="md-card p-5 md:p-6 space-y-4 scroll-mt-28"
                   >
                     <p className="text-xs font-bold text-yellow-400/90 uppercase tracking-widest">
                       ข้อที่ {globalIdx + 1} / {totalQuestions}
                     </p>
-                    <p className="text-white text-sm md:text-base leading-relaxed font-medium">{q.text}</p>
+                    <p className="text-gray-900 text-sm md:text-base leading-relaxed font-medium">{q.text}</p>
                     <div className="flex flex-col gap-2">
                       <p className="text-xs text-gray-500">ให้คะแนน 1–5</p>
                       <div className="flex flex-wrap gap-2">
@@ -496,8 +496,8 @@ const ReactiveProactiveMindsetAssessment: React.FC = () => {
                             title={RP_SCALE_LABELS[v]}
                             className={`min-w-[2.75rem] px-3 py-2 rounded-xl text-sm font-bold border-2 transition-all ${
                               answers[num] === v
-                                ? 'bg-emerald-400/20 border-emerald-400 text-white'
-                                : 'bg-white/5 border-white/10 text-gray-400 hover:border-white/25'
+                                ? 'bg-emerald-50 border-emerald-500 text-gray-900'
+                                : 'bg-white border-gray-200 text-gray-500 hover:border-gray-300'
                             }`}
                           >
                             {v}
@@ -518,7 +518,7 @@ const ReactiveProactiveMindsetAssessment: React.FC = () => {
                 type="button"
                 onClick={handlePrevSection}
                 disabled={sectionIndex === 0}
-                className="px-5 py-2.5 rounded-xl font-bold border border-white/10 text-gray-400 hover:bg-white/5 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                className="md-btn-ghost disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 ← ก่อนหน้า
               </button>
@@ -537,45 +537,44 @@ const ReactiveProactiveMindsetAssessment: React.FC = () => {
         {step === 'result' && isRpComplete(displayAnswers) && (
           <div className="space-y-10 max-w-xl mx-auto">
             <div ref={resultExportRef} className="space-y-10">
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-6 md:p-8 space-y-6 text-center">
+              <div className="md-card p-6 md:p-8 space-y-6 text-center">
                 <p className="text-[10px] uppercase tracking-widest text-emerald-400/90">Reactive vs Proactive</p>
-                <h1 className="text-2xl md:text-3xl font-black text-white">ผลการประเมิน</h1>
+                <h1 className="text-2xl md:text-3xl font-black text-gray-900">ผลการประเมิน</h1>
                 <p className="text-gray-400 text-sm">{displayUser.name}</p>
                 <p className="text-xs text-gray-500 -mt-4">
                   {displayUser.company} · {displayUser.email}
                 </p>
 
-                <div className="rounded-2xl bg-black/40 border border-emerald-400/25 p-6 relative overflow-hidden">
-                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(52,211,153,0.08),transparent_50%)] pointer-events-none" />
-                  <p className="text-sm text-gray-400 mb-1 relative">คะแนนรวม</p>
+                <div className="rounded-2xl bg-emerald-50 border border-emerald-200 p-6 relative overflow-hidden">
+                  <p className="text-sm text-gray-600 mb-1 relative">คะแนนรวม</p>
                   <p className="text-4xl md:text-5xl font-black text-yellow-400 tabular-nums relative">{totalScore}</p>
                   <p className="text-xs text-gray-500 mt-2 relative">ช่วงคะแนน 20–100 คะแนน</p>
                 </div>
 
-                <div className="text-left rounded-xl border border-white/10 bg-white/[0.04] p-5">
-                  <p className="text-lg font-bold text-white">{band.levelTh}</p>
-                  <p className="text-gray-300 text-sm mt-2 leading-relaxed">{band.descriptionTh}</p>
+                <div className="text-left rounded-xl border border-gray-200 bg-gray-50 p-5">
+                  <p className="text-lg font-bold text-gray-900">{band.levelTh}</p>
+                  <p className="text-gray-600 text-sm mt-2 leading-relaxed">{band.descriptionTh}</p>
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-6 space-y-3">
-                <h2 className="text-sm font-bold text-gray-300 uppercase tracking-wider">เกณฑ์การแปลผล</h2>
-                <div className="space-y-2 text-xs text-gray-400">
+              <div className="md-card p-6 space-y-3">
+                <h2 className="text-sm font-bold text-gray-700 uppercase tracking-wider">เกณฑ์การแปลผล</h2>
+                <div className="space-y-2 text-xs text-gray-600">
                   {RP_BANDS.map((b) => (
-                    <div key={b.id} className="flex gap-3 border-t border-white/10 first:border-t-0 first:pt-0 pt-2">
-                      <span className="shrink-0 tabular-nums text-emerald-400/90 font-semibold w-24">
+                    <div key={b.id} className="flex gap-3 border-t border-gray-200 first:border-t-0 first:pt-0 pt-2">
+                      <span className="shrink-0 tabular-nums text-emerald-700 font-semibold w-24">
                         {b.min}–{b.max}
                       </span>
                       <span>
-                        <span className="text-white font-medium">{b.levelEn}</span> — {b.descriptionTh}
+                        <span className="text-gray-900 font-medium">{b.levelEn}</span> — {b.descriptionTh}
                       </span>
                     </div>
                   ))}
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-6 space-y-4">
-                <h2 className="text-sm font-bold text-gray-300 uppercase tracking-wider">วิเคราะห์รายมิติ (เทียบเต็ม 25 ต่อมิติ)</h2>
+              <div className="md-card p-6 space-y-4">
+                <h2 className="text-sm font-bold text-gray-700 uppercase tracking-wider">วิเคราะห์รายมิติ (เทียบเต็ม 25 ต่อมิติ)</h2>
                 {RP_DIMENSIONS.map((dim) => {
                   const sum = getRpDimensionSum(dim, displayAnswers);
                   const pct = getRpDimensionPercent(dim, displayAnswers);
@@ -583,7 +582,7 @@ const ReactiveProactiveMindsetAssessment: React.FC = () => {
                     <div key={dim.id}>
                       <div className="flex justify-between gap-2 text-xs text-gray-400 mb-1">
                         <div>
-                          <span className="text-white font-medium block">{dim.titleEn}</span>
+                          <span className="text-gray-900 font-medium block">{dim.titleEn}</span>
                           <span className="text-[11px] text-gray-500">{dim.titleTh}</span>
                         </div>
                         <span className="tabular-nums shrink-0 text-emerald-400/90 font-semibold">
@@ -591,7 +590,7 @@ const ReactiveProactiveMindsetAssessment: React.FC = () => {
                         </span>
                       </div>
                       <p className="text-[11px] text-gray-500 mb-2 leading-snug">{dim.descriptionTh}</p>
-                      <div className="h-2 rounded-full bg-white/10 overflow-hidden">
+                      <div className="h-2 rounded-full bg-gray-200 overflow-hidden">
                         <div
                           className="h-full bg-gradient-to-r from-emerald-500/80 to-yellow-400/90 rounded-full transition-all"
                           style={{ width: `${Math.min(100, Math.max(0, pct))}%` }}
@@ -602,7 +601,7 @@ const ReactiveProactiveMindsetAssessment: React.FC = () => {
                 })}
               </div>
 
-              <div className="rounded-xl border border-white/10 bg-emerald-950/20 p-5 text-sm text-gray-300 leading-relaxed">
+              <div className="rounded-xl border border-emerald-200 bg-emerald-50/80 p-5 text-sm text-gray-700 leading-relaxed">
                 <p className="text-emerald-400/90 font-semibold text-xs uppercase tracking-wider mb-2"></p>
                 {RP_CLOSING_MESSAGE}
               </div>
@@ -615,7 +614,7 @@ const ReactiveProactiveMindsetAssessment: React.FC = () => {
                 type="button"
                 onClick={handleDownloadPng}
                 disabled={pngLoading}
-                className="px-6 py-3 rounded-xl font-bold border border-emerald-400/50 text-emerald-200 hover:bg-emerald-400/10 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+                className="px-6 py-3 rounded-xl font-bold border border-emerald-300 text-emerald-800 hover:bg-emerald-50 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
               >
                 {pngLoading ? (
                   <>
@@ -633,7 +632,7 @@ const ReactiveProactiveMindsetAssessment: React.FC = () => {
                 type="button"
                 onClick={handleDownloadPdf}
                 disabled={pdfLoading}
-                className="px-6 py-3 rounded-xl font-bold border border-yellow-400/50 text-yellow-200 hover:bg-yellow-400/10 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+                className="px-6 py-3 rounded-xl font-bold border border-yellow-400 text-yellow-900 hover:bg-yellow-50 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
               >
                 {pdfLoading ? (
                   <>
@@ -650,7 +649,7 @@ const ReactiveProactiveMindsetAssessment: React.FC = () => {
               <button
                 type="button"
                 onClick={restart}
-                className="px-6 py-3 rounded-xl font-bold border border-white/15 text-gray-300 hover:bg-white/5 transition-all"
+                className="md-btn-ghost px-6 py-3"
               >
                 ทำแบบประเมินใหม่
               </button>

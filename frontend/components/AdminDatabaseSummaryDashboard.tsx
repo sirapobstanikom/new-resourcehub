@@ -362,9 +362,9 @@ function joinMeta(parts: string[]): string {
 }
 
 const longTextClass = 'break-words [overflow-wrap:anywhere] whitespace-pre-wrap';
-const readableBodyClass = `${longTextClass} text-sm leading-6 text-white/90`;
-const readableTitleClass = `${longTextClass} text-base font-semibold leading-snug text-white sm:text-lg`;
-const readableMutedClass = 'text-xs leading-relaxed text-white/50';
+const readableBodyClass = `${longTextClass} text-sm leading-6 text-gray-800`;
+const readableTitleClass = `${longTextClass} text-base font-semibold leading-snug text-gray-900 sm:text-lg`;
+const readableMutedClass = 'text-xs leading-relaxed text-gray-500';
 
 function flattenJsonNumbers(value: unknown): Record<string, number[]> {
   const result: Record<string, number[]> = {};
@@ -1022,7 +1022,7 @@ export function downloadDashboardHtml(snapshot: DashboardSnapshot): void {
 
 function DataRowList({ items }: { items: { label: string; value: string }[] }) {
   return (
-    <ul className="divide-y divide-white/8 rounded-xl border border-white/10 bg-white/[0.03]">
+    <ul className="divide-y divide-white/8 rounded-xl border border-[#D6D4CC] bg-white/[0.03]">
       {items.map((item) => (
         <li
           key={`${item.label}-${item.value}`}
@@ -1030,7 +1030,7 @@ function DataRowList({ items }: { items: { label: string; value: string }[] }) {
         >
           <span className={`flex-1 ${readableBodyClass}`}>{item.label}</span>
           {item.value && (
-            <span className="shrink-0 self-start rounded-md bg-yellow-400/15 px-2 py-1 text-xs font-semibold text-yellow-200">
+            <span className="shrink-0 self-start rounded-md bg-yellow-400/15 px-2 py-1 text-xs font-semibold text-yellow-900">
               {item.value}
             </span>
           )}
@@ -1049,9 +1049,9 @@ function NumericSummaryPills({ avg, min, max }: { avg: number; min: number; max:
   return (
     <div className="grid gap-2 sm:grid-cols-3">
       {pills.map((pill) => (
-        <div key={pill.label} className="rounded-xl border border-white/10 bg-white/[0.04] px-3 py-3 text-center">
-          <p className="text-xs text-white/50">{pill.label}</p>
-          <p className="mt-1 text-xl font-bold text-white">{pill.value}</p>
+        <div key={pill.label} className="rounded-xl border border-[#D6D4CC] bg-gray-50 px-3 py-3 text-center">
+          <p className="text-xs text-gray-500">{pill.label}</p>
+          <p className="mt-1 text-xl font-bold text-gray-900">{pill.value}</p>
         </div>
       ))}
     </div>
@@ -1072,12 +1072,12 @@ function ResponseList({
       {responses.map((response, index) => (
         <article
           key={`${response.rowId}-${index}`}
-          className="relative rounded-xl border border-white/10 bg-white/[0.03] py-2.5 pl-4 pr-3 sm:py-3 sm:pl-5 sm:pr-4"
+          className="relative rounded-xl border border-[#D6D4CC] bg-white/[0.03] py-2.5 pl-4 pr-3 sm:py-3 sm:pl-5 sm:pr-4"
         >
           <div className="absolute inset-y-2.5 left-0 w-0.5 rounded-full bg-yellow-400/80 sm:inset-y-3" />
           <div className="mb-2 flex items-start justify-between gap-2">
             {responses.length > 1 ? (
-              <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-md bg-yellow-400/15 text-xs font-semibold text-yellow-200">
+              <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-md bg-yellow-400/15 text-xs font-semibold text-yellow-900">
                 {index + 1}
               </span>
             ) : (
@@ -1113,13 +1113,13 @@ function RowRecordsList({
   if (entries.length === 0 || !onDeleteRow) return null;
 
   return (
-    <div className="mt-3 border-t border-white/8 pt-3">
-      <p className="mb-2 text-xs font-medium text-white/45">ลบข้อมูล</p>
+    <div className="mt-3 border-t border-[#D6D4CC] pt-3">
+      <p className="mb-2 text-xs font-medium text-gray-500">ลบข้อมูล</p>
       <div className="space-y-1.5">
         {entries.map((entry) => (
           <div
             key={entry.rowId}
-            className="flex flex-col gap-2 rounded-lg border border-white/8 bg-black/20 px-3 py-2 sm:flex-row sm:items-start sm:justify-between"
+            className="flex flex-col gap-2 rounded-lg border border-[#D6D4CC] bg-gray-50 px-3 py-2 sm:flex-row sm:items-start sm:justify-between"
           >
             <span className={`flex-1 ${readableBodyClass}`}>{entry.value}</span>
             <button
@@ -1175,10 +1175,10 @@ function FieldInsightContent({
           <div key={key.label}>
             {insight.keys.length > 1 && (
               <div className="mb-2 space-y-0.5">
-                <p className="text-xs font-medium text-white/70">
+                <p className="text-xs font-medium text-gray-600">
                   {getSubKeyDisplayTitle(insight.column, key.label, customLabels)}
                 </p>
-                <p className="font-mono text-[11px] text-white/35 break-all">{key.label}</p>
+                <p className="font-mono text-[11px] text-gray-400 break-all">{key.label}</p>
               </div>
             )}
             <NumericSummaryPills avg={key.avg} min={key.min} max={key.max} />
@@ -1257,22 +1257,22 @@ function InsightFieldTitlesPanel({
     if (entries.length === 0) return null;
     return (
       <div className="space-y-2">
-        <p className="text-xs font-semibold text-yellow-200/85">{sectionLabel}</p>
+        <p className="text-xs font-semibold text-yellow-900/85">{sectionLabel}</p>
         {entries.map((entry) => {
           const displayTitle = getFieldDisplayTitle(entry, customLabels);
           return (
             <div
               key={entry.labelKey}
-              className="rounded-lg border border-white/8 bg-black/20 px-3 py-2.5"
+              className="rounded-lg border border-[#D6D4CC] bg-gray-50 px-3 py-2.5"
             >
               <input
                 type="text"
                 value={customLabels[entry.labelKey] ?? ''}
                 onChange={(event) => onLabelChange(entry, event.target.value)}
                 placeholder={entry.subKey ? formatColumnLabel(entry.subKey) : formatColumnLabel(entry.columnKey)}
-                className="w-full rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-sm text-white outline-none placeholder:text-white/30 focus:border-yellow-400/40"
+                className="w-full rounded-lg border border-[#D6D4CC] bg-gray-100 px-3 py-2 text-sm text-gray-900 outline-none placeholder:text-gray-400 focus:border-yellow-400/40"
               />
-              <p className="mt-1.5 font-mono text-[11px] text-white/35 break-all">{entry.columnKey}</p>
+              <p className="mt-1.5 font-mono text-[11px] text-gray-400 break-all">{entry.columnKey}</p>
               <p className={`mt-1 ${readableMutedClass}`}>ชื่อที่แสดง: {displayTitle}</p>
             </div>
           );
@@ -1282,23 +1282,23 @@ function InsightFieldTitlesPanel({
   };
 
   return (
-    <section className="rounded-xl border border-white/10 bg-white/[0.03]">
+    <section className="rounded-xl border border-[#D6D4CC] bg-white/[0.03]">
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
         className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left sm:px-5"
       >
         <div>
-          <p className="text-sm font-medium text-white">แก้ชื่อหัวข้อแต่ละฟิลด์</p>
+          <p className="text-sm font-medium text-gray-900">แก้ชื่อหัวข้อแต่ละฟิลด์</p>
           <p className={`mt-0.5 ${readableMutedClass}`}>
             ชื่อเล็กด้านล่างคือคอลัมน์ในฐานข้อมูล · ใส่ชื่อที่อ่านง่ายด้านบนได้ · อัปเดตทั้งสรุปคะแนนและ HTML
             {customCount > 0 ? ` · ตั้งชื่อแล้ว ${customCount} ฟิลด์` : ''}
           </p>
         </div>
-        <span className="shrink-0 text-xs text-white/45">{open ? 'ซ่อน ▲' : 'แสดง ▼'}</span>
+        <span className="shrink-0 text-xs text-gray-500">{open ? 'ซ่อน ▲' : 'แสดง ▼'}</span>
       </button>
       {open && (
-        <div className="border-t border-white/8 px-4 py-3 sm:px-5 sm:py-4">
+        <div className="border-t border-[#D6D4CC] px-4 py-3 sm:px-5 sm:py-4">
           <div className="max-h-96 space-y-4 overflow-y-auto pr-1">
             {renderEditors(summaryEntries, 'สรุปคะแนน')}
             {renderEditors(detailEntries, 'รายละเอียดข้อมูล')}
@@ -1325,31 +1325,31 @@ function DashboardTopSectionsPanel({
   };
 
   return (
-    <section className="rounded-xl border border-white/10 bg-white/[0.03] p-4 sm:p-5">
+    <section className="rounded-xl border border-[#D6D4CC] bg-white/[0.03] p-4 sm:p-5">
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <p className="text-sm font-medium text-white">หัวข้อด้านบน</p>
+          <p className="text-sm font-medium text-gray-900">หัวข้อด้านบน</p>
           <p className={`mt-0.5 ${readableMutedClass}`}>เพิ่มหัวข้อหรือข้อความแสดงด้านบน Dashboard · ไม่ใส่ก็ได้</p>
         </div>
         <button
           type="button"
           onClick={() => onChange([...sections, createTopSection()])}
-          className="shrink-0 rounded-lg border border-yellow-400/25 bg-yellow-400/10 px-3 py-2 text-xs font-medium text-yellow-200 hover:bg-yellow-400/20"
+          className="shrink-0 rounded-lg border border-yellow-400/25 bg-yellow-400/10 px-3 py-2 text-xs font-medium text-yellow-900 hover:bg-yellow-400/20"
         >
           + เพิ่มหัวข้อ
         </button>
       </div>
 
       {sections.length === 0 ? (
-        <p className="rounded-lg border border-dashed border-white/10 px-4 py-6 text-center text-sm text-white/45">
+        <p className="rounded-lg border border-dashed border-[#D6D4CC] px-4 py-6 text-center text-sm text-gray-500">
           ยังไม่มีหัวข้อด้านบน — กด &quot;เพิ่มหัวข้อ&quot; ถ้าต้องการใส่
         </p>
       ) : (
         <div className="space-y-3">
           {sections.map((section, index) => (
-            <div key={section.id} className="rounded-lg border border-white/10 bg-black/20 p-3 sm:p-4">
+            <div key={section.id} className="rounded-lg border border-[#D6D4CC] bg-gray-50 p-3 sm:p-4">
               <div className="mb-3 flex items-center justify-between gap-2">
-                <p className="text-xs font-medium text-white/50">หัวข้อที่ {index + 1}</p>
+                <p className="text-xs font-medium text-gray-500">หัวข้อที่ {index + 1}</p>
                 <button
                   type="button"
                   onClick={() => removeSection(section.id)}
@@ -1364,14 +1364,14 @@ function DashboardTopSectionsPanel({
                   value={section.title}
                   onChange={(event) => updateSection(section.id, { title: event.target.value })}
                   placeholder="ชื่อหัวข้อ (ไม่บังคับ)"
-                  className="w-full rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-sm text-white outline-none placeholder:text-white/30 focus:border-yellow-400/40"
+                  className="w-full rounded-lg border border-[#D6D4CC] bg-gray-100 px-3 py-2 text-sm text-gray-900 outline-none placeholder:text-gray-400 focus:border-yellow-400/40"
                 />
                 <textarea
                   value={section.body}
                   onChange={(event) => updateSection(section.id, { body: event.target.value })}
                   rows={3}
                   placeholder="เนื้อหา / คำอธิบาย (ไม่บังคับ)"
-                  className={`w-full resize-y rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-sm text-white outline-none placeholder:text-white/30 focus:border-yellow-400/40 ${longTextClass}`}
+                  className={`w-full resize-y rounded-lg border border-[#D6D4CC] bg-gray-100 px-3 py-2 text-sm text-gray-900 outline-none placeholder:text-gray-400 focus:border-yellow-400/40 ${longTextClass}`}
                 />
               </div>
             </div>
@@ -1389,7 +1389,7 @@ function DashboardTopSectionsDisplay({ sections }: { sections: DashboardTopSecti
   return (
     <div className="space-y-3">
       {visible.map((section) => (
-        <section key={section.id} className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-4 sm:px-5 sm:py-5">
+        <section key={section.id} className="rounded-xl border border-[#D6D4CC] bg-white/[0.03] px-4 py-4 sm:px-5 sm:py-5">
           {section.title.trim() && <h4 className={readableTitleClass}>{section.title.trim()}</h4>}
           {section.body.trim() && (
             <p className={`${section.title.trim() ? 'mt-2' : ''} ${readableBodyClass}`}>{section.body.trim()}</p>
@@ -1428,15 +1428,15 @@ function InsightCard({
   onCancelEdit?: () => void;
 }) {
   return (
-    <section className={`min-w-0 rounded-xl border border-white/10 bg-white/[0.03] p-3.5 sm:p-4 ${wide ? 'lg:col-span-2' : ''}`}>
-      <div className="mb-3 border-b border-white/8 pb-3">
+    <section className={`min-w-0 rounded-xl border border-[#D6D4CC] bg-white/[0.03] p-3.5 sm:p-4 ${wide ? 'lg:col-span-2' : ''}`}>
+      <div className="mb-3 border-b border-[#D6D4CC] pb-3">
         {isEditing ? (
           <div className="space-y-2">
             <textarea
               value={editingValue ?? ''}
               onChange={(event) => onEditingValueChange?.(event.target.value)}
               rows={Math.min(3, Math.max(2, Math.ceil((editingValue?.length || 0) / 48)))}
-              className={`w-full resize-y rounded-lg border border-white/15 bg-black/40 px-3 py-2 text-sm text-white outline-none focus:border-yellow-400/40 ${longTextClass}`}
+              className={`w-full resize-y rounded-lg border border-[#D6D4CC] bg-gray-100 px-3 py-2 text-sm text-gray-900 outline-none focus:border-yellow-400/40 ${longTextClass}`}
               placeholder="เช่น 1. ความพึงพอใจโดยรวมต่อ Facilitator *"
             />
             <div className="flex flex-wrap gap-1.5">
@@ -1450,7 +1450,7 @@ function InsightCard({
               <button
                 type="button"
                 onClick={onCancelEdit}
-                className="rounded-md border border-white/15 px-3 py-1.5 text-xs text-white/80 hover:bg-white/5"
+                className="rounded-md border border-[#D6D4CC] px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 text-gray-800"
               >
                 ยกเลิก
               </button>
@@ -1461,10 +1461,10 @@ function InsightCard({
             <div className="min-w-0 flex-1 space-y-1">
               <h4 className={readableTitleClass}>{title}</h4>
               {columnKey && (
-                <p className="font-mono text-[11px] text-white/35 break-all">{columnKey}</p>
+                <p className="font-mono text-[11px] text-gray-400 break-all">{columnKey}</p>
               )}
               {meta && (
-                <span className="inline-block rounded-md bg-white/5 px-2 py-0.5 text-[11px] text-white/45">{meta}</span>
+                <span className="inline-block rounded-md bg-white px-2 py-0.5 text-[11px] text-gray-500">{meta}</span>
               )}
             </div>
             {(onEditTitle || onHideTopic) && (
@@ -1473,7 +1473,7 @@ function InsightCard({
                   <button
                     type="button"
                     onClick={onEditTitle}
-                    className="rounded-md border border-yellow-400/25 bg-yellow-400/10 px-2.5 py-1 text-xs font-medium text-yellow-200 hover:bg-yellow-400/20"
+                    className="rounded-md border border-yellow-400/25 bg-yellow-400/10 px-2.5 py-1 text-xs font-medium text-yellow-900 hover:bg-yellow-400/20"
                   >
                     แก้ไขหัวข้อ
                   </button>
@@ -1681,19 +1681,19 @@ const AdminDatabaseSummaryDashboard: React.FC<AdminDatabaseSummaryDashboardProps
 
   return (
     <div className="space-y-5">
-      <section className="rounded-xl border border-white/10 bg-white/[0.03] p-4 sm:p-5">
+      <section className="rounded-xl border border-[#D6D4CC] bg-white/[0.03] p-4 sm:p-5">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="max-w-3xl">
-            <p className="text-xs text-white/45">สรุปข้อมูล</p>
+            <p className="text-xs text-gray-500">สรุปข้อมูล</p>
             <h3 className={`mt-1 ${readableTitleClass} text-xl sm:text-2xl`}>{collectionLabel}</h3>
             <div className="mt-3 flex flex-wrap gap-1.5">
-              <span className="rounded-md bg-white/5 px-2.5 py-1 text-xs text-white/70">
+              <span className="rounded-md bg-white px-2.5 py-1 text-xs text-gray-600">
                 {rows.length.toLocaleString('th-TH')} แถว
               </span>
-              <span className="rounded-md bg-white/5 px-2.5 py-1 text-xs text-white/70">
+              <span className="rounded-md bg-white px-2.5 py-1 text-xs text-gray-600">
                 {columns.length} คอลัมน์
               </span>
-              <span className="rounded-md bg-white/5 px-2.5 py-1 text-xs text-white/70">
+              <span className="rounded-md bg-white px-2.5 py-1 text-xs text-gray-600">
                 {filledFieldCount} หัวข้อ
               </span>
             </div>
@@ -1709,7 +1709,7 @@ const AdminDatabaseSummaryDashboard: React.FC<AdminDatabaseSummaryDashboardProps
             <button
               type="button"
               onClick={onBack}
-              className="rounded-lg border border-white/15 px-4 py-2 text-xs text-white/80 hover:bg-white/5"
+              className="rounded-lg border border-[#D6D4CC] px-4 py-2 text-xs text-gray-700 hover:bg-gray-100 text-gray-800"
             >
               ← กลับตาราง
             </button>
@@ -1735,7 +1735,7 @@ const AdminDatabaseSummaryDashboard: React.FC<AdminDatabaseSummaryDashboardProps
       )}
 
       {hiddenColumns.length > 0 && (
-        <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-4">
+        <div className="rounded-2xl border border-[#D6D4CC] bg-white/[0.03] px-4 py-4">
           <p className={`mb-3 ${readableMutedClass}`}>หัวข้อที่ซ่อนอยู่ ({hiddenColumns.length})</p>
           <div className="flex flex-wrap gap-2">
             {hiddenColumns.map((column) => (
@@ -1743,7 +1743,7 @@ const AdminDatabaseSummaryDashboard: React.FC<AdminDatabaseSummaryDashboardProps
                 key={column}
                 type="button"
                 onClick={() => restoreTopic(column)}
-                className="max-w-full rounded-full border border-yellow-400/25 bg-yellow-400/10 px-3 py-1.5 text-left text-xs font-bold leading-relaxed text-yellow-200 hover:bg-yellow-400/20 break-words [overflow-wrap:anywhere]"
+                className="max-w-full rounded-full border border-yellow-400/25 bg-yellow-400/10 px-3 py-1.5 text-left text-xs font-bold leading-relaxed text-yellow-900 hover:bg-yellow-400/20 break-words [overflow-wrap:anywhere]"
               >
                 นำกลับ: {getDisplayTitle(column, customLabels)}
               </button>
@@ -1755,7 +1755,7 @@ const AdminDatabaseSummaryDashboard: React.FC<AdminDatabaseSummaryDashboardProps
       <DashboardTopSectionsDisplay sections={topSections} />
 
       {rows.length === 0 ? (
-        <div className="rounded-[1.8rem] border border-yellow-400/15 bg-black/40 p-12 text-center text-white/55">
+        <div className="rounded-[1.8rem] border border-yellow-400/15 bg-gray-100 p-12 text-center text-gray-500">
           ไม่มีข้อมูลสำหรับสร้าง Dashboard
         </div>
       ) : (
@@ -1787,7 +1787,7 @@ const AdminDatabaseSummaryDashboard: React.FC<AdminDatabaseSummaryDashboardProps
           )}
 
           {detailInsights.length > 0 && (
-            <section className="space-y-3 border-t border-white/8 pt-6">
+            <section className="space-y-3 border-t border-[#D6D4CC] pt-6">
               <div>
                 <h4 className={`${readableTitleClass} text-base`}>รายละเอียดข้อมูล</h4>
                 <p className={`mt-0.5 ${readableMutedClass}`}>{detailInsights.length} หัวข้อ · คำตอบและข้อมูลดิบ</p>
@@ -1814,7 +1814,7 @@ const AdminDatabaseSummaryDashboard: React.FC<AdminDatabaseSummaryDashboardProps
           )}
 
           {summaryInsights.length === 0 && detailInsights.length === 0 && (
-            <div className="rounded-xl border border-white/10 bg-white/[0.03] p-8 text-center text-sm text-white/55">
+            <div className="rounded-xl border border-[#D6D4CC] bg-white/[0.03] p-8 text-center text-sm text-gray-500">
               ไม่พบหัวข้อที่ผู้ใช้กรอกในชุดข้อมูลนี้
             </div>
           )}

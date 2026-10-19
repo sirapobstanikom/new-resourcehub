@@ -409,7 +409,7 @@ const HogwartsInnoclubPage: React.FC = () => {
               to="/"
               className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-amber-200/25 bg-white/10 text-amber-100 hover:bg-white/20 transition-colors"
             >
-              <BrandLogo className="text-[18px]" />
+              <BrandLogo className="text-[18px]" tone="dark" />
             </Link>
             <button
               type="button"

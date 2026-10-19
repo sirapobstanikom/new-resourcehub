@@ -65,16 +65,16 @@ function LogoHeader({ subtitle }: { subtitle: string }) {
     <header className="sticky top-0 z-20 border-b border-yellow-400/15 bg-[#080808]/90 px-4 py-4 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-3">
         <Link to="/" className="flex items-center gap-3">
-          <BrandLogo className="text-[24px]" />
+          <BrandLogo className="text-[24px]" tone="dark" />
           <span className="h-8 w-px bg-white/15" aria-hidden />
           <div>
-            <p className="text-sm font-black text-white">Storylining Workshop</p>
+            <p className="text-sm font-black text-gray-900">Storylining Workshop</p>
             <p className="text-xs font-semibold text-yellow-300">{subtitle}</p>
           </div>
         </Link>
         <Link
           to="/course-wheel"
-          className="rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs font-bold text-zinc-300 hover:bg-white/10"
+          className="rounded-full border border-gray-200 bg-white/5 px-3 py-2 text-xs font-bold text-gray-600 hover:bg-white/10"
         >
           วงล้อหลักสูตร
         </Link>
@@ -97,10 +97,10 @@ function ScorePicker({
   disabled?: boolean;
 }) {
   return (
-    <section className="rounded-3xl border border-white/10 bg-white/[0.06] p-4 shadow-[0_18px_50px_rgba(0,0,0,0.25)]">
+    <section className="rounded-3xl border border-gray-200 bg-white/[0.06] p-4 shadow-[0_18px_50px_rgba(0,0,0,0.25)]">
       <div className="mb-3">
-        <h3 className="text-base font-black text-white">{scoreLabel[field]}</h3>
-        {description && <p className="mt-1 text-xs leading-relaxed text-zinc-400">{description}</p>}
+        <h3 className="text-base font-black text-gray-900">{scoreLabel[field]}</h3>
+        {description && <p className="mt-1 text-xs leading-relaxed text-gray-500">{description}</p>}
       </div>
       <div className="grid grid-cols-5 gap-2">
         {SCORE_OPTIONS.map((score) => {
@@ -114,7 +114,7 @@ function ScorePicker({
               className={`min-h-[48px] rounded-2xl border text-base font-black transition-all ${
                 selected
                   ? 'border-yellow-300 bg-yellow-400 text-black shadow-[0_0_22px_rgba(250,204,21,0.26)]'
-                  : 'border-white/10 bg-black/35 text-zinc-200 hover:border-yellow-300/50'
+                  : 'border-gray-200 bg-white text-gray-700 hover:border-yellow-300/50'
               } disabled:cursor-not-allowed disabled:opacity-45`}
               aria-pressed={selected}
             >
@@ -379,13 +379,13 @@ function PeerFeedbackFormPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#070707] text-white selection:bg-yellow-300 selection:text-black">
+    <div className="md-page selection:bg-yellow-300">
       <LogoHeader subtitle="Audience Grid Feedback" />
       <main className="mx-auto w-full max-w-2xl px-4 py-6 sm:py-10">
         <section className="mb-5 rounded-[2rem] border border-yellow-400/20 bg-[radial-gradient(circle_at_20%_0%,rgba(250,204,21,0.22),transparent_35%),linear-gradient(135deg,rgba(24,24,27,0.94),rgba(8,8,8,0.96))] p-5 shadow-[0_24px_70px_rgba(0,0,0,0.42)]">
           <p className="text-xs font-black uppercase tracking-[0.22em] text-yellow-300">Peer Feedback</p>
           <h1 className="mt-2 text-3xl font-black leading-tight sm:text-5xl">Audience Grid</h1>
-          <p className="mt-3 text-sm leading-relaxed text-zinc-300">
+          <p className="mt-3 text-sm leading-relaxed text-gray-600">
             แบบประเมินเร็วสำหรับผู้เข้าร่วม Workshop ประเมินผู้ที่ขึ้นนำเสนอ ใช้เวลาประมาณ 45 วินาทีต่อคน
           </p>
           <Link
@@ -408,8 +408,8 @@ function PeerFeedbackFormPage() {
         )}
 
         <form onSubmit={submit} className="space-y-4">
-          <section className="rounded-3xl border border-white/10 bg-white/[0.06] p-4">
-            <label htmlFor="evaluator_name" className="mb-2 block text-sm font-black text-zinc-200">
+          <section className="rounded-3xl border border-gray-200 bg-white/[0.06] p-4">
+            <label htmlFor="evaluator_name" className="mb-2 block text-sm font-black text-gray-700">
               Q0 ชื่อและนามสกุลของคุณ <span className="text-zinc-500"></span>
             </label>
             <div className="flex flex-col gap-2 sm:flex-row">
@@ -424,7 +424,7 @@ function PeerFeedbackFormPage() {
                   placeholder="กรอกชื่อของคุณ"
                   disabled={isEvaluatorNameLocked}
                   autoComplete="off"
-                  className="w-full rounded-2xl border border-white/10 bg-black/45 px-4 py-3 text-base text-white placeholder-zinc-500 outline-none focus:border-yellow-300 disabled:cursor-not-allowed disabled:border-yellow-300/25 disabled:bg-yellow-400/10 disabled:text-yellow-100"
+                  className="w-full rounded-2xl border border-gray-200 bg-black/45 px-4 py-3 text-base text-gray-900 placeholder-zinc-500 outline-none focus:border-yellow-300 disabled:cursor-not-allowed disabled:border-yellow-300/25 disabled:bg-yellow-400/10 disabled:text-yellow-100"
                 />
                 {matchingParticipantNames.length > 0 && (
                   <div className="absolute left-0 right-0 top-[calc(100%+0.35rem)] z-30 overflow-hidden rounded-2xl border border-yellow-300/20 bg-[#111] shadow-[0_18px_44px_rgba(0,0,0,0.45)]">
@@ -433,7 +433,7 @@ function PeerFeedbackFormPage() {
                         key={name}
                         type="button"
                         onClick={() => selectExistingEvaluatorName(name)}
-                        className="block w-full px-4 py-3 text-left text-sm font-bold text-zinc-200 transition-colors hover:bg-yellow-300/10 hover:text-yellow-100"
+                        className="block w-full px-4 py-3 text-left text-sm font-bold text-gray-700 transition-colors hover:bg-yellow-300/10 hover:text-yellow-100"
                       >
                         {name}
                       </button>
@@ -453,7 +453,7 @@ function PeerFeedbackFormPage() {
                   <button
                     type="button"
                     onClick={startNewEvaluatorName}
-                    className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-black text-zinc-200 transition-all hover:bg-white/10"
+                    className="rounded-2xl border border-gray-200 bg-white/5 px-4 py-3 text-sm font-black text-gray-700 transition-all hover:bg-white/10"
                   >
                     ชื่อใหม่
                   </button>
@@ -489,8 +489,8 @@ function PeerFeedbackFormPage() {
             )}
           </section>
 
-          <section className="rounded-3xl border border-white/10 bg-white/[0.06] p-4">
-            <label htmlFor="presenter_team" className="mb-2 block text-sm font-black text-zinc-200">
+          <section className="rounded-3xl border border-gray-200 bg-white/[0.06] p-4">
+            <label htmlFor="presenter_team" className="mb-2 block text-sm font-black text-gray-700">
               Q1 คุณกำลังประเมินใคร? *
             </label>
             <select
@@ -498,7 +498,7 @@ function PeerFeedbackFormPage() {
               value={form.presenter_team}
               onChange={(event) => setForm((prev) => ({ ...prev, presenter_team: event.target.value }))}
               disabled={!savedEvaluatorName}
-              className="w-full rounded-2xl border border-white/10 bg-black/45 px-4 py-3 text-base text-white outline-none focus:border-yellow-300 disabled:cursor-not-allowed disabled:opacity-45"
+              className="w-full rounded-2xl border border-gray-200 bg-black/45 px-4 py-3 text-base text-gray-900 outline-none focus:border-yellow-300 disabled:cursor-not-allowed disabled:opacity-45"
             >
               <option value="">
                 {!savedEvaluatorName
@@ -547,8 +547,8 @@ function PeerFeedbackFormPage() {
             disabled={!savedEvaluatorName}
           />
 
-          <section className="rounded-3xl border border-white/10 bg-white/[0.06] p-4">
-            <label htmlFor="note" className="mb-2 block text-sm font-black text-zinc-200">
+          <section className="rounded-3xl border border-gray-200 bg-white/[0.06] p-4">
+            <label htmlFor="note" className="mb-2 block text-sm font-black text-gray-700">
               Q6 One note — best bit + one thing to improve
             </label>
             <textarea
@@ -558,7 +558,7 @@ function PeerFeedbackFormPage() {
               rows={4}
               placeholder="เช่น Opening ดีมาก แต่สรุปท้ายยังไม่ชัด"
               disabled={!savedEvaluatorName}
-              className="w-full resize-none rounded-2xl border border-white/10 bg-black/45 px-4 py-3 text-base text-white placeholder-zinc-500 outline-none focus:border-yellow-300 disabled:cursor-not-allowed disabled:opacity-45"
+              className="w-full resize-none rounded-2xl border border-gray-200 bg-black/45 px-4 py-3 text-base text-gray-900 placeholder-zinc-500 outline-none focus:border-yellow-300 disabled:cursor-not-allowed disabled:opacity-45"
             />
           </section>
 
@@ -611,7 +611,7 @@ function BarChart({ summaries }: { summaries: TeamSummary[] }) {
       {summaries.map((summary) => (
         <div key={summary.team}>
           <div className="mb-1 flex items-center justify-between text-xs font-bold">
-            <span className="text-zinc-200">{summary.team}</span>
+            <span className="text-gray-700">{summary.team}</span>
             <span className="text-yellow-300">{formatScore(summary.overallAvg)}</span>
           </div>
           <div className="h-3 overflow-hidden rounded-full bg-white/10">
@@ -683,7 +683,7 @@ function RadarChart({ summaries }: { summaries: TeamSummary[] }) {
       </svg>
       <div className="flex flex-wrap gap-2">
         {summaries.slice(0, 6).map((summary, index) => (
-          <span key={summary.team} className="rounded-full bg-white/5 px-3 py-1 text-xs text-zinc-300">
+          <span key={summary.team} className="rounded-full bg-white/5 px-3 py-1 text-xs text-gray-600">
             <span style={{ color: colors[index % colors.length] }}>●</span> {summary.team}
           </span>
         ))}
@@ -795,7 +795,7 @@ function PeerFeedbackDashboardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#070707] text-white selection:bg-yellow-300 selection:text-black">
+    <div className="md-page selection:bg-yellow-300">
       <LogoHeader subtitle="Audience Grid Feedback Dashboard" />
       <main className="mx-auto w-full max-w-7xl px-4 py-6 sm:py-10">
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
@@ -804,7 +804,7 @@ function PeerFeedbackDashboardPage() {
             <h1 className="mt-2 text-3xl font-black sm:text-5xl">Peer Feedback — Audience Grid</h1>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Link to="/peer-feedback" className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-bold text-zinc-200">
+            <Link to="/peer-feedback" className="rounded-full border border-gray-200 bg-white/5 px-4 py-2 text-sm font-bold text-gray-700">
               เปิดหน้า Form
             </Link>
             <button
@@ -831,18 +831,18 @@ function PeerFeedbackDashboardPage() {
             ['คะแนนเฉลี่ยรวมทั้งหมด', formatScore(overallAverage)],
             ['ส่งล่าสุด', latestTime],
           ].map(([label, value]) => (
-            <div key={label} className="rounded-3xl border border-white/10 bg-white/[0.06] p-4">
+            <div key={label} className="rounded-3xl border border-gray-200 bg-white/[0.06] p-4">
               <p className="text-xs font-bold text-zinc-500">{label}</p>
               <p className="mt-2 text-2xl font-black text-yellow-300">{value}</p>
             </div>
           ))}
         </section>
 
-        <section className="mb-6 grid gap-3 rounded-3xl border border-white/10 bg-white/[0.06] p-4 md:grid-cols-4">
+        <section className="mb-6 grid gap-3 rounded-3xl border border-gray-200 bg-white/[0.06] p-4 md:grid-cols-4">
           <select
             value={teamFilter}
             onChange={(event) => setTeamFilter(event.target.value)}
-            className="rounded-2xl border border-white/10 bg-black/45 px-4 py-3 text-white outline-none focus:border-yellow-300"
+            className="rounded-2xl border border-gray-200 bg-black/45 px-4 py-3 text-gray-900 outline-none focus:border-yellow-300"
           >
             <option value="">ทุกชื่อ</option>
             {uniqueTeams.map((team) => (
@@ -855,40 +855,40 @@ function PeerFeedbackDashboardPage() {
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             placeholder="ค้นหาชื่อ / comment"
-            className="rounded-2xl border border-white/10 bg-black/45 px-4 py-3 text-white placeholder-zinc-500 outline-none focus:border-yellow-300"
+            className="rounded-2xl border border-gray-200 bg-black/45 px-4 py-3 text-gray-900 placeholder-zinc-500 outline-none focus:border-yellow-300"
           />
           <input
             type="date"
             value={dateFrom}
             onChange={(event) => setDateFrom(event.target.value)}
-            className="rounded-2xl border border-white/10 bg-black/45 px-4 py-3 text-white outline-none focus:border-yellow-300"
+            className="rounded-2xl border border-gray-200 bg-black/45 px-4 py-3 text-gray-900 outline-none focus:border-yellow-300"
           />
           <input
             type="date"
             value={dateTo}
             onChange={(event) => setDateTo(event.target.value)}
-            className="rounded-2xl border border-white/10 bg-black/45 px-4 py-3 text-white outline-none focus:border-yellow-300"
+            className="rounded-2xl border border-gray-200 bg-black/45 px-4 py-3 text-gray-900 outline-none focus:border-yellow-300"
           />
         </section>
 
         <section className="mb-6 grid gap-4 lg:grid-cols-2">
-          <div className="rounded-3xl border border-white/10 bg-white/[0.06] p-5">
-            <h2 className="mb-4 text-xl font-black text-white">Bar Chart — Overall Score</h2>
+          <div className="rounded-3xl border border-gray-200 bg-white/[0.06] p-5">
+            <h2 className="mb-4 text-xl font-black text-gray-900">Bar Chart — Overall Score</h2>
             <BarChart summaries={summaries} />
           </div>
-          <div className="rounded-3xl border border-white/10 bg-white/[0.06] p-5">
-            <h2 className="mb-4 text-xl font-black text-white">Radar Chart — Criteria Comparison</h2>
+          <div className="rounded-3xl border border-gray-200 bg-white/[0.06] p-5">
+            <h2 className="mb-4 text-xl font-black text-gray-900">Radar Chart — Criteria Comparison</h2>
             <RadarChart summaries={summaries} />
           </div>
         </section>
 
         <section className="mb-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {loading && <p className="text-zinc-400">กำลังโหลดข้อมูล...</p>}
+          {loading && <p className="text-gray-500">กำลังโหลดข้อมูล...</p>}
           {summaries.map((summary) => (
-            <article key={summary.team} className="rounded-3xl border border-white/10 bg-white/[0.06] p-5">
+            <article key={summary.team} className="rounded-3xl border border-gray-200 bg-white/[0.06] p-5">
               <div className="mb-4 flex items-start justify-between gap-3">
                 <div>
-                  <h3 className="text-2xl font-black text-white">{summary.team}</h3>
+                  <h3 className="text-2xl font-black text-gray-900">{summary.team}</h3>
                   <p className="text-sm text-zinc-500">{summary.count} ผู้ประเมิน</p>
                 </div>
                 <span className="rounded-2xl bg-yellow-400 px-3 py-2 text-lg font-black text-black">
@@ -896,17 +896,17 @@ function PeerFeedbackDashboardPage() {
                 </span>
               </div>
               <div className="grid grid-cols-2 gap-2 text-sm">
-                <p className="rounded-2xl bg-black/30 p-3">Answer-first: <b>{formatScore(summary.answerAvg)}</b></p>
-                <p className="rounded-2xl bg-black/30 p-3">Logic: <b>{formatScore(summary.logicAvg)}</b></p>
-                <p className="rounded-2xl bg-black/30 p-3">Story: <b>{formatScore(summary.storyAvg)}</b></p>
-                <p className="rounded-2xl bg-black/30 p-3">Delivery: <b>{formatScore(summary.deliveryAvg)}</b></p>
+                <p className="rounded-2xl bg-white p-3">Answer-first: <b>{formatScore(summary.answerAvg)}</b></p>
+                <p className="rounded-2xl bg-white p-3">Logic: <b>{formatScore(summary.logicAvg)}</b></p>
+                <p className="rounded-2xl bg-white p-3">Story: <b>{formatScore(summary.storyAvg)}</b></p>
+                <p className="rounded-2xl bg-white p-3">Delivery: <b>{formatScore(summary.deliveryAvg)}</b></p>
               </div>
             </article>
           ))}
         </section>
 
-        <section className="rounded-3xl border border-white/10 bg-white/[0.06] p-5">
-          <h2 className="mb-4 text-xl font-black text-white">Feedback Comments</h2>
+        <section className="rounded-3xl border border-gray-200 bg-white/[0.06] p-5">
+          <h2 className="mb-4 text-xl font-black text-gray-900">Feedback Comments</h2>
           <div className="space-y-5">
             {summaries.map((summary) => (
               <div key={summary.team}>
@@ -914,7 +914,7 @@ function PeerFeedbackDashboardPage() {
                 {summary.comments.length > 0 ? (
                   <div className="space-y-2">
                     {summary.comments.map((comment, index) => (
-                      <blockquote key={`${summary.team}-${index}`} className="rounded-2xl bg-black/30 p-3 text-sm text-zinc-300">
+                      <blockquote key={`${summary.team}-${index}`} className="rounded-2xl bg-white p-3 text-sm text-gray-600">
                         "{comment}"
                       </blockquote>
                     ))}

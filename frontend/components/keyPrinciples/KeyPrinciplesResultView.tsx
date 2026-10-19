@@ -57,7 +57,7 @@ function ScoreRing({ score, color, delayClass }: { score: number; color: string;
   return (
     <div className={`relative w-[4.75rem] h-[4.75rem] shrink-0 kp-fade-up ${delayClass ?? ''}`}>
       <svg className="w-full h-full -rotate-90" viewBox="0 0 80 80" aria-hidden>
-        <circle cx="40" cy="40" r={r} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="7" />
+        <circle cx="40" cy="40" r={r} fill="none" stroke="rgba(0,0,0,0.08)" strokeWidth="7" />
         <circle
           cx="40"
           cy="40"
@@ -78,7 +78,7 @@ function ScoreRing({ score, color, delayClass }: { score: number; color: string;
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-xl font-black text-white tabular-nums leading-none">{score}</span>
+        <span className="text-xl font-black text-gray-900 tabular-nums leading-none">{score}</span>
         <span className="text-[9px] text-gray-500 font-medium mt-0.5">/25</span>
       </div>
     </div>
@@ -132,9 +132,9 @@ const KeyPrinciplesResultView: React.FC<KeyPrinciplesResultViewProps> = ({
     <div className="pb-28 sm:pb-12 max-w-2xl mx-auto kp-fade-up">
       <div ref={exportRef} className="space-y-8">
         {/* Hero */}
-        <div className="kp-shimmer-wrap relative overflow-hidden rounded-3xl border border-yellow-400/25 bg-gradient-to-br from-yellow-400/12 via-white/[0.05] to-black/50 p-6 md:p-8 kp-scale-in shadow-xl shadow-black/30">
+        <div className="kp-shimmer-wrap relative overflow-hidden rounded-3xl border border-yellow-200 bg-gradient-to-br from-yellow-50 via-white to-[#F3F2ED] p-6 md:p-8 kp-scale-in shadow-md">
           <div className="absolute -top-20 -right-20 w-56 h-56 rounded-full bg-yellow-400/15 blur-3xl pointer-events-none" />
-          <div className="absolute -bottom-24 -left-12 w-48 h-48 rounded-full bg-white/5 blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-24 -left-12 w-48 h-48 rounded-full bg-gray-50 blur-3xl pointer-events-none" />
 
           <div className="relative flex flex-col gap-5">
             <div className="flex flex-col sm:flex-row sm:items-start gap-5">
@@ -146,7 +146,7 @@ const KeyPrinciplesResultView: React.FC<KeyPrinciplesResultViewProps> = ({
                   <p className="text-[10px] uppercase tracking-[0.22em] text-yellow-400 font-semibold mb-1.5">
                     Key Principles
                   </p>
-                  <h1 className="text-2xl md:text-[1.65rem] font-black text-white leading-tight">{userName}</h1>
+                  <h1 className="text-2xl md:text-[1.65rem] font-black text-gray-900 leading-tight">{userName}</h1>
                   <p className="text-sm text-gray-400 mt-1">{userCompany}</p>
                 </div>
               </div>
@@ -173,7 +173,7 @@ const KeyPrinciplesResultView: React.FC<KeyPrinciplesResultViewProps> = ({
             </div>
 
             {topSections.length > 0 && (
-              <p className="relative pt-4 border-t border-white/10 text-sm text-gray-400 text-left leading-relaxed kp-fade-up kp-delay-2">
+              <p className="relative pt-4 border-t border-gray-200 text-sm text-gray-400 text-left leading-relaxed kp-fade-up kp-delay-2">
                 สะท้อนชัดในด้าน{' '}
                 <span className="text-yellow-400/95 font-semibold">
                   {topSections.map((s) => s.section.titleEn).join(' · ')}
@@ -188,7 +188,7 @@ const KeyPrinciplesResultView: React.FC<KeyPrinciplesResultViewProps> = ({
           <div className="flex items-center gap-3 mb-5">
             <div className="h-px flex-1 bg-gradient-to-r from-transparent via-yellow-400/40 to-transparent" />
             <div className="text-center shrink-0 px-2">
-              <h2 className="text-sm font-bold text-white tracking-wide">ผลแต่ละส่วน</h2>
+              <h2 className="text-sm font-bold text-gray-900 tracking-wide">ผลแต่ละส่วน</h2>
               <p className="text-[11px] text-gray-500 mt-0.5">คะแนน 5–25 ต่อหลักการ</p>
             </div>
             <div className="h-px flex-1 bg-gradient-to-l from-transparent via-yellow-400/40 to-transparent" />
@@ -202,7 +202,7 @@ const KeyPrinciplesResultView: React.FC<KeyPrinciplesResultViewProps> = ({
               return (
                 <article
                   key={section.id}
-                  className={`kp-fade-up ${stagger} group rounded-2xl border bg-gradient-to-br from-white/[0.05] to-transparent p-4 md:p-5 shadow-lg transition-all duration-300 hover:scale-[1.01] hover:border-white/20 ${styles.cardBorder} ${styles.glow}`}
+                  className={`kp-fade-up ${stagger} group rounded-2xl border bg-gradient-to-br from-white to-gray-50 p-4 md:p-5 shadow-lg transition-all duration-300 hover:scale-[1.01] hover:border-gray-300 ${styles.cardBorder} ${styles.glow}`}
                 >
                   <div className="flex gap-4 md:gap-5 items-start">
                     <ScoreRing score={sum} color={styles.ring} delayClass={stagger} />
@@ -213,7 +213,7 @@ const KeyPrinciplesResultView: React.FC<KeyPrinciplesResultViewProps> = ({
                             {meta.icon}
                           </span>
                           <div className="min-w-0">
-                            <h3 className="font-bold text-white text-base leading-tight">{section.titleEn}</h3>
+                            <h3 className="font-bold text-gray-900 text-base leading-tight">{section.titleEn}</h3>
                             <p className="text-[11px] text-gray-500 mt-0.5">{meta.tagline}</p>
                           </div>
                         </div>
@@ -242,7 +242,7 @@ const KeyPrinciplesResultView: React.FC<KeyPrinciplesResultViewProps> = ({
               ✨
             </div>
             <div>
-              <h2 className="text-base font-bold text-white">สรุป Feedback จาก AI</h2>
+              <h2 className="text-base font-bold text-gray-900">สรุป Feedback จาก AI</h2>
               <p className="text-xs text-gray-500 mt-1 leading-relaxed max-w-md">
                 วิเคราะห์ว่าคำพูดของคุณ 5 ด้านการสื่อสารในผู้อื่นมากน้อยแค่ไหน
               </p>
@@ -250,20 +250,20 @@ const KeyPrinciplesResultView: React.FC<KeyPrinciplesResultViewProps> = ({
           </div>
 
           {aiLoading && (
-            <div className="relative flex items-center gap-3 rounded-xl bg-black/40 border border-white/10 px-4 py-5 text-gray-400">
+            <div className="relative flex items-center gap-3 rounded-xl bg-gray-50 border border-gray-200 px-4 py-5 text-gray-400">
               <div
                 className="w-5 h-5 border-2 border-yellow-400 border-t-transparent rounded-full animate-spin shrink-0"
                 aria-hidden
               />
               <div className="space-y-1">
-                <span className="text-sm text-white font-medium block">กำลังสร้างสรุปให้คุณ</span>
+                <span className="text-sm text-gray-900 font-medium block">กำลังสร้างสรุปให้คุณ</span>
                 <span className="text-xs text-gray-500">ใช้เวลาสักครู่...</span>
               </div>
             </div>
           )}
 
           {!aiLoading && aiFeedback && (
-            <div className="kp-fade-up rounded-xl bg-black/40 border border-white/10 px-4 py-4 md:px-5 md:py-5">
+            <div className="kp-fade-up rounded-xl bg-gray-50 border border-gray-200 px-4 py-4 md:px-5 md:py-5">
               <div className="whitespace-pre-wrap text-gray-200 text-sm leading-relaxed">{aiFeedback}</div>
             </div>
           )}
@@ -286,17 +286,17 @@ const KeyPrinciplesResultView: React.FC<KeyPrinciplesResultViewProps> = ({
         </section>
 
         {/* Criteria */}
-        <details className="kp-fade-up kp-delay-6 group rounded-2xl border border-white/10 bg-white/[0.02] overflow-hidden transition-colors hover:border-white/15">
+        <details className="kp-fade-up kp-delay-6 group rounded-2xl border border-gray-200 bg-white overflow-hidden transition-colors hover:border-gray-200">
           <summary className="cursor-pointer list-none [&::-webkit-details-marker]:hidden flex items-center justify-between gap-3 px-5 py-4 text-sm font-semibold text-gray-400 hover:text-gray-200 transition-colors">
             <span>เกณฑ์การแปลผล</span>
             <span
-              className="w-7 h-7 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-[10px] text-gray-500 group-open:rotate-180 transition-transform duration-300"
+              className="w-7 h-7 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center text-[10px] text-gray-500 group-open:rotate-180 transition-transform duration-300"
               aria-hidden
             >
               ▼
             </span>
           </summary>
-          <div className="px-5 pb-5 space-y-3 border-t border-white/10 pt-4">
+          <div className="px-5 pb-5 space-y-3 border-t border-gray-200 pt-4">
             {KP_SCORE_BANDS.map((b) => (
               <div key={b.id} className="flex gap-3 text-xs text-gray-400">
                 <span
@@ -376,7 +376,7 @@ function ActionButtons({
         type="button"
         onClick={onDownloadPng}
         disabled={pngLoading}
-        className="px-5 py-3 rounded-xl font-bold border border-white/15 text-gray-200 hover:bg-white/8 hover:border-yellow-400/30 disabled:opacity-50 transition-all duration-200 inline-flex items-center gap-2 text-sm hover:scale-[1.02] active:scale-[0.98]"
+        className="px-5 py-3 rounded-xl font-bold border border-gray-200 text-gray-200 hover:bg-gray-50 hover:border-yellow-400/30 disabled:opacity-50 transition-all duration-200 inline-flex items-center gap-2 text-sm hover:scale-[1.02] active:scale-[0.98]"
       >
         {pngLoading ? <Spinner /> : <span aria-hidden>🖼</span>}
         ดาวน์โหลด PNG
@@ -385,7 +385,7 @@ function ActionButtons({
         type="button"
         onClick={onDownloadPdf}
         disabled={pdfLoading}
-        className="px-5 py-3 rounded-xl font-bold border border-white/15 text-gray-200 hover:bg-white/8 hover:border-yellow-400/30 disabled:opacity-50 transition-all duration-200 inline-flex items-center gap-2 text-sm hover:scale-[1.02] active:scale-[0.98]"
+        className="px-5 py-3 rounded-xl font-bold border border-gray-200 text-gray-200 hover:bg-gray-50 hover:border-yellow-400/30 disabled:opacity-50 transition-all duration-200 inline-flex items-center gap-2 text-sm hover:scale-[1.02] active:scale-[0.98]"
       >
         {pdfLoading ? <Spinner /> : <span aria-hidden>📄</span>}
         ดาวน์โหลด PDF
@@ -393,7 +393,7 @@ function ActionButtons({
       <button
         type="button"
         onClick={onRestart}
-        className="px-5 py-3 rounded-xl font-bold border border-white/15 text-gray-400 hover:bg-white/5 hover:text-gray-200 transition-all duration-200 text-sm"
+        className="px-5 py-3 rounded-xl font-bold border border-gray-200 text-gray-400 hover:bg-gray-50 hover:text-gray-200 transition-all duration-200 text-sm"
       >
         ทำใหม่
       </button>

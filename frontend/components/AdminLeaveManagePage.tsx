@@ -486,25 +486,25 @@ const AdminLeaveManagePage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-transparent text-white flex flex-col">
-      <header className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 px-4 sm:px-6 py-4 sm:py-6 border-b border-white/10">
+    <div className="min-h-full bg-transparent text-gray-900 flex flex-col">
+      <header className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 px-4 sm:px-6 py-4 sm:py-6 border-b border-[#D6D4CC]">
         <div className="flex flex-wrap items-center gap-2 sm:gap-4 min-w-0">
           <Link to="/admin/leave" className="flex items-center gap-2 sm:gap-3 shrink-0">
-            <BrandLogo className="text-[22px] sm:text-[28px]" />
+            <BrandLogo className="text-[22px] sm:text-[28px]" tone="dark" />
           </Link>
           <span className="hidden sm:inline text-gray-500">|</span>
           <span className="text-amber-400 font-semibold text-sm sm:text-base truncate">จัดการคำขอลา</span>
         </div>
         <Link
           to="/admin/leave"
-          className="min-h-[44px] flex items-center justify-center px-4 py-3 rounded-xl font-medium bg-white/10 text-white hover:bg-white/20 border border-white/10 w-full sm:w-auto text-center"
+          className="min-h-[44px] flex items-center justify-center px-4 py-3 rounded-xl font-medium bg-gray-100 text-gray-900 hover:bg-gray-200 border border-[#D6D4CC] w-full sm:w-auto text-center"
         >
           กลับหน้าระบบลา
         </Link>
       </header>
 
       <main className="flex-1 max-w-4xl mx-auto w-full px-4 sm:px-6 py-6 sm:py-8 space-y-6">
-        <h2 className="text-xl font-bold text-gray-300">จัดการคำขอลา — อนุมัติ/ไม่อนุมัติ</h2>
+        <h2 className="text-xl font-bold text-gray-700">จัดการคำขอลา — อนุมัติ/ไม่อนุมัติ</h2>
         <p className="text-sm text-gray-500">หน้านี้เห็นได้เฉพาะผู้จัดการลา (pink, koy, tonji@minddojo.me)</p>
 
         {error && (
@@ -514,20 +514,20 @@ const AdminLeaveManagePage: React.FC = () => {
         )}
 
         {loading ? (
-          <div className="min-h-[200px] rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-gray-500 text-sm">
+          <div className="min-h-[200px] rounded-xl bg-white border border-[#D6D4CC] flex items-center justify-center text-gray-500 text-sm">
             กำลังโหลด...
           </div>
         ) : pendingList.length === 0 ? (
-          <div className="min-h-[200px] rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-gray-500 text-sm">
+          <div className="min-h-[200px] rounded-xl bg-white border border-[#D6D4CC] flex items-center justify-center text-gray-500 text-sm">
             ไม่มีคำขอลาที่รออนุมัติ/รออนุมัติยกเลิก
           </div>
         ) : (
           <>
           <p className="sm:hidden text-xs text-gray-500 mb-2">เลื่อนซ้าย-ขวาเพื่อดูตาราง</p>
-          <div className="rounded-xl border border-white/10 overflow-x-auto -mx-1 sm:mx-0">
+          <div className="rounded-xl border border-[#D6D4CC] overflow-x-auto -mx-1 sm:mx-0">
             <table className="w-full text-left text-sm min-w-[680px]">
               <thead>
-                <tr className="border-b border-white/10 bg-white/5">
+                <tr className="border-b border-[#D6D4CC] bg-white">
                   <th className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-400">ผู้ลา</th>
                   <th className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-400">คำขอ</th>
                   <th className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-400">ประเภท</th>
@@ -540,8 +540,8 @@ const AdminLeaveManagePage: React.FC = () => {
               </thead>
               <tbody>
                 {pendingList.map((row) => (
-                  <tr key={row.id} className="border-b border-white/5 hover:bg-white/5">
-                    <td className="px-3 sm:px-4 py-2 sm:py-3 text-gray-300 text-xs sm:text-sm">
+                  <tr key={row.id} className="border-b border-gray-100 hover:bg-white">
+                    <td className="px-3 sm:px-4 py-2 sm:py-3 text-gray-700 text-xs sm:text-sm">
                       {row.user_display_name || row.user_email}
                     </td>
                     <td className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm">
@@ -549,11 +549,11 @@ const AdminLeaveManagePage: React.FC = () => {
                         {row.status === 'cancel_requested' ? 'ขอยกเลิก' : 'ขอลา'}
                       </span>
                     </td>
-                    <td className="px-3 sm:px-4 py-2 sm:py-3 text-gray-300 text-xs sm:text-sm">
+                    <td className="px-3 sm:px-4 py-2 sm:py-3 text-gray-700 text-xs sm:text-sm">
                       {leaveTypeLabelForRow(row)}
                     </td>
-                    <td className="px-3 sm:px-4 py-2 sm:py-3 text-gray-300 text-xs sm:text-sm">{formatThaiDate(row.start_date)}</td>
-                    <td className="px-3 sm:px-4 py-2 sm:py-3 text-gray-300 text-xs sm:text-sm">{formatThaiDate(row.end_date)}</td>
+                    <td className="px-3 sm:px-4 py-2 sm:py-3 text-gray-700 text-xs sm:text-sm">{formatThaiDate(row.start_date)}</td>
+                    <td className="px-3 sm:px-4 py-2 sm:py-3 text-gray-700 text-xs sm:text-sm">{formatThaiDate(row.end_date)}</td>
                     <td
                       className="px-3 sm:px-4 py-2 sm:py-3 text-gray-400 text-xs max-w-[200px]"
                       title={(row.status === 'cancel_requested' ? row.cancel_reason : stripWfhSwapTag(row.reason)) || ''}
@@ -607,12 +607,12 @@ const AdminLeaveManagePage: React.FC = () => {
           </>
         )}
 
-        <section className="rounded-2xl border border-white/10 bg-white/5 p-4 sm:p-6">
-          <h3 className="font-bold text-gray-300 mb-1">สรุปการลา (รายคน)</h3>
+        <section className="rounded-2xl border border-[#D6D4CC] bg-white p-4 sm:p-6">
+          <h3 className="font-bold text-gray-700 mb-1">สรุปการลา (รายคน)</h3>
           <p className="text-xs text-gray-500 mb-3">นับเฉพาะใบลาที่ `อนุมัติแล้ว` ภายในปีปัจจุบัน แยกตามประเภทการลา</p>
 
           {approvedSummaryLoading ? (
-            <div className="min-h-[80px] rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-gray-500 text-xs">
+            <div className="min-h-[80px] rounded-xl bg-white border border-[#D6D4CC] flex items-center justify-center text-gray-500 text-xs">
               กำลังโหลด...
             </div>
           ) : approvedSummaryError ? (
@@ -620,14 +620,14 @@ const AdminLeaveManagePage: React.FC = () => {
               {approvedSummaryError}
             </div>
           ) : approvedSummaryRows.length === 0 ? (
-            <div className="min-h-[80px] rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-gray-500 text-xs p-4 text-center">
+            <div className="min-h-[80px] rounded-xl bg-white border border-[#D6D4CC] flex items-center justify-center text-gray-500 text-xs p-4 text-center">
               ยังไม่มีข้อมูลใบลา approved
             </div>
           ) : (
-            <div className="rounded-xl border border-white/10 overflow-x-auto -mx-1 sm:mx-0">
+            <div className="rounded-xl border border-[#D6D4CC] overflow-x-auto -mx-1 sm:mx-0">
               <table className="w-full text-left text-xs min-w-[680px]">
                 <thead>
-                  <tr className="border-b border-white/10 bg-white/5">
+                  <tr className="border-b border-[#D6D4CC] bg-white">
                     <th className="px-2 py-2 font-semibold text-gray-400">ผู้ลา</th>
                     {LEAVE_TYPES.map((t) => (
                       <th key={t.id} className="px-2 py-2 font-semibold text-gray-400">
@@ -638,8 +638,8 @@ const AdminLeaveManagePage: React.FC = () => {
                 </thead>
                 <tbody>
                   {approvedSummaryRows.map((row) => (
-                    <tr key={row.user_email} className="border-b border-white/5 hover:bg-white/5">
-                      <td className="px-2 py-2 text-gray-300 whitespace-nowrap">
+                    <tr key={row.user_email} className="border-b border-gray-100 hover:bg-white">
+                      <td className="px-2 py-2 text-gray-700 whitespace-nowrap">
                         {row.user_display_name || row.user_email}
                       </td>
                       {LEAVE_TYPES.map((t) => (
@@ -657,10 +657,10 @@ const AdminLeaveManagePage: React.FC = () => {
           )}
         </section>
 
-        <section className="rounded-2xl border border-white/10 bg-white/5 p-4 sm:p-6">
-          <h3 className="font-bold text-gray-300 mb-2">Leave Debug Logs</h3>
+        <section className="rounded-2xl border border-[#D6D4CC] bg-white p-4 sm:p-6">
+          <h3 className="font-bold text-gray-700 mb-2">Leave Debug Logs</h3>
           <p className="text-xs text-gray-500 mb-3">แสดง log เฉพาะตอนแอดมินทำการอนุมัติ/ไม่อนุมัติ (ไม่ใช่ console)</p>
-          <div className="max-h-64 overflow-auto rounded-xl bg-black/30 border border-white/10 p-3 font-mono text-[11px] text-gray-300 space-y-2">
+          <div className="max-h-64 overflow-auto rounded-xl bg-gray-100 border border-[#D6D4CC] p-3 font-mono text-[11px] text-gray-700 space-y-2">
             {debugLogs.length === 0 ? (
               <div className="text-gray-500">ยังไม่มี log</div>
             ) : (

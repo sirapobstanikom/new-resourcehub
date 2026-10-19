@@ -80,22 +80,22 @@ const INTRO_BODY = (
     <p className="mb-4 text-gray-400 text-sm leading-relaxed">
       แต่ละส่วนคำนวณจากข้อที่กำหนด รวมคะแนนได้ 5–25 คะแนน
     </p>
-    <div className="rounded-xl border border-white/10 overflow-hidden text-left text-xs mb-4">
-      <div className="grid grid-cols-2 bg-white/10 px-3 py-2 font-semibold text-white">
+    <div className="rounded-xl border border-gray-200 overflow-hidden text-left text-xs mb-4">
+      <div className="grid grid-cols-2 bg-yellow-50 px-3 py-2 font-semibold text-gray-800">
         <span>คะแนน</span>
         <span>ความหมาย</span>
       </div>
       {([1, 2, 3, 4, 5] as const).map((s) => (
-        <div key={s} className="grid grid-cols-2 border-t border-white/10 px-3 py-2 text-gray-300">
+        <div key={s} className="grid grid-cols-2 border-t border-yellow-100 px-3 py-2 text-gray-700">
           <span className="tabular-nums text-yellow-400/90 font-bold">{s}</span>
           <span>{KP_SCALE_LABELS[s]}</span>
         </div>
       ))}
     </div>
-    <div className="rounded-xl border border-white/10 overflow-hidden text-left text-xs">
-      <div className="bg-white/10 px-3 py-2 font-semibold text-white">ช่วงคะแนนต่อส่วน (5–25)</div>
+    <div className="rounded-xl border border-gray-200 overflow-hidden text-left text-xs">
+      <div className="bg-yellow-50 px-3 py-2 font-semibold text-gray-800">ช่วงคะแนนต่อส่วน (5–25)</div>
       {KP_SCORE_BANDS.map((b) => (
-        <div key={b.id} className="border-t border-white/10 px-3 py-2 text-gray-300">
+        <div key={b.id} className="border-t border-yellow-100 px-3 py-2 text-gray-700">
           <span className="tabular-nums text-yellow-400/90 font-bold">
             {b.min}–{b.max}
           </span>
@@ -328,7 +328,7 @@ const KeyPrinciplesAssessment: React.FC = () => {
       const canvas = await html2canvas(el, {
         useCORS: true,
         allowTaint: true,
-        backgroundColor: '#0a0a0a',
+        backgroundColor: '#F3F2ED',
         scale,
         logging: false,
         scrollX: 0,
@@ -435,16 +435,15 @@ const KeyPrinciplesAssessment: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-transparent text-white bg-grid flex flex-col selection:bg-yellow-400 selection:text-black">
+    <div className="md-page">
       {showIntroModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" aria-modal="true" role="dialog">
           <div
-            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            className="absolute inset-0 bg-white/95 backdrop-blur-sm"
             onClick={handleCloseIntroAndStart}
             aria-hidden="true"
           />
-          <div className="relative w-full max-w-lg rounded-3xl border border-white/20 bg-gradient-to-b from-neutral-900/95 to-black/95 shadow-2xl shadow-yellow-400/10 overflow-hidden max-h-[90vh] overflow-y-auto kp-scale-in">
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(250,204,21,0.12),transparent)] pointer-events-none" />
+          <div className="relative w-full max-w-lg rounded-3xl border border-yellow-200 bg-white shadow-2xl shadow-yellow-900/10 overflow-hidden max-h-[90vh] overflow-y-auto kp-scale-in">
             <div className="relative p-8 md:p-10 text-center">
               <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-yellow-400/20 border border-yellow-400/35 flex items-center justify-center">
                 <span className="text-3xl" aria-hidden>
@@ -452,7 +451,7 @@ const KeyPrinciplesAssessment: React.FC = () => {
                 </span>
               </div>
               <p className="text-[10px] uppercase tracking-widest text-yellow-400/90 mb-2">{SUBTITLE}</p>
-              <h2 className="text-xl md:text-2xl font-black text-white tracking-tight mb-4">{ASSESSMENT_TITLE}</h2>
+              <h2 className="text-xl md:text-2xl font-black text-gray-900 tracking-tight mb-4">{ASSESSMENT_TITLE}</h2>
               <div className="text-sm md:text-base mb-8 text-left">{INTRO_BODY}</div>
               <button
                 type="button"
@@ -468,7 +467,7 @@ const KeyPrinciplesAssessment: React.FC = () => {
 
       <header className="flex justify-between items-center px-6 py-6 max-w-4xl mx-auto w-full">
         <Link to="/" className="flex items-center gap-3">
-          <BrandLogo className="text-[28px]" />
+          <BrandLogo className="text-[28px]" tone="dark" />
         </Link>
         {step === 'assessment' && (
           <span className="text-gray-500 text-sm font-medium">
@@ -517,14 +516,14 @@ const KeyPrinciplesAssessment: React.FC = () => {
                   <div
                     key={num}
                     id={`kp-question-${num}`}
-                    className={`kp-fade-up rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.06] to-transparent p-5 md:p-6 space-y-4 shadow-lg shadow-black/25 scroll-mt-28 transition-colors hover:border-white/15 ${
+                    className={`kp-fade-up rounded-2xl border border-gray-200 bg-gradient-to-br from-white/[0.06] to-transparent p-5 md:p-6 space-y-4 shadow-lg shadow-black/25 scroll-mt-28 transition-colors hover:border-gray-200 ${
                       qi === 0 ? '' : qi === 1 ? 'kp-delay-1' : qi === 2 ? 'kp-delay-2' : qi === 3 ? 'kp-delay-3' : 'kp-delay-4'
                     }`}
                   >
                     <p className="text-xs font-bold text-yellow-400/90 uppercase tracking-widest">
                       ข้อที่ {num} / {totalQuestions}
                     </p>
-                    <p className="text-white text-sm md:text-base leading-relaxed font-medium">{q.text}</p>
+                    <p className="text-gray-900 text-sm md:text-base leading-relaxed font-medium">{q.text}</p>
                     <div className="flex flex-col gap-2">
                       <p className="text-xs text-gray-500">ให้คะแนน 1–5</p>
                       <div className="flex flex-wrap gap-2">
@@ -536,8 +535,8 @@ const KeyPrinciplesAssessment: React.FC = () => {
                             title={KP_SCALE_LABELS[v]}
                             className={`min-w-[2.75rem] px-3 py-2 rounded-xl text-sm font-bold border-2 transition-all duration-200 hover:scale-105 active:scale-95 ${
                               answers[num] === v
-                                ? 'kp-rating-pop bg-yellow-400/25 border-yellow-400 text-white shadow-md shadow-yellow-400/20'
-                                : 'bg-white/5 border-white/10 text-gray-400 hover:border-yellow-400/40 hover:text-gray-200'
+                                ? 'kp-rating-pop bg-yellow-50 border-yellow-400 text-gray-900 shadow-md shadow-yellow-400/20'
+                                : 'bg-white border-gray-200 text-gray-500 hover:border-yellow-400/40 hover:text-gray-800'
                             }`}
                           >
                             {v}
@@ -558,7 +557,7 @@ const KeyPrinciplesAssessment: React.FC = () => {
                 type="button"
                 onClick={handlePrevPage}
                 disabled={pageIndex === 0}
-                className="px-5 py-2.5 rounded-xl font-bold border border-white/10 text-gray-400 hover:bg-white/5 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                className="md-btn-ghost disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 ← ก่อนหน้า
               </button>

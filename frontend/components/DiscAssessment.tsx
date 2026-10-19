@@ -1,7 +1,13 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import BrandLogo from './BrandLogo';
-import { DISC_DESCRIPTIONS, DISC_LABELS, DISC_QUESTIONS, type DiscRating, type DiscStatement, type DiscType } from '../data/discData';
+import {
+  DISC_DESCRIPTIONS,
+  DISC_LABELS,
+  DISC_QUESTIONS,
+  type DiscRating,
+  type DiscType,
+} from '../data/discData';
 import { isSupabaseConfigured, supabase } from '../lib/supabase';
 import { Chart } from 'react-google-charts';
 import { getDiscFeedback } from '../services/openai';
@@ -475,17 +481,31 @@ const DiscAssessment: React.FC = () => {
   }, [aiFeedback, aiLoading, primaryType, ranking, scores, user.company, user.email, user.name]);
 
   const typeStyle: Record<DiscType, string> = {
-    D: 'bg-rose-400/15 border-rose-300/30 text-rose-200',
-    I: 'bg-amber-400/15 border-amber-300/30 text-amber-200',
-    S: 'bg-emerald-400/15 border-emerald-300/30 text-emerald-200',
-    C: 'bg-sky-400/15 border-sky-300/30 text-sky-200',
+    D: 'bg-rose-100 border-rose-300 text-rose-700',
+    I: 'bg-amber-100 border-amber-300 text-amber-800',
+    S: 'bg-emerald-100 border-emerald-300 text-emerald-800',
+    C: 'bg-sky-100 border-sky-300 text-sky-800',
+  };
+
+  const typeSolid: Record<DiscType, string> = {
+    D: 'bg-rose-500 border-rose-600 text-white shadow-rose-500/25',
+    I: 'bg-amber-500 border-amber-600 text-white shadow-amber-500/25',
+    S: 'bg-emerald-500 border-emerald-600 text-white shadow-emerald-500/25',
+    C: 'bg-sky-500 border-sky-600 text-white shadow-sky-500/25',
+  };
+
+  const typeBar: Record<DiscType, string> = {
+    D: 'bg-rose-500',
+    I: 'bg-amber-500',
+    S: 'bg-emerald-500',
+    C: 'bg-sky-500',
   };
 
   const dotColor: Record<DiscType, string> = {
-    D: 'bg-rose-300',
-    I: 'bg-amber-300',
-    S: 'bg-emerald-300',
-    C: 'bg-sky-300',
+    D: 'bg-rose-500',
+    I: 'bg-amber-500',
+    S: 'bg-emerald-500',
+    C: 'bg-sky-500',
   };
 
   const DISC_PIE_COLORS: Record<DiscType, string> = {
@@ -641,7 +661,7 @@ const DiscAssessment: React.FC = () => {
         ? await html2canvas(el, {
             useCORS: true,
             allowTaint: true,
-            backgroundColor: '#0a0a0a',
+            backgroundColor: '#F3F2ED',
             scale: 2,
             logging: false,
             scrollX: 0,
@@ -652,7 +672,7 @@ const DiscAssessment: React.FC = () => {
         : await html2canvas(el, {
             useCORS: true,
             allowTaint: true,
-            backgroundColor: '#0a0a0a',
+            backgroundColor: '#F3F2ED',
             scale: Math.min(2, window.devicePixelRatio || 1.5),
             logging: false,
             windowHeight: el.scrollHeight,
@@ -842,37 +862,28 @@ const DiscAssessment: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-transparent text-white bg-grid flex flex-col selection:bg-yellow-400 selection:text-black">
+    <div className="md-page">
       {showIntroModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" aria-modal="true" role="dialog">
           <div
-            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/30 backdrop-blur-sm"
             onClick={handleCloseIntroAndStartAssessment}
             aria-hidden="true"
           />
-          <div className="relative w-full max-w-lg rounded-3xl border border-white/20 bg-gradient-to-b from-neutral-900/95 to-black/95 shadow-2xl shadow-yellow-400/10 overflow-hidden">
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(250,204,21,0.12),transparent)] pointer-events-none" />
-            <div className="relative p-8 md:p-10 text-center">
-              <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-yellow-400/20 border border-yellow-400/30 flex items-center justify-center">
-                <span className="text-3xl" aria-hidden>
-                  🧠
-                </span>
+          <div className="relative w-full max-w-lg overflow-hidden rounded-3xl border border-[#D6D4CC] bg-white shadow-2xl">
+            <div className="relative p-8 text-center md:p-10">
+              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#FFCC00] text-3xl shadow-md shadow-yellow-400/40">
+                <span aria-hidden>🧠</span>
               </div>
-              <h2 className="text-2xl md:text-3xl font-black text-white tracking-tight mb-4">แบบทดสอบ DISC</h2>
-              <div className="text-sm md:text-base leading-relaxed mb-8 text-gray-400">
-                แบบทดสอบนี้มี <span className="text-yellow-400 font-bold">40 ข้อ</span> (หมายเลข 1–40)
-                ให้คุณ <span className="text-yellow-400 font-bold">จัดอันดับคะแนน 1–4</span> โดย
-                <span className="text-yellow-400 font-bold"> ห้ามใช้เลขซ้ำกันในแต่ละหน้าจอ (ชุด 4 ข้อความ)</span>
-                (1 = ทำน้อยที่สุด, 4 = ทำบ่อยครั้งที่สุด)
-                <div className="mt-3 text-gray-500">
-                  เมื่อทำครบ 40 ข้อ ระบบจะสรุปบุคลิกภาพหลักของคุณเป็น D / I / S / C
-                </div>
+              <h2 className="mb-4 text-2xl font-black tracking-tight text-gray-950 md:text-3xl">แบบทดสอบ DISC</h2>
+              <div className="mb-8 text-sm leading-relaxed text-gray-600 md:text-base">
+                แบบทดสอบนี้มี <span className="font-bold text-gray-900">40 ข้อ</span> (หมายเลข 1–40) ให้คุณ{' '}
+                <span className="font-bold text-gray-900">จัดอันดับคะแนน 1–4</span> โดย
+                <span className="font-bold text-gray-900"> ห้ามใช้เลขซ้ำกันในแต่ละหน้าจอ</span> (1 = ทำน้อยที่สุด, 4 =
+                ทำบ่อยครั้งที่สุด)
+                <div className="mt-3 text-gray-500">เมื่อทำครบ ระบบจะสรุปบุคลิกภาพหลักของคุณเป็น D / I / S / C</div>
               </div>
-              <button
-                type="button"
-                onClick={handleCloseIntroAndStartAssessment}
-                className="w-full py-3.5 px-6 rounded-xl font-bold bg-yellow-400 text-black hover:bg-yellow-300 shadow-lg shadow-yellow-400/25 transition-all"
-              >
+              <button type="button" onClick={handleCloseIntroAndStartAssessment} className="md-btn-primary w-full !rounded-xl !py-3.5">
                 เริ่มทำแบบทดสอบ
               </button>
             </div>
@@ -880,220 +891,165 @@ const DiscAssessment: React.FC = () => {
         </div>
       )}
 
-      <header className="flex justify-between items-center px-6 py-6 max-w-4xl mx-auto w-full">
-        <Link to="/" className="flex items-center gap-3">
-          <BrandLogo className="text-[28px]" />
-        </Link>
-
-        {step === 'assessment' && (
-          <span className="text-gray-500 text-sm font-medium">
-            ข้อ {statementRange.start} - {statementRange.end} / {totalStatements}
-          </span>
-        )}
+      <header className="sticky top-0 z-30 border-b border-[#D6D4CC] bg-[#F3F2ED]/95 backdrop-blur-md">
+        <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-4 px-5 py-4">
+          <Link to="/" className="flex items-center gap-3">
+            <BrandLogo className="text-[26px]" tone="dark" />
+          </Link>
+          <div className="flex items-center gap-3">
+            {step === 'assessment' && (
+              <span className="rounded-full border border-[#D6D4CC] bg-white px-3 py-1 text-xs font-bold text-gray-800">
+                ข้อ {statementRange.start}–{statementRange.end} / {totalStatements}
+              </span>
+            )}
+            {step === 'login' && (
+              <span className="hidden text-xs font-bold uppercase tracking-[0.14em] text-[#9A7200] sm:inline">
+                Personality · DISC
+              </span>
+            )}
+          </div>
+        </div>
       </header>
 
       <main
-        className={`flex-1 px-4 sm:px-6 py-6 sm:py-10 mx-auto w-full ${
-          step === 'login' ? 'max-w-5xl' : 'max-w-2xl'
+        className={`mx-auto w-full flex-1 px-4 py-8 sm:px-6 sm:py-12 ${
+          step === 'login' ? 'max-w-5xl' : step === 'result' ? 'max-w-4xl' : 'max-w-2xl'
         }`}
       >
         {step === 'login' && (
           <div className="w-full">
-            <div className="grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] gap-10 lg:gap-14 items-start">
-              {/* ซ้าย: ภาพรวม + DISC */}
-              <div className="order-2 lg:order-1 space-y-6 text-center lg:text-left">
-                <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-zinc-400">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400/90 animate-pulse" aria-hidden />
-                  DISC Personality Assessment
-                </div>
-
-                <div className="flex justify-center lg:justify-start gap-2 sm:gap-3">
-                  {(
-                    [
-                      { ch: 'D', className: 'from-rose-500/25 to-rose-600/5 border-rose-400/35 text-rose-200' },
-                      { ch: 'I', className: 'from-amber-400/25 to-amber-500/5 border-amber-300/35 text-amber-200' },
-                      { ch: 'S', className: 'from-emerald-500/25 to-emerald-600/5 border-emerald-400/35 text-emerald-200' },
-                      { ch: 'C', className: 'from-sky-500/25 to-sky-600/5 border-sky-400/35 text-sky-200' },
-                    ] as const
-                  ).map(({ ch, className }) => (
-                    <div
-                      key={ch}
-                      className={`flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-2xl border bg-gradient-to-b text-2xl sm:text-3xl font-black tracking-tight shadow-lg shadow-black/20 ${className}`}
-                    >
-                      {ch}
-                    </div>
-                  ))}
-                </div>
-
-                <div>
-                  <h1 className="text-3xl sm:text-4xl lg:text-[2.65rem] font-black tracking-tight text-white leading-[1.1]">
-                    ลงทะเบียน
-                    <span className="text-yellow-400"> DISC</span>
-                  </h1>
-                  <p className="mt-3 text-zinc-400 text-sm sm:text-base leading-relaxed max-w-xl mx-auto lg:mx-0">
-                    แบบทดสอบบุคลิกภาพตามหลัก DISC Model — 40 ข้อ ให้คุณจัดอันดับคะแนน 1–4 แบบไม่ซ้ำในชุด 4 ข้อความ
-                  </p>
-                </div>
-
-                <ol className="grid gap-3 text-left max-w-xl mx-auto lg:mx-0">
-                  {[
-                    { n: '01', t: 'กรอกข้อมูลผู้ทำแบบทดสอบ', d: 'ใช้สำหรับอ้างอิงผลและติดต่อกลับได้' },
-                    { n: '02', t: 'อ่านวิธีทำในป๊อปอัพ', d: 'สั้น ๆ ก่อนเริ่มตอบจริง' },
-                    { n: '03', t: 'เริ่มทำแบบทดสอบ', d: 'ใช้เวลาประมาณ 5–8 นาที' },
-                  ].map((row) => (
-                    <li
-                      key={row.n}
-                      className="flex gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3"
-                    >
-                      <span className="mt-0.5 inline-flex h-8 w-10 shrink-0 items-center justify-center rounded-xl bg-yellow-400/15 text-xs font-bold text-yellow-300">
-                        {row.n}
-                      </span>
-                      <span>
-                        <span className="block text-sm font-semibold text-zinc-100">{row.t}</span>
-                        <span className="block text-xs text-zinc-500 mt-0.5">{row.d}</span>
-                      </span>
-                    </li>
-                  ))}
-                </ol>
-              </div>
-
-              {/* ขวา: ฟอร์ม */}
-              <div className="order-1 lg:order-2 w-full">
-                <div className="relative">
+            <div className="mb-10 text-center">
+              <p className="text-[11px] font-extrabold uppercase tracking-[0.22em] text-[#9A7200]">01 / Register</p>
+              <h1 className="mt-2 text-3xl font-black tracking-tight text-gray-950 sm:text-4xl">
+                ลงทะเบียนแบบทดสอบ{' '}
+                <span className="relative inline-block">
+                  DISC
+                  <span className="absolute inset-x-0 bottom-1 -z-10 h-3 rounded-sm bg-[#FFCC00]" aria-hidden />
+                </span>
+              </h1>
+              <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-gray-600 sm:text-base">
+                40 ข้อ · จัดอันดับ 1–4 ในแต่ละชุด · ใช้เวลาประมาณ 5–8 นาที
+              </p>
+              <div className="mt-6 flex flex-wrap items-center justify-center gap-2.5">
+                {(
+                  [
+                    { ch: 'D', label: 'มุ่งมั่น', cls: 'bg-rose-600 text-white shadow-lg shadow-rose-600/35' },
+                    { ch: 'I', label: 'มีอิทธิพล', cls: 'bg-amber-500 text-white shadow-lg shadow-amber-500/35' },
+                    { ch: 'S', label: 'มั่นคง', cls: 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/35' },
+                    { ch: 'C', label: 'รอบคอบ', cls: 'bg-sky-600 text-white shadow-lg shadow-sky-600/35' },
+                  ] as const
+                ).map(({ ch, label, cls }) => (
                   <div
-                    className="absolute -inset-px rounded-[1.35rem] bg-gradient-to-br from-yellow-400/35 via-white/10 to-transparent opacity-80 blur-[1px]"
-                    aria-hidden
-                  />
-                  <div className="relative rounded-[1.3rem] border border-white/15 bg-gradient-to-b from-zinc-900/90 to-black/70 backdrop-blur-xl shadow-2xl shadow-black/40 p-6 sm:p-8">
-                    <div className="flex items-start justify-between gap-4 mb-6">
-                      <div>
-                        <h2 className="text-lg sm:text-xl font-bold text-white">ข้อมูลผู้ทำแบบทดสอบ</h2>
-                        <p className="text-xs sm:text-sm text-zinc-500 mt-1">
-                          กรอกให้ครบ แล้วกดปุ่มด้านล่างเพื่อไปขั้นตอนถัดไป
-                        </p>
-                      </div>
-                      <div className="hidden sm:flex flex-col items-end text-[10px] text-zinc-500 leading-tight">
-                        <span>ขั้นตอนที่ 1 / 3</span>
-                        <span className="text-yellow-400/90 font-semibold">ลงทะเบียน</span>
-                      </div>
-                    </div>
+                    key={ch}
+                    className={`flex min-w-[4.5rem] flex-col items-center rounded-2xl px-3 py-2.5 shadow-md ${cls}`}
+                  >
+                    <span className="text-2xl font-black leading-none">{ch}</span>
+                    <span className="mt-1 text-[10px] font-bold opacity-90">{label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
 
-                    <form onSubmit={handleStartFromLogin} className="space-y-4 sm:space-y-5">
-                      <div>
-                        <label htmlFor="disc-name" className="block text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-2">
-                          ชื่อ–นามสกุล
-                        </label>
-                        <div className="relative">
-                          <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500" aria-hidden>
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                            </svg>
-                          </span>
-                          <input
-                            id="disc-name"
-                            type="text"
-                            autoComplete="name"
-                            value={user.name}
-                            onChange={(e) => setUser((u) => ({ ...u, name: e.target.value }))}
-                            placeholder="เช่น สมชาย ใจดี"
-                            required
-                            className="w-full pl-11 pr-4 py-3.5 rounded-xl bg-black/40 border border-white/10 text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-yellow-400/40 focus:border-yellow-400/60 transition-shadow"
-                          />
-                        </div>
-                      </div>
+            <div className="mx-auto grid max-w-4xl gap-6 lg:grid-cols-[0.9fr_1.1fr] lg:items-stretch">
+              <ol className="md-card flex flex-col justify-center gap-3 p-5 sm:p-6">
+                {[
+                  { n: '01', t: 'กรอกข้อมูล', d: 'ชื่อ อีเมล และองค์กร' },
+                  { n: '02', t: 'อ่านวิธีทำ', d: 'ป๊อปอัพสั้น ๆ ก่อนเริ่ม' },
+                  { n: '03', t: 'ทำแบบทดสอบ', d: '10 ชุด · ชุดละ 4 ข้อความ' },
+                  { n: '04', t: 'ดูผล + AI', d: 'สรุปบุคลิกภาพหลักทันที' },
+                ].map((row) => (
+                  <li key={row.n} className="flex items-start gap-3 rounded-xl bg-[#F3F2ED] px-3.5 py-3">
+                    <span className="inline-flex h-8 w-9 shrink-0 items-center justify-center rounded-lg bg-[#FFCC00] text-xs font-black text-black">
+                      {row.n}
+                    </span>
+                    <span>
+                      <span className="block text-sm font-bold text-gray-950">{row.t}</span>
+                      <span className="mt-0.5 block text-xs text-gray-600">{row.d}</span>
+                    </span>
+                  </li>
+                ))}
+              </ol>
 
-                      <div>
-                        <label htmlFor="disc-email" className="block text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-2">
-                          อีเมล
-                        </label>
-                        <div className="relative">
-                          <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500" aria-hidden>
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                            </svg>
-                          </span>
-                          <input
-                            id="disc-email"
-                            type="email"
-                            autoComplete="email"
-                            value={user.email}
-                            onChange={(e) => setUser((u) => ({ ...u, email: e.target.value }))}
-                            placeholder="your@email.com"
-                            required
-                            className="w-full pl-11 pr-4 py-3.5 rounded-xl bg-black/40 border border-white/10 text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-yellow-400/40 focus:border-yellow-400/60 transition-shadow"
-                          />
-                        </div>
-                      </div>
-
-                      <div>
-                        <label htmlFor="disc-company" className="block text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-2">
-                          บริษัท / องค์กร
-                        </label>
-                        <div className="relative">
-                          <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500" aria-hidden>
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                            </svg>
-                          </span>
-                          <input
-                            id="disc-company"
-                            type="text"
-                            autoComplete="organization"
-                            value={user.company}
-                            onChange={(e) => setUser((u) => ({ ...u, company: e.target.value }))}
-                            placeholder="ชื่อบริษัทหรือหน่วยงาน"
-                            required
-                            className="w-full pl-11 pr-4 py-3.5 rounded-xl bg-black/40 border border-white/10 text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-yellow-400/40 focus:border-yellow-400/60 transition-shadow"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-xs text-zinc-500 leading-relaxed">
-                        หลังกดปุ่ม ระบบจะเปิดหน้าต่างอธิบายวิธีทำแบบทดสอบสั้น ๆ ก่อนเริ่มตอบจริง
-                      </div>
-
-                      <button
-                        type="submit"
-                        className="group w-full py-3.5 sm:py-4 rounded-xl font-bold bg-yellow-400 text-black hover:bg-yellow-300 shadow-lg shadow-yellow-400/25 transition-all active:scale-[0.99] flex items-center justify-center gap-2"
-                      >
-                        <span>ดำเนินการต่อ</span>
-                        <svg className="w-5 h-5 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                        </svg>
-                      </button>
-
-                      <p className="text-center text-[11px] text-zinc-600">
-                        ข้อมูลใช้เพื่อแสดงในหน้าสรุปผลเท่านั้น — ไม่แชร์ต่อโดยไม่ได้รับอนุญาต
-                      </p>
-                    </form>
+              <div className="md-card p-6 sm:p-8">
+                <div className="mb-6 flex items-start justify-between gap-4">
+                  <div>
+                    <h2 className="text-xl font-black text-gray-950">ข้อมูลผู้ทำแบบทดสอบ</h2>
+                    <p className="mt-1 text-sm text-gray-600">กรอกให้ครบเพื่อไปขั้นตอนถัดไป</p>
+                  </div>
+                  <div className="hidden shrink-0 flex-col items-end sm:flex">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">ขั้นตอนที่ 1 / 3</span>
+                    <span className="mt-0.5 text-xs font-bold text-[#9A7200]">ลงทะเบียน</span>
                   </div>
                 </div>
+
+                <form onSubmit={handleStartFromLogin} className="space-y-4">
+                  {(
+                    [
+                      { id: 'disc-name', label: 'ชื่อ–นามสกุล', type: 'text', autoComplete: 'name', key: 'name' as const, ph: 'เช่น สมชาย ใจดี' },
+                      { id: 'disc-email', label: 'อีเมล', type: 'email', autoComplete: 'email', key: 'email' as const, ph: 'your@email.com' },
+                      { id: 'disc-company', label: 'บริษัท / องค์กร', type: 'text', autoComplete: 'organization', key: 'company' as const, ph: 'ชื่อบริษัทหรือหน่วยงาน' },
+                    ] as const
+                  ).map((f) => (
+                    <label key={f.id} htmlFor={f.id} className="block">
+                      <span className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-gray-700">{f.label}</span>
+                      <input
+                        id={f.id}
+                        type={f.type}
+                        autoComplete={f.autoComplete}
+                        value={user[f.key]}
+                        onChange={(e) => setUser((u) => ({ ...u, [f.key]: e.target.value }))}
+                        placeholder={f.ph}
+                        required
+                        className="md-input"
+                      />
+                    </label>
+                  ))}
+
+                  <p className="rounded-xl border border-[#D6D4CC] bg-[#F3F2ED] px-4 py-3 text-xs leading-relaxed text-gray-600">
+                    หลังกดปุ่ม ระบบจะเปิดหน้าต่างอธิบายวิธีทำแบบทดสอบสั้น ๆ ก่อนเริ่มตอบจริง
+                  </p>
+
+                  <button type="submit" className="md-btn-primary group w-full !rounded-xl !py-3.5">
+                    ดำเนินการต่อ →
+                  </button>
+                  <p className="text-center text-[11px] text-gray-500">
+                    ข้อมูลใช้เพื่อแสดงในหน้าสรุปผลเท่านั้น — ไม่แชร์ต่อโดยไม่ได้รับอนุญาต
+                  </p>
+                </form>
               </div>
             </div>
           </div>
         )}
 
         {step === 'assessment' && currentQuestion && (
-          <div key={currentQuestion.id} className="w-full space-y-8 disc-animate-enter">
-            <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
-              <div
-                className="h-full bg-yellow-400 rounded-full transition-all duration-300"
-                style={{ width: `${progress}%` }}
-              />
+          <div key={currentQuestion.id} className="w-full space-y-6 disc-animate-enter">
+            <div>
+              <div className="mb-2 flex items-center justify-between text-xs font-bold text-gray-700">
+                <span>
+                  ชุดที่ {currentIndex + 1} / {totalBigQuestions}
+                </span>
+                <span>{Math.round(progress)}%</span>
+              </div>
+              <div className="h-2.5 overflow-hidden rounded-full bg-[#E8E6DF]">
+                <div
+                  className="h-full rounded-full bg-[#FFCC00] transition-all duration-300"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
             </div>
 
-            <div className="space-y-5">
-              <p className="text-xs font-bold text-yellow-400/90 uppercase tracking-widest">
-                ข้อ {statementRange.start} - {statementRange.end} / {totalStatements}
+            <div className="md-card space-y-2 p-5">
+              <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-[#9A7200]">
+                ข้อ {statementRange.start}–{statementRange.end}
               </p>
-
-              <p className="text-gray-500 text-sm leading-relaxed">
-                จัดอันดับคะแนน <span className="text-yellow-400 font-bold">1–4</span> ให้แต่ละข้อความในข้อเดียว
-                โดย <span className="text-yellow-400 font-bold">ห้ามซ้ำเลขกัน</span> (1 = ทำน้อยที่สุด, 4 = ทำบ่อยครั้งที่สุด)
+              <p className="text-sm leading-relaxed text-gray-700">
+                จัดอันดับคะแนน <span className="font-bold text-gray-950">1–4</span> ให้แต่ละข้อความ โดย{' '}
+                <span className="font-bold text-gray-950">ห้ามซ้ำเลขกัน</span>
+                <span className="mt-1 block text-xs text-gray-500">1 = ทำน้อยที่สุด · 4 = ทำบ่อยครั้งที่สุด</span>
               </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               {currentQuestion.statements.map((st, statementIdx) => {
                 const statementIndex = statementIdx as 0 | 1 | 2 | 3;
                 const qAnswer = getQuestionAnswer(currentQuestion.id);
@@ -1102,16 +1058,19 @@ const DiscAssessment: React.FC = () => {
                   lastRatingPop?.questionId === currentQuestion.id && lastRatingPop?.statementIndex === statementIndex;
 
                 return (
-                  <div
-                    key={`${currentQuestion.id}-${statementIdx}`}
-                    className="rounded-2xl border border-white/10 bg-white/5 p-5 space-y-4"
-                  >
-                    <p className="text-sm font-bold text-white/90 leading-relaxed">{st.text}</p>
+                  <div key={`${currentQuestion.id}-${statementIdx}`} className="md-card space-y-4 p-5">
+                    <div className="flex items-start gap-2.5">
+                      <span
+                        className={`mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-[11px] font-black ${typeStyle[st.type]}`}
+                      >
+                        {st.type}
+                      </span>
+                      <p className="text-sm font-bold leading-relaxed text-gray-950">{st.text}</p>
+                    </div>
                     <div className="grid grid-cols-4 gap-2">
                       {RATING_VALUES.map((rating) => {
                         const isSelected = selectedForThisStatement === rating;
-                        const isUsedElsewhere =
-                          !isSelected && usedRatingsInCurrentQuestion.has(rating);
+                        const isUsedElsewhere = !isSelected && usedRatingsInCurrentQuestion.has(rating);
                         const disabled = isUsedElsewhere;
                         const isRatingPop = isRatingPopStatement && lastRatingPop?.rating === rating;
 
@@ -1124,12 +1083,12 @@ const DiscAssessment: React.FC = () => {
                               handleSelectRating(statementIndex, rating);
                             }}
                             disabled={disabled}
-                            className={`px-2 py-2 rounded-xl border text-sm font-bold transition-all touch-manipulation ${
+                            className={`rounded-xl border py-2.5 text-sm font-black transition-all touch-manipulation ${
                               isSelected
-                                ? 'border-yellow-400 bg-yellow-400/20 text-white'
+                                ? 'border-black bg-[#FFCC00] text-black shadow-sm'
                                 : disabled
-                                  ? 'border-white/10 bg-white/5 text-gray-700/60 cursor-not-allowed'
-                                  : 'border-white/10 bg-white/5 text-gray-400 hover:border-white/20 hover:bg-white/10'
+                                  ? 'cursor-not-allowed border-[#E8E6DF] bg-[#F3F2ED] text-gray-400'
+                                  : 'border-[#D6D4CC] bg-white text-gray-800 hover:border-gray-400 hover:bg-gray-50'
                             } ${isRatingPop ? 'disc-rating-pop' : ''}`}
                             aria-pressed={isSelected}
                           >
@@ -1143,12 +1102,12 @@ const DiscAssessment: React.FC = () => {
               })}
             </div>
 
-            <div className="flex justify-between pt-2">
+            <div className="flex justify-between gap-3 pt-1">
               <button
                 type="button"
                 onClick={handlePrev}
                 disabled={currentIndex === 0}
-                className="px-5 py-2.5 rounded-xl font-bold border border-white/10 text-gray-400 hover:bg-white/5 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                className="md-btn-ghost !rounded-xl disabled:cursor-not-allowed disabled:opacity-40"
               >
                 ← ก่อนหน้า
               </button>
@@ -1156,7 +1115,7 @@ const DiscAssessment: React.FC = () => {
                 type="button"
                 onClick={handleNext}
                 disabled={!canNext}
-                className="px-6 py-2.5 rounded-xl font-bold bg-yellow-400 text-black hover:bg-yellow-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                className="md-btn-primary !rounded-xl disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {currentIndex < totalBigQuestions - 1 ? 'ถัดไป →' : 'ดูผลลัพธ์'}
               </button>
@@ -1165,32 +1124,33 @@ const DiscAssessment: React.FC = () => {
         )}
 
         {step === 'result' && (
-          <div ref={resultCardRef} className="w-full space-y-4 sm:space-y-6">
-            <section className="rounded-2xl sm:rounded-3xl border border-white/10 bg-gradient-to-br from-zinc-900/95 via-zinc-900/85 to-black/85 p-4 sm:p-8 shadow-2xl shadow-black/30 backdrop-blur-xl">
-              <p className="text-xs sm:text-sm font-semibold uppercase tracking-widest text-zinc-500">DISC Assessment Result</p>
-              <div className="mt-2 sm:mt-3 flex flex-col gap-3 sm:gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div ref={resultCardRef} className="w-full space-y-5">
+            <section className="md-card p-5 sm:p-8">
+              <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-[#9A7200]">DISC Assessment Result</p>
+              <div className="mt-3 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                 <div className="min-w-0">
-                  <h1 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-white leading-tight">
-                    ผลลัพธ์แบบทดสอบ <span className="text-yellow-400">DISC</span>
+                  <h1 className="text-2xl font-black leading-tight tracking-tight text-gray-950 sm:text-4xl">
+                    ผลลัพธ์แบบทดสอบ DISC
                   </h1>
-                  <p className="mt-1.5 text-xs sm:text-sm text-zinc-400 break-words">บุคลิกภาพหลักของคุณคือ {DISC_LABELS[primaryType]}</p>
+                  <p className="mt-2 text-sm text-gray-600">
+                    บุคลิกภาพหลักของคุณคือ <span className="font-bold text-gray-950">{DISC_LABELS[primaryType]}</span>
+                  </p>
+                  <p className="mt-2 text-sm leading-relaxed text-gray-600">{DISC_DESCRIPTIONS[primaryType]}</p>
                 </div>
-                <div className={`rounded-xl sm:rounded-2xl border px-4 py-2.5 sm:px-5 sm:py-3 ${typeStyle[primaryType]}`}>
-                  <div className="text-[11px] font-semibold uppercase tracking-widest text-zinc-400">Primary Score</div>
-                  <div className="text-2xl sm:text-3xl font-black text-white mt-0.5 sm:mt-1">{scores[primaryType]}</div>
+                <div className={`shrink-0 rounded-2xl border px-5 py-3 shadow-md ${typeSolid[primaryType]}`}>
+                  <div className="text-[11px] font-bold uppercase tracking-widest opacity-90">Primary · {primaryType}</div>
+                  <div className="mt-0.5 text-3xl font-black">{scores[primaryType]}</div>
                 </div>
               </div>
 
-              <div className="mt-4 sm:mt-5 flex flex-wrap items-center gap-2 sm:gap-3">
+              <div className="mt-5 flex flex-wrap items-center gap-2.5">
                 {(['D', 'I', 'S', 'C'] as DiscType[]).map((t) => {
                   const isPrimary = t === primaryType;
                   return (
                     <div
                       key={t}
-                      className={`h-12 w-12 sm:h-14 sm:w-14 rounded-xl sm:rounded-2xl border flex items-center justify-center font-black text-xl sm:text-2xl ${
-                        isPrimary
-                          ? 'bg-yellow-400/25 border-yellow-400/55 text-yellow-300 shadow-[0_0_40px_rgba(250,204,21,0.18)]'
-                          : typeStyle[t]
+                      className={`flex h-12 w-12 items-center justify-center rounded-2xl border text-xl font-black sm:h-14 sm:w-14 sm:text-2xl ${
+                        isPrimary ? `${typeSolid[t]} shadow-lg` : typeStyle[t]
                       }`}
                       title={DISC_LABELS[t]}
                     >
@@ -1199,24 +1159,13 @@ const DiscAssessment: React.FC = () => {
                   );
                 })}
               </div>
-
-              <div className="mt-4 grid grid-cols-2 gap-2 sm:hidden">
-                {(['D', 'I', 'S', 'C'] as DiscType[]).map((t) => (
-                  <div key={`mobile-chip-${t}`} className="rounded-xl border border-white/10 bg-black/20 px-3 py-2">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-xs font-semibold text-zinc-300">{t}</span>
-                      <span className="text-xs font-black text-yellow-400">{scores[t]}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
             </section>
 
-            <section className="grid lg:grid-cols-3 gap-4 sm:gap-5">
-              <div className="lg:col-span-2 rounded-2xl sm:rounded-3xl border border-white/10 bg-white/[0.03] p-4 sm:p-7 space-y-3 sm:space-y-4 backdrop-blur-xl">
+            <section className="grid gap-4 lg:grid-cols-3 sm:gap-5">
+              <div className="md-card space-y-4 p-5 sm:p-7 lg:col-span-2">
                 <div className="flex items-center justify-between gap-3">
-                  <p className="text-sm font-bold text-white/90">DISC Pie (เปอร์เซ็นต์)</p>
-                  <p className="text-[11px] sm:text-xs text-zinc-500">คะแนนรวมทั้ง 4 มิติ</p>
+                  <p className="text-sm font-bold text-gray-950">สัดส่วน 4 มิติ</p>
+                  <p className="text-xs text-gray-500">คะแนนรวมทั้งชุด</p>
                 </div>
 
                 <Chart
@@ -1226,42 +1175,44 @@ const DiscAssessment: React.FC = () => {
                   options={pieChartOptions}
                   width="100%"
                   height={220}
-                  loader={<div className="text-zinc-500 py-10 text-center text-sm">กำลังโหลดกราฟ...</div>}
+                  loader={<div className="py-10 text-center text-sm text-gray-500">กำลังโหลดกราฟ...</div>}
                 />
 
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                   {pieTypes.map((t) => {
                     const pct = pieTotal > 0 ? Math.round(((scores[t] ?? 0) / pieTotal) * 100) : 0;
                     return (
-                      <div key={t} className="rounded-xl border border-white/10 bg-black/20 px-3 py-2">
+                      <div key={t} className={`rounded-xl border px-3 py-2 ${typeStyle[t]}`}>
                         <div className="flex items-center justify-between gap-2">
-                          <span className="text-xs font-semibold text-zinc-300">{t}</span>
-                          <span className="text-xs font-black text-yellow-400">{pct}%</span>
+                          <span className="text-xs font-bold">{t}</span>
+                          <span className="text-xs font-black">{pct}%</span>
                         </div>
-                        <div className="mt-1 text-[11px] text-zinc-500 truncate">{DISC_LABELS[t]}</div>
+                        <div className="mt-1 truncate text-[11px] opacity-80">{DISC_LABELS[t].split(' ')[0]}</div>
                       </div>
                     );
                   })}
                 </div>
               </div>
 
-              <div className="rounded-2xl sm:rounded-3xl border border-white/10 bg-white/[0.03] p-4 sm:p-7 space-y-3 sm:space-y-4 backdrop-blur-xl">
-                <p className="text-sm font-bold text-white/90">คะแนนรายมิติ</p>
+              <div className="md-card space-y-4 p-5 sm:p-7">
+                <p className="text-sm font-bold text-gray-950">คะแนนรายมิติ</p>
                 {(['D', 'I', 'S', 'C'] as DiscType[]).map((type) => {
                   const pct = maxScore > 0 ? (scores[type] / maxScore) * 100 : 0;
                   const thaiLabel =
-                    type === 'D' ? 'มุ่งมั่น' :
-                    type === 'I' ? 'มีอิทธิพล' :
-                    type === 'S' ? 'มั่นคง' :
-                    'รอบคอบ';
+                    type === 'D' ? 'มุ่งมั่น' : type === 'I' ? 'มีอิทธิพล' : type === 'S' ? 'มั่นคง' : 'รอบคอบ';
                   return (
                     <div key={type} className="space-y-1.5">
                       <div className="flex items-center justify-between gap-2">
-                        <span className="text-[11px] sm:text-xs font-semibold text-zinc-300">{type} ({thaiLabel})</span>
-                        <span className="text-xs font-black text-yellow-400">{scores[type]}</span>
+                        <span className="text-xs font-bold text-gray-800">
+                          {type} · {thaiLabel}
+                        </span>
+                        <span className="text-xs font-black text-gray-950">{scores[type]}</span>
                       </div>
-                      <div className="h-2 rounded-full bg-white/10 overflow-hidden">
-                        <div className="h-full bg-yellow-400 rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
+                      <div className="h-2.5 overflow-hidden rounded-full bg-[#E8E6DF]">
+                        <div
+                          className={`h-full rounded-full transition-all duration-500 ${typeBar[type]}`}
+                          style={{ width: `${pct}%` }}
+                        />
                       </div>
                     </div>
                   );
@@ -1269,84 +1220,67 @@ const DiscAssessment: React.FC = () => {
               </div>
             </section>
 
-            <section className="rounded-2xl sm:rounded-3xl border border-white/10 bg-white/[0.03] p-4 sm:p-7 backdrop-blur-xl -mx-4 sm:mx-0">
-              <p className="text-sm font-bold text-white/90">AI Feedback</p>
-              <p className="text-xs text-zinc-500 mt-1">สรุปจากผล DISC: {primaryType} (คะแนนสูงสุด {scores[primaryType]})</p>
+            <section className="md-card p-5 sm:p-7">
+              <p className="text-sm font-bold text-gray-950">AI Feedback</p>
+              <p className="mt-1 text-xs text-gray-500">
+                สรุปจากผล DISC: {primaryType} (คะแนนสูงสุด {scores[primaryType]})
+              </p>
               <div className="mt-4">
                 {!aiFeedbackVisible ? (
-                  <button
-                    type="button"
-                    onClick={() => void handleRequestAiFeedback()}
-                    className="w-full sm:w-auto px-5 py-3 rounded-xl font-bold border border-yellow-400/40 bg-yellow-400/10 text-yellow-300 hover:bg-yellow-400/20 transition-all text-sm"
-                  >
+                  <button type="button" onClick={() => void handleRequestAiFeedback()} className="md-btn-primary !rounded-xl text-sm">
                     ดู AI Feedback
                   </button>
                 ) : aiLoading ? (
-                  <div className="text-sm text-zinc-400">กำลังสร้าง feedback...</div>
+                  <div className="text-sm text-gray-500">กำลังสร้าง feedback...</div>
                 ) : aiError ? (
                   <div className="space-y-3">
-                    <div className="text-sm text-red-300/90">{aiError}</div>
-                    <button
-                      type="button"
-                      onClick={() => void handleRequestAiFeedback()}
-                      className="px-4 py-2 rounded-xl text-sm font-bold border border-white/10 hover:bg-white/5 transition-all"
-                    >
+                    <div className="text-sm font-medium text-red-600">{aiError}</div>
+                    <button type="button" onClick={() => void handleRequestAiFeedback()} className="md-btn-ghost !rounded-xl text-sm">
                       ลองอีกครั้ง
                     </button>
                   </div>
                 ) : aiFeedback ? (
-                  <div className="whitespace-pre-wrap text-sm text-zinc-300 leading-relaxed break-words">
+                  <div className="whitespace-pre-wrap break-words text-sm leading-relaxed text-gray-700">
                     {aiDisplayText}
-                    {aiDisplayText.length < aiFeedback.length ? <span className="text-zinc-500">▋</span> : null}
+                    {aiDisplayText.length < aiFeedback.length ? <span className="text-gray-400">▋</span> : null}
                   </div>
                 ) : null}
               </div>
             </section>
 
-            <div className="pt-1 space-y-3" data-no-capture="true">
-              <div className="border-t border-white/10 pt-3">
-                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 justify-center">
-                  <button
-                    type="button"
-                    onClick={handleDownloadPdf}
-                    disabled={!exportActionsEnabled || pdfLoading || pngLoading}
-                    className="w-full sm:w-auto px-5 py-3 rounded-xl font-bold border border-white/10 hover:bg-white/5 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm"
-                  >
-                    {pdfLoading ? 'กำลังสร้าง PDF...' : 'ดาวน์โหลด PDF'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleDownloadPng}
-                    disabled={!exportActionsEnabled || pdfLoading || pngLoading}
-                    className="w-full sm:w-auto px-5 py-3 rounded-xl font-bold bg-yellow-400 text-black hover:bg-yellow-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm"
-                  >
-                    {pngLoading ? 'กำลังสร้าง PNG...' : isMobileExportDevice() ? 'บันทึกเป็นรูปภาพ' : 'ดาวน์โหลด PNG'}
-                  </button>
-                </div>
-                {exportError ? (
-                  <p className="mt-2 text-center text-xs text-amber-300/90">{exportError}</p>
-                ) : null}
-                {isMobileExportDevice() && !exportActionsEnabled ? (
-                  <p className="mt-2 text-center text-[11px] text-zinc-500">กำลังเตรียมปุ่มบันทึกผลลัพธ์...</p>
-                ) : isMobileExportDevice() ? (
-                  <p className="mt-2 text-center text-[11px] text-zinc-500">
-                    บนมือถือ: กดบันทึกเป็นรูปภาพ → เลือก «บันทึกรูปภาพ» หรือกดค้างที่ภาพเพื่อบันทึก
-                  </p>
-                ) : null}
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <div className="space-y-3 pt-1" data-no-capture="true">
+              <div className="flex flex-col justify-center gap-2 border-t border-[#D6D4CC] pt-4 sm:flex-row sm:gap-3">
                 <button
                   type="button"
-                  onClick={handleRestart}
-                  className="w-full sm:w-auto px-6 py-3 rounded-xl font-bold border border-white/10 hover:bg-white/5 transition-all"
+                  onClick={handleDownloadPdf}
+                  disabled={!exportActionsEnabled || pdfLoading || pngLoading}
+                  className="md-btn-ghost w-full !rounded-xl text-sm disabled:opacity-50 sm:w-auto"
                 >
+                  {pdfLoading ? 'กำลังสร้าง PDF...' : 'ดาวน์โหลด PDF'}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDownloadPng}
+                  disabled={!exportActionsEnabled || pdfLoading || pngLoading}
+                  className="md-btn-primary w-full !rounded-xl text-sm disabled:opacity-50 sm:w-auto"
+                >
+                  {pngLoading ? 'กำลังสร้าง PNG...' : isMobileExportDevice() ? 'บันทึกเป็นรูปภาพ' : 'ดาวน์โหลด PNG'}
+                </button>
+              </div>
+              {exportError ? <p className="text-center text-xs font-medium text-amber-700">{exportError}</p> : null}
+              {isMobileExportDevice() && !exportActionsEnabled ? (
+                <p className="text-center text-[11px] text-gray-500">กำลังเตรียมปุ่มบันทึกผลลัพธ์...</p>
+              ) : isMobileExportDevice() ? (
+                <p className="text-center text-[11px] text-gray-500">
+                  บนมือถือ: กดบันทึกเป็นรูปภาพ → เลือก «บันทึกรูปภาพ» หรือกดค้างที่ภาพเพื่อบันทึก
+                </p>
+              ) : null}
+
+              <div className="flex flex-col justify-center gap-3 sm:flex-row">
+                <button type="button" onClick={handleRestart} className="md-btn-ghost w-full !rounded-xl sm:w-auto">
                   ทำแบบทดสอบใหม่
                 </button>
-                <Link
-                  to="/"
-                  className="w-full sm:w-auto px-6 py-3 rounded-xl font-bold bg-yellow-400 text-black hover:bg-yellow-300 text-center transition-all"
-                >
+                <Link to="/" className="md-btn-primary w-full !rounded-xl text-center sm:w-auto">
                   กลับหน้าแรก
                 </Link>
               </div>
@@ -1359,32 +1293,32 @@ const DiscAssessment: React.FC = () => {
         <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4" role="dialog" aria-modal="true">
           <button
             type="button"
-            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+            className="absolute inset-0 bg-white/95 backdrop-blur-sm"
             onClick={closePngPreview}
             aria-label="ปิด"
           />
-          <div className="relative z-10 w-full max-w-lg max-h-[92dvh] flex flex-col rounded-t-3xl sm:rounded-3xl border border-white/15 bg-gradient-to-b from-zinc-900 to-black shadow-2xl overflow-hidden">
-            <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between gap-3">
+          <div className="relative z-10 w-full max-w-lg max-h-[92dvh] flex flex-col rounded-t-3xl sm:rounded-3xl border border-gray-200 bg-gradient-to-b from-white to-gray-50 shadow-2xl overflow-hidden">
+            <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between gap-3">
               <div>
-                <p className="text-sm font-bold text-white">บันทึกผลลัพธ์เป็นรูปภาพ</p>
-                <p className="text-[11px] text-zinc-500 mt-0.5">กดค้างที่ภาพ → เลือก «บันทึกรูปภาพ»</p>
+                <p className="text-sm font-bold text-gray-900">บันทึกผลลัพธ์เป็นรูปภาพ</p>
+                <p className="text-[11px] text-gray-500 mt-0.5">กดค้างที่ภาพ → เลือก «บันทึกรูปภาพ»</p>
               </div>
               <button
                 type="button"
                 onClick={closePngPreview}
-                className="shrink-0 rounded-lg border border-white/10 px-3 py-1.5 text-xs font-semibold text-zinc-300 hover:bg-white/5"
+                className="shrink-0 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-50"
               >
                 ปิด
               </button>
             </div>
-            <div className="flex-1 overflow-auto p-3 bg-black/40">
+            <div className="flex-1 overflow-auto p-3 bg-gray-100">
               <img
                 src={pngPreviewUrl}
                 alt="ผลแบบทดสอบ DISC"
-                className="w-full h-auto rounded-xl border border-white/10 bg-black"
+                className="w-full h-auto rounded-xl border border-gray-200 bg-gray-50"
               />
             </div>
-            <div className="p-3 border-t border-white/10 space-y-2">
+            <div className="p-3 border-t border-gray-200 space-y-2">
               {exportError ? (
                 <p className="text-xs text-amber-300/90 text-center">{exportError}</p>
               ) : null}
@@ -1400,7 +1334,7 @@ const DiscAssessment: React.FC = () => {
         </div>
       ) : null}
 
-      <footer className="py-6 border-t border-white/5">
+      <footer className="py-6 border-t border-gray-200">
         <div className="max-w-4xl mx-auto px-6 text-center text-gray-500 text-sm">
           © {new Date().getFullYear()} MindDoJo CO., LTD.
         </div>

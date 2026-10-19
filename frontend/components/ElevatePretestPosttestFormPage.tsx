@@ -158,7 +158,7 @@ const ElevatePretestPosttestFormPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#070707] text-zinc-400">
+      <div className="md-page items-center justify-center text-gray-500">
         กำลังโหลดแบบทดสอบ...
       </div>
     );
@@ -166,16 +166,16 @@ const ElevatePretestPosttestFormPage: React.FC = () => {
 
   if (!phase) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-[#070707] px-6 text-center text-white">
-        <p className="text-sm text-zinc-400">ลิงก์ไม่ถูกต้อง — ต้องระบุ pretest หรือ posttest</p>
+      <div className="md-page items-center justify-center gap-3 px-6 text-center">
+        <p className="text-sm text-gray-500">ลิงก์ไม่ถูกต้อง — ต้องระบุ pretest หรือ posttest</p>
       </div>
     );
   }
 
   if (!bank) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-[#070707] px-6 text-center text-white">
-        <p className="text-sm text-zinc-400">{loadError || 'ไม่พบชุดข้อสอบ'}</p>
+      <div className="md-page items-center justify-center gap-3 px-6 text-center">
+        <p className="text-sm text-gray-500">{loadError || 'ไม่พบชุดข้อสอบ'}</p>
         <Link to="/elevate-pretest-posttest-editor" className="text-sm font-semibold text-yellow-400 hover:underline">
           กลับไปหน้า editor
         </Link>
@@ -185,19 +185,19 @@ const ElevatePretestPosttestFormPage: React.FC = () => {
 
   if (questions.length === 0) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-[#070707] px-6 text-center text-white">
-        <p className="text-sm text-zinc-400">ชุดนี้ยังไม่มีข้อสอบใน {phaseLabel}</p>
+      <div className="md-page items-center justify-center gap-3 px-6 text-center">
+        <p className="text-sm text-gray-500">ชุดนี้ยังไม่มีข้อสอบใน {phaseLabel}</p>
       </div>
     );
   }
 
   if (submitted) {
     return (
-      <div className="min-h-screen bg-[#070707] text-white">
+      <div className="md-page">
         <div className="mx-auto max-w-lg px-4 py-16 text-center">
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-yellow-400/80">ELEVATE</p>
           <h1 className="mt-2 text-2xl font-black">ส่งคำตอบแล้ว</h1>
-          <p className="mt-2 text-sm text-zinc-400">
+          <p className="mt-2 text-sm text-gray-500">
             {bank.name} · {phaseLabel} · {respondentName.trim()}
           </p>
           {score && score.total > 0 ? (
@@ -205,7 +205,7 @@ const ElevatePretestPosttestFormPage: React.FC = () => {
               {score.score}/{score.total}
             </p>
           ) : (
-            <p className="mt-6 text-sm text-zinc-400">บันทึกเรียบร้อย</p>
+            <p className="mt-6 text-sm text-gray-500">บันทึกเรียบร้อย</p>
           )}
           {saveNote && <p className="mt-4 text-xs text-zinc-500">{saveNote}</p>}
         </div>
@@ -214,23 +214,23 @@ const ElevatePretestPosttestFormPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#070707] text-white selection:bg-yellow-300 selection:text-black">
-      <header className="border-b border-yellow-400/15 bg-[#0a0a0a]">
+    <div className="md-page selection:bg-yellow-300">
+      <header className="border-b border-[#D6D4CC] bg-white">
         <div className="mx-auto max-w-3xl px-4 py-6 sm:px-6">
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-yellow-400/80">ELEVATE · {phaseLabel}</p>
-          <h1 className="mt-1 text-2xl font-black text-white">{bank.name}</h1>
-          {bank.description.trim() && <p className="mt-2 text-sm text-zinc-400">{bank.description}</p>}
+          <h1 className="mt-1 text-2xl font-black text-gray-900">{bank.name}</h1>
+          {bank.description.trim() && <p className="mt-2 text-sm text-gray-500">{bank.description}</p>}
         </div>
       </header>
 
       <form onSubmit={handleSubmit} className="mx-auto max-w-3xl space-y-4 px-4 py-6 sm:px-6">
-        <label className="block space-y-1.5 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+        <label className="block space-y-1.5 rounded-2xl border border-gray-200 bg-white/[0.03] p-4">
           <span className="text-xs font-semibold uppercase tracking-wide text-zinc-500">ชื่อผู้ทำแบบทดสอบ</span>
           <input
             value={respondentName}
             onChange={(e) => setRespondentName(e.target.value)}
             placeholder="กรอกชื่อของคุณ"
-            className="w-full rounded-xl border border-white/15 bg-black/40 px-3 py-2.5 text-sm"
+            className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm"
             autoComplete="name"
           />
         </label>
@@ -238,7 +238,7 @@ const ElevatePretestPosttestFormPage: React.FC = () => {
         {questions.map((question, index) => (
           <fieldset
             key={question.id}
-            className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 space-y-3"
+            className="rounded-2xl border border-gray-200 bg-white/[0.03] p-4 space-y-3"
           >
             <legend className="px-1 text-sm font-bold text-yellow-300">
               ข้อ {index + 1}
@@ -258,7 +258,7 @@ const ElevatePretestPosttestFormPage: React.FC = () => {
                         className={`h-11 w-11 rounded-xl border text-base font-semibold transition-colors md:h-12 md:w-12 ${
                           selected
                             ? 'border-yellow-300 bg-yellow-400/20 text-yellow-100'
-                            : 'border-white/20 bg-black/30 text-zinc-200 hover:bg-white/10'
+                            : 'border-white/20 bg-white text-gray-700 hover:bg-white/10'
                         }`}
                       >
                         {n}
@@ -278,7 +278,7 @@ const ElevatePretestPosttestFormPage: React.FC = () => {
                       className={`flex cursor-pointer items-center gap-3 rounded-xl border px-3 py-2.5 text-sm transition-colors ${
                         selected
                           ? 'border-yellow-400/50 bg-yellow-400/10 text-yellow-100'
-                          : 'border-white/10 bg-black/30 text-zinc-200 hover:border-yellow-400/30'
+                          : 'border-gray-200 bg-white text-gray-700 hover:border-yellow-400/30'
                       }`}
                     >
                       <input
@@ -299,7 +299,7 @@ const ElevatePretestPosttestFormPage: React.FC = () => {
                 onChange={(e) => setAnswer(question.id, e.target.value)}
                 rows={3}
                 placeholder="พิมพ์คำตอบ..."
-                className="w-full rounded-xl border border-white/15 bg-black/40 px-3 py-2 text-sm resize-y"
+                className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm resize-y"
               />
             )}
           </fieldset>

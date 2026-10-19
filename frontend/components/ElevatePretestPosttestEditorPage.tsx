@@ -472,12 +472,12 @@ const ElevatePretestPosttestEditorPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#070707] text-white selection:bg-yellow-300 selection:text-black">
-      <header className="border-b border-yellow-400/15 bg-[#0a0a0a]">
+    <div className="md-page selection:bg-yellow-300">
+      <header className="border-b border-[#D6D4CC] bg-white">
         <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-5 sm:flex-row sm:items-end sm:justify-between sm:px-6">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-yellow-400/80">ELEVATE</p>
-            <h1 className="mt-1 text-2xl font-black text-white sm:text-3xl">Pretest-Posttest editor</h1>
+            <h1 className="mt-1 text-2xl font-black text-gray-900 sm:text-3xl">Pretest-Posttest editor</h1>
             <p className="mt-2 text-sm text-gray-400">
               สร้างชุดข้อสอบ Pretest / Posttest — ช้อยส์ · ประเมิน 1–5 · ตอบคำถาม
             </p>
@@ -519,7 +519,7 @@ const ElevatePretestPosttestEditorPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => void syncAllLocalToCloud()}
-                className="rounded-xl border border-white/20 bg-black/30 px-3 py-2 text-xs font-semibold text-zinc-100 hover:bg-white/10"
+                className="rounded-xl border border-white/20 bg-white px-3 py-2 text-xs font-semibold text-zinc-100 hover:bg-white/10"
               >
                 ลองซิงก์อีกครั้ง (หลังรัน SQL)
               </button>
@@ -529,14 +529,14 @@ const ElevatePretestPosttestEditorPage: React.FC = () => {
       )}
 
       <div className="mx-auto grid max-w-6xl gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[260px_1fr]">
-        <aside className="space-y-3 rounded-2xl border border-white/10 bg-white/[0.03] p-4 h-fit">
+        <aside className="space-y-3 rounded-2xl border border-gray-200 bg-white/[0.03] p-4 h-fit">
           <h2 className="text-sm font-bold text-yellow-300">ชุดข้อสอบ</h2>
           <div className="flex gap-2">
             <input
               value={newBankName}
               onChange={(e) => setNewBankName(e.target.value)}
               placeholder="ชื่อชุดใหม่"
-              className="min-w-0 flex-1 rounded-xl border border-white/15 bg-black/40 px-3 py-2 text-sm"
+              className="min-w-0 flex-1 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm"
               onKeyDown={(e) => {
                 if (e.key === 'Enter') createBank();
               }}
@@ -582,12 +582,12 @@ const ElevatePretestPosttestEditorPage: React.FC = () => {
 
         <main className="space-y-4">
           {!selected ? (
-            <div className="rounded-2xl border border-dashed border-white/15 bg-white/[0.03] px-6 py-16 text-center">
+            <div className="rounded-2xl border border-dashed border-gray-200 bg-white/[0.03] px-6 py-16 text-center">
               <p className="text-sm text-gray-400">เลือกหรือสร้างชุดข้อสอบทางซ้ายเพื่อเริ่มแก้ไข</p>
             </div>
           ) : (
             <>
-              <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 space-y-3">
+              <section className="rounded-2xl border border-gray-200 bg-white/[0.03] p-4 space-y-3">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div className="flex-1 space-y-2">
                     <label className="block text-xs font-semibold uppercase tracking-wide text-gray-500">
@@ -597,7 +597,7 @@ const ElevatePretestPosttestEditorPage: React.FC = () => {
                       value={selected.name}
                       onChange={(e) => renameSelectedBank(e.target.value)}
                       onBlur={syncSelectedBankLinkFromName}
-                      className="w-full rounded-xl border border-white/15 bg-black/40 px-3 py-2.5 text-base font-semibold"
+                      className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-base font-semibold"
                     />
                     <p className="text-[11px] text-zinc-500">
                       ลิงก์จะอัปเดตตามชื่อเมื่อออกจากช่องนี้
@@ -612,7 +612,7 @@ const ElevatePretestPosttestEditorPage: React.FC = () => {
                       }
                       rows={2}
                       placeholder="คำอธิบาย (ไม่บังคับ)"
-                      className="w-full rounded-xl border border-white/15 bg-black/40 px-3 py-2 text-sm resize-y"
+                      className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm resize-y"
                     />
                   </div>
                   <div className="flex flex-col gap-2 self-start">
@@ -646,7 +646,7 @@ const ElevatePretestPosttestEditorPage: React.FC = () => {
                 </div>
               </section>
 
-              <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 space-y-3">
+              <section className="rounded-2xl border border-gray-200 bg-white/[0.03] p-4 space-y-3">
                     <div className="flex flex-wrap items-center gap-2">
                       {(['pretest', 'posttest'] as const).map((tab) => {
                         const count = selected[tab].length;
@@ -659,7 +659,7 @@ const ElevatePretestPosttestEditorPage: React.FC = () => {
                             className={`rounded-xl px-4 py-2 text-sm font-bold transition-colors ${
                               phase === tab
                                 ? 'bg-yellow-400 text-black'
-                                : 'border border-white/15 bg-black/30 text-gray-300 hover:border-yellow-400/40'
+                                : 'border border-gray-200 bg-white text-gray-300 hover:border-yellow-400/40'
                             }`}
                           >
                             {tab === 'pretest' ? 'Pretest' : 'Posttest'}
@@ -672,7 +672,7 @@ const ElevatePretestPosttestEditorPage: React.FC = () => {
                       <button
                         type="button"
                         onClick={copyPretestToPosttest}
-                        className="inline-flex items-center gap-1.5 rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-xs font-semibold text-gray-200 hover:border-yellow-400/40"
+                        className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-200 hover:border-yellow-400/40"
                       >
                         <Copy className="h-3.5 w-3.5" />
                         คัดลอก Pretest → Posttest
@@ -692,14 +692,14 @@ const ElevatePretestPosttestEditorPage: React.FC = () => {
                         return (
                           <div
                             key={linkPhase}
-                            className="flex flex-col gap-2 rounded-lg border border-white/10 bg-black/30 p-2.5 sm:flex-row sm:items-center"
+                            className="flex flex-col gap-2 rounded-lg border border-gray-200 bg-white p-2.5 sm:flex-row sm:items-center"
                           >
                             <div className="min-w-0 flex-1">
-                              <p className="text-xs font-bold text-white">
+                              <p className="text-xs font-bold text-gray-900">
                                 {linkPhase === 'pretest' ? 'Pretest' : 'Posttest'}
                                 <span className="ml-2 font-medium text-zinc-500">{count} ข้อ</span>
                               </p>
-                              <p className="mt-0.5 break-all font-mono text-[11px] text-zinc-300">{fullUrl}</p>
+                              <p className="mt-0.5 break-all font-mono text-[11px] text-gray-600">{fullUrl}</p>
                             </div>
                             <div className="flex shrink-0 gap-1.5">
                               <button
@@ -715,7 +715,7 @@ const ElevatePretestPosttestEditorPage: React.FC = () => {
                                     setMessage('คัดลอกลิงก์ไม่สำเร็จ');
                                   }
                                 }}
-                                className="inline-flex items-center gap-1 rounded-lg border border-white/15 px-2.5 py-1.5 text-xs font-semibold text-zinc-200 hover:border-yellow-400/40 disabled:opacity-40"
+                                className="inline-flex items-center gap-1 rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs font-semibold text-gray-700 hover:border-yellow-400/40 disabled:opacity-40"
                               >
                                 <Copy className="h-3.5 w-3.5" />
                                 คัดลอก
@@ -751,7 +751,7 @@ const ElevatePretestPosttestEditorPage: React.FC = () => {
 
                   <section className="space-y-3">
                     {questions.length === 0 && (
-                      <div className="rounded-2xl border border-dashed border-white/15 bg-white/[0.02] px-5 py-10 text-center text-sm text-gray-500">
+                      <div className="rounded-2xl border border-dashed border-gray-200 bg-white/[0.02] px-5 py-10 text-center text-sm text-gray-500">
                         ยังไม่มีโจทย์ใน {phase === 'pretest' ? 'Pretest' : 'Posttest'} — เพิ่มด้านล่าง
                       </div>
                     )}
@@ -759,7 +759,7 @@ const ElevatePretestPosttestEditorPage: React.FC = () => {
                     {questions.map((question, index) => (
                       <article
                         key={question.id}
-                        className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 space-y-3"
+                        className="rounded-2xl border border-gray-200 bg-white/[0.03] p-4 space-y-3"
                       >
                         <div className="flex flex-wrap items-center gap-2 justify-between">
                           <p className="text-xs font-bold uppercase tracking-wide text-yellow-400/80">
@@ -770,7 +770,7 @@ const ElevatePretestPosttestEditorPage: React.FC = () => {
                               type="button"
                               onClick={() => moveQuestion(index, -1)}
                               disabled={index === 0}
-                              className="rounded-lg border border-white/10 p-1.5 text-gray-400 hover:bg-white/5 disabled:opacity-30"
+                              className="rounded-lg border border-gray-200 p-1.5 text-gray-400 hover:bg-white/5 disabled:opacity-30"
                               aria-label="เลื่อนขึ้น"
                             >
                               <ChevronUp className="h-4 w-4" />
@@ -779,7 +779,7 @@ const ElevatePretestPosttestEditorPage: React.FC = () => {
                               type="button"
                               onClick={() => moveQuestion(index, 1)}
                               disabled={index === questions.length - 1}
-                              className="rounded-lg border border-white/10 p-1.5 text-gray-400 hover:bg-white/5 disabled:opacity-30"
+                              className="rounded-lg border border-gray-200 p-1.5 text-gray-400 hover:bg-white/5 disabled:opacity-30"
                               aria-label="เลื่อนลง"
                             >
                               <ChevronDown className="h-4 w-4" />
@@ -797,7 +797,7 @@ const ElevatePretestPosttestEditorPage: React.FC = () => {
                         <select
                           value={question.type}
                           onChange={(e) => changeQuestionType(index, e.target.value as ElevateQuestionType)}
-                          className="rounded-xl border border-white/15 bg-black/40 px-3 py-2 text-sm"
+                          className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm"
                         >
                           <option value="choice">ช้อยส์ (กำหนดข้อถูก)</option>
                           <option value="rating_1_5">ประเมิน 1–5 (ระดับความรู้)</option>
@@ -812,7 +812,7 @@ const ElevatePretestPosttestEditorPage: React.FC = () => {
                           }}
                           rows={3}
                           placeholder="พิมพ์โจทย์..."
-                          className="w-full rounded-xl border border-white/15 bg-black/40 px-3 py-2 text-sm resize-y"
+                          className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm resize-y"
                         />
 
                         {question.type === 'choice' && (
@@ -834,7 +834,7 @@ const ElevatePretestPosttestEditorPage: React.FC = () => {
                                 <input
                                   value={option}
                                   onChange={(e) => updateOption(index, optionIndex, e.target.value)}
-                                  className="min-w-0 flex-1 rounded-xl border border-white/15 bg-black/40 px-3 py-2 text-sm"
+                                  className="min-w-0 flex-1 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm"
                                 />
                                 <button
                                   type="button"
@@ -860,7 +860,7 @@ const ElevatePretestPosttestEditorPage: React.FC = () => {
 
                         {question.type === 'rating_1_5' && (
                           <div className="space-y-2">
-                            <p className="text-xs text-zinc-400">
+                            <p className="text-xs text-gray-500">
                               ผู้ตอบเลือกคะแนน 1–5 · ใช้เปรียบเทียบ Pre / Post ได้เลย (ไม่ต้องตั้งข้อถูก)
                             </p>
                             <div className="flex flex-wrap gap-2">
@@ -886,7 +886,7 @@ const ElevatePretestPosttestEditorPage: React.FC = () => {
                                 updateQuestion(index, (q) => ({ ...q, correctAnswer: e.target.value }))
                               }
                               placeholder="ใส่คำตอบที่คาดหวังถ้าต้องการตรวจอัตโนมัติ"
-                              className="w-full rounded-xl border border-white/15 bg-black/40 px-3 py-2 text-sm"
+                              className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm"
                             />
                           </div>
                         )}
@@ -928,7 +928,7 @@ const ElevatePretestPosttestEditorPage: React.FC = () => {
                           };
                         });
                       }}
-                      className="w-full rounded-xl border border-white/15 bg-black/40 px-3 py-2 text-sm sm:w-auto"
+                      className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm sm:w-auto"
                     >
                       <option value="choice">ช้อยส์ (กำหนดข้อถูก)</option>
                       <option value="rating_1_5">ประเมิน 1–5 (ระดับความรู้)</option>
@@ -940,7 +940,7 @@ const ElevatePretestPosttestEditorPage: React.FC = () => {
                       onChange={(e) => setDraft((prev) => ({ ...prev, title: e.target.value }))}
                       rows={3}
                       placeholder="พิมพ์โจทย์ที่ต้องการเพิ่ม..."
-                      className="w-full rounded-xl border border-white/15 bg-black/40 px-3 py-2 text-sm resize-y"
+                      className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm resize-y"
                     />
 
                     {draft.type === 'choice' && (
@@ -972,7 +972,7 @@ const ElevatePretestPosttestEditorPage: React.FC = () => {
                                   };
                                 });
                               }}
-                              className="min-w-0 flex-1 rounded-xl border border-white/15 bg-black/40 px-3 py-2 text-sm"
+                              className="min-w-0 flex-1 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm"
                             />
                             <button
                               type="button"
@@ -1010,8 +1010,8 @@ const ElevatePretestPosttestEditorPage: React.FC = () => {
                     )}
 
                     {draft.type === 'rating_1_5' && (
-                      <div className="space-y-2 rounded-xl border border-white/10 bg-black/25 p-3">
-                        <p className="text-xs text-zinc-400">ผู้ตอบจะเห็นปุ่มเลือก 1–5</p>
+                      <div className="space-y-2 rounded-xl border border-gray-200 bg-black/25 p-3">
+                        <p className="text-xs text-gray-500">ผู้ตอบจะเห็นปุ่มเลือก 1–5</p>
                         <div className="flex flex-wrap gap-2">
                           {['1', '2', '3', '4', '5'].map((n) => (
                             <span
@@ -1030,7 +1030,7 @@ const ElevatePretestPosttestEditorPage: React.FC = () => {
                         value={draft.correctAnswer}
                         onChange={(e) => setDraft((prev) => ({ ...prev, correctAnswer: e.target.value }))}
                         placeholder="คำตอบถูก / คำตอบตัวอย่าง (ไม่บังคับ)"
-                        className="w-full rounded-xl border border-white/15 bg-black/40 px-3 py-2 text-sm"
+                        className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm"
                       />
                     )}
 

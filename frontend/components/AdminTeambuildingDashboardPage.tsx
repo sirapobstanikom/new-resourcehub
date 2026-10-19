@@ -94,7 +94,7 @@ const ColorPicker: React.FC<ColorPickerProps> = ({ value, onChange, size = 'md' 
         maxLength={7}
         spellCheck={false}
         aria-label="รหัสสี (hex)"
-        className={`${size === 'sm' ? 'w-20 py-0.5 text-xs' : 'w-24 py-1.5 text-sm'} rounded-lg border border-white/15 bg-black/40 px-2 font-mono uppercase text-white focus:border-yellow-400 focus:outline-none`}
+        className={`${size === 'sm' ? 'w-20 py-0.5 text-xs' : 'w-24 py-1.5 text-sm'} rounded-lg border border-[#D6D4CC] bg-gray-100 px-2 font-mono uppercase text-gray-900 focus:border-yellow-400 focus:outline-none`}
       />
     </div>
   );
@@ -234,11 +234,11 @@ const AdminTeambuildingDashboardPage: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-full text-white">
-      <header className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 px-4 sm:px-6 py-4 sm:py-6 border-b border-white/10">
+    <div className="flex flex-col min-h-full text-gray-900">
+      <header className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 px-4 sm:px-6 py-4 sm:py-6 border-b border-[#D6D4CC]">
         <div className="min-w-0">
           <p className="text-xs uppercase tracking-[0.18em] text-yellow-400/80">Admin</p>
-          <h1 className="text-xl sm:text-2xl font-bold text-yellow-300 mt-1">Dashboard Teambuilding</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-yellow-800 mt-1">Dashboard Teambuilding</h1>
           <p className="text-sm text-gray-400 mt-1">เพิ่ม/แก้ไขทีมและคะแนน — หน้าจอแสดงผลอัปเดตทันที</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -246,7 +246,7 @@ const AdminTeambuildingDashboardPage: React.FC = () => {
             className={`rounded-full px-2.5 py-1 text-[10px] font-bold ${
               liveConnected
                 ? 'border border-emerald-400/30 bg-emerald-500/10 text-emerald-300'
-                : 'border border-white/10 bg-white/5 text-zinc-500'
+                : 'border border-[#D6D4CC] bg-white text-zinc-500'
             }`}
           >
             {liveConnected ? '● LIVE' : 'กำลังเชื่อมต่อ...'}
@@ -280,8 +280,8 @@ const AdminTeambuildingDashboardPage: React.FC = () => {
           </div>
         )}
 
-        <section className="rounded-2xl border border-white/10 bg-white/5 p-4 sm:p-5">
-          <h2 className="text-sm font-semibold text-yellow-300">เพิ่มทีม</h2>
+        <section className="rounded-2xl border border-[#D6D4CC] bg-white p-4 sm:p-5">
+          <h2 className="text-sm font-semibold text-yellow-800">เพิ่มทีม</h2>
           <form onSubmit={addTeam} className="mt-3 space-y-3">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
               <label className="flex-1">
@@ -290,11 +290,11 @@ const AdminTeambuildingDashboardPage: React.FC = () => {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="เช่น ทีมเสือ, Team Alpha"
-                  className="w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2.5 text-sm text-white placeholder:text-gray-500 focus:border-yellow-400 focus:outline-none"
+                  className="w-full rounded-xl border border-[#D6D4CC] bg-gray-100 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-500 focus:border-yellow-400 focus:outline-none"
                 />
               </label>
               <div
-                className="flex h-[42px] items-center gap-2 rounded-xl border border-white/10 px-3 text-sm font-bold text-black"
+                className="flex h-[42px] items-center gap-2 rounded-xl border border-[#D6D4CC] px-3 text-sm font-bold text-black"
                 style={{ backgroundColor: color }}
               >
                 {name.trim() || 'ตัวอย่างทีม'}
@@ -316,12 +316,12 @@ const AdminTeambuildingDashboardPage: React.FC = () => {
 
         <section className="space-y-3">
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-yellow-300">ทีมทั้งหมด ({teams.length})</h2>
+            <h2 className="text-sm font-semibold text-yellow-800">ทีมทั้งหมด ({teams.length})</h2>
             {loading && <p className="text-xs text-gray-500">กำลังโหลด...</p>}
           </div>
 
           {!loading && teams.length === 0 && (
-            <div className="rounded-2xl border border-dashed border-white/15 bg-white/5 px-6 py-12 text-center text-sm text-gray-500">
+            <div className="rounded-2xl border border-dashed border-[#D6D4CC] bg-white px-6 py-12 text-center text-sm text-gray-500">
               ยังไม่มีทีม — เพิ่มทีมด้านบนเพื่อเริ่มเกม
             </div>
           )}
@@ -330,7 +330,7 @@ const AdminTeambuildingDashboardPage: React.FC = () => {
             {teams.map((team) => (
               <article
                 key={team.id}
-                className={`rounded-2xl border bg-black/30 p-4 transition-opacity ${team.is_active ? 'border-white/10' : 'border-white/5 opacity-50'}`}
+                className={`rounded-2xl border bg-gray-100 p-4 transition-opacity ${team.is_active ? 'border-[#D6D4CC]' : 'border-gray-100 opacity-50'}`}
                 style={{ boxShadow: `inset 4px 0 0 ${team.color}` }}
               >
                 <div className="flex items-start gap-3">
@@ -354,7 +354,7 @@ const AdminTeambuildingDashboardPage: React.FC = () => {
                         onKeyDown={(e) => {
                           if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
                         }}
-                        className="w-full rounded-lg border border-white/15 bg-black/40 px-2 py-1.5 text-base font-bold text-white focus:border-yellow-400 focus:outline-none"
+                        className="w-full rounded-lg border border-[#D6D4CC] bg-gray-100 px-2 py-1.5 text-base font-bold text-gray-900 focus:border-yellow-400 focus:outline-none"
                       />
                     </label>
                     <div>
@@ -381,7 +381,7 @@ const AdminTeambuildingDashboardPage: React.FC = () => {
                       onKeyDown={(e) => {
                         if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
                       }}
-                      className="w-24 rounded-lg border border-white/10 bg-black/40 px-2 py-1 text-right text-2xl font-black text-white focus:border-yellow-400 focus:outline-none"
+                      className="w-24 rounded-lg border border-[#D6D4CC] bg-gray-100 px-2 py-1 text-right text-2xl font-black text-gray-900 focus:border-yellow-400 focus:outline-none"
                       aria-label={`คะแนนทีม ${team.name}: ${formatScore(team.score)}`}
                     />
                   </div>
@@ -427,11 +427,11 @@ const AdminTeambuildingDashboardPage: React.FC = () => {
                       onChange={(e) => setCustomStep((prev) => ({ ...prev, [team.id]: e.target.value }))}
                       placeholder="±"
                       inputMode="decimal"
-                      className="w-24 rounded-lg border border-white/15 bg-black/40 px-2 py-2 text-sm text-white placeholder:text-gray-600"
+                      className="w-24 rounded-lg border border-[#D6D4CC] bg-gray-100 px-2 py-2 text-sm text-gray-900 placeholder:text-gray-600"
                     />
                     <button
                       type="submit"
-                      className="rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-sm font-semibold text-gray-200 hover:bg-white/10"
+                      className="rounded-lg border border-[#D6D4CC] bg-white px-3 py-2 text-sm font-semibold text-gray-800 hover:bg-gray-100"
                     >
                       บวก
                     </button>
@@ -440,7 +440,7 @@ const AdminTeambuildingDashboardPage: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => void updateTeam(team.id, { is_active: !team.is_active })}
-                      className="rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-xs font-semibold text-gray-300 hover:bg-white/10"
+                      className="rounded-lg border border-[#D6D4CC] bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100"
                     >
                       {team.is_active ? 'ซ่อน' : 'แสดง'}
                     </button>

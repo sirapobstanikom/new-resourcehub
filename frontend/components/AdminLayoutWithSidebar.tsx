@@ -231,22 +231,22 @@ const AdminLayoutWithSidebar: React.FC = () => {
 
   const sidebarContent = (
     <>
-      <div className="flex flex-col gap-4 pb-6 border-b border-white/10">
+      <div className="flex flex-col gap-4 pb-6 border-b border-[#D6D4CC]">
         <div className="w-16 h-16 rounded-full bg-yellow-400/20 border-2 border-yellow-400/50 flex items-center justify-center text-2xl font-bold text-yellow-400 mx-auto">
           {(adminUser?.full_name?.trim() || displayName).charAt(0).toUpperCase()}
         </div>
         <div className="text-center space-y-1">
-          <p className="font-semibold text-white truncate text-sm" title={displayName}>
+          <p className="font-semibold text-gray-900 truncate text-sm" title={displayName}>
             {displayName}
           </p>
           <p className="text-xs text-gray-500">ชื่อ · นามสกุล</p>
         </div>
         <div className="text-sm text-gray-400 space-y-1.5">
           {adminUser?.phone != null && adminUser.phone !== '' && (
-            <p><span className="text-gray-500">โทร</span> <span className="text-white/90">{adminUser.phone}</span></p>
+            <p><span className="text-gray-500">โทร</span> <span className="text-gray-800">{adminUser.phone}</span></p>
           )}
           {adminUser?.department != null && adminUser.department !== '' && (
-            <p><span className="text-gray-500">แผนก</span> <span className="text-white/90">{adminUser.department}</span></p>
+            <p><span className="text-gray-500">แผนก</span> <span className="text-gray-800">{adminUser.department}</span></p>
           )}
           <p>
             <span className="text-gray-500">ลากิจ / พักร้อน (รวม)</span>{' '}
@@ -262,14 +262,14 @@ const AdminLayoutWithSidebar: React.FC = () => {
             </span>
           </p>
 
-          <div className="rounded-lg border border-white/10 bg-black/25 overflow-hidden">
+          <div className="rounded-lg border border-[#D6D4CC] bg-gray-50 overflow-hidden">
             <button
               type="button"
               onClick={() => setEmployeesOpen((o) => !o)}
-              className="w-full flex items-center justify-between px-2.5 py-2 text-left hover:bg-white/5 transition-colors"
+              className="w-full flex items-center justify-between px-2.5 py-2 text-left hover:bg-gray-100 transition-colors"
             >
               <div className="flex items-center gap-2 min-w-0">
-                <span className="font-semibold text-gray-200 truncate text-xs">รายชื่อพนักงาน</span>
+                <span className="font-semibold text-gray-800 truncate text-xs">รายชื่อพนักงาน</span>
                 <span className="text-[11px] text-gray-500 whitespace-nowrap">({EMPLOYEES.length} คน)</span>
               </div>
               <svg
@@ -283,14 +283,14 @@ const AdminLayoutWithSidebar: React.FC = () => {
             </button>
 
             {employeesOpen && (
-              <div className="px-2 pb-2 pt-0 border-t border-white/10 max-h-[min(50vh,20rem)] overflow-y-auto">
+              <div className="px-2 pb-2 pt-0 border-t border-[#D6D4CC] max-h-[min(50vh,20rem)] overflow-y-auto">
                 <p className="text-[11px] text-gray-500 mt-2 mb-2">อ้างอิงสำหรับยื่นคำขอลา (ชื่อ-เบอร์โทร)</p>
                 <div className="space-y-1.5">
                   {EMPLOYEE_DEPT_IDS.map((deptId) => {
                     const deptEmployees = EMPLOYEES.filter((e) => e.dept === deptId);
                     const isOpen = employeeDeptOpen[deptId];
                     return (
-                      <div key={deptId} className="rounded-md border border-white/10 bg-black/20 overflow-hidden">
+                      <div key={deptId} className="rounded-md border border-[#D6D4CC] bg-white overflow-hidden">
                         <button
                           type="button"
                           onClick={() =>
@@ -299,9 +299,9 @@ const AdminLayoutWithSidebar: React.FC = () => {
                               [deptId]: !prev[deptId],
                             }))
                           }
-                          className="w-full flex items-center justify-between px-2 py-1.5 text-left hover:bg-white/5 transition-colors"
+                          className="w-full flex items-center justify-between px-2 py-1.5 text-left hover:bg-gray-100 transition-colors"
                         >
-                          <span className="text-[11px] font-bold text-gray-200 truncate">
+                          <span className="text-[11px] font-bold text-gray-800 truncate">
                             {EMPLOYEE_DEPT_LABELS[deptId]}
                           </span>
                           <span className="text-[10px] text-gray-500">({deptEmployees.length})</span>
@@ -315,9 +315,9 @@ const AdminLayoutWithSidebar: React.FC = () => {
                                 {deptEmployees.map((e) => (
                                   <div
                                     key={e.name}
-                                    className="flex flex-col gap-0.5 rounded bg-black/30 border border-white/5 px-2 py-1"
+                                    className="flex flex-col gap-0.5 rounded bg-gray-50 border border-[#D6D4CC] px-2 py-1"
                                   >
-                                    <span className="text-[11px] text-gray-200 font-medium leading-snug">{e.name}</span>
+                                    <span className="text-[11px] text-gray-800 font-medium leading-snug">{e.name}</span>
                                     <span className="text-[10px] text-gray-400 font-mono break-all">{e.phone}</span>
                                   </div>
                                 ))}
@@ -365,8 +365,8 @@ const AdminLayoutWithSidebar: React.FC = () => {
           <summary
             className={`list-none cursor-pointer py-2.5 px-3 rounded-lg text-sm font-semibold transition-colors flex items-center justify-between border ${
               isQuickMenuActive
-                ? 'bg-yellow-400/20 text-yellow-400 border-yellow-400/40'
-                : 'text-yellow-200/95 bg-yellow-400/10 border-yellow-400/25 hover:bg-yellow-400/20 hover:text-yellow-300'
+                ? 'bg-[#FFCC00]/30 text-gray-900 font-medium border-[#FFCC00]/50'
+                : 'text-gray-800 bg-[#FFCC00]/15 border-[#FFCC00]/30 hover:bg-[#FFCC00]/25 hover:text-gray-900'
             }`}
           >
             <span>ระบบลา MindDojo</span>
@@ -384,8 +384,8 @@ const AdminLayoutWithSidebar: React.FC = () => {
                   onClick={() => setSidebarOpen(false)}
                   className={`block py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
                     active
-                      ? 'bg-yellow-400/20 text-yellow-400'
-                      : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                      ? 'bg-[#FFCC00]/25 text-gray-900 font-medium'
+                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                   }`}
                 >
                   {item.label}
@@ -399,8 +399,8 @@ const AdminLayoutWithSidebar: React.FC = () => {
             to="/admin/leave/manage"
             className={`block py-2.5 px-3 rounded-lg text-sm font-medium transition-colors ${
               isLeaveManage
-                ? 'bg-yellow-400/20 text-yellow-400'
-                : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                ? 'bg-[#FFCC00]/25 text-gray-900 font-medium'
+                : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
             }`}
           >
             จัดการคำขอลา
@@ -408,31 +408,31 @@ const AdminLayoutWithSidebar: React.FC = () => {
         )}
         <Link
           to="/admin"
-          className={`block py-2.5 px-3 rounded-lg text-sm font-medium transition-colors ${!isLeave && !isLeaveManage && !isCourseOutingTrainer && !isCourseOutingSupport && !isStickycloud && !isMinddojoUsers && !isInnoClubSecondVote && !isInnoClubDashboard && !isTeambuildingDashboard && !isInnovationEvaluatees && !isAssessmentLinks && !isPdfCompress ? 'bg-yellow-400/20 text-yellow-400' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
+          className={`block py-2.5 px-3 rounded-lg text-sm font-medium transition-colors ${!isLeave && !isLeaveManage && !isCourseOutingTrainer && !isCourseOutingSupport && !isStickycloud && !isMinddojoUsers && !isInnoClubSecondVote && !isInnoClubDashboard && !isTeambuildingDashboard && !isInnovationEvaluatees && !isAssessmentLinks && !isPdfCompress ? 'bg-[#FFCC00]/25 text-gray-900 font-medium' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'}`}
         >
           ดูข้อมูล Database
         </Link>
         <Link
           to="/admin/pdf-compress"
-          className={`block py-2.5 px-3 rounded-lg text-sm font-medium transition-colors ${isPdfCompress ? 'bg-yellow-400/20 text-yellow-400' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
+          className={`block py-2.5 px-3 rounded-lg text-sm font-medium transition-colors ${isPdfCompress ? 'bg-[#FFCC00]/25 text-gray-900 font-medium' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'}`}
         >
           ลดขนาดไฟล์ PDF
         </Link>
         <Link
           to="/admin/assessment-links"
-          className={`block py-2.5 px-3 rounded-lg text-sm font-medium transition-colors ${isAssessmentLinks ? 'bg-yellow-400/20 text-yellow-400' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
+          className={`block py-2.5 px-3 rounded-lg text-sm font-medium transition-colors ${isAssessmentLinks ? 'bg-[#FFCC00]/25 text-gray-900 font-medium' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'}`}
         >
           All Link & QR Code Assessment
         </Link>
         <Link
           to="/admin/minddojo-users"
-          className={`block py-2.5 px-3 rounded-lg text-sm font-medium transition-colors ${isMinddojoUsers ? 'bg-yellow-400/20 text-yellow-400' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
+          className={`block py-2.5 px-3 rounded-lg text-sm font-medium transition-colors ${isMinddojoUsers ? 'bg-[#FFCC00]/25 text-gray-900 font-medium' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'}`}
         >
           อนุมัติผู้ใช้ Assessment
         </Link>
         <Link
           to="/admin/rooms"
-          className={`block py-2.5 px-3 rounded-lg text-sm font-medium transition-colors ${isStickycloud ? 'bg-yellow-400/20 text-yellow-400' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
+          className={`block py-2.5 px-3 rounded-lg text-sm font-medium transition-colors ${isStickycloud ? 'bg-[#FFCC00]/25 text-gray-900 font-medium' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'}`}
         >
           Workshop Board MindDoJo
         </Link>
@@ -440,7 +440,7 @@ const AdminLayoutWithSidebar: React.FC = () => {
           href="/activity-registration"
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center justify-between py-2.5 px-3 rounded-lg text-sm font-medium text-gray-400 hover:bg-white/5 hover:text-white transition-colors group"
+          className="flex items-center justify-between py-2.5 px-3 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors group"
         >
           <span className="flex items-center gap-2">
             <svg className="w-4 h-4 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -454,13 +454,13 @@ const AdminLayoutWithSidebar: React.FC = () => {
         </a>
         <Link
           to="/admin/innoclub-dashboard"
-          className={`block py-2.5 px-3 rounded-lg text-sm font-medium transition-colors ${isInnoClubDashboard ? 'bg-yellow-400/20 text-yellow-400' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
+          className={`block py-2.5 px-3 rounded-lg text-sm font-medium transition-colors ${isInnoClubDashboard ? 'bg-[#FFCC00]/25 text-gray-900 font-medium' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'}`}
         >
           InnoClub Game — กรอกทีม & คะแนน
         </Link>
         <Link
           to="/admin/teambuilding-dashboard"
-          className={`block py-2.5 px-3 rounded-lg text-sm font-medium transition-colors ${isTeambuildingDashboard ? 'bg-yellow-400/20 text-yellow-400' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
+          className={`block py-2.5 px-3 rounded-lg text-sm font-medium transition-colors ${isTeambuildingDashboard ? 'bg-[#FFCC00]/25 text-gray-900 font-medium' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'}`}
         >
           DASHBOARD TEAMBUILDING
         </Link>
@@ -468,7 +468,7 @@ const AdminLayoutWithSidebar: React.FC = () => {
           href="/evaluation/teambuilding"
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center justify-between py-2.5 px-3 rounded-lg text-sm font-medium text-gray-400 hover:bg-white/5 hover:text-white transition-colors group"
+          className="flex items-center justify-between py-2.5 px-3 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors group"
         >
           <span>TEAMBUILDING — จอแสดงผล</span>
           <svg className="w-3.5 h-3.5 text-gray-500 group-hover:text-yellow-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -479,7 +479,7 @@ const AdminLayoutWithSidebar: React.FC = () => {
           href="/evaluation/innoclub-game"
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center justify-between py-2.5 px-3 rounded-lg text-sm font-medium text-gray-400 hover:bg-white/5 hover:text-white transition-colors group"
+          className="flex items-center justify-between py-2.5 px-3 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors group"
         >
           <span>InnoClub Game — หน้าผลลัพธ์ Top 4</span>
           <svg className="w-3.5 h-3.5 text-gray-500 group-hover:text-yellow-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -487,18 +487,18 @@ const AdminLayoutWithSidebar: React.FC = () => {
           </svg>
         </a>
         <details className="group rounded-lg">
-          <summary className="list-none cursor-pointer py-2.5 px-3 rounded-lg text-sm font-medium text-gray-400 hover:bg-white/5 hover:text-white transition-colors flex items-center justify-between">
+          <summary className="list-none cursor-pointer py-2.5 px-3 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors flex items-center justify-between">
             <span>All Eva</span>
             <svg className="w-4 h-4 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
             </svg>
           </summary>
-          <div className="mt-1 ml-2 space-y-1 border-l border-white/10 pl-2">
+          <div className="mt-1 ml-2 space-y-1 border-l border-[#D6D4CC] pl-2">
             <a
               href="/evaluation/innoclub"
               target="_blank"
               rel="noopener noreferrer"
-              className="block py-2 px-3 rounded-lg text-sm font-medium text-gray-400 hover:bg-white/5 hover:text-white transition-colors"
+              className="block py-2 px-3 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors"
             >
               แบบประเมิน InnoClub
             </a>
@@ -506,13 +506,13 @@ const AdminLayoutWithSidebar: React.FC = () => {
               href="/evaluation/innoclub-2"
               target="_blank"
               rel="noopener noreferrer"
-              className="block py-2 px-3 rounded-lg text-sm font-medium text-gray-400 hover:bg-white/5 hover:text-white transition-colors"
+              className="block py-2 px-3 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors"
             >
               แบบประเมิน InnoClub ครั้งที่ 2
             </a>
             <Link
               to="/admin/innoclub-2-vote"
-              className={`block py-2 px-3 rounded-lg text-sm font-medium transition-colors ${isInnoClubSecondVote ? 'bg-yellow-400/20 text-yellow-400' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
+              className={`block py-2 px-3 rounded-lg text-sm font-medium transition-colors ${isInnoClubSecondVote ? 'bg-[#FFCC00]/25 text-gray-900 font-medium' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'}`}
             >
               Admin โหวต InnoClub ครั้งที่ 2
             </Link>
@@ -520,13 +520,13 @@ const AdminLayoutWithSidebar: React.FC = () => {
               href="/evaluation/innovation"
               target="_blank"
               rel="noopener noreferrer"
-              className="block py-2 px-3 rounded-lg text-sm font-medium text-gray-400 hover:bg-white/5 hover:text-white transition-colors"
+              className="block py-2 px-3 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors"
             >
               แบบประเมิน Innovation
             </a>
             <Link
               to="/admin/innovation-evaluatees"
-              className={`block py-2 px-3 rounded-lg text-sm font-medium transition-colors ${isInnovationEvaluatees ? 'bg-yellow-400/20 text-yellow-400' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
+              className={`block py-2 px-3 rounded-lg text-sm font-medium transition-colors ${isInnovationEvaluatees ? 'bg-[#FFCC00]/25 text-gray-900 font-medium' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'}`}
             >
               Admin Innovation — รายชื่อผู้ถูกประเมิน
             </Link>
@@ -534,7 +534,7 @@ const AdminLayoutWithSidebar: React.FC = () => {
               href="/evaluation/innovation/dashboard"
               target="_blank"
               rel="noopener noreferrer"
-              className="block py-2 px-3 rounded-lg text-sm font-medium text-gray-400 hover:bg-white/5 hover:text-white transition-colors"
+              className="block py-2 px-3 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors"
             >
               Dashboard Innovation
             </a>
@@ -542,7 +542,7 @@ const AdminLayoutWithSidebar: React.FC = () => {
               href="/evaluation/eva-editor"
               target="_blank"
               rel="noopener noreferrer"
-              className="block py-2 px-3 rounded-lg text-sm font-medium text-gray-400 hover:bg-white/5 hover:text-white transition-colors"
+              className="block py-2 px-3 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors"
             >
               Eva editor
             </a>
@@ -550,25 +550,25 @@ const AdminLayoutWithSidebar: React.FC = () => {
               href="/evaluation/eva-one-page"
               target="_blank"
               rel="noopener noreferrer"
-              className="block py-2 px-3 rounded-lg text-sm font-medium text-gray-400 hover:bg-white/5 hover:text-white transition-colors"
+              className="block py-2 px-3 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors"
             >
               Eva-สรุป1หน้า
             </a>
           </div>
         </details>
         <details className="group rounded-lg">
-          <summary className="list-none cursor-pointer py-2.5 px-3 rounded-lg text-sm font-medium text-gray-400 hover:bg-white/5 hover:text-white transition-colors flex items-center justify-between">
+          <summary className="list-none cursor-pointer py-2.5 px-3 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors flex items-center justify-between">
             <span>Hogwarts Game</span>
             <svg className="w-4 h-4 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
             </svg>
           </summary>
-          <div className="mt-1 ml-2 space-y-1 border-l border-white/10 pl-2">
+          <div className="mt-1 ml-2 space-y-1 border-l border-[#D6D4CC] pl-2">
             <a
               href="/evaluation/innoclub-hogwarts"
               target="_blank"
               rel="noopener noreferrer"
-              className="block py-2 px-3 rounded-lg text-sm font-medium text-gray-400 hover:bg-white/5 hover:text-white transition-colors"
+              className="block py-2 px-3 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors"
             >
               Admin Hogwarts
             </a>
@@ -576,7 +576,7 @@ const AdminLayoutWithSidebar: React.FC = () => {
               href="/evaluation/innoclub-hogwarts-guest"
               target="_blank"
               rel="noopener noreferrer"
-              className="block py-2 px-3 rounded-lg text-sm font-medium text-gray-400 hover:bg-white/5 hover:text-white transition-colors"
+              className="block py-2 px-3 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors"
             >
               Guest Hogwarts
             </a>
@@ -586,7 +586,7 @@ const AdminLayoutWithSidebar: React.FC = () => {
           href="/course-wheel"
           target="_blank"
           rel="noopener noreferrer"
-          className="block py-2.5 px-3 rounded-lg text-sm font-medium text-gray-400 hover:bg-white/5 hover:text-white transition-colors"
+          className="block py-2.5 px-3 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors"
         >
           วงล้อหลักสูตร
         </a>
@@ -594,7 +594,7 @@ const AdminLayoutWithSidebar: React.FC = () => {
           href="/peer-feedback"
           target="_blank"
           rel="noopener noreferrer"
-          className="block py-2.5 px-3 rounded-lg text-sm font-medium text-gray-400 hover:bg-white/5 hover:text-white transition-colors"
+          className="block py-2.5 px-3 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors"
         >
           Peer Feedback — Audience Grid
         </a>
@@ -602,7 +602,7 @@ const AdminLayoutWithSidebar: React.FC = () => {
           href="/elevate-answer-key"
           target="_blank"
           rel="noopener noreferrer"
-          className="block py-2.5 px-3 rounded-lg text-sm font-medium text-gray-400 hover:bg-white/5 hover:text-white transition-colors"
+          className="block py-2.5 px-3 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors"
         >
           ELEVATE · ANSWER KEY
         </a>
@@ -610,23 +610,23 @@ const AdminLayoutWithSidebar: React.FC = () => {
           href="/elevate-pretest-posttest-editor"
           target="_blank"
           rel="noopener noreferrer"
-          className="block py-2.5 px-3 rounded-lg text-sm font-medium text-gray-400 hover:bg-white/5 hover:text-white transition-colors"
+          className="block py-2.5 px-3 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors"
         >
           Pretest-Posttest editor
         </a>
         <details className="group rounded-lg">
-          <summary className="list-none cursor-pointer py-2.5 px-3 rounded-lg text-sm font-medium text-gray-400 hover:bg-white/5 hover:text-white transition-colors flex items-center justify-between">
+          <summary className="list-none cursor-pointer py-2.5 px-3 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors flex items-center justify-between">
             <span>Whale Done Role Play</span>
             <svg className="w-4 h-4 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
             </svg>
           </summary>
-          <div className="mt-1 ml-2 space-y-1 border-l border-white/10 pl-2">
+          <div className="mt-1 ml-2 space-y-1 border-l border-[#D6D4CC] pl-2">
             <a
               href="/gamification/whale-done-role-play/dashboard"
               target="_blank"
               rel="noopener noreferrer"
-              className="block py-2 px-3 rounded-lg text-sm font-medium text-gray-400 hover:bg-white/5 hover:text-white transition-colors"
+              className="block py-2 px-3 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors"
             >
               Dashboard — คำตอบที่กรอก
             </a>
@@ -634,7 +634,7 @@ const AdminLayoutWithSidebar: React.FC = () => {
               href="/gamification/whale-done-role-play/v1"
               target="_blank"
               rel="noopener noreferrer"
-              className="block py-2 px-3 rounded-lg text-sm font-medium text-gray-400 hover:bg-white/5 hover:text-white transition-colors"
+              className="block py-2 px-3 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors"
             >
               v1
             </a>
@@ -642,7 +642,7 @@ const AdminLayoutWithSidebar: React.FC = () => {
               href="/gamification/whale-done-role-play/v2"
               target="_blank"
               rel="noopener noreferrer"
-              className="block py-2 px-3 rounded-lg text-sm font-medium text-gray-400 hover:bg-white/5 hover:text-white transition-colors"
+              className="block py-2 px-3 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors"
             >
               v2
             </a>
@@ -650,7 +650,7 @@ const AdminLayoutWithSidebar: React.FC = () => {
               href="/gamification/whale-done-role-play/v3"
               target="_blank"
               rel="noopener noreferrer"
-              className="block py-2 px-3 rounded-lg text-sm font-medium text-gray-400 hover:bg-white/5 hover:text-white transition-colors"
+              className="block py-2 px-3 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors"
             >
               v3 <span className="text-[10px] text-zinc-600">(ยังไม่มีข้อมูล)</span>
             </a>
@@ -665,7 +665,7 @@ const AdminLayoutWithSidebar: React.FC = () => {
           await supabase.auth.signOut();
           window.location.href = '/admin/login';
         }}
-        className={`mt-auto py-2.5 px-3 rounded-lg text-sm font-medium text-gray-400 hover:bg-red-500/20 hover:text-red-400 transition-colors ${isAdminLeavePage ? 'md:hidden' : ''}`}
+        className={`mt-auto py-2.5 px-3 rounded-lg text-sm font-medium text-gray-600 hover:bg-red-50 hover:text-red-600 transition-colors ${isAdminLeavePage ? 'md:hidden' : ''}`}
       >
         ออกจากระบบ
       </button>
@@ -673,12 +673,12 @@ const AdminLayoutWithSidebar: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-transparent text-white bg-grid flex selection:bg-yellow-400 selection:text-black">
+    <div className="md-page flex selection:bg-yellow-400 selection:text-black">
       {/* Mobile: hamburger (touch-friendly 44px) + overlay */}
       <button
         type="button"
         onClick={() => setSidebarOpen(true)}
-        className="md:hidden fixed z-40 rounded-xl bg-white/10 text-white hover:bg-white/20 active:bg-white/25 border border-white/10 flex items-center justify-center min-w-[44px] min-h-[44px] touch-manipulation"
+        className="md:hidden fixed z-40 rounded-xl bg-white text-gray-900 hover:bg-gray-50 active:bg-gray-100 border border-[#D6D4CC] shadow-sm flex items-center justify-center min-w-[44px] min-h-[44px] touch-manipulation"
         style={{ top: 'max(env(safe-area-inset-top), 0.5rem)', left: 'max(env(safe-area-inset-left), 0.5rem)' }}
         aria-label="เปิดเมนู"
       >
@@ -689,16 +689,16 @@ const AdminLayoutWithSidebar: React.FC = () => {
       {sidebarOpen && (
         <>
           <div
-            className="md:hidden fixed inset-0 bg-black/80 z-40"
+            className="md:hidden fixed inset-0 bg-black/40 z-40"
             onClick={() => setSidebarOpen(false)}
             aria-hidden
           />
-          <aside className="md:hidden fixed top-0 left-0 bottom-0 w-72 max-w-[min(85vw,320px)] z-50 shrink-0 border-r border-white/10 bg-black/95 backdrop-blur flex flex-col shadow-xl overflow-hidden" style={{ paddingTop: 'max(env(safe-area-inset-top), 1rem)', paddingBottom: 'env(safe-area-inset-bottom)' }}>
+          <aside className="md:hidden fixed top-0 left-0 bottom-0 w-72 max-w-[min(85vw,320px)] z-50 shrink-0 border-r border-[#D6D4CC] bg-white flex flex-col shadow-xl overflow-hidden" style={{ paddingTop: 'max(env(safe-area-inset-top), 1rem)', paddingBottom: 'env(safe-area-inset-bottom)' }}>
             <div className="flex justify-end mb-2 px-4 shrink-0">
               <button
                 type="button"
                 onClick={() => setSidebarOpen(false)}
-                className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl text-gray-400 hover:text-white hover:bg-white/10 active:bg-white/15 -m-2"
+                className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl text-gray-500 hover:text-gray-900 hover:bg-gray-100 active:bg-gray-200 -m-2"
                 aria-label="ปิดเมนู"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -714,7 +714,7 @@ const AdminLayoutWithSidebar: React.FC = () => {
       )}
 
       {/* Desktop: sidebar ตลอด */}
-      <aside className="hidden md:flex w-64 shrink-0 border-r border-white/10 bg-black/80 flex-col py-6 px-4">
+      <aside className="hidden md:flex w-64 shrink-0 border-r border-[#D6D4CC] bg-white flex-col py-6 px-4 shadow-sm shadow-black/[0.03]">
         {sidebarContent}
       </aside>
       <div className="flex-1 min-w-0 pt-14 md:pt-0 md:pl-0 pl-[max(4rem,calc(1rem+env(safe-area-inset-left)))]">

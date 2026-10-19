@@ -102,7 +102,7 @@ const AdminStickycloudPage: React.FC = () => {
           <span className="font-black text-slate-900 text-lg sm:text-xl">WB</span>
         </div>
         <div className="min-w-0">
-          <h1 className="text-xl sm:text-2xl font-bold text-white truncate">Workshop Board MindDoJo</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 truncate">Workshop Board MindDoJo</h1>
           <p className="text-slate-400 text-xs sm:text-sm mt-0.5">Control Panel — สร้างห้อง แชร์รหัส จัดการห้อง workshop</p>
         </div>
       </div>
@@ -115,14 +115,14 @@ const AdminStickycloudPage: React.FC = () => {
             {rooms.map((r) => (
               <li
                 key={r.id}
-                className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 py-4 px-4 sm:px-5 rounded-2xl bg-white/5 border border-white/10 hover:border-slate-600/50 transition"
+                className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 py-4 px-4 sm:px-5 rounded-2xl bg-white border border-[#D6D4CC] hover:border-slate-600/50 transition"
               >
                 <div className="flex items-center gap-3 sm:gap-4 min-w-0">
                   <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-amber-400/10 border border-amber-400/20 flex items-center justify-center shrink-0">
                     <code className="font-mono font-bold text-amber-400 text-xs sm:text-sm">{r.room_code}</code>
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="font-medium text-white truncate">{r.name}</p>
+                    <p className="font-medium text-gray-900 truncate">{r.name}</p>
                     <p className="text-xs text-slate-500 mt-0.5">สร้างเมื่อ {new Date(r.created_at).toLocaleDateString('th-TH')}</p>
                   </div>
                 </div>
@@ -130,7 +130,7 @@ const AdminStickycloudPage: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => navigator.clipboard.writeText(r.room_code)}
-                    className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2.5 rounded-xl bg-slate-700/50 text-slate-300 hover:text-white hover:bg-slate-600/50 transition touch-manipulation"
+                    className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2.5 rounded-xl bg-slate-700/50 text-slate-300 hover:text-gray-900 hover:bg-slate-600/50 transition touch-manipulation"
                     title="คัดลอกรหัส"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -166,14 +166,14 @@ const AdminStickycloudPage: React.FC = () => {
       )}
 
       {/* สร้างห้องใหม่ */}
-      <section className="rounded-2xl bg-white/5 border border-white/10 p-5 sm:p-8">
+      <section className="rounded-2xl bg-white border border-[#D6D4CC] p-5 sm:p-8">
         <div className="flex items-center gap-3 mb-6">
           <div className="w-10 h-10 rounded-xl bg-amber-400/20 flex items-center justify-center shrink-0">
             <svg className="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
           </div>
-          <h2 className="text-base sm:text-lg font-semibold text-white">สร้างห้องใหม่</h2>
+          <h2 className="text-base sm:text-lg font-semibold text-gray-900">สร้างห้องใหม่</h2>
         </div>
         <div className="space-y-5">
           <div>
@@ -183,7 +183,7 @@ const AdminStickycloudPage: React.FC = () => {
               value={roomName}
               onChange={(e) => setRoomName(e.target.value)}
               placeholder="เช่น Workshop BMC มีนาคม"
-              className="w-full px-4 py-3.5 min-h-[48px] rounded-xl bg-black/20 border border-white/10 text-white placeholder-slate-500 focus:border-amber-400/50 focus:ring-2 focus:ring-amber-400/20 outline-none transition touch-manipulation"
+              className="w-full px-4 py-3.5 min-h-[48px] rounded-xl bg-gray-50 border border-[#D6D4CC] text-gray-900 placeholder-slate-500 focus:border-amber-400/50 focus:ring-2 focus:ring-amber-400/20 outline-none transition touch-manipulation"
             />
           </div>
           <div>
@@ -191,7 +191,7 @@ const AdminStickycloudPage: React.FC = () => {
             <select
               value={backgroundType}
               onChange={(e) => setBackgroundType(e.target.value)}
-              className="w-full px-4 py-3.5 min-h-[48px] rounded-xl bg-black/20 border border-white/10 text-white focus:border-amber-400/50 outline-none transition touch-manipulation"
+              className="w-full px-4 py-3.5 min-h-[48px] rounded-xl bg-gray-50 border border-[#D6D4CC] text-gray-900 focus:border-amber-400/50 outline-none transition touch-manipulation"
             >
               {BACKGROUND_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>

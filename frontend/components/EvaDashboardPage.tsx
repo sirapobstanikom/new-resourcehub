@@ -396,7 +396,7 @@ const EvaDashboardPage: React.FC = () => {
 
   if (loadingDashStore) {
     return (
-      <div className="min-h-screen bg-transparent text-white bg-grid flex items-center justify-center">
+      <div className="md-page items-center justify-center">
         <p className="text-sm text-gray-300">กำลังโหลดการตั้งค่า Dashboard...</p>
       </div>
     );
@@ -564,7 +564,7 @@ const EvaDashboardPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-transparent text-white bg-grid">
+    <div className="md-page">
       <header className="sticky top-0 z-20 border-b border-white/10 bg-black/70 backdrop-blur px-4 py-3 sm:px-6 sm:py-5">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">

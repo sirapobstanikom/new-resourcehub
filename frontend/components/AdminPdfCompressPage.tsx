@@ -254,9 +254,9 @@ export default function AdminPdfCompressPage() {
   }, [file, preset]);
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-8 text-white">
+    <div className="max-w-3xl mx-auto px-4 py-8 text-gray-900">
       <div className="mb-6">
-        <Link to="/admin" className="text-sm text-yellow-300 hover:text-yellow-200">
+        <Link to="/admin" className="text-sm text-yellow-800 hover:text-yellow-900">
           ← กลับ Admin
         </Link>
         <h1 className="mt-3 text-2xl sm:text-3xl font-black tracking-tight">ลดขนาดไฟล์ PDF</h1>
@@ -266,7 +266,7 @@ export default function AdminPdfCompressPage() {
         </p>
       </div>
 
-      <div className="rounded-2xl border border-white/10 bg-white/5 p-5 sm:p-6 space-y-5">
+      <div className="rounded-2xl border border-[#D6D4CC] bg-white p-5 sm:p-6 space-y-5">
         <div>
           <p className="text-sm font-semibold text-zinc-200 mb-2">1) เลือกไฟล์ PDF</p>
           <input
@@ -290,11 +290,11 @@ export default function AdminPdfCompressPage() {
               onPickFile(dropped);
             }}
             disabled={busy}
-            className="w-full rounded-xl border-2 border-dashed border-yellow-400/40 bg-black/30 px-4 py-8 text-center hover:bg-yellow-400/5 transition-colors disabled:opacity-50"
+            className="w-full rounded-xl border-2 border-dashed border-yellow-400/40 bg-gray-100 px-4 py-8 text-center hover:bg-yellow-400/5 transition-colors disabled:opacity-50"
           >
             {file ? (
               <div className="space-y-1">
-                <p className="font-semibold text-yellow-200 break-all">{file.name}</p>
+                <p className="font-semibold text-yellow-900 break-all">{file.name}</p>
                 <p className="text-xs text-zinc-400">{formatBytes(file.size)}</p>
                 <p className="text-xs text-zinc-500">คลิกเพื่อเปลี่ยนไฟล์</p>
               </div>
@@ -306,7 +306,7 @@ export default function AdminPdfCompressPage() {
             )}
           </button>
           {hint ? (
-            <p className="mt-2 text-xs text-amber-200/90 bg-amber-500/10 border border-amber-400/25 rounded-lg px-3 py-2">
+            <p className="mt-2 text-xs text-amber-900/90 bg-amber-500/10 border border-amber-400/25 rounded-lg px-3 py-2">
               {hint}
             </p>
           ) : null}
@@ -330,7 +330,7 @@ export default function AdminPdfCompressPage() {
                   className={`rounded-xl border px-3 py-3 text-left transition-colors ${
                     active
                       ? 'border-yellow-400 bg-yellow-400/15 text-yellow-100'
-                      : 'border-white/10 bg-black/20 text-zinc-300 hover:bg-white/5'
+                      : 'border-[#D6D4CC] bg-gray-50 text-zinc-300 hover:bg-white'
                   }`}
                 >
                   <p className="text-sm font-bold">{p.label}</p>
@@ -359,7 +359,7 @@ export default function AdminPdfCompressPage() {
         </button>
 
         {busy && progress.total > 0 ? (
-          <div className="h-2 rounded-full bg-white/10 overflow-hidden">
+          <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
             <div
               className="h-full bg-yellow-400 transition-all"
               style={{ width: `${Math.round((progress.current / progress.total) * 100)}%` }}
@@ -371,25 +371,25 @@ export default function AdminPdfCompressPage() {
           <div className="rounded-2xl border border-emerald-400/30 bg-emerald-500/10 p-4 space-y-3">
             <p className="font-bold text-emerald-200">ลดขนาดเสร็จแล้ว</p>
             <div className="grid grid-cols-2 gap-3 text-sm">
-              <div className="rounded-xl bg-black/30 border border-white/10 p-3">
+              <div className="rounded-xl bg-gray-100 border border-[#D6D4CC] p-3">
                 <p className="text-xs text-zinc-400">ขนาดเดิม</p>
-                <p className="font-semibold text-white">{formatBytes(result.originalSize)}</p>
+                <p className="font-semibold text-gray-900">{formatBytes(result.originalSize)}</p>
               </div>
-              <div className="rounded-xl bg-black/30 border border-white/10 p-3">
+              <div className="rounded-xl bg-gray-100 border border-[#D6D4CC] p-3">
                 <p className="text-xs text-zinc-400">ขนาดใหม่</p>
                 <p className="font-semibold text-emerald-200">{formatBytes(result.compressedSize)}</p>
               </div>
-              <div className="rounded-xl bg-black/30 border border-white/10 p-3">
+              <div className="rounded-xl bg-gray-100 border border-[#D6D4CC] p-3">
                 <p className="text-xs text-zinc-400">จำนวนหน้า</p>
-                <p className="font-semibold text-white">{result.pageCount}</p>
+                <p className="font-semibold text-gray-900">{result.pageCount}</p>
               </div>
-              <div className="rounded-xl bg-black/30 border border-white/10 p-3">
+              <div className="rounded-xl bg-gray-100 border border-[#D6D4CC] p-3">
                 <p className="text-xs text-zinc-400">ลดลงประมาณ</p>
-                <p className="font-semibold text-yellow-200">{savedPercent}%</p>
+                <p className="font-semibold text-yellow-900">{savedPercent}%</p>
               </div>
             </div>
             {result.compressedSize >= result.originalSize ? (
-              <p className="text-xs text-amber-200/90">
+              <p className="text-xs text-amber-900/90">
                 ไฟล์ใหม่อาจไม่เล็กกว่าเดิม (PDF บางไฟล์บีบแล้วอยู่แล้ว) — ลองระดับ 「ขนาดเล็กสุด」
               </p>
             ) : null}

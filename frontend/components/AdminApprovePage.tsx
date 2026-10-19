@@ -44,10 +44,10 @@ const AdminApprovePage: React.FC = () => {
 
   if (!token) {
     return (
-      <div className="min-h-screen bg-transparent text-white bg-grid flex items-center justify-center p-6">
+      <div className="md-page items-center justify-center p-6">
         <div className="w-full max-w-md text-center">
-          <p className="text-red-400">ลิงก์ไม่ถูกต้อง หรือไม่มี token</p>
-          <Link to="/" className="mt-4 inline-block text-yellow-400 hover:underline">← กลับหน้าหลัก</Link>
+          <p className="text-red-600">ลิงก์ไม่ถูกต้อง หรือไม่มี token</p>
+          <Link to="/" className="mt-4 inline-block text-yellow-600 hover:underline font-medium">← กลับหน้าหลัก</Link>
         </div>
       </div>
     );
@@ -55,15 +55,15 @@ const AdminApprovePage: React.FC = () => {
 
   if (done) {
     return (
-      <div className="min-h-screen bg-transparent text-white bg-grid flex items-center justify-center p-6">
-        <div className="w-full max-w-md text-center">
-          <p className="text-green-400 text-lg font-medium">อนุมัติแล้ว</p>
-          <p className="text-gray-400 mt-2">แอดมินคนนี้สามารถเข้าสู่ระบบได้ที่หน้า Login Admin MindDojo</p>
-          <Link to="/admin/login" className="mt-6 inline-block px-6 py-3 rounded-xl font-bold bg-yellow-400 text-black hover:bg-yellow-300">
+      <div className="md-page items-center justify-center p-6">
+        <div className="w-full max-w-md text-center md-card p-10">
+          <p className="text-green-700 text-lg font-medium">อนุมัติแล้ว</p>
+          <p className="text-gray-600 mt-2">แอดมินคนนี้สามารถเข้าสู่ระบบได้ที่หน้า Login Admin MindDojo</p>
+          <Link to="/admin/login" className="mt-6 inline-block md-btn-primary !rounded-xl">
             ไปหน้าเข้าสู่ระบบแอดมิน
           </Link>
           <p className="mt-4">
-            <Link to="/" className="text-gray-400 hover:underline">← กลับหน้าหลัก</Link>
+            <Link to="/" className="text-gray-500 hover:text-gray-900 hover:underline">← กลับหน้าหลัก</Link>
           </p>
         </div>
       </div>
@@ -71,14 +71,14 @@ const AdminApprovePage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-transparent text-white bg-grid flex items-center justify-center p-6">
+    <div className="md-page items-center justify-center p-6">
       <div className="w-full max-w-md">
-        <div className="bg-neutral-900/80 border border-white/10 rounded-[32px] p-10 shadow-2xl backdrop-blur-sm">
-          <h1 className="text-xl font-semibold text-center mb-2">อนุมัติเป็นแอดมิน MindDoJo</h1>
+        <div className="md-card rounded-[32px] p-10 shadow-md">
+          <h1 className="text-xl font-semibold text-center mb-2 text-gray-900">อนุมัติเป็นแอดมิน MindDoJo</h1>
           <p className="text-gray-500 text-sm text-center mb-6">ตั้งรหัสผ่านสำหรับแอดมินคนนี้ (ใช้ล็อกอินภายหลัง)</p>
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-sm font-medium text-gray-400 mb-2">รหัสผ่าน (อย่างน้อย 6 ตัวอักษร)</label>
+              <label className="block text-sm font-medium text-gray-600 mb-2">รหัสผ่าน (อย่างน้อย 6 ตัวอักษร)</label>
               <input
                 type="password"
                 value={password}
@@ -86,11 +86,11 @@ const AdminApprovePage: React.FC = () => {
                 placeholder="••••••••"
                 required
                 minLength={6}
-                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-yellow-400"
+                className="md-input"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-400 mb-2">ยืนยันรหัสผ่าน</label>
+              <label className="block text-sm font-medium text-gray-600 mb-2">ยืนยันรหัสผ่าน</label>
               <input
                 type="password"
                 value={confirmPassword}
@@ -98,24 +98,24 @@ const AdminApprovePage: React.FC = () => {
                 placeholder="••••••••"
                 required
                 minLength={6}
-                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-yellow-400"
+                className="md-input"
               />
             </div>
             {message && (
-              <div className={`p-3 rounded-xl text-sm ${message.type === 'success' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+              <div className={`p-3 rounded-xl text-sm ${message.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
                 {message.text}
               </div>
             )}
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 rounded-xl font-bold bg-yellow-400 text-black hover:bg-yellow-300 disabled:opacity-60"
+              className="md-btn-primary w-full !rounded-xl disabled:opacity-60"
             >
               {loading ? 'กำลังดำเนินการ...' : 'อนุมัติและตั้งรหัสผ่าน'}
             </button>
           </form>
           <p className="text-center text-gray-500 text-sm mt-6">
-            <Link to="/" className="text-gray-400 hover:underline">← กลับหน้าหลัก</Link>
+            <Link to="/" className="text-gray-500 hover:text-gray-900 hover:underline">← กลับหน้าหลัก</Link>
           </p>
         </div>
       </div>

@@ -64,20 +64,20 @@ const AdminLoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-transparent text-white bg-grid flex items-center justify-center p-6">
+    <div className="md-page items-center justify-center p-6">
       <div className="w-full max-w-md">
-        <div className="bg-neutral-900/80 border border-white/10 rounded-[32px] p-10 shadow-2xl backdrop-blur-sm">
+        <div className="md-card rounded-[32px] p-10 shadow-md">
           <div className="flex flex-col items-center mb-10">
-            <BrandLogo className="mb-5 text-[34px]" />
-            <h1 className="text-2xl font-semibold tracking-tight text-center">
-              Login Admin <span className="text-yellow-400">MindDojo</span>
+            <BrandLogo className="mb-5 text-[34px]" tone="dark" />
+            <h1 className="text-2xl font-semibold tracking-tight text-center text-gray-900">
+              Login Admin <span className="text-[#FFCC00]">MindDojo</span>
             </h1>
             <p className="text-gray-500 text-sm mt-2">ใช้บัญชีใน Supabase Authentication เพื่อเข้าสู่ระบบ</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label htmlFor="admin-email" className="block text-sm font-medium text-gray-400 mb-2">อีเมล</label>
+              <label htmlFor="admin-email" className="block text-sm font-medium text-gray-600 mb-2">อีเมล</label>
               <input
                 id="admin-email"
                 type="email"
@@ -86,11 +86,11 @@ const AdminLoginPage: React.FC = () => {
                 placeholder="your@email.com"
                 required
                 autoComplete="email"
-                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-all"
+                className="w-full px-4 py-3 rounded-xl md-input"
               />
             </div>
             <div>
-              <label htmlFor="admin-password" className="block text-sm font-medium text-gray-400 mb-2">รหัสผ่าน</label>
+              <label htmlFor="admin-password" className="block text-sm font-medium text-gray-600 mb-2">รหัสผ่าน</label>
               <div className="relative">
                 <input
                   id="admin-password"
@@ -100,12 +100,12 @@ const AdminLoginPage: React.FC = () => {
                   placeholder="••••••••"
                   required
                   autoComplete="current-password"
-                  className="w-full px-4 py-3 pr-24 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-all"
+                  className="w-full px-4 py-3 pr-24 rounded-xl md-input"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((prev) => !prev)}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white/10 text-gray-200 hover:bg-white/20 transition-colors"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1.5 rounded-lg text-xs font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
                   aria-label={showPassword ? 'ซ่อนรหัสผ่าน' : 'แสดงรหัสผ่าน'}
                 >
                   {showPassword ? 'ซ่อน' : 'แสดง'}
@@ -113,14 +113,14 @@ const AdminLoginPage: React.FC = () => {
               </div>
             </div>
             {message && (
-              <div className={`p-3 rounded-xl text-sm ${message.type === 'success' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+              <div className={`p-3 rounded-xl text-sm ${message.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
                 {message.text}
               </div>
             )}
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 rounded-xl font-bold bg-yellow-400 text-black hover:bg-yellow-300 shadow-lg shadow-yellow-400/20 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+              className="md-btn-primary w-full !rounded-xl disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {loading ? 'กำลังดำเนินการ...' : 'เข้าสู่ระบบ Admin'}
             </button>

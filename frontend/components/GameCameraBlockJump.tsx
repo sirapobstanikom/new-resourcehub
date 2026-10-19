@@ -77,15 +77,9 @@ const GameCameraBlockJump: React.FC = () => {
   const assignedCount = pool?.assigned.length ?? 0;
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 selection:bg-amber-400 selection:text-slate-950 relative overflow-x-hidden">
-      <div className="absolute top-12 left-10 w-48 h-12 bg-white/5 rounded-full blur-sm pointer-events-none" />
-      <div className="absolute top-28 right-16 w-64 h-16 bg-white/5 rounded-full blur-sm pointer-events-none" />
-
+    <div className="md-page relative overflow-x-hidden">
       <div className="fixed top-4 left-4 z-40">
-        <Link
-          to="/"
-          className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/50 px-4 py-2 text-sm font-medium text-white/90 backdrop-blur-md hover:bg-white/10"
-        >
+        <Link to="/" className="md-btn-ghost inline-flex items-center gap-2 !px-4 !py-2">
           <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
@@ -95,34 +89,29 @@ const GameCameraBlockJump: React.FC = () => {
 
       <main className="max-w-6xl mx-auto p-2 sm:p-4 pt-16 sm:pt-20">
         <div className="mb-4 text-center">
-          <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-amber-300/90">MindDoJo Gamification</p>
-          <h1 className="mt-1 text-2xl sm:text-3xl font-black text-white">Camera Block Jump</h1>
-          <p className="mt-1 text-sm text-slate-400">
+          <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-[#FFCC00]">MindDoJo Gamification</p>
+          <h1 className="mt-1 text-2xl sm:text-3xl font-black text-gray-900">Camera Block Jump</h1>
+          <p className="mt-1 text-sm text-gray-600">
             ไม่ต้องรู้จำนวนคนล่วงหน้า — ระบบจะเฉลี่ยเลข 1–{GROUP_COUNT} ให้ทีมที่น้อยสุดก่อน
           </p>
         </div>
 
-        <div className="mb-4 rounded-2xl border border-yellow-400/20 bg-slate-900/80 p-4">
+        <div className="md-card mb-4 p-4">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
-              <p className="text-xs font-bold uppercase tracking-wide text-yellow-300">กองเลขกลุ่ม</p>
-              <p className="mt-1 text-sm text-slate-300">
+              <p className="text-xs font-bold uppercase tracking-wide text-amber-700">กองเลขกลุ่ม</p>
+              <p className="mt-1 text-sm text-gray-700">
                 แจกไปแล้ว {assignedCount} คน · ทีมที่น้อยสุดมี {minCount} คน
               </p>
               {!isSupabaseConfigured ? (
-                <p className="mt-1 text-[11px] text-amber-200/80">ยังไม่ได้ตั้งค่าฐานข้อมูล — เก็บในเครื่องนี้ชั่วคราว</p>
+                <p className="mt-1 text-[11px] text-amber-700/80">ยังไม่ได้ตั้งค่าฐานข้อมูล — เก็บในเครื่องนี้ชั่วคราว</p>
               ) : null}
             </div>
-            <button
-              type="button"
-              onClick={() => void handleResetPool()}
-              disabled={busy}
-              className="rounded-xl border border-slate-600 px-3 py-2 text-xs font-bold text-slate-200 hover:bg-slate-800 disabled:opacity-50"
-            >
+            <button type="button" onClick={() => void handleResetPool()} disabled={busy} className="md-btn-ghost !px-3 !py-2 !text-xs disabled:opacity-50">
               รีเซ็ตกองเลข
             </button>
           </div>
-          {error ? <p className="mt-2 text-sm text-red-300">{error}</p> : null}
+          {error ? <p className="mt-2 text-sm text-red-600">{error}</p> : null}
 
           <div className="mt-4 grid grid-cols-8 gap-2">
             {Array.from({ length: GROUP_COUNT }, (_, i) => i + 1).map((n) => {
@@ -133,10 +122,10 @@ const GameCameraBlockJump: React.FC = () => {
                   key={n}
                   className={`rounded-xl border px-1 py-2 text-center ${
                     currentNumber === n
-                      ? 'border-yellow-400 bg-yellow-400/20 text-yellow-200'
+                      ? 'border-[#FFCC00] bg-yellow-50 text-gray-900'
                       : isNext
-                        ? 'border-emerald-500/40 bg-emerald-500/10 text-slate-200'
-                        : 'border-slate-700 bg-slate-800/50 text-slate-400'
+                        ? 'border-emerald-400 bg-emerald-50 text-gray-800'
+                        : 'border-[#D6D4CC] bg-gray-50 text-gray-500'
                   }`}
                 >
                   <p className="text-sm font-black">#{n}</p>

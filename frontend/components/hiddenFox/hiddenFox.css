@@ -89,16 +89,78 @@
 }
 
 .hf-back-home {
-  color: var(--hf-text);
-  background: rgba(18, 20, 40, 0.75);
-  border: 1px solid rgba(34, 211, 238, 0.35);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  color: #1f2937;
+  background: #ffffff;
+  border: 1px solid #e8e8e4;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .hf-back-home:hover {
-  background: rgba(34, 211, 238, 0.15);
-  border-color: var(--hf-cyan);
-  color: var(--hf-cyan);
+  background: #f9fafb;
+  border-color: #d1d5db;
+  color: #111827;
+}
+
+/* Light page chrome (idle / registration) — gameplay stays dark */
+.fox-protocol-app.fox-chrome-light {
+  color: #111827;
+  background: #f7f7f5;
+}
+
+.fox-protocol-app.fox-chrome-light::before,
+.fox-protocol-app.fox-chrome-light::after {
+  display: none;
+}
+
+.fox-chrome-light .hf-tagline {
+  color: #6b7280;
+}
+
+.fox-chrome-light .hf-hero-badge {
+  color: #b45309;
+  background: #fef9c3;
+  border-color: #fde047;
+}
+
+.fox-chrome-light .hf-stat-chip {
+  background: #ffffff;
+  border-color: #e8e8e4;
+  color: #374151;
+}
+
+.fox-chrome-light .hf-stat-chip strong {
+  color: #111827;
+}
+
+.fox-chrome-light .registration-card {
+  background: #ffffff !important;
+  border: 1px solid #e8e8e4 !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06) !important;
+}
+
+.fox-chrome-light .registration-subtitle {
+  color: #6b7280;
+}
+
+.fox-chrome-light .reg-input {
+  color: #111827;
+  background: #ffffff;
+  border: 1px solid #e8e8e4;
+}
+
+.fox-chrome-light .reg-input::placeholder {
+  color: #9ca3af;
+}
+
+.fox-chrome-light .reg-input:focus {
+  border-color: #fed201;
+  box-shadow: 0 0 0 3px rgba(254, 210, 1, 0.25);
+}
+
+.fox-chrome-light .alert-card-v5 {
+  background: #ffffff;
+  border-color: #e8e8e4;
+  color: #111827;
 }
 
 /* ─── Orientation ─── */

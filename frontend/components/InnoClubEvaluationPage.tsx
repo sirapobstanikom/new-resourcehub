@@ -108,7 +108,7 @@ const InnoClubEvaluationPage: React.FC = () => {
   if (submitted) {
     return (
       <div
-        className="min-h-screen bg-transparent text-white bg-grid flex flex-col selection:bg-yellow-400 selection:text-black innoclub-angsana"
+        className="md-page innoclub-angsana"
       >
         <div className="flex flex-col items-center justify-center flex-1 px-6 py-16">
           <div className="max-w-md w-full rounded-2xl border border-white/10 bg-white/5 p-8 text-center">
@@ -128,7 +128,7 @@ const InnoClubEvaluationPage: React.FC = () => {
 
   return (
     <div
-      className="min-h-screen bg-transparent text-white bg-grid flex flex-col selection:bg-yellow-400 selection:text-black innoclub-angsana"
+      className="md-page innoclub-angsana"
     >
       <header className="border-b border-white/10 px-4 py-4 sm:px-6 xl:px-10 2xl:px-14">
         <div className="max-w-6xl mx-auto flex items-center justify-between gap-3">

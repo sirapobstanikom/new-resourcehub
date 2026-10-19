@@ -9,12 +9,12 @@ import {
 
 function ElevateAnswerKeyPlaceholder({ caseCode }: { caseCode: string }) {
   return (
-    <div className="min-h-screen bg-[#070707] text-white selection:bg-yellow-300 selection:text-black">
-      <header className="border-b border-yellow-400/15 bg-[#0a0a0a]">
+    <div className="md-page selection:bg-yellow-300">
+      <header className="border-b border-[#D6D4CC] bg-white">
         <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-4 sm:flex-row sm:items-start sm:justify-between sm:px-6">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-yellow-400/80">Facilitator only</p>
-            <h1 className="text-xl font-black text-white sm:text-2xl">ELEVATE · ANSWER KEY</h1>
+            <h1 className="text-xl font-black text-gray-900 sm:text-2xl">ELEVATE · ANSWER KEY</h1>
             <p className="mt-1 text-sm text-gray-400">{caseCode}</p>
           </div>
           <Link
@@ -28,7 +28,7 @@ function ElevateAnswerKeyPlaceholder({ caseCode }: { caseCode: string }) {
 
       <div className="mx-auto max-w-3xl px-4 py-16 text-center sm:px-6">
         <p className="text-sm font-semibold uppercase tracking-[0.15em] text-yellow-400/80">{caseCode}</p>
-        <h2 className="mt-3 text-2xl font-black text-white">ยังไม่มีข้อมูล Answer Key</h2>
+        <h2 className="mt-3 text-2xl font-black text-gray-900">ยังไม่มีข้อมูล Answer Key</h2>
         <p className="mt-3 text-sm leading-relaxed text-gray-400">
           เนื้อหา {caseCode} จะเพิ่มในภายหลัง — กรุณาเลือก Case อื่นหรือกลับไปหน้าเลือก Case
         </p>
@@ -71,12 +71,12 @@ const ElevateAnswerKeyPage: React.FC = () => {
   const { intro, day1Sections, day2Sections } = caseContent;
 
   return (
-    <div className="min-h-screen bg-[#070707] text-white selection:bg-yellow-300 selection:text-black">
-      <header className="sticky top-0 z-30 border-b border-yellow-400/15 bg-[#0a0a0a]/95 backdrop-blur">
+    <div className="md-page selection:bg-yellow-300">
+      <header className="sticky top-0 z-30 border-b border-[#D6D4CC] bg-white/95 backdrop-blur">
         <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-4 sm:flex-row sm:items-start sm:justify-between sm:px-6">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-yellow-400/80">Facilitator only</p>
-            <h1 className="text-xl font-black text-white sm:text-2xl">{intro.title}</h1>
+            <h1 className="text-xl font-black text-gray-900 sm:text-2xl">{intro.title}</h1>
             <p className="mt-1 text-sm text-gray-400">
               {caseOption.code} — {intro.caseTitle.replace(/^Case [ABC] — /, '')}
             </p>
@@ -101,7 +101,7 @@ const ElevateAnswerKeyPage: React.FC = () => {
             <a
               key={item.id}
               href={`#${item.id}`}
-              className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-gray-300 hover:border-yellow-400/30 hover:text-yellow-200"
+              className="rounded-full border border-gray-200 bg-white/5 px-3 py-1.5 text-xs font-medium text-gray-300 hover:border-yellow-400/30 hover:text-yellow-200"
             >
               {item.label}
             </a>
@@ -109,7 +109,7 @@ const ElevateAnswerKeyPage: React.FC = () => {
         </nav>
 
         <section className="mb-8">
-          <h2 className="mb-4 text-lg font-black text-white">DAY 1 — DIAGNOSE THE PLANT & BUILD THE 3-YEAR P-ROADMAP</h2>
+          <h2 className="mb-4 text-lg font-black text-gray-900">DAY 1 — DIAGNOSE THE PLANT & BUILD THE 3-YEAR P-ROADMAP</h2>
           <div className="space-y-4">
             {day1Sections.map((section, index) => (
               <CanvasSectionCard key={section.id} section={section} index={index + 1} />
@@ -118,7 +118,7 @@ const ElevateAnswerKeyPage: React.FC = () => {
         </section>
 
         <section className="mb-8">
-          <h2 className="mb-4 text-lg font-black text-white">DAY 2 — LEAD THE CHANGE & BUILD THE PROGRESS PLAN</h2>
+          <h2 className="mb-4 text-lg font-black text-gray-900">DAY 2 — LEAD THE CHANGE & BUILD THE PROGRESS PLAN</h2>
           <div className="space-y-4">
             {day2Sections.map((section, index) => (
               <CanvasSectionCard key={section.id} section={section} index={index === 0 ? 9 : 10} />
@@ -126,7 +126,7 @@ const ElevateAnswerKeyPage: React.FC = () => {
           </div>
         </section>
 
-        <footer className="border-t border-white/10 pt-6 text-center text-sm text-gray-500">{intro.footer}</footer>
+        <footer className="border-t border-gray-200 pt-6 text-center text-sm text-gray-500">{intro.footer}</footer>
       </div>
     </div>
   );

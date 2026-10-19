@@ -409,7 +409,7 @@ const EvaPublicFormPage: React.FC = () => {
 
   if (loadingTemplate) {
     return (
-      <div className="min-h-screen bg-transparent text-white bg-grid px-6 py-10">
+      <div className="md-page px-6 py-10">
         <div className="max-w-3xl mx-auto rounded-2xl border border-white/10 bg-white/5 p-6">
           <p className="text-gray-300">{copy.loading}</p>
         </div>
@@ -419,7 +419,7 @@ const EvaPublicFormPage: React.FC = () => {
 
   if (!activeTemplate) {
     return (
-      <div className="min-h-screen bg-transparent text-white bg-grid px-6 py-10">
+      <div className="md-page px-6 py-10">
         <div className="max-w-3xl mx-auto rounded-2xl border border-red-400/30 bg-red-500/10 p-6">
           <h1 className="text-2xl font-bold text-red-200">{copy.notFoundTitle}</h1>
           <p className="text-red-100/90 mt-3">{copy.notFoundBody}</p>
@@ -433,7 +433,7 @@ const EvaPublicFormPage: React.FC = () => {
 
   if (submitted) {
     return (
-      <div className="min-h-screen bg-transparent text-white bg-grid px-6 py-10">
+      <div className="md-page px-6 py-10">
         <div className="max-w-3xl mx-auto rounded-2xl border border-emerald-400/30 bg-emerald-500/10 p-6 text-center">
           <h1 className="text-2xl font-bold text-emerald-200">{copy.submittedTitle}</h1>
           <p className="text-emerald-100/90 mt-3">{copy.submittedBody}</p>
@@ -457,7 +457,7 @@ const EvaPublicFormPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-transparent text-white bg-grid" lang={isEnglish ? 'en' : 'th'}>
+    <div className="md-page" lang={isEnglish ? 'en' : 'th'}>
       <main className="max-w-4xl mx-auto px-6 py-10">
         <div className="rounded-2xl border border-white/10 bg-white/5 p-6 md:p-8">
           <div className="mb-6 rounded-2xl border border-yellow-300/20 bg-gradient-to-br from-yellow-400/10 via-amber-300/5 to-transparent p-4 md:p-5">

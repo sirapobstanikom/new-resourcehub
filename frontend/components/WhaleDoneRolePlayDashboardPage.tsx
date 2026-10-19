@@ -277,7 +277,7 @@ const WhaleDoneRolePlayDashboardPage: React.FC = () => {
 
   if (!authed) {
     return (
-      <div className="min-h-screen bg-transparent text-white bg-grid flex items-center justify-center px-4 py-10">
+      <div className="md-page items-center justify-center px-4 py-10">
         <form
           onSubmit={handleLogin}
           className="w-full max-w-sm rounded-3xl border border-violet-400/30 bg-gradient-to-br from-violet-950/40 via-black/50 to-black/80 p-6 sm:p-8 space-y-5 shadow-xl"
@@ -327,7 +327,7 @@ const WhaleDoneRolePlayDashboardPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-transparent text-white bg-grid">
+    <div className="md-page">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-10 space-y-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>

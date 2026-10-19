@@ -1202,26 +1202,26 @@ const AdminLeavePage: React.FC = () => {
   })();
 
   return (
-    <div className="min-h-screen bg-transparent text-white flex flex-col overflow-x-hidden">
-      <header className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 px-4 sm:px-6 py-4 sm:py-6 border-b border-white/10">
+    <div className="min-h-full bg-transparent text-gray-900 flex flex-col overflow-x-hidden">
+      <header className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 px-4 sm:px-6 py-4 sm:py-6 border-b border-[#D6D4CC]">
         <div className="flex flex-wrap items-center gap-2 sm:gap-4 min-w-0">
           <Link to="/" className="flex items-center gap-2 sm:gap-3 shrink-0">
-            <BrandLogo className="text-[22px] sm:text-[28px]" />
+            <BrandLogo className="text-[22px] sm:text-[28px]" tone="dark" />
           </Link>
           <span className="hidden sm:inline text-gray-500">|</span>
-          <span className="text-yellow-400 font-semibold text-sm sm:text-base truncate">ระบบลา MindDojo</span>
+          <span className="text-yellow-700 font-semibold text-sm sm:text-base truncate">ระบบลา MindDojo</span>
         </div>
         <div className="w-full sm:w-auto flex items-center justify-end gap-3">
           <Link
             to="/"
-            className="min-h-[44px] flex items-center justify-center px-4 py-3 rounded-xl font-medium bg-white/10 text-white hover:bg-white/20 border border-white/10 w-full sm:w-auto text-center"
+            className="min-h-[44px] flex items-center justify-center px-4 py-3 rounded-xl font-medium bg-gray-100 text-gray-900 hover:bg-gray-200 border border-[#D6D4CC] w-full sm:w-auto text-center"
           >
             กลับหน้าหลัก
           </Link>
           <button
             type="button"
             onClick={handleAdminLogout}
-            className="hidden sm:inline-flex min-h-[44px] items-center justify-center px-4 py-3 rounded-xl font-medium bg-white/10 text-white hover:bg-red-500/20 hover:text-red-400 border border-white/10 transition-colors"
+            className="hidden sm:inline-flex min-h-[44px] items-center justify-center px-4 py-3 rounded-xl font-medium bg-gray-100 text-gray-900 hover:bg-red-50/20 hover:text-red-400 border border-[#D6D4CC] transition-colors"
           >
             ออกจากระบบ
           </button>
@@ -1229,10 +1229,10 @@ const AdminLeavePage: React.FC = () => {
       </header>
 
       <main className="flex-1 max-w-4xl mx-auto w-full px-3 sm:px-6 py-5 sm:py-8 space-y-6 sm:space-y-10 overflow-x-hidden">
-        <h2 className="text-xl font-bold text-gray-300">ยื่นคำขอลา</h2>
+        <h2 className="text-xl font-bold text-gray-700">ยื่นคำขอลา</h2>
 
         {leaveBalance !== null && (
-          <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-gray-300">
+          <div className="rounded-xl border border-[#D6D4CC] bg-white px-4 py-3 text-sm text-gray-700">
             <span className="font-medium text-gray-400">ลาคงเหลือ (ปี {currentYear}):</span>{' '}
             ลากิจ / พักร้อน (รวม) {formatDayValue(leaveBalance.leave_days_remaining)} · ลาป่วย{' '}
             {formatDayValue(leaveBalance.sick_remaining)} ·{' '}
@@ -1272,9 +1272,9 @@ const AdminLeavePage: React.FC = () => {
                   const days = publicHolidays.filter((h) => h.month === monthNum);
                   if (days.length === 0) return null;
                   return (
-                    <div key={monthNum} className="rounded-lg bg-black/20 px-3 py-2">
+                    <div key={monthNum} className="rounded-lg bg-gray-50 px-3 py-2">
                       <span className="text-amber-300/90 font-medium text-sm">{monthName}</span>
-                      <ul className="mt-1 space-y-0.5 text-sm text-gray-300">
+                      <ul className="mt-1 space-y-0.5 text-sm text-gray-700">
                         {days.map((h) => (
                           <li key={h.id}>วันที่ {h.day} — {h.name || 'วันหยุด'}</li>
                         ))}
@@ -1310,13 +1310,13 @@ const AdminLeavePage: React.FC = () => {
                     setSwapSubmitted(false);
                   }}
                   required
-                  className="block w-full min-w-0 px-4 py-3 rounded-xl bg-white/5 border border-white/20 text-white text-sm focus:outline-none focus:border-sky-400"
+                  className="block w-full min-w-0 px-4 py-3 rounded-xl md-input !text-sm text-sm focus:outline-none focus:border-sky-400"
                 >
-                  <option value="" className="bg-neutral-900 text-white">
+                  <option value="" className="bg-white text-gray-900">
                     เลือกวันศุกร์
                   </option>
                   {swapFridayOptions.map((fri) => (
-                    <option key={fri} value={fri} className="bg-neutral-900 text-white">
+                    <option key={fri} value={fri} className="bg-white text-gray-900">
                       {formatThaiDate(fri)} (ศุกร์)
                     </option>
                   ))}
@@ -1340,7 +1340,7 @@ const AdminLeavePage: React.FC = () => {
                     setSwapToDate(v);
                   }}
                   required
-                  className="ios-date-input-fix block !w-full min-w-0 px-4 py-3 rounded-xl bg-white/5 border border-white/20 text-white text-base focus:outline-none focus:border-sky-400"
+                  className="ios-date-input-fix block !w-full min-w-0 px-4 py-3 rounded-xl md-input !text-sm text-base focus:outline-none focus:border-sky-400"
                 />
               </div>
             </div>
@@ -1351,7 +1351,7 @@ const AdminLeavePage: React.FC = () => {
                 value={swapNote}
                 onChange={(e) => setSwapNote(e.target.value)}
                 placeholder="เช่น มีนัดออฟฟิศวันศุกร์"
-                className="block w-full px-4 py-3 rounded-xl bg-white/5 border border-white/20 text-white text-sm focus:outline-none focus:border-sky-400"
+                className="block w-full px-4 py-3 rounded-xl md-input !text-sm text-sm focus:outline-none focus:border-sky-400"
               />
             </div>
             {swapError && <p className="text-sm text-red-400">{swapError}</p>}
@@ -1368,20 +1368,20 @@ const AdminLeavePage: React.FC = () => {
           </form>
         )}
 
-        <form onSubmit={handleSubmit} className="leave-form rounded-2xl border border-white/10 bg-white/5 p-4 sm:p-6 space-y-5 min-w-0">
+        <form onSubmit={handleSubmit} className="leave-form rounded-2xl border border-[#D6D4CC] bg-white p-4 sm:p-6 space-y-5 min-w-0">
           <div>
             <label className="block text-sm font-medium text-gray-400 mb-2">ประเภทการลา</label>
             <select
               value={leaveType}
               onChange={(e) => setLeaveType(e.target.value)}
-              className="block w-full min-w-0 max-w-full px-4 py-3 rounded-xl bg-white/5 border border-white/20 text-white text-sm focus:outline-none focus:border-yellow-400"
+              className="block w-full min-w-0 max-w-full px-4 py-3 rounded-xl md-input !text-sm text-sm focus:outline-none focus:border-yellow-400"
             >
               {LEAVE_TYPES.map((t) => (
                 <option
                   key={t.id}
                   value={t.id}
                   disabled={leaveBalance ? getLeaveRemainingHoursEquivalent(t.id) <= 0 : false}
-                  className="bg-neutral-900 text-white"
+                  className="bg-white text-gray-900"
                 >
                   {t.label}
                   {leaveBalance && getLeaveRemainingHoursEquivalent(t.id) <= 0 ? ' (คงเหลือ 0)' : ''}
@@ -1415,7 +1415,7 @@ const AdminLeavePage: React.FC = () => {
                   }
                 }}
                 required
-                className="ios-date-input-fix block !w-full min-w-0 max-w-full px-4 py-3 rounded-xl bg-white/5 border border-white/20 text-white text-base focus:outline-none focus:border-yellow-400"
+                className="ios-date-input-fix block !w-full min-w-0 max-w-full px-4 py-3 rounded-xl md-input !text-sm text-base focus:outline-none focus:border-yellow-400"
               />
             </div>
             <div className="min-w-0 overflow-hidden">
@@ -1436,7 +1436,7 @@ const AdminLeavePage: React.FC = () => {
                   setEndDate(v);
                 }}
                 required
-                className="ios-date-input-fix block !w-full min-w-0 max-w-full px-4 py-3 rounded-xl bg-white/5 border border-white/20 text-white text-base focus:outline-none focus:border-yellow-400"
+                className="ios-date-input-fix block !w-full min-w-0 max-w-full px-4 py-3 rounded-xl md-input !text-sm text-base focus:outline-none focus:border-yellow-400"
               />
             </div>
           </div>
@@ -1445,22 +1445,22 @@ const AdminLeavePage: React.FC = () => {
             <div>
               <label className="block text-sm font-medium text-gray-400 mb-2">ลา 1 วัน — เต็มวันหรือครึ่งวัน</label>
               {leaveType === 'wfh' ? (
-                <div className="block w-full min-w-0 max-w-full px-4 py-3 rounded-xl bg-white/5 border border-white/20 text-white text-sm">
+                <div className="block w-full min-w-0 max-w-full px-4 py-3 rounded-xl md-input !text-sm text-sm">
                   เต็มวัน (09.00–17.00 น.) — Work from Home เลือกได้เฉพาะเต็มวัน
                 </div>
               ) : (
                 <select
                   value={leaveDayPart}
                   onChange={(e) => setLeaveDayPart(e.target.value as LeaveDayPart)}
-                  className="block w-full min-w-0 max-w-full px-4 py-3 rounded-xl bg-white/5 border border-white/20 text-white text-sm focus:outline-none focus:border-yellow-400"
+                  className="block w-full min-w-0 max-w-full px-4 py-3 rounded-xl md-input !text-sm text-sm focus:outline-none focus:border-yellow-400"
                 >
-                  <option value="full" className="bg-neutral-900 text-white">
+                  <option value="full" className="bg-white text-gray-900">
                     เต็มวัน (09.00–17.00 น.)
                   </option>
-                  <option value="morning" className="bg-neutral-900 text-white">
+                  <option value="morning" className="bg-white text-gray-900">
                     ครึ่งวันเช้า (09.00–13.00 น.)
                   </option>
-                  <option value="afternoon" className="bg-neutral-900 text-white">
+                  <option value="afternoon" className="bg-white text-gray-900">
                     ครึ่งวันบ่าย (13.00–17.00 น.)
                   </option>
                 </select>
@@ -1480,7 +1480,7 @@ const AdminLeavePage: React.FC = () => {
                 type="file"
                 accept={LEAVE_ATTACHMENT_ACCEPT}
                 onChange={(e) => setSickAttachment(e.target.files?.[0] ?? null)}
-                className="block w-full text-sm text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-yellow-400/20 file:text-yellow-200"
+                className="block w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-yellow-400/20 file:text-yellow-900"
               />
               {sickAttachment ? (
                 <p className="text-xs text-gray-400">เลือกแล้ว: {sickAttachment.name}</p>
@@ -1498,11 +1498,11 @@ const AdminLeavePage: React.FC = () => {
                   value={otherLeavePurpose}
                   onChange={(e) => setOtherLeavePurpose(e.target.value)}
                   placeholder="เช่น ลาบวช, ลาคลอด, ลารับราชการทหาร"
-                  className="block w-full min-w-0 max-w-full px-4 py-3 rounded-xl bg-white/5 border border-white/20 text-white placeholder-gray-500 text-sm focus:outline-none focus:border-cyan-400/50"
+                  className="block w-full min-w-0 max-w-full px-4 py-3 rounded-xl md-input !text-sm placeholder-gray-500 text-sm focus:outline-none focus:border-cyan-400/50"
                 />
               </div>
-              <div className="text-xs text-gray-400 space-y-1 border-t border-white/10 pt-3">
-                <p className="font-semibold text-gray-300">รายละเอียดประเภทลาอื่นๆ (อ้างอิงทั่วไป — ตามนโยบายบริษัทฉบับจริง):</p>
+              <div className="text-xs text-gray-400 space-y-1 border-t border-[#D6D4CC] pt-3">
+                <p className="font-semibold text-gray-700">รายละเอียดประเภทลาอื่นๆ (อ้างอิงทั่วไป — ตามนโยบายบริษัทฉบับจริง):</p>
                 <ul className="list-disc list-inside space-y-0.5 text-gray-400">
                   <li>ลาบวช — โดยทั่วไปได้ไม่เกิน 15 วันทำการ</li>
                   <li>ลาคลอด — สิทธิ์โดยประมาณ 60 วัน (แยกช่วงตามกฎหมาย/สัญญา); ระบุจำนวนวันที่ต้องการในช่วงวันที่ด้านบน</li>
@@ -1521,7 +1521,7 @@ const AdminLeavePage: React.FC = () => {
               onChange={(e) => setReason(e.target.value)}
               rows={3}
               placeholder="ระบุเหตุผลการลา..."
-              className="block w-full min-w-0 max-w-full px-4 py-3 rounded-xl bg-white/5 border border-white/20 text-white placeholder-gray-500 text-sm focus:outline-none focus:border-yellow-400 resize-none"
+              className="block w-full min-w-0 max-w-full px-4 py-3 rounded-xl md-input !text-sm placeholder-gray-500 text-sm focus:outline-none focus:border-yellow-400 resize-none"
             />
           </div>
           {submitError && (
@@ -1539,10 +1539,10 @@ const AdminLeavePage: React.FC = () => {
           )}
         </form>
 
-        <section className="rounded-2xl border border-white/10 bg-white/5 p-3 sm:p-5">
+        <section className="rounded-2xl border border-[#D6D4CC] bg-white p-3 sm:p-5">
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2 mb-3">
             <div>
-              <h3 className="font-bold text-gray-200 text-base sm:text-lg">ตารางรายเดือน — ใครลาบ้าง</h3>
+              <h3 className="font-bold text-gray-800 text-base sm:text-lg">ตารางรายเดือน — ใครลาบ้าง</h3>
               <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
                 การลาที่อนุมัติแล้ว · กดชื่อหรือวันเพื่อดูรายละเอียด
               </p>
@@ -1556,12 +1556,12 @@ const AdminLeavePage: React.FC = () => {
                   d.setDate(1);
                   setCalendarViewDate(d);
                 }}
-                className="flex-1 sm:flex-none min-h-[40px] px-3 rounded-xl text-sm font-medium text-zinc-300 hover:text-white hover:bg-white/10 border border-white/10 transition-colors"
+                className="flex-1 sm:flex-none min-h-[40px] px-3 rounded-xl text-sm font-medium text-zinc-300 hover:text-gray-900 hover:bg-gray-100 border border-[#D6D4CC] transition-colors"
                 aria-label="เดือนก่อน"
               >
                 ‹
               </button>
-              <span className="flex-1 sm:flex-none text-center text-sm sm:text-base font-semibold text-yellow-300 min-w-[9.5rem] px-2">
+              <span className="flex-1 sm:flex-none text-center text-sm sm:text-base font-semibold text-yellow-800 min-w-[9.5rem] px-2">
                 {calendarViewDate.toLocaleDateString('th-TH', { month: 'long', year: 'numeric' })}
               </span>
               <button
@@ -1572,7 +1572,7 @@ const AdminLeavePage: React.FC = () => {
                   d.setDate(1);
                   setCalendarViewDate(d);
                 }}
-                className="flex-1 sm:flex-none min-h-[40px] px-3 rounded-xl text-sm font-medium text-zinc-300 hover:text-white hover:bg-white/10 border border-white/10 transition-colors"
+                className="flex-1 sm:flex-none min-h-[40px] px-3 rounded-xl text-sm font-medium text-zinc-300 hover:text-gray-900 hover:bg-gray-100 border border-[#D6D4CC] transition-colors"
                 aria-label="เดือนถัดไป"
               >
                 ›
@@ -1587,10 +1587,10 @@ const AdminLeavePage: React.FC = () => {
             const weekCount = cells.length / 7;
             return (
               <div
-                className="rounded-xl border border-white/10 bg-black/20 overflow-hidden"
+                className="rounded-xl border border-[#D6D4CC] bg-gray-50 overflow-hidden"
                 style={{ height: `min(58vh, ${weekCount * 5.1 + 2.1}rem)` }}
               >
-                <div className="grid grid-cols-7 border-b border-white/10 bg-white/[0.04]">
+                <div className="grid grid-cols-7 border-b border-[#D6D4CC] bg-gray-50">
                   {WEEKDAY_LABELS.map((label, i) => (
                     <div
                       key={label}
@@ -1642,11 +1642,11 @@ const AdminLeavePage: React.FC = () => {
                               }
                             : undefined
                         }
-                        className={`min-h-0 border-r border-b border-white/[0.06] p-0.5 sm:p-1.5 flex flex-col gap-0.5 overflow-hidden transition-colors ${
+                        className={`min-h-0 border-r border-b border-[#D6D4CC] p-0.5 sm:p-1.5 flex flex-col gap-0.5 overflow-hidden transition-colors ${
                           isCurrentMonth ? '' : 'opacity-35'
-                        } ${isWeekendCell && isCurrentMonth ? 'bg-white/[0.02]' : ''} ${
+                        } ${isWeekendCell && isCurrentMonth ? 'bg-gray-50' : ''} ${
                           isToday ? 'bg-yellow-400/10 ring-1 ring-inset ring-yellow-400/35' : ''
-                        } ${dayLeaves.length > 0 ? 'cursor-pointer hover:bg-white/[0.04]' : ''}`}
+                        } ${dayLeaves.length > 0 ? 'cursor-pointer hover:bg-gray-100' : ''}`}
                       >
                         <div className="flex items-center justify-between gap-0.5 shrink-0">
                           <span
@@ -1700,25 +1700,25 @@ const AdminLeavePage: React.FC = () => {
           })()}
         </section>
 
-        <section className="rounded-2xl border border-white/10 bg-white/5 overflow-hidden">
+        <section className="rounded-2xl border border-[#D6D4CC] bg-white overflow-hidden">
           <button
             type="button"
             onClick={() => setMyLeaveListOpen((o) => !o)}
-            className="w-full flex items-center justify-between gap-3 px-4 sm:px-6 py-3.5 sm:py-4 text-left hover:bg-white/5 transition"
+            className="w-full flex items-center justify-between gap-3 px-4 sm:px-6 py-3.5 sm:py-4 text-left hover:bg-white transition"
           >
-            <span className="font-bold text-gray-300">รายการลาของตัวเอง</span>
+            <span className="font-bold text-gray-700">รายการลาของตัวเอง</span>
             <svg className={`w-5 h-5 text-gray-400 shrink-0 transition-transform ${myLeaveListOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
             </svg>
           </button>
           {myLeaveListOpen && (
-          <div className="px-4 sm:px-6 pb-4 sm:pb-6 border-t border-white/10">
+          <div className="px-4 sm:px-6 pb-4 sm:pb-6 border-t border-[#D6D4CC]">
           <p className="text-sm text-gray-500 mb-4 mt-3">รายการขอลาที่ยังไม่ยกเลิก สามารถยกเลิกได้เฉพาะคำขอที่รออนุมัติ</p>
           {cancelError && (
             <div className="text-sm mb-3 space-y-2">
               <p className="text-red-400">{cancelError}</p>
-              <p className="text-gray-500">ให้เปิด Supabase → SQL Editor แล้วรันไฟล์ <code className="bg-white/10 px-1 rounded">backend/supabase/fix_leave_cancel_policy.sql</code> หรือรันคำสั่งด้านล่าง (รวมแก้ constraint ให้รองรับสถานะ ยกเลิกแล้ว):</p>
-              <pre className="text-xs bg-black/30 p-3 rounded-lg overflow-x-auto text-gray-300 whitespace-pre">
+              <p className="text-gray-500">ให้เปิด Supabase → SQL Editor แล้วรันไฟล์ <code className="bg-gray-100 px-1 rounded">backend/supabase/fix_leave_cancel_policy.sql</code> หรือรันคำสั่งด้านล่าง (รวมแก้ constraint ให้รองรับสถานะ ยกเลิกแล้ว):</p>
+              <pre className="text-xs bg-gray-100 p-3 rounded-lg overflow-x-auto text-gray-700 whitespace-pre">
 {`-- แก้ constraint ให้มี 'cancelled' และ 'cancel_requested'
 alter table public.leave_requests drop constraint if exists leave_requests_status_check;
 alter table public.leave_requests add constraint leave_requests_status_check
@@ -1734,14 +1734,14 @@ create policy "Allow update own leave_requests cancel"
             </div>
           )}
           {myLeaveListLoading ? (
-            <div className="min-h-[80px] rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-gray-500 text-sm">
+            <div className="min-h-[80px] rounded-xl bg-white border border-[#D6D4CC] flex items-center justify-center text-gray-500 text-sm">
               กำลังโหลด...
             </div>
           ) : (() => {
             const myList = myLeaveList.filter((r) => r.status !== 'cancelled');
             const myTotal = myList.length;
             return myTotal === 0 ? (
-              <div className="min-h-[80px] rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-gray-500 text-sm">
+              <div className="min-h-[80px] rounded-xl bg-white border border-[#D6D4CC] flex items-center justify-center text-gray-500 text-sm">
                 ยังไม่มีรายการลา (ที่ยังไม่ยกเลิก)
               </div>
             ) : (
@@ -1750,10 +1750,10 @@ create policy "Allow update own leave_requests cancel"
             {myTotal > 10 && (
               <p className="text-xs text-gray-500 mb-2">แสดง {myTotal} รายการ · เลื่อนดูเพิ่มได้ (สูงสุด 10 แถวต่อครั้ง)</p>
             )}
-            <div className="rounded-xl border border-white/10 overflow-auto mx-0 max-h-[calc(2.75rem+10*3.25rem)]">
+            <div className="rounded-xl border border-[#D6D4CC] overflow-auto mx-0 max-h-[calc(2.75rem+10*3.25rem)]">
               <table className="w-full text-left text-sm min-w-[460px]">
                 <thead className="sticky top-0 z-10">
-                  <tr className="border-b border-white/10 bg-zinc-900">
+                  <tr className="border-b border-[#D6D4CC] bg-zinc-900">
                     <th className="px-3 py-2 font-semibold text-gray-400">ประเภท</th>
                     <th className="px-3 py-2 font-semibold text-gray-400">วันเริ่ม</th>
                     <th className="px-3 py-2 font-semibold text-gray-400">วันสิ้นสุด</th>
@@ -1764,10 +1764,10 @@ create policy "Allow update own leave_requests cancel"
                 </thead>
                 <tbody>
                   {myList.map((row) => (
-                    <tr key={row.id} className="border-b border-white/5 hover:bg-white/5">
-                      <td className="px-3 py-2 text-gray-300">{leaveTypeLabelForRow(row)}</td>
-                      <td className="px-3 py-2 text-gray-300">{formatThaiDate(row.start_date)}</td>
-                      <td className="px-3 py-2 text-gray-300">{formatThaiDate(row.end_date)}</td>
+                    <tr key={row.id} className="border-b border-gray-100 hover:bg-white">
+                      <td className="px-3 py-2 text-gray-700">{leaveTypeLabelForRow(row)}</td>
+                      <td className="px-3 py-2 text-gray-700">{formatThaiDate(row.start_date)}</td>
+                      <td className="px-3 py-2 text-gray-700">{formatThaiDate(row.end_date)}</td>
                       <td className="px-3 py-2 text-gray-400 text-xs">
                         {formatLeaveSlotLabel(row.start_date, row.end_date, row.start_time, row.end_time)}
                       </td>
@@ -1839,13 +1839,13 @@ create policy "Allow update own leave_requests cancel"
           </div>
         )}
 
-        <section className="rounded-2xl border border-white/10 bg-white/5 p-4 sm:p-6">
-          <h3 className="font-bold text-gray-300 mb-2">รายการลาที่รออนุมัติ</h3>
+        <section className="rounded-2xl border border-[#D6D4CC] bg-white p-4 sm:p-6">
+          <h3 className="font-bold text-gray-700 mb-2">รายการลาที่รออนุมัติ</h3>
           <p className="text-sm text-gray-500 mb-4">
             คำขอลาที่ยังไม่ได้รับการอนุมัติ
           </p>
           {leaveListLoading ? (
-            <div className="min-h-[120px] rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-gray-500 text-sm py-8">
+            <div className="min-h-[120px] rounded-xl bg-white border border-[#D6D4CC] flex items-center justify-center text-gray-500 text-sm py-8">
               กำลังโหลด...
             </div>
           ) : leaveListError ? (
@@ -1853,9 +1853,9 @@ create policy "Allow update own leave_requests cancel"
               <span className="font-medium mb-1">โหลดรายการลาไม่สำเร็จ</span>
               <span className="text-red-300/80 text-xs text-center">{leaveListError}</span>
               {(leaveListError.includes('approved_by_email') || leaveListError.includes('does not exist')) ? (
-                <div className="mt-4 p-3 rounded-lg bg-black/30 text-left w-full max-w-md">
-                  <p className="text-amber-200 text-xs font-medium mb-2">แก้ไข: ไปที่ Supabase → SQL Editor แล้วรัน:</p>
-                  <code className="block text-xs text-gray-300 whitespace-pre overflow-x-auto">
+                <div className="mt-4 p-3 rounded-lg bg-gray-100 text-left w-full max-w-md">
+                  <p className="text-amber-900 text-xs font-medium mb-2">แก้ไข: ไปที่ Supabase → SQL Editor แล้วรัน:</p>
+                  <code className="block text-xs text-gray-700 whitespace-pre overflow-x-auto">
 {`alter table public.leave_requests add column if not exists approved_by_email text;
 alter table public.leave_requests add column if not exists approved_at timestamptz;`}
                   </code>
@@ -1865,22 +1865,22 @@ alter table public.leave_requests add column if not exists approved_at timestamp
               )}
             </div>
           ) : !leaveList.length ? (
-            <div className="min-h-[120px] rounded-xl bg-white/5 border border-white/10 flex flex-col items-center justify-center text-gray-500 text-sm py-8 px-4">
+            <div className="min-h-[120px] rounded-xl bg-white border border-[#D6D4CC] flex flex-col items-center justify-center text-gray-500 text-sm py-8 px-4">
               <span className="text-amber-400/80 mb-1">ยังไม่มีคำขอลาในระบบ</span>
               <span className="text-gray-500 text-xs">เมื่อมีคำขอลาที่รอตรวจ จะแสดงในตารางด้านล่าง</span>
             </div>
           ) : leaveList.filter((r) => r.status === 'pending').length === 0 ? (
-            <div className="min-h-[120px] rounded-xl bg-white/5 border border-white/10 flex flex-col items-center justify-center text-gray-400 text-sm py-8 px-4">
+            <div className="min-h-[120px] rounded-xl bg-white border border-[#D6D4CC] flex flex-col items-center justify-center text-gray-400 text-sm py-8 px-4">
               <span>ไม่มีคำขอลาที่รออนุมัติ</span>
               <span className="text-gray-500 text-xs mt-1">ขณะนี้ไม่มีคำขอที่รอการตรวจสอบ</span>
             </div>
           ) : (
             <>
             <p className="sm:hidden text-xs text-gray-500 mb-2">เลื่อนซ้าย-ขวาเพื่อดูตาราง</p>
-            <div className="rounded-xl border border-white/10 overflow-x-auto mx-0">
+            <div className="rounded-xl border border-[#D6D4CC] overflow-x-auto mx-0">
               <table className="w-full text-left text-sm min-w-[480px]">
                 <thead>
-                  <tr className="border-b border-white/10 bg-white/5">
+                  <tr className="border-b border-[#D6D4CC] bg-white">
                     <th className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-400">ผู้ลา</th>
                     <th className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-400">ประเภท</th>
                     <th className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-400">วันเริ่ม</th>
@@ -1890,15 +1890,15 @@ alter table public.leave_requests add column if not exists approved_at timestamp
                 </thead>
                 <tbody>
                   {leaveList.filter((r) => r.status === 'pending').map((row) => (
-                    <tr key={row.id} className="border-b border-white/5 hover:bg-white/5">
-                      <td className="px-3 sm:px-4 py-2 sm:py-3 text-gray-300 text-xs sm:text-sm">
+                    <tr key={row.id} className="border-b border-gray-100 hover:bg-white">
+                      <td className="px-3 sm:px-4 py-2 sm:py-3 text-gray-700 text-xs sm:text-sm">
                         {row.user_display_name || row.user_email}
                       </td>
-                      <td className="px-3 sm:px-4 py-2 sm:py-3 text-gray-300 text-xs sm:text-sm">
+                      <td className="px-3 sm:px-4 py-2 sm:py-3 text-gray-700 text-xs sm:text-sm">
                         {leaveTypeLabelForRow(row)}
                       </td>
-                      <td className="px-3 sm:px-4 py-2 sm:py-3 text-gray-300 text-xs sm:text-sm">{formatThaiDate(row.start_date)}</td>
-                      <td className="px-3 sm:px-4 py-2 sm:py-3 text-gray-300 text-xs sm:text-sm">{formatThaiDate(row.end_date)}</td>
+                      <td className="px-3 sm:px-4 py-2 sm:py-3 text-gray-700 text-xs sm:text-sm">{formatThaiDate(row.start_date)}</td>
+                      <td className="px-3 sm:px-4 py-2 sm:py-3 text-gray-700 text-xs sm:text-sm">{formatThaiDate(row.end_date)}</td>
                       <td className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm">
                         <span className="text-amber-400">รอตรวจ</span>
                       </td>
@@ -1911,24 +1911,24 @@ alter table public.leave_requests add column if not exists approved_at timestamp
           )}
         </section>
 
-        <section className="rounded-2xl border border-white/10 bg-white/5 overflow-hidden">
+        <section className="rounded-2xl border border-[#D6D4CC] bg-white overflow-hidden">
           <button
             type="button"
             onClick={() => setApprovedListOpen((o) => !o)}
-            className="w-full flex items-center justify-between gap-3 px-4 sm:px-6 py-3.5 sm:py-4 text-left hover:bg-white/5 transition"
+            className="w-full flex items-center justify-between gap-3 px-4 sm:px-6 py-3.5 sm:py-4 text-left hover:bg-white transition"
           >
-            <span className="font-bold text-gray-300">รายการลาที่อนุมัติแล้วของทุกคน</span>
+            <span className="font-bold text-gray-700">รายการลาที่อนุมัติแล้วของทุกคน</span>
             <svg className={`w-5 h-5 text-gray-400 shrink-0 transition-transform ${approvedListOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
             </svg>
           </button>
           {approvedListOpen && (
-          <div className="px-4 sm:px-6 pb-4 sm:pb-6 border-t border-white/10">
+          <div className="px-4 sm:px-6 pb-4 sm:pb-6 border-t border-[#D6D4CC]">
           <p className="text-sm text-gray-500 mb-4 mt-3">
             แสดงคำขอลาที่อนุมัติแล้ว ตอนยื่นคำขอลาตอนเวลาเท่าไร และเมลผู้อนุมัติ
           </p>
           {approvedLoading ? (
-            <div className="min-h-[100px] rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-gray-500 text-sm">
+            <div className="min-h-[100px] rounded-xl bg-white border border-[#D6D4CC] flex items-center justify-center text-gray-500 text-sm">
               กำลังโหลด...
             </div>
           ) : approvedError ? (
@@ -1941,16 +1941,16 @@ alter table public.leave_requests add column if not exists approved_at timestamp
             const apprPage = Math.min(approvedPage, apprTotalPages);
             const pageItems = buildCompactPageItems(apprTotalPages, apprPage);
             return apprTotal === 0 ? (
-              <div className="min-h-[100px] rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-gray-500 text-sm">
+              <div className="min-h-[100px] rounded-xl bg-white border border-[#D6D4CC] flex items-center justify-center text-gray-500 text-sm">
                 ยังไม่มีรายการที่อนุมัติแล้ว
               </div>
             ) : (
             <>
             <p className="sm:hidden text-xs text-gray-500 mb-2">เลื่อนซ้าย-ขวาเพื่อดูตาราง</p>
-            <div className="rounded-xl border border-white/10 overflow-x-auto mx-0">
+            <div className="rounded-xl border border-[#D6D4CC] overflow-x-auto mx-0">
               <table className="w-full text-left text-sm min-w-[720px]">
                 <thead>
-                  <tr className="border-b border-white/10 bg-white/5">
+                  <tr className="border-b border-[#D6D4CC] bg-white">
                     <th className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-400">ผู้ลา</th>
                     <th className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-400">ประเภท</th>
                     <th className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-400">วันเริ่ม</th>
@@ -1963,15 +1963,15 @@ alter table public.leave_requests add column if not exists approved_at timestamp
                 </thead>
                 <tbody>
                   {approvedRows.map((row) => (
-                      <tr key={row.id} className="border-b border-white/5 hover:bg-white/5">
-                        <td className="px-3 sm:px-4 py-2 sm:py-3 text-gray-300 text-xs sm:text-sm">
+                      <tr key={row.id} className="border-b border-gray-100 hover:bg-white">
+                        <td className="px-3 sm:px-4 py-2 sm:py-3 text-gray-700 text-xs sm:text-sm">
                           {row.user_display_name || row.user_email}
                         </td>
-                        <td className="px-3 sm:px-4 py-2 sm:py-3 text-gray-300 text-xs sm:text-sm">
+                        <td className="px-3 sm:px-4 py-2 sm:py-3 text-gray-700 text-xs sm:text-sm">
                           {leaveTypeLabelForRow(row)}
                         </td>
-                        <td className="px-3 sm:px-4 py-2 sm:py-3 text-gray-300 text-xs sm:text-sm">{formatThaiDate(row.start_date)}</td>
-                        <td className="px-3 sm:px-4 py-2 sm:py-3 text-gray-300 text-xs sm:text-sm">{formatThaiDate(row.end_date)}</td>
+                        <td className="px-3 sm:px-4 py-2 sm:py-3 text-gray-700 text-xs sm:text-sm">{formatThaiDate(row.start_date)}</td>
+                        <td className="px-3 sm:px-4 py-2 sm:py-3 text-gray-700 text-xs sm:text-sm">{formatThaiDate(row.end_date)}</td>
                         <td className="px-3 sm:px-4 py-2 sm:py-3 text-gray-400 text-xs sm:text-sm">
                           {formatLeaveSlotLabel(row.start_date, row.end_date, row.start_time, row.end_time) || '—'}
                         </td>
@@ -1990,23 +1990,23 @@ alter table public.leave_requests add column if not exists approved_at timestamp
               </table>
             </div>
             {apprTotalPages > 1 && (
-              <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-white/10 pt-3">
+              <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-[#D6D4CC] pt-3">
                 <span className="text-xs text-gray-500">แถว {(apprPage - 1) * APPROVED_ROWS_PER_PAGE + 1}–{Math.min(apprPage * APPROVED_ROWS_PER_PAGE, apprTotal)} จาก {apprTotal} · หน้าแรก = ข้อมูลล่าสุด</span>
                 <div className="flex flex-wrap items-center gap-1.5">
                   <button type="button" onClick={() => setApprovedPage((p) => Math.max(1, p - 1))} disabled={apprPage <= 1}
-                    className="px-2 py-1 rounded text-sm bg-white/10 text-white hover:bg-white/20 disabled:opacity-40 disabled:cursor-not-allowed">← ก่อนหน้า</button>
+                    className="px-2 py-1 rounded text-sm bg-gray-100 text-gray-900 hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed">← ก่อนหน้า</button>
                   {pageItems.map((item, idx) =>
                     item === '...' ? (
                       <span key={`approved-ellipsis-${idx}`} className="px-2 py-1 text-sm text-gray-500">...</span>
                     ) : (
                       <button key={item} type="button" onClick={() => setApprovedPage(item)}
-                        className={`px-2 py-1 rounded text-sm min-w-[1.75rem] ${apprPage === item ? 'bg-yellow-400/20 text-yellow-400' : 'bg-white/10 text-white hover:bg-white/20'}`}>
+                        className={`px-2 py-1 rounded text-sm min-w-[1.75rem] ${apprPage === item ? 'bg-yellow-400/20 text-yellow-400' : 'bg-gray-100 text-gray-900 hover:bg-gray-200'}`}>
                         {item}
                       </button>
                     )
                   )}
                   <button type="button" onClick={() => setApprovedPage((p) => Math.min(apprTotalPages, p + 1))} disabled={apprPage >= apprTotalPages}
-                    className="px-2 py-1 rounded text-sm bg-white/10 text-white hover:bg-white/20 disabled:opacity-40 disabled:cursor-not-allowed">ถัดไป →</button>
+                    className="px-2 py-1 rounded text-sm bg-gray-100 text-gray-900 hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed">ถัดไป →</button>
                 </div>
               </div>
             )}
@@ -2017,19 +2017,19 @@ alter table public.leave_requests add column if not exists approved_at timestamp
           )}
         </section>
 
-        <section className="rounded-2xl border border-white/10 bg-white/5 overflow-hidden">
+        <section className="rounded-2xl border border-[#D6D4CC] bg-white overflow-hidden">
           <button
             type="button"
             onClick={() => setCancelListOpen((o) => !o)}
-            className="w-full flex items-center justify-between gap-3 px-3 sm:px-4 py-3 sm:py-3.5 text-left hover:bg-white/5 transition"
+            className="w-full flex items-center justify-between gap-3 px-3 sm:px-4 py-3 sm:py-3.5 text-left hover:bg-white transition"
           >
-            <span className="font-bold text-gray-300">รายการลาที่ขอยกเลิก</span>
+            <span className="font-bold text-gray-700">รายการลาที่ขอยกเลิก</span>
             <svg className={`w-5 h-5 text-gray-400 shrink-0 transition-transform ${cancelListOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
             </svg>
           </button>
           {cancelListOpen && (
-          <div className="px-3 sm:px-4 pb-3 sm:pb-4 border-t border-white/10">
+          <div className="px-3 sm:px-4 pb-3 sm:pb-4 border-t border-[#D6D4CC]">
           <p className="text-xs text-gray-500 mb-3 mt-3">แสดงรายการขอยกเลิก (รออนุมัติ/ยกเลิกแล้ว) ของทุกคน</p>
           {(() => {
             const cancelTotal = cancelAuditsTotal;
@@ -2038,7 +2038,7 @@ alter table public.leave_requests add column if not exists approved_at timestamp
             const pageItems = buildCompactPageItems(cancelTotalPages, cancelPage);
             return (
               <>
-          <div className="rounded-xl border border-white/10 overflow-x-auto mx-0">
+          <div className="rounded-xl border border-[#D6D4CC] overflow-x-auto mx-0">
             {cancelAuditsLoading ? (
               <div className="min-h-[70px] flex items-center justify-center text-gray-500 text-xs p-4">
                 กำลังโหลด...
@@ -2046,7 +2046,7 @@ alter table public.leave_requests add column if not exists approved_at timestamp
             ) : (
               <table className="w-full text-left text-xs min-w-[880px]">
                   <thead>
-                    <tr className="border-b border-white/10 bg-white/5">
+                    <tr className="border-b border-[#D6D4CC] bg-white">
                       <th className="px-2 py-1.5 sm:px-2 sm:py-2 font-semibold text-gray-400">ประเภท</th>
                       <th className="px-2 py-1.5 sm:px-2 sm:py-2 font-semibold text-gray-400">วันเริ่ม</th>
                       <th className="px-2 py-1.5 sm:px-2 sm:py-2 font-semibold text-gray-400">วันสิ้นสุด</th>
@@ -2075,14 +2075,14 @@ alter table public.leave_requests add column if not exists approved_at timestamp
                         const statusClass =
                           row.status === 'cancel_requested' ? 'text-amber-300' : 'text-gray-400';
                         return (
-                          <tr key={row.id} className="border-b border-white/5 hover:bg-white/5">
-                            <td className="px-2 py-1.5 sm:px-2 sm:py-2 text-gray-300">
+                          <tr key={row.id} className="border-b border-gray-100 hover:bg-white">
+                            <td className="px-2 py-1.5 sm:px-2 sm:py-2 text-gray-700">
                               {resolveLeaveTypeLabel(row.leave_type)}
                             </td>
-                            <td className="px-2 py-1.5 sm:px-2 sm:py-2 text-gray-300">
+                            <td className="px-2 py-1.5 sm:px-2 sm:py-2 text-gray-700">
                               {formatThaiDate(row.start_date)}
                             </td>
-                            <td className="px-2 py-1.5 sm:px-2 sm:py-2 text-gray-300">
+                            <td className="px-2 py-1.5 sm:px-2 sm:py-2 text-gray-700">
                               {formatThaiDate(row.end_date)}
                             </td>
                             <td className="px-2 py-1.5 sm:px-2 sm:py-2 text-gray-400">
@@ -2112,23 +2112,23 @@ alter table public.leave_requests add column if not exists approved_at timestamp
             )}
           </div>
           {!cancelAuditsLoading && cancelTotalPages > 1 && (
-            <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-white/10 pt-3">
+            <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-[#D6D4CC] pt-3">
               <span className="text-xs text-gray-500">แถว {(cancelPage - 1) * CANCEL_ROWS_PER_PAGE + 1}–{Math.min(cancelPage * CANCEL_ROWS_PER_PAGE, cancelTotal)} จาก {cancelTotal} · หน้าแรก = ข้อมูลล่าสุด</span>
               <div className="flex flex-wrap items-center gap-1.5">
                 <button type="button" onClick={() => setCancelAuditsPage((p) => Math.max(1, p - 1))} disabled={cancelPage <= 1}
-                  className="px-2 py-1 rounded text-sm bg-white/10 text-white hover:bg-white/20 disabled:opacity-40 disabled:cursor-not-allowed">← ก่อนหน้า</button>
+                  className="px-2 py-1 rounded text-sm bg-gray-100 text-gray-900 hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed">← ก่อนหน้า</button>
                 {pageItems.map((item, idx) =>
                   item === '...' ? (
                     <span key={`cancel-ellipsis-${idx}`} className="px-2 py-1 text-sm text-gray-500">...</span>
                   ) : (
                     <button key={item} type="button" onClick={() => setCancelAuditsPage(item)}
-                      className={`px-2 py-1 rounded text-sm min-w-[1.75rem] ${cancelPage === item ? 'bg-yellow-400/20 text-yellow-400' : 'bg-white/10 text-white hover:bg-white/20'}`}>
+                      className={`px-2 py-1 rounded text-sm min-w-[1.75rem] ${cancelPage === item ? 'bg-yellow-400/20 text-yellow-400' : 'bg-gray-100 text-gray-900 hover:bg-gray-200'}`}>
                       {item}
                     </button>
                   )
                 )}
                 <button type="button" onClick={() => setCancelAuditsPage((p) => Math.min(cancelTotalPages, p + 1))} disabled={cancelPage >= cancelTotalPages}
-                  className="px-2 py-1 rounded text-sm bg-white/10 text-white hover:bg-white/20 disabled:opacity-40 disabled:cursor-not-allowed">ถัดไป →</button>
+                  className="px-2 py-1 rounded text-sm bg-gray-100 text-gray-900 hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed">ถัดไป →</button>
               </div>
             </div>
           )}
@@ -2153,7 +2153,7 @@ alter table public.leave_requests add column if not exists approved_at timestamp
           aria-labelledby="leave-day-detail-title"
         >
           <div
-            className="rounded-t-2xl sm:rounded-2xl border border-white/20 bg-neutral-900 shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 space-y-4"
+            className="rounded-t-2xl sm:rounded-2xl border border-gray-200 bg-neutral-900 shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 space-y-4"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-start justify-between gap-3">
@@ -2166,21 +2166,21 @@ alter table public.leave_requests add column if not exists approved_at timestamp
                   setSelectedDayLeaves(null);
                   setSelectedDayKey(null);
                 }}
-                className="px-3 py-1.5 rounded-lg bg-white/10 text-gray-200 hover:bg-white/15 border border-white/10"
+                className="px-3 py-1.5 rounded-lg bg-gray-100 text-gray-800 hover:bg-gray-200 border border-[#D6D4CC]"
               >
                 ปิด
               </button>
             </div>
 
-            <p className="text-sm text-gray-300">
+            <p className="text-sm text-gray-700">
               วันที่ {formatThaiDate(selectedDayKey)}
               <span className="text-gray-500"> · ทั้งหมด {selectedDayLeaves.length} รายการ</span>
             </p>
 
-            <div className="rounded-xl border border-white/10 overflow-x-auto">
+            <div className="rounded-xl border border-[#D6D4CC] overflow-x-auto">
               <table className="w-full text-sm border-collapse">
                 <thead>
-                  <tr className="bg-white/5 border-b border-white/10">
+                  <tr className="bg-white border-b border-[#D6D4CC]">
                     <th className="px-3 py-2 text-left text-gray-400 font-semibold">ผู้ลา</th>
                     <th className="px-3 py-2 text-left text-gray-400 font-semibold">ประเภท</th>
                     <th className="px-3 py-2 text-left text-gray-400 font-semibold">ช่วงเวลา</th>
@@ -2193,10 +2193,10 @@ alter table public.leave_requests add column if not exists approved_at timestamp
                     const timeRange = formatLeaveSlotLabel(row.start_date, row.end_date, row.start_time, row.end_time);
                     const reasonText = stripWfhSwapTag(row.reason) || '—';
                     return (
-                      <tr key={row.id} className="border-b border-white/5 last:border-b-0 hover:bg-white/5">
-                        <td className="px-3 py-2 text-gray-300">{row.user_display_name || row.user_email}</td>
-                        <td className="px-3 py-2 text-gray-300">{typeLabel}</td>
-                        <td className="px-3 py-2 text-gray-300">{timeRange || '—'}</td>
+                      <tr key={row.id} className="border-b border-gray-100 last:border-b-0 hover:bg-white">
+                        <td className="px-3 py-2 text-gray-700">{row.user_display_name || row.user_email}</td>
+                        <td className="px-3 py-2 text-gray-700">{typeLabel}</td>
+                        <td className="px-3 py-2 text-gray-700">{timeRange || '—'}</td>
                         <td className="px-3 py-2 text-gray-400 max-w-[260px] truncate" title={reasonText}>
                           {reasonText}
                         </td>
@@ -2221,7 +2221,7 @@ alter table public.leave_requests add column if not exists approved_at timestamp
           aria-labelledby="leave-detail-title"
         >
           <div
-            className="rounded-t-2xl sm:rounded-2xl border border-white/20 bg-neutral-900 shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto p-6 space-y-4"
+            className="rounded-t-2xl sm:rounded-2xl border border-gray-200 bg-neutral-900 shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto p-6 space-y-4"
             onClick={(e) => e.stopPropagation()}
           >
             <h3 id="leave-detail-title" className="text-lg font-bold text-yellow-400">
@@ -2230,29 +2230,29 @@ alter table public.leave_requests add column if not exists approved_at timestamp
             <dl className="space-y-3 text-sm">
               <div>
                 <dt className="text-gray-500">ชื่อ-นามสกุล</dt>
-                <dd className="text-white font-medium">{selectedLeave.user_display_name || selectedLeave.user_email}</dd>
+                <dd className="text-gray-900 font-medium">{selectedLeave.user_display_name || selectedLeave.user_email}</dd>
               </div>
               <div>
                 <dt className="text-gray-500">อีเมล</dt>
-                <dd className="text-gray-300">{selectedLeave.user_email}</dd>
+                <dd className="text-gray-700">{selectedLeave.user_email}</dd>
               </div>
               <div>
                 <dt className="text-gray-500">ประเภทการลา</dt>
-                <dd className="text-gray-300">
+                <dd className="text-gray-700">
                   {leaveTypeLabelForRow(selectedLeave)}
                 </dd>
               </div>
               <div>
                 <dt className="text-gray-500">วันที่เริ่ม</dt>
-                <dd className="text-gray-300">{formatThaiDate(selectedLeave.start_date)}</dd>
+                <dd className="text-gray-700">{formatThaiDate(selectedLeave.start_date)}</dd>
               </div>
               <div>
                 <dt className="text-gray-500">วันที่สิ้นสุด</dt>
-                <dd className="text-gray-300">{formatThaiDate(selectedLeave.end_date)}</dd>
+                <dd className="text-gray-700">{formatThaiDate(selectedLeave.end_date)}</dd>
               </div>
               <div>
                 <dt className="text-gray-500">ช่วงลา (เต็มวัน / ครึ่งวัน)</dt>
-                <dd className="text-gray-300">
+                <dd className="text-gray-700">
                   {formatLeaveSlotLabel(
                     selectedLeave.start_date,
                     selectedLeave.end_date,
@@ -2263,12 +2263,12 @@ alter table public.leave_requests add column if not exists approved_at timestamp
               </div>
               <div>
                 <dt className="text-gray-500">ยื่นคำขอลาตอน</dt>
-                <dd className="text-gray-300">{formatSubmittedAt(selectedLeave.created_at)}</dd>
+                <dd className="text-gray-700">{formatSubmittedAt(selectedLeave.created_at)}</dd>
               </div>
               {selectedLeave.reason && (
                 <div>
                   <dt className="text-gray-500">เหตุผล</dt>
-                  <dd className="text-gray-300 whitespace-pre-wrap">{stripWfhSwapTag(selectedLeave.reason)}</dd>
+                  <dd className="text-gray-700 whitespace-pre-wrap">{stripWfhSwapTag(selectedLeave.reason)}</dd>
                 </div>
               )}
                 <div>
@@ -2310,7 +2310,7 @@ alter table public.leave_requests add column if not exists approved_at timestamp
                   {selectedLeave.approved_at && (
                     <div>
                       <dt className="text-gray-500">วันที่อนุมัติ</dt>
-                      <dd className="text-gray-300">{formatDateTime24(selectedLeave.approved_at)}</dd>
+                      <dd className="text-gray-700">{formatDateTime24(selectedLeave.approved_at)}</dd>
                     </div>
                   )}
                 </>
@@ -2320,7 +2320,7 @@ alter table public.leave_requests add column if not exists approved_at timestamp
               <button
                 type="button"
                 onClick={() => setSelectedLeave(null)}
-                className="min-h-[44px] min-w-[80px] px-4 py-3 rounded-xl font-medium bg-white/10 text-white hover:bg-white/20 border border-white/20 transition-colors touch-manipulation"
+                className="min-h-[44px] min-w-[80px] px-4 py-3 rounded-xl font-medium bg-gray-100 text-gray-900 hover:bg-gray-200 border border-gray-200 transition-colors touch-manipulation"
               >
                 ปิด
               </button>

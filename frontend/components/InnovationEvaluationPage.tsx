@@ -37,7 +37,7 @@ function PageHeader({ subtitle, action }: { subtitle: string; action?: React.Rea
     <header className="sticky top-0 z-20 border-b border-yellow-400/15 bg-[#080808]/90 px-4 py-4 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-3">
         <Link to="/" className="flex items-center gap-3">
-          <BrandLogo className="text-[24px]" />
+          <BrandLogo className="text-[24px]" tone="dark" />
           <span className="h-8 w-px bg-white/15" aria-hidden />
           <div>
             <p className="text-sm font-black text-white">แบบประเมิน Innovation</p>

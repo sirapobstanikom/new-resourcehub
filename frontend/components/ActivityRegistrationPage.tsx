@@ -204,7 +204,7 @@ export default function ActivityRegistrationPage() {
           <Link to="/" className="flex items-center gap-3 group">
             <div>
               <div className="flex items-center gap-2">
-                <BrandLogo className="text-[22px] sm:text-[26px] transition-opacity group-hover:opacity-85" />
+                <BrandLogo className="text-[22px] sm:text-[26px] transition-opacity group-hover:opacity-85" tone="dark" />
                 <span className="text-[10px] sm:text-xs font-semibold px-2 py-0.5 rounded-full bg-yellow-400/15 text-yellow-300 border border-yellow-400/30">
                   Registration
                 </span>

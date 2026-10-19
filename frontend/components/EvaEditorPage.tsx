@@ -1190,7 +1190,7 @@ const EvaEditorPage: React.FC = () => {
 
   if (!isAdmin) {
     return (
-      <div className="min-h-screen bg-transparent text-white bg-grid px-6 py-10">
+      <div className="md-page px-6 py-10">
         <div className="max-w-3xl mx-auto rounded-2xl border border-red-400/30 bg-red-500/10 p-6">
           <h1 className="text-2xl font-bold text-red-200">Eva editor</h1>
           <p className="text-red-100/90 mt-3">หน้านี้สำหรับผู้ดูแลระบบเท่านั้น กรุณาเข้าสู่ระบบแอดมินก่อนใช้งาน</p>
@@ -1203,7 +1203,7 @@ const EvaEditorPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-transparent text-white bg-grid">
+    <div className="md-page">
       <header className="border-b border-white/10 px-6 py-5">
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
           <h1 className="text-xl md:text-2xl font-bold text-yellow-300">Eva editor</h1>

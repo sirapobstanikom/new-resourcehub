@@ -61,18 +61,18 @@ const getLevelFromPercent = (percent: number): RatingLevel => {
 const INTRO_BODY = (
   <>
     <p className="mb-4">
-      แบบประเมินนี้ใช้กรอบ <strong className="text-white">Dynamic Leadership Capability Wheel</strong> ในการประเมินสมรรถนะภาวะผู้นำของคุณ
+      แบบประเมินนี้ใช้กรอบ <strong className="text-gray-900">Dynamic Leadership Capability Wheel</strong> ในการประเมินสมรรถนะภาวะผู้นำของคุณ
     </p>
     <p className="mb-4 text-gray-400">
-      ประกอบด้วย 3 หมวดหลัก คือ <strong className="text-[#FED201]">Be AWARE</strong> (การตระหนักรู้),{' '}
-      <strong className="text-[#FED201]">ADAPT</strong> (การปรับตัวและเรียนรู้) และ{' '}
-      <strong className="text-[#FED201]">ACT</strong> (การลงมือทำและผลักดันการเปลี่ยนแปลง) เพื่อให้คุณเห็นจุดแข็งและพื้นที่ที่ควรพัฒนา
+      ประกอบด้วย 3 หมวดหลัก คือ <strong className="text-[#FFCC00]">Be AWARE</strong> (การตระหนักรู้),{' '}
+      <strong className="text-[#FFCC00]">ADAPT</strong> (การปรับตัวและเรียนรู้) และ{' '}
+      <strong className="text-[#FFCC00]">ACT</strong> (การลงมือทำและผลักดันการเปลี่ยนแปลง) เพื่อให้คุณเห็นจุดแข็งและพื้นที่ที่ควรพัฒนา
     </p>
     <p className="mb-5 text-gray-400">
-      แบบประเมินรวมทั้งหมด <strong className="text-[#FED201]">{getTotalQuestionCount()}</strong> ข้อ
+      แบบประเมินรวมทั้งหมด <strong className="text-[#FFCC00]">{getTotalQuestionCount()}</strong> ข้อ
     </p>
-    <div className="rounded-xl border border-[#474747] bg-[#1E1E1E]/80 p-4 text-left">
-      <p className="mb-2 text-sm font-semibold text-white">วิธีการทำแบบประเมิน</p>
+    <div className="rounded-xl border border-gray-200 bg-[#F3F2ED]/80 p-4 text-left">
+      <p className="mb-2 text-sm font-semibold text-gray-900">วิธีการทำแบบประเมิน</p>
       <ol className="list-inside list-decimal space-y-1.5 text-sm text-gray-400">
         <li>อ่านแต่ละข้อแล้วพิจารณาว่าตรงกับคุณมากที่สุด</li>
         <li>เลือกหนึ่งระดับจาก 4 ระดับ ได้แก่ ต้องพัฒนาอย่างจริงจัง / ควรพัฒนา / ดี / จุดแข็ง</li>
@@ -363,30 +363,30 @@ const LeadershipAssessment: React.FC = () => {
   };
 
   return (
-    <div className="relative flex min-h-[100dvh] flex-col bg-[#1E1E1E] text-white selection:bg-[#FED201] selection:text-black">
+    <div className="md-page relative flex min-h-[100dvh] flex-col">
       {/* ป๊อปอัพแนะนำก่อนเริ่มแบบประเมิน */}
       {showIntroModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" aria-modal="true" role="dialog">
           <div
-            className="absolute inset-0 bg-black/75 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
             onClick={handleCloseIntroAndStartAssessment}
             aria-hidden="true"
           />
-          <div className="relative max-h-[90dvh] w-full max-w-lg overflow-y-auto rounded-2xl border border-white/10 bg-[#2a2a2a]/95 shadow-2xl shadow-black/60">
+          <div className="relative max-h-[90dvh] w-full max-w-lg overflow-y-auto rounded-2xl border border-gray-200 bg-white/95 shadow-2xl shadow-black/60">
             <div className="h-1 w-full" style={{ backgroundColor: LEADERSHIP_YELLOW }} />
             <div className="p-7 text-center sm:p-9">
-              <BrandLogo className="mb-6 text-[22px]" />
+              <BrandLogo className="mb-6 text-[22px]" tone="dark" />
               <h2 className="mb-5 text-2xl font-bold leading-tight sm:text-3xl">
                 แบบประเมิน
                 <span className="block" style={{ color: LEADERSHIP_YELLOW }}>
                   สมรรถนะภาวะผู้นำ
                 </span>
               </h2>
-              <div className="mb-7 text-sm leading-relaxed text-gray-300 sm:text-base">{INTRO_BODY}</div>
+              <div className="mb-7 text-sm leading-relaxed text-gray-600 sm:text-base">{INTRO_BODY}</div>
               <button
                 type="button"
                 onClick={handleCloseIntroAndStartAssessment}
-                className="w-full rounded-lg py-3.5 font-bold text-black shadow-lg shadow-[#FED201]/20 transition-all hover:brightness-105 active:scale-[0.99]"
+                className="w-full rounded-lg py-3.5 font-bold text-black shadow-lg shadow-[#FFCC00]/20 transition-all hover:brightness-105 active:scale-[0.99]"
                 style={{ backgroundColor: LEADERSHIP_YELLOW }}
               >
                 เริ่มทำแบบประเมิน
@@ -412,24 +412,24 @@ const LeadershipAssessment: React.FC = () => {
               alt=""
               className="h-full w-full select-none object-cover object-[78%_center] opacity-30"
             />
-            <div className="absolute inset-0 bg-gradient-to-b from-[#1E1E1E]/50 via-[#1E1E1E]/85 to-[#1E1E1E]" />
+            <div className="absolute inset-0 bg-gradient-to-b from-[#F3F2ED]//50 via-[#F3F2ED]//85 to-[#F3F2ED]" />
           </div>
 
           <header className="relative z-10 mx-auto flex w-full max-w-5xl items-center justify-between gap-4 px-5 pt-5 sm:px-8 sm:pt-7">
             <div className="flex items-center gap-3">
               <Link to="/" className="flex items-center">
-                <BrandLogo className="text-[24px] sm:text-[26px]" />
+                <BrandLogo className="text-[24px] sm:text-[26px]" tone="dark" />
               </Link>
               <span className="hidden h-5 w-px bg-white/30 sm:block" />
               <span
-                className="hidden text-[10px] font-medium uppercase tracking-[0.2em] text-gray-300 sm:block"
+                className="hidden text-[10px] font-medium uppercase tracking-[0.2em] text-gray-600 sm:block"
                 style={HEADLINE_FONT}
               >
                 Leadership Assessment
               </span>
             </div>
             {user.name && (
-              <span className="max-w-[45%] truncate rounded-full border border-white/10 bg-[#2a2a2a]/70 px-3 py-1 text-xs text-gray-300">
+              <span className="max-w-[45%] truncate rounded-full border border-gray-200 bg-white/70 px-3 py-1 text-xs text-gray-600">
                 {user.name}
               </span>
             )}
@@ -458,7 +458,7 @@ const LeadershipAssessment: React.FC = () => {
                         </div>
                         <p
                           className={`mt-2 truncate text-[10px] font-semibold uppercase tracking-[0.2em] sm:text-xs ${
-                            isCurrent ? 'text-white' : 'text-[#828282]'
+                            isCurrent ? 'text-gray-900' : 'text-gray-500'
                           }`}
                           style={HEADLINE_FONT}
                         >
@@ -480,21 +480,21 @@ const LeadershipAssessment: React.FC = () => {
                     <DimensionTitle name={currentDimension.name} />
                   </h1>
                   <div className="mt-5 h-0.5 w-12" style={{ backgroundColor: LEADERSHIP_YELLOW }} />
-                  <p className="mt-4 max-w-2xl text-sm leading-relaxed text-gray-300 sm:text-base">
+                  <p className="mt-4 max-w-2xl text-sm leading-relaxed text-gray-600 sm:text-base">
                     {DIMENSION_MEANING[currentDimension.id] || DIMENSION_DESCRIPTIONS[currentDimension.id]}
                   </p>
                 </section>
 
-                <section className="mt-8 rounded-2xl border border-white/10 bg-[#2a2a2a]/70 p-3 backdrop-blur-md sm:p-4">
-                  <p className="mb-3 px-1 text-xs font-semibold text-gray-300">ระดับการประเมิน</p>
+                <section className="mt-8 rounded-2xl border border-gray-200 bg-white/70 p-3 backdrop-blur-md sm:p-4">
+                  <p className="mb-3 px-1 text-xs font-semibold text-gray-600">ระดับการประเมิน</p>
                   <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
                     {RATING_ORDER.map((r, i) => (
-                      <div key={r} className="rounded-xl border border-[#474747]/60 bg-[#1E1E1E]/80 p-3">
+                      <div key={r} className="rounded-xl border border-gray-200/60 bg-[#F3F2ED]/80 p-3">
                         <div className="flex items-center gap-2">
                           <LevelBars level={i + 1} />
-                          <span className="text-sm font-bold text-white">{RATING_LABELS[r]}</span>
+                          <span className="text-sm font-bold text-gray-900">{RATING_LABELS[r]}</span>
                         </div>
-                        <p className="mt-1.5 text-[11px] leading-snug text-[#828282] sm:text-xs">{RATING_DESCRIPTIONS[r]}</p>
+                        <p className="mt-1.5 text-[11px] leading-snug text-gray-500 sm:text-xs">{RATING_DESCRIPTIONS[r]}</p>
                       </div>
                     ))}
                   </div>
@@ -538,7 +538,7 @@ const LeadershipAssessment: React.FC = () => {
 
                 <div
                   ref={resultPdfRef}
-                  className="relative overflow-hidden rounded-3xl border border-white/10 bg-[#1E1E1E] p-5 sm:p-8 lg:p-10"
+                  className="relative overflow-hidden rounded-3xl border border-gray-200 bg-[#F3F2ED] p-5 sm:p-8 lg:p-10"
                 >
                   <div
                     className="pointer-events-none absolute inset-0 opacity-40"
@@ -559,7 +559,7 @@ const LeadershipAssessment: React.FC = () => {
 
                   <div className="relative">
                     <div className="flex items-center justify-between gap-4">
-                      <BrandLogo className="text-[22px]" />
+                      <BrandLogo className="text-[22px]" tone="dark" />
                       <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-gray-400" style={HEADLINE_FONT}>
                         {new Date().toLocaleDateString('th-TH', { dateStyle: 'long' })}
                       </span>
@@ -574,25 +574,25 @@ const LeadershipAssessment: React.FC = () => {
                           className="mt-3 text-[clamp(2.5rem,9vw,4.75rem)] font-extrabold uppercase leading-[0.95] tracking-tight"
                           style={HEADLINE_FONT}
                         >
-                          <span className="block text-white">Your</span>
-                          <span className="block text-[#828282]">Leadership</span>
+                          <span className="block text-gray-900">Your</span>
+                          <span className="block text-gray-500">Leadership</span>
                           <span className="block" style={{ color: LEADERSHIP_YELLOW }}>
                             Profile
                           </span>
                         </h1>
                         <div className="mt-7 h-0.5 w-12" style={{ backgroundColor: LEADERSHIP_YELLOW }} />
-                        <p className="mt-3 text-xs text-gray-300 sm:text-sm">Dynamic Leadership Capability Wheel Self Assessment</p>
+                        <p className="mt-3 text-xs text-gray-600 sm:text-sm">Dynamic Leadership Capability Wheel Self Assessment</p>
                       </div>
 
-                      <div className="w-full rounded-2xl border border-white/10 bg-[#2a2a2a]/85 p-5 lg:w-80">
-                        <p className="text-xs text-[#828282]">ผู้ทำแบบประเมิน</p>
+                      <div className="w-full rounded-2xl border border-gray-200 bg-white/85 p-5 lg:w-80">
+                        <p className="text-xs text-gray-500">ผู้ทำแบบประเมิน</p>
                         <p className="mt-1 text-lg font-bold leading-tight">{user.name}</p>
-                        <p className="text-sm text-gray-300">{user.company}</p>
-                        <p className="mt-0.5 break-all text-xs text-[#828282]">{user.email}</p>
+                        <p className="text-sm text-gray-600">{user.company}</p>
+                        <p className="mt-0.5 break-all text-xs text-gray-500">{user.email}</p>
                         <div className="mt-4 flex items-end justify-between gap-3 border-t border-white/10 pt-4">
                           <div>
-                            <p className="text-xs text-[#828282]">คะแนนภาพรวม</p>
-                            <p className="mt-1 text-sm font-semibold text-white">
+                            <p className="text-xs text-gray-500">คะแนนภาพรวม</p>
+                            <p className="mt-1 text-sm font-semibold text-gray-900">
                               {RATING_LABELS[getLevelFromPercent(overallPercent)]}
                             </p>
                           </div>
@@ -601,7 +601,7 @@ const LeadershipAssessment: React.FC = () => {
                             style={{ ...HEADLINE_FONT, color: LEADERSHIP_YELLOW }}
                           >
                             {overallPercent}
-                            <span className="text-2xl text-[#828282]">%</span>
+                            <span className="text-2xl text-gray-500">%</span>
                           </p>
                         </div>
                       </div>
@@ -611,7 +611,7 @@ const LeadershipAssessment: React.FC = () => {
                       {LEADERSHIP_DIMENSIONS.map((dim, idx) => {
                         const pct = getDimensionPercent(dim);
                         return (
-                          <div key={dim.id} className="flex flex-col rounded-2xl border border-white/10 bg-[#2a2a2a]/85 p-5 sm:p-6">
+                          <div key={dim.id} className="flex flex-col rounded-2xl border border-gray-200 bg-white/85 p-5 sm:p-6">
                             <div className="flex items-center justify-between gap-2">
                               <span
                                 className="text-sm font-semibold tracking-[0.25em]"
@@ -619,14 +619,14 @@ const LeadershipAssessment: React.FC = () => {
                               >
                                 0{idx + 1}
                               </span>
-                              <span className="rounded-full border border-[#FED201]/40 bg-[#FED201]/10 px-2.5 py-1 text-[11px] font-semibold text-[#FED201]">
+                              <span className="rounded-full border border-[#FFCC00]/40 bg-[#FFCC00]/10 px-2.5 py-1 text-[11px] font-semibold text-[#FFCC00]">
                                 {RATING_LABELS[getLevelFromPercent(pct)]}
                               </span>
                             </div>
                             <h3 className="mt-2 text-2xl font-extrabold uppercase tracking-tight" style={HEADLINE_FONT}>
                               {dim.name}
                             </h3>
-                            <p className="text-sm leading-snug text-[#828282] md:min-h-[2.5rem]">{DIMENSION_CARD_DESC[dim.id]}</p>
+                            <p className="text-sm leading-snug text-gray-500 md:min-h-[2.5rem]">{DIMENSION_CARD_DESC[dim.id]}</p>
 
                             <div className="relative mx-auto my-6 flex h-40 w-40 items-center justify-center">
                               <div className="absolute inset-0">
@@ -646,7 +646,7 @@ const LeadershipAssessment: React.FC = () => {
 
                             <p className="text-center text-5xl font-extrabold leading-none" style={HEADLINE_FONT}>
                               {pct}
-                              <span className="text-2xl text-[#828282]">%</span>
+                              <span className="text-2xl text-gray-500">%</span>
                             </p>
 
                             <div className="mt-6 space-y-3 border-t border-white/10 pt-5">
@@ -655,7 +655,7 @@ const LeadershipAssessment: React.FC = () => {
                                 return (
                                   <div key={sub.id}>
                                     <div className="flex items-center justify-between text-xs">
-                                      <span className="font-semibold tracking-[0.15em] text-gray-300" style={HEADLINE_FONT}>
+                                      <span className="font-semibold tracking-[0.15em] text-gray-600" style={HEADLINE_FONT}>
                                         {sub.name}
                                       </span>
                                       <span className="font-bold" style={{ color: LEADERSHIP_YELLOW }}>
@@ -678,7 +678,7 @@ const LeadershipAssessment: React.FC = () => {
                     </div>
 
                     <div
-                      className={`mt-5 rounded-2xl border border-white/10 bg-[#2a2a2a]/85 p-5 sm:p-6 ${
+                      className={`mt-5 rounded-2xl border border-gray-200 bg-white/85 p-5 sm:p-6 ${
                         aiFeedback ? '' : 'exclude-from-pdf'
                       }`}
                     >
@@ -687,8 +687,8 @@ const LeadershipAssessment: React.FC = () => {
                         <h3 className="text-lg font-bold">Feedback จาก AI</h3>
                       </div>
                       {aiLoading && (
-                        <div className="mt-4 flex items-center gap-3 text-gray-300">
-                          <div className="h-5 w-5 animate-spin rounded-full border-2 border-[#FED201] border-t-transparent" />
+                        <div className="mt-4 flex items-center gap-3 text-gray-600">
+                          <div className="h-5 w-5 animate-spin rounded-full border-2 border-[#FFCC00] border-t-transparent" />
                           <span>กำลังสร้าง feedback...</span>
                         </div>
                       )}
@@ -703,11 +703,11 @@ const LeadershipAssessment: React.FC = () => {
                         </button>
                       )}
                       {aiFeedback && (
-                        <div className="mt-4 whitespace-pre-wrap text-sm leading-relaxed text-gray-200">{aiFeedback}</div>
+                        <div className="mt-4 whitespace-pre-wrap text-sm leading-relaxed text-gray-700">{aiFeedback}</div>
                       )}
                     </div>
 
-                    <p className="mt-8 text-center text-[11px] text-[#828282]">
+                    <p className="mt-8 text-center text-[11px] text-gray-500">
                       © {new Date().getFullYear()} MindDojo Co., Ltd.
                     </p>
                   </div>
@@ -718,11 +718,11 @@ const LeadershipAssessment: React.FC = () => {
                     type="button"
                     onClick={handleDownloadPng}
                     disabled={pngLoading}
-                    className="flex items-center justify-center gap-2 rounded-lg border border-[#474747] bg-[#2a2a2a]/80 px-6 py-3 font-bold text-white transition-colors hover:border-[#FED201] hover:text-[#FED201] disabled:opacity-50"
+                    className="flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white/80 px-6 py-3 font-bold text-gray-800 transition-colors hover:border-[#FFCC00] hover:text-[#FFCC00] disabled:opacity-50"
                   >
                     {pngLoading ? (
                       <>
-                        <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#FED201] border-t-transparent" />
+                        <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#FFCC00] border-t-transparent" />
                         กำลังสร้างภาพ...
                       </>
                     ) : (
@@ -733,11 +733,11 @@ const LeadershipAssessment: React.FC = () => {
                     type="button"
                     onClick={handleDownloadPdf}
                     disabled={pdfLoading}
-                    className="flex items-center justify-center gap-2 rounded-lg border border-[#474747] bg-[#2a2a2a]/80 px-6 py-3 font-bold text-white transition-colors hover:border-[#FED201] hover:text-[#FED201] disabled:opacity-50"
+                    className="flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white/80 px-6 py-3 font-bold text-gray-800 transition-colors hover:border-[#FFCC00] hover:text-[#FFCC00] disabled:opacity-50"
                   >
                     {pdfLoading ? (
                       <>
-                        <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#FED201] border-t-transparent" />
+                        <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#FFCC00] border-t-transparent" />
                         กำลังสร้าง PDF...
                       </>
                     ) : (
@@ -747,13 +747,13 @@ const LeadershipAssessment: React.FC = () => {
                   <button
                     type="button"
                     onClick={resetAssessment}
-                    className="rounded-lg border border-[#474747] bg-[#2a2a2a]/80 px-6 py-3 font-bold text-white transition-colors hover:border-[#FED201] hover:text-[#FED201]"
+                    className="rounded-lg border border-gray-200 bg-white/80 px-6 py-3 font-bold text-gray-800 transition-colors hover:border-[#FFCC00] hover:text-[#FFCC00]"
                   >
                     ทำแบบประเมินใหม่
                   </button>
                   <Link
                     to="/"
-                    className="rounded-lg px-6 py-3 text-center font-bold text-black shadow-lg shadow-[#FED201]/20 transition-all hover:brightness-105"
+                    className="rounded-lg px-6 py-3 text-center font-bold text-black shadow-lg shadow-[#FFCC00]/20 transition-all hover:brightness-105"
                     style={{ backgroundColor: LEADERSHIP_YELLOW }}
                   >
                     กลับหน้าแรก
@@ -765,7 +765,7 @@ const LeadershipAssessment: React.FC = () => {
 
           {step === 'assessment' && currentDimension && (
             <div
-              className="fixed inset-x-0 bottom-0 z-30 border-t border-white/10 bg-[#1E1E1E]/90 backdrop-blur-md"
+              className="fixed inset-x-0 bottom-0 z-30 border-t border-white/10 bg-[#F3F2ED]/90 backdrop-blur-md"
               style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
             >
               <div className="mx-auto flex max-w-4xl items-center gap-3 px-5 py-3 sm:gap-5 sm:px-8">
@@ -773,7 +773,7 @@ const LeadershipAssessment: React.FC = () => {
                   type="button"
                   onClick={handlePrevDimension}
                   disabled={dimensionIndex === 0}
-                  className="shrink-0 rounded-lg border border-[#474747] px-3 py-2.5 text-sm font-bold text-gray-300 transition-colors hover:border-[#828282] hover:text-white disabled:cursor-not-allowed disabled:opacity-30 sm:px-5"
+                  className="shrink-0 rounded-lg border border-gray-200 px-3 py-2.5 text-sm font-bold text-gray-600 transition-colors hover:border-[#828282] hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-30 sm:px-5"
                 >
                   ← <span className="hidden sm:inline">ก่อนหน้า</span>
                 </button>
@@ -800,7 +800,7 @@ const LeadershipAssessment: React.FC = () => {
                   type="button"
                   onClick={handleNextDimension}
                   disabled={!canNextDimension}
-                  className="shrink-0 rounded-lg bg-[#FED201] px-4 py-2.5 text-sm font-bold text-black shadow-lg shadow-[#FED201]/20 transition-all hover:brightness-105 disabled:cursor-not-allowed disabled:bg-[#474747] disabled:text-[#828282] disabled:shadow-none sm:px-6"
+                  className="shrink-0 rounded-lg bg-[#FFCC00] px-4 py-2.5 text-sm font-bold text-black shadow-lg shadow-[#FFCC00]/20 transition-all hover:brightness-105 disabled:cursor-not-allowed disabled:bg-[#474747] disabled:text-gray-500 disabled:shadow-none sm:px-6"
                 >
                   {dimensionIndex < totalDimensions - 1 ? 'ถัดไป →' : 'ดูผลลัพธ์'}
                 </button>
@@ -809,7 +809,7 @@ const LeadershipAssessment: React.FC = () => {
           )}
 
           {step === 'result' && (
-            <footer className="relative z-10 py-6 text-center text-[11px] text-[#828282]">
+            <footer className="relative z-10 py-6 text-center text-[11px] text-gray-500">
               © {new Date().getFullYear()} MindDojo Co., Ltd.
             </footer>
           )}
@@ -825,7 +825,7 @@ const DimensionTitle: React.FC<{ name: string }> = ({ name }) => {
   const last = parts.pop();
   return (
     <>
-      {parts.length > 0 && <span className="block text-white">{parts.join(' ')}</span>}
+      {parts.length > 0 && <span className="block text-gray-900">{parts.join(' ')}</span>}
       <span className="block" style={{ color: LEADERSHIP_YELLOW }}>
         {last}
       </span>
@@ -840,7 +840,7 @@ const LevelBars: React.FC<{ level: number; active?: boolean }> = ({ level, activ
       <span
         key={n}
         className={`w-[3px] rounded-full ${
-          n <= level ? (active ? 'bg-black' : 'bg-[#FED201]') : active ? 'bg-black/25' : 'bg-[#474747]'
+          n <= level ? (active ? 'bg-gray-900' : 'bg-[#FFCC00]') : active ? 'bg-gray-200' : 'bg-[#474747]'
         }`}
         style={{ height: 4 + n * 3 }}
       />
@@ -926,7 +926,7 @@ const SubItemSection: React.FC<SubItemSectionProps> = ({
         <h3 className="text-2xl font-extrabold uppercase tracking-tight sm:text-3xl" style={HEADLINE_FONT}>
           {subItem.name}
         </h3>
-        <span className="ml-auto pb-1 text-xs text-[#828282]">
+        <span className="ml-auto pb-1 text-xs text-gray-500">
           {answered}/{subItem.questions.length}
         </span>
       </div>
@@ -994,20 +994,20 @@ const QuestionBlock: React.FC<QuestionBlockProps> = ({
     <div
       ref={blockRef}
       className={`rounded-2xl border p-5 backdrop-blur-md transition-colors sm:p-6 ${
-        selected ? 'border-[#FED201]/35 bg-[#2a2a2a]/80' : 'border-white/10 bg-[#2a2a2a]/60'
+        selected ? 'border-[#FFCC00]/35 bg-white/80' : 'border-white/10 bg-white/60'
       }`}
     >
       <div className="flex gap-4">
         <span
           className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-sm font-bold transition-colors ${
-            selected ? 'bg-[#FED201] text-black' : 'bg-[#474747] text-white'
+            selected ? 'bg-[#FFCC00] text-black' : 'bg-gray-200 text-gray-800'
           }`}
           style={HEADLINE_FONT}
         >
           {index}
         </span>
         <div className="min-w-0">
-          <h4 className="text-base font-bold text-white sm:text-lg">{question.title}</h4>
+          <h4 className="text-base font-bold text-gray-900 sm:text-lg">{question.title}</h4>
           <p className="mt-1 text-sm leading-relaxed text-gray-400">{question.description}</p>
         </div>
       </div>
@@ -1023,8 +1023,8 @@ const QuestionBlock: React.FC<QuestionBlockProps> = ({
               aria-pressed={isActive}
               className={`flex min-h-[3.25rem] items-center gap-2.5 rounded-xl border px-3 py-2.5 text-left text-xs font-semibold transition-all sm:flex-col sm:items-center sm:justify-center sm:gap-1.5 sm:text-center sm:text-sm ${
                 isActive
-                  ? 'border-[#FED201] bg-[#FED201] text-black shadow-lg shadow-[#FED201]/20'
-                  : 'border-[#474747] bg-[#1E1E1E]/70 text-gray-300 hover:border-[#828282] hover:text-white'
+                  ? 'border-[#FFCC00] bg-[#FFCC00] text-black shadow-lg shadow-[#FFCC00]/20'
+                  : 'border-gray-200 bg-[#F3F2ED]/70 text-gray-600 hover:border-[#828282] hover:text-gray-900'
               }`}
             >
               <LevelBars level={i + 1} active={isActive} />

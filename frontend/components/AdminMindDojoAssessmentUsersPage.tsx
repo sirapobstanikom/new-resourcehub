@@ -81,7 +81,7 @@ const AdminMindDojoAssessmentUsersPage: React.FC = () => {
   const pending = rows.filter((r) => r.status === 'pending');
 
   return (
-    <div className="p-4 md:p-8 max-w-5xl mx-auto text-white">
+    <div className="p-4 md:p-8 max-w-5xl mx-auto text-gray-900">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-yellow-400 mb-2">อนุมัติผู้ใช้ MindDoJo AI Assessment</h1>
         <p className="text-gray-400 text-sm leading-relaxed">
@@ -92,7 +92,7 @@ const AdminMindDojoAssessmentUsersPage: React.FC = () => {
         <button
           type="button"
           onClick={() => void load()}
-          className="mt-4 px-4 py-2 rounded-xl text-sm font-medium bg-white/10 border border-white/15 hover:bg-white/15"
+          className="mt-4 px-4 py-2 rounded-xl text-sm font-medium bg-gray-100 border border-[#D6D4CC] hover:bg-gray-200"
         >
           โหลดรายการใหม่
         </button>
@@ -107,7 +107,7 @@ const AdminMindDojoAssessmentUsersPage: React.FC = () => {
       ) : (
         <>
           <section className="mb-10">
-            <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
               รออนุมัติ
               <span className="text-xs font-normal px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400">
                 {pending.length}
@@ -120,7 +120,7 @@ const AdminMindDojoAssessmentUsersPage: React.FC = () => {
                 {pending.map((r) => (
                   <li
                     key={r.id}
-                    className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.04] p-4"
+                    className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-xl border border-[#D6D4CC] bg-gray-50 p-4"
                   >
                     <div>
                       <p className="font-mono font-semibold text-yellow-400">@{r.username}</p>
@@ -139,7 +139,7 @@ const AdminMindDojoAssessmentUsersPage: React.FC = () => {
                         type="button"
                         disabled={busyUser === r.username}
                         onClick={() => void onReject(r.username)}
-                        className="px-4 py-2 rounded-xl text-sm font-medium bg-white/10 border border-white/15 hover:bg-red-500/20 hover:border-red-500/30 disabled:opacity-50"
+                        className="px-4 py-2 rounded-xl text-sm font-medium bg-gray-100 border border-[#D6D4CC] hover:bg-red-500/20 hover:border-red-500/30 disabled:opacity-50"
                       >
                         ปฏิเสธ
                       </button>
@@ -159,11 +159,11 @@ const AdminMindDojoAssessmentUsersPage: React.FC = () => {
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold text-gray-300 mb-4">รายการล่าสุด (ทุกสถานะ)</h2>
-            <div className="overflow-x-auto rounded-xl border border-white/10">
+            <h2 className="text-lg font-semibold text-gray-700 mb-4">รายการล่าสุด (ทุกสถานะ)</h2>
+            <div className="overflow-x-auto rounded-xl border border-[#D6D4CC]">
               <table className="w-full text-sm text-left">
                 <thead>
-                  <tr className="border-b border-white/10 text-gray-500">
+                  <tr className="border-b border-[#D6D4CC] text-gray-500">
                     <th className="p-3 font-medium">Username</th>
                     <th className="p-3 font-medium">สถานะ</th>
                     <th className="p-3 font-medium">สมัคร</th>
@@ -182,8 +182,8 @@ const AdminMindDojoAssessmentUsersPage: React.FC = () => {
                     </tr>
                   ) : (
                     rows.map((r) => (
-                      <tr key={r.id} className="border-b border-white/5 hover:bg-white/[0.02]">
-                        <td className="p-3 font-mono text-white">@{r.username}</td>
+                      <tr key={r.id} className="border-b border-gray-100 hover:bg-gray-50">
+                        <td className="p-3 font-mono text-gray-900">@{r.username}</td>
                         <td className="p-3">
                           <span
                             className={

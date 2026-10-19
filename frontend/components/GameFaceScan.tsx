@@ -77,7 +77,7 @@ const SCAN_TIMEOUT_MS = 15000;
 const MAX_YAW = 15;
 const MAX_PITCH = 18;
 const MAX_ROLL = 12;
-const YELLOW = '#FED201';
+const YELLOW = '#FFCC00';
 const EMPTY_REG: Registration = { name: '', company: '', email: '' };
 const PREVIEW_EMOJIS = FACE_MOOD_IDS.map((id) => FACE_MOODS[id].emoji);
 const HUD_KEY_POINTS = [1, 10, 33, 133, 362, 263, 61, 291, 152];
@@ -173,22 +173,15 @@ const capturePhoto = (video: HTMLVideoElement, face: FaceBox | null): string => 
 };
 
 const PageShell: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <div className="relative min-h-[100dvh] overflow-hidden bg-[#08080b] text-white">
-    <div className="pointer-events-none absolute inset-0" aria-hidden>
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(254,210,1,0.16),transparent_50%),radial-gradient(ellipse_at_bottom_left,rgba(167,139,250,0.10),transparent_45%)]" />
-      <div className="absolute inset-0 opacity-[0.06] [background-image:linear-gradient(rgba(255,255,255,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.08)_1px,transparent_1px)] [background-size:36px_36px]" />
-    </div>
+  <div className="md-page relative overflow-hidden">
     <header className="relative z-10 mx-auto flex w-full max-w-5xl items-center justify-between px-5 py-5 sm:px-8">
-      <Link
-        to="/"
-        className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/40 px-4 py-2 text-sm font-medium text-white/90 backdrop-blur-md hover:bg-white/10"
-      >
+      <Link to="/" className="md-btn-ghost inline-flex items-center gap-2 !px-4 !py-2">
         <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
         </svg>
         หน้าหลัก
       </Link>
-      <BrandLogo className="text-[24px] sm:text-[28px]" />
+      <BrandLogo className="text-[24px] sm:text-[28px]" tone="dark" />
     </header>
     <main className="relative z-10 mx-auto w-full max-w-5xl px-5 pb-16 sm:px-8">{children}</main>
   </div>
@@ -549,7 +542,7 @@ const GameFaceScan: React.FC = () => {
       const canvas = await html2canvas(resultRef.current, {
         scale: 2,
         useCORS: true,
-        backgroundColor: '#0d0d12',
+        backgroundColor: '#F3F2ED',
         logging: false,
         onclone: await prepareBrandLogosForExport(),
       });
@@ -569,31 +562,25 @@ const GameFaceScan: React.FC = () => {
       <PageShell>
         <div className="mx-auto grid max-w-5xl items-center gap-10 pt-4 lg:grid-cols-2 lg:pt-10">
           <section className="text-center lg:text-left">
-            <p className="text-[11px] font-bold uppercase tracking-[0.32em]" style={{ color: YELLOW }}>
-              MindDojo Gamification
-            </p>
-            <h1 className="mt-3 text-4xl font-extrabold leading-tight sm:text-5xl">Face Mood Scan</h1>
-            <p className="mt-4 text-lg text-white/80 sm:text-xl">สแกนหน้านิ่ง ๆ ของคุณ แล้วดูว่าคุณเป็นคน “หน้าแบบไหน”</p>
+            <p className="text-[11px] font-bold uppercase tracking-[0.32em] text-[#FFCC00]">MindDojo Gamification</p>
+            <h1 className="mt-3 text-4xl font-extrabold leading-tight text-gray-900 sm:text-5xl">Face Mood Scan</h1>
+            <p className="mt-4 text-lg text-gray-600 sm:text-xl">สแกนหน้านิ่ง ๆ ของคุณ แล้วดูว่าคุณเป็นคน “หน้าแบบไหน”</p>
             <div className="mt-6 flex flex-wrap justify-center gap-2 lg:justify-start">
               {PREVIEW_EMOJIS.map((emoji) => (
-                <span key={emoji} className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-2xl">
+                <span key={emoji} className="md-card flex h-12 w-12 items-center justify-center !rounded-2xl text-2xl">
                   {emoji}
                 </span>
               ))}
             </div>
-            <p className="mt-5 text-sm text-white/60">
+            <p className="mt-5 text-sm text-gray-500">
               ไม่ต้องยิ้ม ไม่ต้องทำหน้า — แค่มองกล้องตามปกติ ระบบจะวัดใบหน้า 478 จุดและกล้ามเนื้อ 52 ตำแหน่ง เช่น มุมปาก คิ้ว และหนังตา
               แล้วบอกว่าหน้านิ่งของคุณดูคล้ายอารมณ์ไหนใน 7 อารมณ์พื้นฐานสากลตามทฤษฎีของ Paul Ekman — สุข เศร้า กลัว โกรธ ประหลาดใจ
               ดูแคลน หรือรังเกียจ ภายใน 3 วินาที
             </p>
           </section>
 
-          <form
-            onSubmit={handleRegister}
-            className="rounded-3xl border border-white/10 bg-white/[0.04] p-6 shadow-2xl shadow-black/40 backdrop-blur-md sm:p-8"
-            noValidate
-          >
-            <h2 className="text-xl font-bold">ลงทะเบียนก่อนเริ่มสแกน</h2>
+          <form onSubmit={handleRegister} className="md-card rounded-3xl p-6 sm:p-8" noValidate>
+            <h2 className="text-xl font-bold text-gray-900">ลงทะเบียนก่อนเริ่มสแกน</h2>
             <div className="mt-5 space-y-4">
               {(
                 [
@@ -603,19 +590,19 @@ const GameFaceScan: React.FC = () => {
                 ] as const
               ).map(({ key, label, type, autoComplete }) => (
                 <label key={key} htmlFor={`face-scan-${key}`} className="block">
-                  <span className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-white/50">{label}</span>
+                  <span className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-gray-500">{label}</span>
                   <input
                     id={`face-scan-${key}`}
                     type={type}
                     autoComplete={autoComplete}
                     value={reg[key]}
                     onChange={(e) => setReg((prev) => ({ ...prev, [key]: e.target.value }))}
-                    className="w-full rounded-xl border border-white/15 bg-black/40 px-4 py-3 text-base text-white outline-none transition placeholder:text-white/30 focus:border-[#FED201] focus:ring-2 focus:ring-[#FED201]/30"
+                    className="md-input"
                   />
                 </label>
               ))}
             </div>
-            <div className="mt-5 rounded-2xl border border-white/10 bg-black/30 p-4">
+            <div className="mt-5 rounded-2xl border border-[#D6D4CC] bg-gray-50 p-4">
               <label htmlFor="face-scan-consent" className="flex cursor-pointer items-start gap-3">
                 <input
                   id="face-scan-consent"
@@ -625,45 +612,40 @@ const GameFaceScan: React.FC = () => {
                     setConsent(e.target.checked);
                     if (e.target.checked) setRegError(null);
                   }}
-                  className="mt-0.5 h-5 w-5 shrink-0 cursor-pointer accent-[#FED201]"
+                  className="mt-0.5 h-5 w-5 shrink-0 cursor-pointer accent-[#FFCC00]"
                 />
-                <span className="text-sm leading-relaxed text-white/80">
+                <span className="text-sm leading-relaxed text-gray-700">
                   ข้าพเจ้ายินยอมให้ MindDojo เก็บและใช้ข้อมูลใบหน้าที่วัดได้ ร่วมกับชื่อ บริษัท และอีเมล เพื่อแสดงผลเกมนี้
                   ตามพระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562 (PDPA)
                 </span>
               </label>
-              <details className="mt-3 pl-8 text-xs leading-relaxed text-white/55">
-                <summary className="cursor-pointer font-semibold text-white/70 hover:text-white">อ่านรายละเอียดการเก็บข้อมูล</summary>
+              <details className="mt-3 pl-8 text-xs leading-relaxed text-gray-500">
+                <summary className="cursor-pointer font-semibold text-gray-700 hover:text-gray-900">อ่านรายละเอียดการเก็บข้อมูล</summary>
                 <ul className="mt-2 list-disc space-y-1.5 pl-4">
                   <li>
-                    <b className="text-white/75">ข้อมูลที่เก็บ:</b> ชื่อ บริษัท อีเมล ค่าตัวเลขที่วัดจากใบหน้า {FACE_METRIC_IDS.length} ค่า (เช่น ระดับมุมปาก คิ้ว หนังตา)
-                    ผลแบบหน้า และคำสรุปจาก AI — <b className="text-white/75">ไม่เก็บรูปภาพหรือวิดีโอใบหน้า</b>
+                    <b className="text-gray-800">ข้อมูลที่เก็บ:</b> ชื่อ บริษัท อีเมล ค่าตัวเลขที่วัดจากใบหน้า {FACE_METRIC_IDS.length} ค่า (เช่น ระดับมุมปาก คิ้ว หนังตา)
+                    ผลแบบหน้า และคำสรุปจาก AI — <b className="text-gray-800">ไม่เก็บรูปภาพหรือวิดีโอใบหน้า</b>
                   </li>
                   <li>
-                    <b className="text-white/75">วัตถุประสงค์:</b> ประมวลผลและแสดงผลเกม และใช้ค่าตัวเลขแบบไม่ระบุตัวตนเป็นค่าเฉลี่ยอ้างอิงสำหรับผู้เล่นคนถัดไป
+                    <b className="text-gray-800">วัตถุประสงค์:</b> ประมวลผลและแสดงผลเกม และใช้ค่าตัวเลขแบบไม่ระบุตัวตนเป็นค่าเฉลี่ยอ้างอิงสำหรับผู้เล่นคนถัดไป
                   </li>
                   <li>
-                    <b className="text-white/75">การส่งข้อมูลให้ผู้อื่น:</b> ค่าตัวเลขจากใบหน้า (ไม่มีชื่อ อีเมล หรือรูป) จะถูกส่งให้บริการ AI ของ OpenAI
+                    <b className="text-gray-800">การส่งข้อมูลให้ผู้อื่น:</b> ค่าตัวเลขจากใบหน้า (ไม่มีชื่อ อีเมล หรือรูป) จะถูกส่งให้บริการ AI ของ OpenAI
                     ซึ่งอาจประมวลผลนอกประเทศไทย เพื่อสรุปแบบหน้า
                   </li>
                   <li>
-                    <b className="text-white/75">สิทธิ์ของคุณ:</b> ขอเข้าถึง แก้ไข หรือลบข้อมูล และถอนความยินยอมได้ทุกเมื่อ โดยติดต่อผู้จัดกิจกรรม
+                    <b className="text-gray-800">สิทธิ์ของคุณ:</b> ขอเข้าถึง แก้ไข หรือลบข้อมูล และถอนความยินยอมได้ทุกเมื่อ โดยติดต่อผู้จัดกิจกรรม
                     การถอนความยินยอมไม่กระทบการประมวลผลที่ทำไปก่อนหน้า
                   </li>
                   <li>ผลลัพธ์มีไว้เพื่อความสนุก ไม่ใช้ประเมินบุคลิกภาพ การจ้างงาน หรือการตัดสินใจใด ๆ เกี่ยวกับตัวคุณ</li>
                 </ul>
               </details>
             </div>
-            {regError && <p className="mt-4 text-sm font-semibold text-red-400">{regError}</p>}
-            <button
-              type="submit"
-              disabled={!consent}
-              className="mt-6 w-full rounded-full py-3.5 text-base font-bold text-black shadow-lg transition-transform enabled:hover:scale-[1.02] enabled:active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40"
-              style={{ backgroundColor: YELLOW }}
-            >
+            {regError && <p className="mt-4 text-sm font-semibold text-red-600">{regError}</p>}
+            <button type="submit" disabled={!consent} className="md-btn-primary mt-6 w-full !rounded-full !py-3.5 !text-base disabled:cursor-not-allowed disabled:opacity-40">
               เข้าสู่การสแกนใบหน้า
             </button>
-            <p className="mt-4 text-center text-xs leading-relaxed text-white/45">
+            <p className="mt-4 text-center text-xs leading-relaxed text-gray-400">
               ระบบวัดใบหน้าบนอุปกรณ์ของคุณ ไม่มีการอัปโหลดหรือบันทึกรูปภาพ — ส่งเฉพาะค่าตัวเลขที่วัดได้ให้ AI สรุปผล
             </p>
           </form>
@@ -690,9 +672,9 @@ const GameFaceScan: React.FC = () => {
     return (
       <PageShell>
         <div className="mx-auto max-w-xl text-center">
-          <p className="text-sm text-white/60">สวัสดีคุณ {reg.name}</p>
-          <h1 className="mt-1 text-2xl font-extrabold sm:text-3xl">วางใบหน้าให้อยู่ในกรอบ แล้วกดสแกน</h1>
-          <p className="mt-2 text-sm text-white/60">
+          <p className="text-sm text-gray-500">สวัสดีคุณ {reg.name}</p>
+          <h1 className="mt-1 text-2xl font-extrabold text-gray-900 sm:text-3xl">วางใบหน้าให้อยู่ในกรอบ แล้วกดสแกน</h1>
+          <p className="mt-2 text-sm text-gray-600">
             ทำหน้าตามปกติ ไม่ต้องยิ้ม มองตรงเข้ากล้องระดับสายตา — ระบบจะวัดโครงหน้าตอนนิ่งของคุณ
           </p>
 
@@ -731,7 +713,7 @@ const GameFaceScan: React.FC = () => {
 
             {cameraStatus === 'loading' && (
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/70">
-                <span className="h-10 w-10 animate-spin rounded-full border-4 border-white/20 border-t-[#FED201]" />
+                <span className="h-10 w-10 animate-spin rounded-full border-4 border-white/20 border-t-[#FFCC00]" />
                 <p className="text-sm text-white/80">กำลังเตรียมกล้อง...</p>
               </div>
             )}
@@ -754,30 +736,33 @@ const GameFaceScan: React.FC = () => {
             )}
           </div>
 
-          <p className="mt-4 text-sm font-semibold" style={{ color: ready && faceDetected ? guideColor : 'rgba(255,255,255,0.75)' }} aria-live="polite">
+          <p
+            className="mt-4 text-sm font-semibold"
+            style={{ color: ready && faceDetected ? guideColor : '#374151' }}
+            aria-live="polite"
+          >
             {statusText}
           </p>
-          <div className="mx-auto mt-3 h-2 max-w-md overflow-hidden rounded-full bg-white/10">
+          <div className="mx-auto mt-3 h-2 max-w-md overflow-hidden rounded-full bg-gray-200">
             <div className="h-full rounded-full transition-[width] duration-100" style={{ width: `${scanProgress * 100}%`, backgroundColor: YELLOW }} />
           </div>
 
-          {scanError && <p className="mx-auto mt-4 max-w-md text-sm font-semibold text-red-400">{scanError}</p>}
+          {scanError && <p className="mx-auto mt-4 max-w-md text-sm font-semibold text-red-600">{scanError}</p>}
 
           <div className="mt-6 flex flex-col items-center gap-3">
             <button
               type="button"
               onClick={startScan}
               disabled={!ready || !faceDetected || scanning}
-              className="w-full max-w-xs rounded-full py-3.5 text-base font-bold text-black shadow-lg transition-transform enabled:hover:scale-[1.03] enabled:active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40"
-              style={{ backgroundColor: YELLOW }}
+              className="md-btn-primary w-full max-w-xs !rounded-full !py-3.5 !text-base disabled:cursor-not-allowed disabled:opacity-40"
             >
               {scanning ? 'กำลังสแกน...' : 'สแกนใบหน้า'}
             </button>
-            <button type="button" onClick={() => setPhase('register')} className="text-sm text-white/55 underline-offset-4 hover:text-white hover:underline">
+            <button type="button" onClick={() => setPhase('register')} className="text-sm text-gray-500 underline-offset-4 hover:text-gray-900 hover:underline">
               แก้ไขข้อมูลลงทะเบียน
             </button>
           </div>
-          <p className="mx-auto mt-6 max-w-md text-xs leading-relaxed text-white/40">
+          <p className="mx-auto mt-6 max-w-md text-xs leading-relaxed text-gray-400">
             ผลลัพธ์เป็นการวิเคราะห์สีหน้าเพื่อความสนุกเท่านั้น ไม่ได้ใช้ประเมินบุคลิกภาพหรือตัวตนจริงของคุณ
           </p>
         </div>
@@ -799,10 +784,10 @@ const GameFaceScan: React.FC = () => {
   return (
     <PageShell>
       <div className="mx-auto max-w-3xl">
-        <div ref={resultRef} className="overflow-hidden rounded-3xl border border-white/10 bg-[#0d0d12] shadow-2xl shadow-black/50">
+        <div ref={resultRef} className="md-card overflow-hidden rounded-3xl shadow-md">
           <div className="flex items-center justify-between px-6 pt-6 sm:px-8">
-            <BrandLogo className="text-[22px]" />
-            <span className="text-xs text-white/50">{scannedDate}</span>
+            <BrandLogo className="text-[22px]" tone="dark" />
+            <span className="text-xs text-gray-500">{scannedDate}</span>
           </div>
 
           <div className="grid items-center gap-6 px-6 pb-8 pt-6 sm:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] sm:px-8">
@@ -811,12 +796,12 @@ const GameFaceScan: React.FC = () => {
                 {photo ? (
                   <img src={photo} alt="ภาพใบหน้าที่สแกน" className="aspect-square w-full object-cover" />
                 ) : (
-                  <div className="flex aspect-square w-full items-center justify-center bg-white/5 text-7xl">{pending ? '🤖' : mood.emoji}</div>
+                  <div className="flex aspect-square w-full items-center justify-center bg-gray-100 text-7xl">{pending ? '🤖' : mood.emoji}</div>
                 )}
               </div>
               {!pending && (
                 <span
-                  className="absolute -bottom-4 -right-4 flex h-16 w-16 items-center justify-center rounded-2xl border-4 border-[#0d0d12] text-4xl"
+                  className="absolute -bottom-4 -right-4 flex h-16 w-16 items-center justify-center rounded-2xl border-4 border-white text-4xl"
                   style={{ backgroundColor: mood.accent }}
                   aria-hidden
                 >
@@ -826,38 +811,38 @@ const GameFaceScan: React.FC = () => {
             </div>
 
             <div className="text-center sm:text-left">
-              <p className="text-xs font-bold uppercase tracking-[0.3em] text-white/50">Face Mood Scan</p>
-              <p className="mt-2 text-sm text-white/70">
+              <p className="text-xs font-bold uppercase tracking-[0.3em] text-gray-500">Face Mood Scan</p>
+              <p className="mt-2 text-sm text-gray-600">
                 {reg.name} · {reg.company}
               </p>
               {pending ? (
                 <div className="mt-6 flex flex-col items-center gap-3 sm:items-start" aria-live="polite">
-                  <span className="h-10 w-10 animate-spin rounded-full border-4 border-white/20 border-t-[#FED201]" />
-                  <p className="text-lg font-bold text-white">AI กำลังสรุปผล...</p>
-                  <p className="text-sm leading-relaxed text-white/60">
+                  <span className="h-10 w-10 animate-spin rounded-full border-4 border-gray-200 border-t-[#FFCC00]" />
+                  <p className="text-lg font-bold text-gray-900">AI กำลังสรุปผล...</p>
+                  <p className="text-sm leading-relaxed text-gray-600">
                     วิเคราะห์ค่าที่วัดได้ {FACE_METRIC_IDS.length} ค่าจากโครงหน้าและกล้ามเนื้อใบหน้าของคุณ เทียบกับคนทั่วไป
                   </p>
                 </div>
               ) : (
                 <>
-                  <p className="mt-4 text-sm text-white/60">หน้านิ่งของคุณดูคล้ายอารมณ์...</p>
+                  <p className="mt-4 text-sm text-gray-600">หน้านิ่งของคุณดูคล้ายอารมณ์...</p>
                   <h1 className="text-4xl font-extrabold sm:text-5xl" style={{ color: mood.accent }}>
                     {mood.title}
                   </h1>
-                  <p className="mt-1 text-sm font-semibold uppercase tracking-[0.2em] text-white/60">{mood.subtitle}</p>
+                  <p className="mt-1 text-sm font-semibold uppercase tracking-[0.2em] text-gray-500">{mood.subtitle}</p>
                   {source === 'ai' && aiSummary ? (
                     <div className="mt-4">
                       <p className="text-[11px] font-bold uppercase tracking-[0.25em]" style={{ color: mood.accent }}>
                         ✦ AI วิเคราะห์
                       </p>
-                      <p className="mt-1 text-[15px] leading-relaxed text-white/85">{aiSummary}</p>
+                      <p className="mt-1 text-[15px] leading-relaxed text-gray-800">{aiSummary}</p>
                     </div>
                   ) : (
-                    <p className="mt-4 text-[15px] leading-relaxed text-white/85">{mood.description}</p>
+                    <p className="mt-4 text-[15px] leading-relaxed text-gray-800">{mood.description}</p>
                   )}
                   {evidence.length > 0 && (
                     <div className="mt-3 flex flex-wrap justify-center gap-1.5 sm:justify-start">
-                      <span className="text-xs text-white/50">วัดได้จาก:</span>
+                      <span className="text-xs text-gray-500">วัดได้จาก:</span>
                       {evidence.map(({ id, label }) => (
                         <span key={id} className="rounded-full border px-2.5 py-0.5 text-xs font-semibold" style={{ borderColor: `${mood.accent}80`, color: mood.accent }}>
                           {label}
@@ -865,16 +850,16 @@ const GameFaceScan: React.FC = () => {
                       ))}
                     </div>
                   )}
-                  <p className="mt-3 rounded-2xl bg-white/5 px-4 py-3 text-sm leading-relaxed text-white/70">💡 {aiTip || mood.tip}</p>
+                  <p className="mt-3 rounded-2xl bg-gray-50 px-4 py-3 text-sm leading-relaxed text-gray-700">💡 {aiTip || mood.tip}</p>
                 </>
               )}
             </div>
           </div>
 
-          <div className="border-t border-white/10 px-6 py-6 sm:px-8">
+          <div className="border-t border-[#D6D4CC] px-6 py-6 sm:px-8">
             <div className="grid gap-8 sm:grid-cols-2">
               <section>
-                <p className="text-xs font-bold uppercase tracking-[0.3em] text-white/50">
+                <p className="text-xs font-bold uppercase tracking-[0.3em] text-gray-500">
                   7 อารมณ์พื้นฐาน (Ekman){source === 'ai' ? ' · สรุปโดย AI' : ''}
                 </p>
                 <div className={`mt-4 space-y-3 ${pending ? 'animate-pulse opacity-30' : ''}`}>
@@ -883,15 +868,15 @@ const GameFaceScan: React.FC = () => {
                     return (
                       <div key={id}>
                         <div className="flex justify-between text-sm">
-                          <span className="text-white/80">
+                          <span className="text-gray-700">
                             {FACE_MOODS[id].emoji} {FACE_MOODS[id].title}
                           </span>
-                          <span className="font-bold text-white">{pct}%</span>
+                          <span className="font-bold text-gray-900">{pct}%</span>
                         </div>
-                        <div className="mt-1 h-2 overflow-hidden rounded-full bg-white/10">
+                        <div className="mt-1 h-2 overflow-hidden rounded-full bg-gray-200">
                           <div
                             className="h-full rounded-full"
-                            style={{ width: `${pct}%`, backgroundColor: id === sortedMoods[0] ? mood.accent : 'rgba(255,255,255,0.45)' }}
+                            style={{ width: `${pct}%`, backgroundColor: id === sortedMoods[0] ? mood.accent : '#9CA3AF' }}
                           />
                         </div>
                       </div>
@@ -900,7 +885,7 @@ const GameFaceScan: React.FC = () => {
                 </div>
               </section>
               <section>
-                <p className="text-xs font-bold uppercase tracking-[0.3em] text-white/50">ค่าที่วัดได้เทียบคนทั่วไป</p>
+                <p className="text-xs font-bold uppercase tracking-[0.3em] text-gray-500">ค่าที่วัดได้เทียบคนทั่วไป</p>
                 <div className="mt-4 space-y-3">
                   {sortedMetrics.map((id) => {
                     const level = levels[id];
@@ -909,23 +894,23 @@ const GameFaceScan: React.FC = () => {
                     return (
                       <div key={id}>
                         <div className="flex justify-between gap-2 text-sm">
-                          <span className="text-white/80">{metricLabel(id, level)}</span>
-                          <span className="shrink-0 text-xs text-white/60">
-                            เด่นกว่า <span className="font-bold text-white">{pct}%</span> ของคน
+                          <span className="text-gray-700">{metricLabel(id, level)}</span>
+                          <span className="shrink-0 text-xs text-gray-500">
+                            เด่นกว่า <span className="font-bold text-gray-900">{pct}%</span> ของคน
                           </span>
                         </div>
-                        <div className="relative mt-1 h-2 rounded-full bg-white/10">
+                        <div className="relative mt-1 h-2 rounded-full bg-gray-200">
                           <div
                             className="absolute inset-y-0 rounded-full bg-cyan-400"
                             style={high ? { left: '50%', width: `${(level - 0.5) * 100}%` } : { right: '50%', width: `${(0.5 - level) * 100}%` }}
                           />
-                          <div className="absolute -inset-y-0.5 left-1/2 w-0.5 bg-white/70" />
+                          <div className="absolute -inset-y-0.5 left-1/2 w-0.5 bg-gray-400" />
                         </div>
                       </div>
                     );
                   })}
                 </div>
-                <p className="mt-3 text-[11px] leading-relaxed text-white/40">
+                <p className="mt-3 text-[11px] leading-relaxed text-gray-400">
                   วัดโครงหน้า 478 จุดจากทุกเฟรมที่หน้าตรงระหว่างสแกน 3 วินาที แล้วเทียบกับคนที่สแกนก่อนหน้าทั้งหมด · เส้นกลาง = คนทั่วไป
                 </p>
               </section>
@@ -934,23 +919,13 @@ const GameFaceScan: React.FC = () => {
         </div>
 
         <div className="mt-6 flex flex-wrap justify-center gap-3">
-          <button
-            type="button"
-            onClick={handleDownloadPng}
-            disabled={pngLoading || pending}
-            className="rounded-full px-6 py-3 text-sm font-bold text-black shadow-lg transition-transform hover:scale-[1.03] disabled:opacity-60"
-            style={{ backgroundColor: YELLOW }}
-          >
+          <button type="button" onClick={handleDownloadPng} disabled={pngLoading || pending} className="md-btn-primary disabled:opacity-60">
             {pngLoading ? 'กำลังสร้างรูป...' : 'บันทึกผลเป็นรูปภาพ'}
           </button>
-          <button
-            type="button"
-            onClick={scanAgain}
-            className="rounded-full border-2 border-white/80 px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-white hover:text-black"
-          >
+          <button type="button" onClick={scanAgain} className="md-btn-ghost !border-2 !px-6 !py-3 !text-sm !font-bold">
             สแกนใหม่
           </button>
-          <Link to="/" className="rounded-full border-2 border-white/20 px-6 py-3 text-sm font-bold text-white/80 transition-colors hover:border-white/60 hover:text-white">
+          <Link to="/" className="md-btn-ghost !px-6 !py-3 !text-sm !font-bold">
             กลับหน้าหลัก
           </Link>
         </div>

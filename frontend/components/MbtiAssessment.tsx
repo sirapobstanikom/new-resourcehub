@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import html2canvas from 'html2canvas';
 import BrandLogo, { prepareBrandLogosForExport } from './BrandLogo';
@@ -46,7 +46,7 @@ interface Draft {
 }
 
 const DRAFT_KEY = 'mbti_assessment_draft_v1';
-const YELLOW = '#FED201';
+const YELLOW = '#FFCC00';
 const LETTER_ORDER = 'EISNTFJP';
 const EMPTY_REG: Registration = { firstName: '', lastName: '', age: '', company: '', email: '' };
 const SCORE_OPTIONS = Array.from({ length: MBTI_POINTS_PER_ITEM + 1 }, (_, i) => i);
@@ -96,7 +96,7 @@ const PageHeader: React.FC = () => (
     </Link>
     <Link
       to="/"
-      className="rounded-full border border-black/80 px-4 py-1.5 text-xs font-semibold text-black transition-colors hover:bg-black hover:text-[#FED201] sm:text-sm"
+      className="rounded-full border border-black/80 px-4 py-1.5 text-xs font-semibold text-black transition-colors hover:bg-black hover:text-[#FFCC00] sm:text-sm"
     >
       กลับหน้าแรก
     </Link>
@@ -129,7 +129,7 @@ const ScoreRow: React.FC<ScoreRowProps> = ({ questionId, option, text, value, on
             onClick={() => onSelect(n)}
             className={`flex aspect-square w-full max-w-[52px] items-center justify-center justify-self-center rounded-full text-base font-bold transition-all focus:outline-none focus-visible:ring-4 focus-visible:ring-black/30 sm:text-lg ${
               selected
-                ? 'scale-105 bg-black text-[#FED201] shadow-lg shadow-black/25'
+                ? 'scale-105 bg-black text-[#FFCC00] shadow-lg shadow-black/25'
                 : 'bg-white text-black shadow-sm hover:bg-black/10 hover:shadow'
             }`}
           >
@@ -329,7 +329,7 @@ const MbtiAssessment: React.FC = () => {
                     aria-label={placeholder}
                     autoComplete={autoComplete}
                     required
-                    className="w-full rounded-md border-2 bg-white px-4 py-3 text-[15px] font-medium text-black placeholder:text-gray-500 focus:outline-none focus:ring-4 focus:ring-[#FED201]/40"
+                    className="w-full rounded-md border-2 bg-white px-4 py-3 text-[15px] font-medium text-black placeholder:text-gray-500 focus:outline-none focus:ring-4 focus:ring-[#FFCC00]/40"
                     style={{ borderColor: YELLOW }}
                   />
                 ))}
@@ -425,12 +425,12 @@ const MbtiAssessment: React.FC = () => {
           </div>
         </main>
 
-        <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-black/10 bg-[#FED201]/95 backdrop-blur">
+        <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-black/10 bg-[#FFCC00]/95 backdrop-blur">
           <div className="mx-auto flex w-full max-w-3xl items-center gap-3 px-5 py-3 sm:px-8">
             <button
               type="button"
               onClick={handleBack}
-              className="rounded-full border-2 border-black px-4 py-2 text-sm font-bold transition-colors hover:bg-black hover:text-[#FED201] sm:px-6"
+              className="rounded-full border-2 border-black px-4 py-2 text-sm font-bold transition-colors hover:bg-black hover:text-[#FFCC00] sm:px-6"
             >
               ย้อนกลับ
             </button>
@@ -450,7 +450,7 @@ const MbtiAssessment: React.FC = () => {
             <button
               type="button"
               onClick={handleNext}
-              className="rounded-full bg-black px-5 py-2.5 text-sm font-bold text-[#FED201] shadow-lg transition-transform hover:scale-[1.03] active:scale-[0.98] sm:px-7"
+              className="rounded-full bg-black px-5 py-2.5 text-sm font-bold text-[#FFCC00] shadow-lg transition-transform hover:scale-[1.03] active:scale-[0.98] sm:px-7"
             >
               {isLastPage ? 'ดูผลลัพธ์' : 'Next'}
             </button>
@@ -486,7 +486,7 @@ const MbtiAssessment: React.FC = () => {
               {result.type.split('').map((letter, i) => (
                 <span
                   key={i}
-                  className="flex h-16 w-14 items-center justify-center rounded-xl bg-black text-4xl font-extrabold leading-none text-[#FED201] sm:h-20 sm:w-[4.5rem] sm:text-5xl"
+                  className="flex h-16 w-14 items-center justify-center rounded-xl bg-black text-4xl font-extrabold leading-none text-[#FFCC00] sm:h-20 sm:w-[4.5rem] sm:text-5xl"
                   style={LEADERSHIP_HEADLINE_FONT}
                 >
                   {letter}
@@ -570,14 +570,14 @@ const MbtiAssessment: React.FC = () => {
             type="button"
             onClick={handleDownloadPng}
             disabled={pngLoading}
-            className="rounded-full bg-black px-7 py-3 font-bold text-[#FED201] shadow-lg transition-transform hover:scale-[1.02] disabled:opacity-50"
+            className="rounded-full bg-black px-7 py-3 font-bold text-[#FFCC00] shadow-lg transition-transform hover:scale-[1.02] disabled:opacity-50"
           >
             {pngLoading ? 'กำลังบันทึก...' : 'บันทึกผลเป็นรูปภาพ'}
           </button>
           <button
             type="button"
             onClick={handleRestart}
-            className="rounded-full border-2 border-black px-7 py-3 font-bold transition-colors hover:bg-black hover:text-[#FED201]"
+            className="rounded-full border-2 border-black px-7 py-3 font-bold transition-colors hover:bg-black hover:text-[#FFCC00]"
           >
             ทำแบบทดสอบใหม่
           </button>

@@ -389,17 +389,9 @@ const GameSpotDifference: React.FC = () => {
   );
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#0b0c10] text-white selection:bg-amber-300 selection:text-black">
-      <div className="pointer-events-none absolute inset-0" aria-hidden>
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(245,199,90,0.16),transparent_42%),radial-gradient(ellipse_at_bottom_right,rgba(56,189,248,0.12),transparent_40%)]" />
-        <div className="absolute inset-0 opacity-[0.08] [background-image:linear-gradient(rgba(255,255,255,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.08)_1px,transparent_1px)] [background-size:48px_48px]" />
-      </div>
-
+    <div className="md-page relative overflow-hidden">
       <div className="fixed top-4 left-4 right-4 z-20 flex items-center justify-between gap-3">
-        <Link
-          to="/"
-          className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/50 px-4 py-2 text-sm font-medium text-white/90 backdrop-blur-md hover:bg-white/10"
-        >
+        <Link to="/" className="md-btn-ghost inline-flex items-center gap-2 !px-4 !py-2">
           <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
@@ -407,10 +399,10 @@ const GameSpotDifference: React.FC = () => {
         </Link>
         {phase === 'playing' && (
           <div className="flex items-center gap-2 text-sm sm:text-sm md:text-sm">
-            <span className="rounded-full border border-amber-300/30 bg-black/50 px-3 py-2 text-base font-bold text-amber-200 backdrop-blur-md sm:text-sm sm:px-2.5 sm:py-1.5 sm:font-normal">
+            <span className="md-card rounded-full px-3 py-2 text-base font-bold text-amber-800 sm:text-sm sm:px-2.5 sm:py-1.5 sm:font-normal">
               จับคู่แล้ว {matchedSets}/8
             </span>
-            <span className="rounded-full border border-white/10 bg-black/50 px-3 py-2 text-base font-bold text-white backdrop-blur-md sm:text-sm sm:px-2.5 sm:py-1.5 sm:font-semibold">
+            <span className="md-card rounded-full px-3 py-2 text-base font-bold text-gray-900 sm:text-sm sm:px-2.5 sm:py-1.5 sm:font-semibold">
               ⏱ {formatMatchTime(elapsedMs)}
             </span>
           </div>
@@ -420,12 +412,12 @@ const GameSpotDifference: React.FC = () => {
       {(phase === 'intro' || phase === 'registering') && (
         <div className="relative mx-auto grid min-h-screen max-w-6xl items-center gap-8 px-4 py-24 lg:grid-cols-[1.05fr_0.95fr]">
           <div className="order-2 lg:order-1">
-            <p className="text-[11px] font-bold uppercase tracking-[0.32em] text-amber-300/90">MindDoJo · Tech & Platforms</p>
-            <h1 className="mt-3 text-4xl font-black tracking-tight text-white sm:text-6xl">
+            <p className="text-[11px] font-bold uppercase tracking-[0.32em] text-[#FFCC00]">MindDoJo · Tech & Platforms</p>
+            <h1 className="mt-3 text-4xl font-black tracking-tight text-gray-900 sm:text-6xl">
               จับคู่การ์ด
-              <span className="mt-2 block text-2xl font-semibold text-amber-200/90 sm:text-3xl">Tech ที่คนรู้จัก</span>
+              <span className="mt-2 block text-2xl font-semibold text-amber-700 sm:text-3xl">Tech ที่คนรู้จัก</span>
             </h1>
-            <p className="mt-4 max-w-md text-base leading-relaxed text-zinc-400">
+            <p className="mt-4 max-w-md text-base leading-relaxed text-gray-600">
               จับคู่แพลตฟอร์ม 8 คู่ เช่น Slack, Power BI, Claude, Notion
               จับคู่ถูกจะมีป๊อปอัปสั้นๆ บอกว่าคืออะไร แล้วแข่งกันที่เวลา
             </p>
@@ -434,16 +426,16 @@ const GameSpotDifference: React.FC = () => {
               <LobbyPreview />
             </div>
 
-            <div className="mt-6 flex flex-wrap gap-2 text-xs font-semibold text-zinc-300">
-              <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5">16 ใบ</span>
-              <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5">8 คู่</span>
-              <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5">จับเวลา</span>
-              <span className="rounded-full border border-amber-300/20 bg-amber-300/10 px-3 py-1.5 text-amber-200">จับคู่ถูกมีคำอธิบาย</span>
+            <div className="mt-6 flex flex-wrap gap-2 text-xs font-semibold text-gray-600">
+              <span className="md-card rounded-full px-3 py-1.5 !shadow-none">16 ใบ</span>
+              <span className="md-card rounded-full px-3 py-1.5 !shadow-none">8 คู่</span>
+              <span className="md-card rounded-full px-3 py-1.5 !shadow-none">จับเวลา</span>
+              <span className="rounded-full border border-amber-300 bg-amber-50 px-3 py-1.5 text-amber-800">จับคู่ถูกมีคำอธิบาย</span>
             </div>
 
             {entries[0] ? (
-              <p className="mt-5 text-sm text-zinc-500">
-                แชมป์ปัจจุบัน <span className="font-semibold text-amber-200">{entries[0].name}</span>
+              <p className="mt-5 text-sm text-gray-500">
+                แชมป์ปัจจุบัน <span className="font-semibold text-amber-700">{entries[0].name}</span>
                 {' · '}
                 {formatMatchTime(entries[0].completionTimeMs)}
               </p>
@@ -452,7 +444,7 @@ const GameSpotDifference: React.FC = () => {
 
           <form
             onSubmit={handleRegistration}
-            className="order-1 lg:order-2 relative overflow-hidden rounded-[32px] bg-[#f4efe6] p-6 text-stone-900 shadow-[0_30px_80px_rgba(0,0,0,0.35)] sm:p-8"
+            className="order-1 lg:order-2 md-card relative overflow-hidden rounded-[32px] p-6 sm:p-8"
           >
             <div className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-amber-400 via-orange-300 to-amber-500" />
             <div className="flex items-center justify-between gap-3">
@@ -520,11 +512,7 @@ const GameSpotDifference: React.FC = () => {
               <p className="mt-4 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{registerError}</p>
             ) : null}
 
-            <button
-              type="submit"
-              disabled={registering || !formReady}
-              className="mt-6 w-full rounded-2xl bg-stone-950 px-5 py-4 text-base font-black text-amber-200 shadow-[0_12px_30px_rgba(0,0,0,0.18)] transition hover:bg-black disabled:cursor-not-allowed disabled:bg-stone-300 disabled:text-stone-500 disabled:shadow-none"
-            >
+            <button type="submit" disabled={registering || !formReady} className="md-btn-primary mt-6 w-full !rounded-2xl !py-4 !text-base disabled:cursor-not-allowed disabled:opacity-50">
               {registering ? 'กำลังเข้าสู่เกม...' : formReady ? 'เริ่มจับคู่การ์ด' : 'กรอกข้อมูลให้ครบก่อน'}
             </button>
             <p className="mt-3 text-center text-xs text-stone-400">
@@ -547,8 +535,8 @@ const GameSpotDifference: React.FC = () => {
       {phase === 'playing' && (
         <div className="mx-auto flex min-h-screen max-w-xl flex-col justify-center px-4 py-24 sm:px-6">
           <div className="mb-5 text-center">
-            <h2 className="text-3xl font-black text-white sm:text-2xl">จับคู่ Tech & Platforms</h2>
-            <p className="mt-1 text-base leading-relaxed text-zinc-300 sm:text-sm sm:text-zinc-400">
+            <h2 className="text-3xl font-black text-gray-900 sm:text-2xl">จับคู่ Tech & Platforms</h2>
+            <p className="mt-1 text-base leading-relaxed text-gray-600 sm:text-sm">
               {registration.name} · จับคู่ถูกจะบอกสั้นๆ ว่าแพลตฟอร์มนั้นคืออะไร
             </p>
           </div>
@@ -597,31 +585,27 @@ const GameSpotDifference: React.FC = () => {
       {phase === 'won' && (
         <div className="mx-auto grid min-h-screen max-w-6xl gap-8 px-4 py-24 lg:grid-cols-[1fr_1fr] lg:items-center">
           <div className="text-center lg:text-left">
-            <p className="text-xs font-bold uppercase tracking-[0.25em] text-cyan-300/80">จบเกม</p>
-            <h2 className="mt-2 text-3xl font-black text-white sm:text-4xl">จับคู่ครบแล้ว!</h2>
-            <p className="mt-3 text-2xl font-black text-cyan-300">
+            <p className="text-xs font-bold uppercase tracking-[0.25em] text-teal-700">จบเกม</p>
+            <h2 className="mt-2 text-3xl font-black text-gray-900 sm:text-4xl">จับคู่ครบแล้ว!</h2>
+            <p className="mt-3 text-2xl font-black text-teal-600">
               {formatMatchTime(finalTimeMs ?? elapsedMs)}
             </p>
-            <p className="mt-1 text-sm text-zinc-400">
+            <p className="mt-1 text-sm text-gray-500">
               {registration.name} · เปิดเทียบกัน {moves} ครั้ง
               {myRank ? ` · อันดับ ${myRank}` : ''}
             </p>
-            {saveMessage ? <p className="mt-3 text-sm text-emerald-300">{saveMessage}</p> : null}
-            {saveError ? <p className="mt-3 text-sm text-red-300">{saveError}</p> : null}
+            {saveMessage ? <p className="mt-3 text-sm text-emerald-600">{saveMessage}</p> : null}
+            {saveError ? <p className="mt-3 text-sm text-red-600">{saveError}</p> : null}
             <div className="mt-6 flex flex-wrap items-center justify-center gap-3 lg:justify-start">
-              <button
-                type="button"
-                onClick={startGame}
-                className="rounded-2xl bg-cyan-400 px-8 py-3.5 text-base font-black text-black hover:bg-cyan-300"
-              >
+              <button type="button" onClick={startGame} className="md-btn-primary !rounded-2xl !px-8 !py-3.5 !text-base">
                 เล่นอีกครั้ง
               </button>
-              <Link to="/" className="rounded-2xl border border-white/15 px-5 py-3.5 text-sm text-zinc-300 hover:bg-white/5">
+              <Link to="/" className="md-btn-ghost !rounded-2xl !px-5 !py-3.5 !text-sm">
                 กลับหน้าหลัก
               </Link>
             </div>
           </div>
-          <div className="rounded-[32px] border border-white/10 bg-white/[0.04] p-2 backdrop-blur-md sm:p-3">
+          <div className="md-card rounded-[32px] p-2 sm:p-3">
             <LeaderboardCard
               entries={entries}
               loading={boardLoading}
