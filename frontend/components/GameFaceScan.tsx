@@ -583,7 +583,8 @@ const GameFaceScan: React.FC = () => {
             </div>
             <p className="mt-5 text-sm text-white/60">
               ไม่ต้องยิ้ม ไม่ต้องทำหน้า — แค่มองกล้องตามปกติ ระบบจะวัดใบหน้า 478 จุดและกล้ามเนื้อ 52 ตำแหน่ง เช่น มุมปาก คิ้ว และหนังตา
-              แล้วบอกว่าหน้านิ่งของคุณไปทางใจดี ดุ เศร้า ซึม ตื่นเต้น กังวล หรือเบื่อโลก ภายใน 3 วินาที
+              แล้วบอกว่าหน้านิ่งของคุณดูคล้ายอารมณ์ไหนใน 7 อารมณ์พื้นฐานสากลตามทฤษฎีของ Paul Ekman — สุข เศร้า กลัว โกรธ ประหลาดใจ
+              ดูแคลน หรือรังเกียจ ภายใน 3 วินาที
             </p>
           </section>
 
@@ -635,7 +636,7 @@ const GameFaceScan: React.FC = () => {
                 <summary className="cursor-pointer font-semibold text-white/70 hover:text-white">อ่านรายละเอียดการเก็บข้อมูล</summary>
                 <ul className="mt-2 list-disc space-y-1.5 pl-4">
                   <li>
-                    <b className="text-white/75">ข้อมูลที่เก็บ:</b> ชื่อ บริษัท อีเมล ค่าตัวเลขที่วัดจากใบหน้า 15 ค่า (เช่น ระดับมุมปาก คิ้ว หนังตา)
+                    <b className="text-white/75">ข้อมูลที่เก็บ:</b> ชื่อ บริษัท อีเมล ค่าตัวเลขที่วัดจากใบหน้า {FACE_METRIC_IDS.length} ค่า (เช่น ระดับมุมปาก คิ้ว หนังตา)
                     ผลแบบหน้า และคำสรุปจาก AI — <b className="text-white/75">ไม่เก็บรูปภาพหรือวิดีโอใบหน้า</b>
                   </li>
                   <li>
@@ -839,7 +840,7 @@ const GameFaceScan: React.FC = () => {
                 </div>
               ) : (
                 <>
-                  <p className="mt-4 text-sm text-white/60">ใบหน้าของคุณมีแนวโน้มเป็น...</p>
+                  <p className="mt-4 text-sm text-white/60">หน้านิ่งของคุณดูคล้ายอารมณ์...</p>
                   <h1 className="text-4xl font-extrabold sm:text-5xl" style={{ color: mood.accent }}>
                     {mood.title}
                   </h1>
@@ -874,7 +875,7 @@ const GameFaceScan: React.FC = () => {
             <div className="grid gap-8 sm:grid-cols-2">
               <section>
                 <p className="text-xs font-bold uppercase tracking-[0.3em] text-white/50">
-                  แนวโน้มของใบหน้า{source === 'ai' ? ' (สรุปโดย AI)' : ''}
+                  7 อารมณ์พื้นฐาน (Ekman){source === 'ai' ? ' · สรุปโดย AI' : ''}
                 </p>
                 <div className={`mt-4 space-y-3 ${pending ? 'animate-pulse opacity-30' : ''}`}>
                   {sortedMoods.map((id) => {

@@ -1,4 +1,5 @@
-export type FaceMoodId = 'kind' | 'fierce' | 'sad' | 'gloomy' | 'excited' | 'worried' | 'grumpy';
+/** 7 อารมณ์พื้นฐานสากลตามทฤษฎีของ Paul Ekman */
+export type FaceMoodId = 'happiness' | 'sadness' | 'fear' | 'anger' | 'surprise' | 'contempt' | 'disgust';
 
 export type FaceMoodScores = Record<FaceMoodId, number>;
 
@@ -17,7 +18,9 @@ export type FaceMetricId =
   | 'eyeSquint'
   | 'lipPress'
   | 'mouthFrown'
-  | 'noseSneer';
+  | 'noseSneer'
+  | 'upperLipRaise'
+  | 'smileAsym';
 
 /** ค่าดิบที่วัดได้จากใบหน้า — โครงหน้าวัดเป็นสัดส่วนของระยะห่างหางตาสองข้าง, กล้ามเนื้อเป็น blendshape 0–1 */
 export type FaceMetrics = Record<FaceMetricId, number>;
@@ -52,70 +55,71 @@ export interface FaceMood {
   accent: string;
 }
 
-export const FACE_MOOD_IDS: FaceMoodId[] = ['kind', 'fierce', 'sad', 'gloomy', 'excited', 'worried', 'grumpy'];
+export const FACE_MOOD_IDS: FaceMoodId[] = ['happiness', 'sadness', 'fear', 'anger', 'surprise', 'contempt', 'disgust'];
 
+/** สัญญาณบนใบหน้าของแต่ละอารมณ์ตาม Ekman — ใช้อธิบายในหน้าผลและส่งให้ AI */
 export const FACE_MOODS: Record<FaceMoodId, FaceMood> = {
-  kind: {
-    id: 'kind',
-    emoji: '😊',
-    title: 'หน้าใจดี',
-    subtitle: 'The Kind Face',
-    description: 'มุมปากของคุณยกขึ้นเล็กน้อยแม้ตอนหน้านิ่ง ทำให้ดูอบอุ่น เป็นมิตร และเข้าหาได้ง่าย',
+  happiness: {
+    id: 'happiness',
+    emoji: '😄',
+    title: 'หน้าสุข',
+    subtitle: 'Happiness',
+    description: 'มุมปากของคุณยกขึ้นแม้ตอนหน้านิ่ง ซึ่งเป็นสัญญาณของความสุขและความพอใจ ทำให้ดูอบอุ่น เป็นมิตร และเข้าหาได้ง่าย',
     tip: 'หน้าตาเป็นมิตรแบบนี้เป็นต้นทุนที่ดีมาก ช่วยให้ทีมกล้าพูด กล้าเสนอไอเดียกับคุณ',
     accent: '#FED201',
   },
-  fierce: {
-    id: 'fierce',
-    emoji: '😠',
-    title: 'หน้าดุ',
-    subtitle: 'The Fierce Face',
-    description: 'คิ้วของคุณอยู่ต่ำและชิดกันกว่าคนทั่วไป ร่วมกับริมฝีปากที่เม้มบาง ทำให้ดูจริงจัง เด็ดขาด และน่าเกรงขาม',
-    tip: 'ลองคลายหัวคิ้วและยิ้มทักทายก่อนเริ่มคุย จะช่วยให้คนอื่นรู้ว่าจริง ๆ แล้วคุณใจดีกว่าที่เห็น',
-    accent: '#F87171',
-  },
-  sad: {
-    id: 'sad',
+  sadness: {
+    id: 'sadness',
     emoji: '😢',
     title: 'หน้าเศร้า',
-    subtitle: 'The Sad Face',
-    description: 'มุมปากของคุณลู่ต่ำกว่ากลางริมฝีปาก และหัวคิ้วยกขึ้นเล็กน้อย ทำให้แววหน้าดูอ่อนโยนและมีความรู้สึกลึกซึ้ง',
+    subtitle: 'Sadness',
+    description: 'มุมปากของคุณลู่ต่ำและหัวคิ้วยกขึ้นเล็กน้อย ซึ่งเป็นสัญญาณของความเศร้า ทำให้แววหน้าดูอ่อนโยน ลึกซึ้ง และน่าเห็นใจ',
     tip: 'ลองยกมุมปากขึ้นนิดเดียวเวลาพูดคุย หน้าจะดูสดใสขึ้นทันที',
     accent: '#60A5FA',
   },
-  gloomy: {
-    id: 'gloomy',
-    emoji: '😔',
-    title: 'หน้าซึม',
-    subtitle: 'The Gloomy Face',
-    description: 'ตาของคุณเปิดน้อยกว่าคนทั่วไปและคิ้วอยู่ต่ำลงมา ทำให้ดูเงียบ ๆ ซึม ๆ เหมือนกำลังคิดอะไรอยู่ในใจ หรือยังไม่ได้ชาร์จพลัง',
-    tip: 'ลุกขึ้นยืดเส้นยืดสาย ดื่มน้ำสักแก้ว แล้วสบตาคู่สนทนา จะดูมีพลังขึ้นเยอะ',
-    accent: '#A78BFA',
+  fear: {
+    id: 'fear',
+    emoji: '😨',
+    title: 'หน้ากลัว',
+    subtitle: 'Fear',
+    description: 'ตาของคุณเปิดกว้าง หัวคิ้วยกขึ้นและชิดกัน ซึ่งเป็นสัญญาณของความกลัวหรือความกังวล ทำให้ดูระมัดระวัง ตื่นตัวต่อสิ่งรอบตัว',
+    tip: 'หายใจลึก ๆ ผ่อนคลายหัวคิ้วและหนังตาสักนิด คุณจะดูมั่นใจและนิ่งขึ้นอีกเยอะ',
+    accent: '#2DD4BF',
   },
-  excited: {
-    id: 'excited',
+  anger: {
+    id: 'anger',
+    emoji: '😠',
+    title: 'หน้าโกรธ',
+    subtitle: 'Anger',
+    description: 'คิ้วของคุณอยู่ต่ำและชิดกัน ร่วมกับริมฝีปากที่เม้มบาง ซึ่งเป็นสัญญาณของความโกรธ ทำให้ดูจริงจัง เด็ดขาด และน่าเกรงขาม',
+    tip: 'ลองคลายหัวคิ้วและยิ้มทักทายก่อนเริ่มคุย จะช่วยให้คนอื่นรู้ว่าจริง ๆ แล้วคุณใจดีกว่าที่เห็น',
+    accent: '#F87171',
+  },
+  surprise: {
+    id: 'surprise',
     emoji: '😲',
-    title: 'หน้าตื่นเต้น',
-    subtitle: 'The Excited Face',
-    description: 'ตาของคุณเปิดกว้างและคิ้วอยู่สูงกว่าคนทั่วไป ทำให้ดูตื่นตัว อยากรู้อยากเห็น พร้อมรับเรื่องใหม่ ๆ',
+    title: 'หน้าประหลาดใจ',
+    subtitle: 'Surprise',
+    description: 'คิ้วของคุณอยู่สูงและตาเปิดกว้างกว่าคนทั่วไป ซึ่งเป็นสัญญาณของความประหลาดใจ ทำให้ดูตื่นตัว อยากรู้อยากเห็น พร้อมรับเรื่องใหม่ ๆ',
     tip: 'ความกระตือรือร้นที่เห็นได้จากหน้าตาคือเชื้อเพลิงชั้นดีของทีม ใช้มันจุดประกายไอเดียใหม่ ๆ',
     accent: '#FB923C',
   },
-  worried: {
-    id: 'worried',
-    emoji: '😟',
-    title: 'หน้ากังวล',
-    subtitle: 'The Worried Face',
-    description: 'หัวคิ้วของคุณยกขึ้นจนคิ้วลู่ลงด้านข้าง และหว่างคิ้วชิดกัน ทำให้ดูรอบคอบ คิดเผื่อไว้หลายทาง',
-    tip: 'หายใจลึก ๆ ผ่อนคลายหัวคิ้วสักนิด คุณจะดูมั่นใจขึ้นอีกเยอะ',
-    accent: '#2DD4BF',
+  contempt: {
+    id: 'contempt',
+    emoji: '😏',
+    title: 'หน้าดูแคลน',
+    subtitle: 'Contempt',
+    description: 'มุมปากสองข้างของคุณสูงไม่เท่ากันคล้ายยิ้มมุมปาก ซึ่งเป็นสัญญาณของการดูแคลน ทำให้ดูมั่นใจ มีมาด แต่บางครั้งคนอื่นอาจอ่านว่าไม่ค่อยเห็นด้วย',
+    tip: 'ยิ้มให้เต็มทั้งสองข้างเวลาทักทายหรือรับฟังความเห็น จะช่วยให้คนอื่นรู้สึกว่าคุณเปิดใจ',
+    accent: '#A78BFA',
   },
-  grumpy: {
-    id: 'grumpy',
-    emoji: '😒',
-    title: 'หน้าเบื่อโลก',
-    subtitle: 'The Grumpy Face',
-    description: 'มุมปากสองข้างของคุณสูงไม่เท่ากันและริมฝีปากเม้มบาง ทำให้ดูเหมือนมีบางอย่างไม่ถูกใจ แต่ก็มีเสน่ห์แบบเท่ ๆ',
-    tip: 'ลองผ่อนคลายรอบปากและจมูก แล้วสบตาคู่สนทนา จะดูเปิดใจขึ้นมาก',
+  disgust: {
+    id: 'disgust',
+    emoji: '🤢',
+    title: 'หน้ารังเกียจ',
+    subtitle: 'Disgust',
+    description: 'ริมฝีปากบนของคุณยกขึ้นและรอบจมูกตึงกว่าคนทั่วไป ซึ่งเป็นสัญญาณของความรังเกียจ ทำให้ดูเหมือนช่างเลือกและมีมาตรฐานสูง',
+    tip: 'ลองผ่อนคลายรอบจมูกและริมฝีปากบน แล้วสบตาคู่สนทนา จะดูเปิดรับมากขึ้น',
     accent: '#4ADE80',
   },
 };
@@ -137,6 +141,8 @@ export const FACE_METRIC_LABELS: Record<FaceMetricId, { high: string; low: strin
   lipPress: { high: 'กล้ามเนื้อเม้มปาก', low: 'ปากผ่อนคลาย' },
   mouthFrown: { high: 'กล้ามเนื้อดึงมุมปากลง', low: 'มุมปากไม่ถูกดึงลง' },
   noseSneer: { high: 'จมูกย่น', low: 'จมูกผ่อนคลาย' },
+  upperLipRaise: { high: 'ริมฝีปากบนยกขึ้น', low: 'ริมฝีปากบนผ่อนคลาย' },
+  smileAsym: { high: 'ยิ้มมุมปากข้างเดียว', low: 'แรงยิ้มสองข้างเท่ากัน' },
 };
 
 export const FACE_METRIC_IDS = Object.keys(FACE_METRIC_LABELS) as FaceMetricId[];
@@ -163,23 +169,32 @@ export const DEFAULT_NORMS: FaceNorms = {
     lipPress: { mean: 0.06, sd: 0.06 },
     mouthFrown: { mean: 0.005, sd: 0.02 },
     noseSneer: { mean: 0.005, sd: 0.02 },
+    upperLipRaise: { mean: 0.04, sd: 0.04 },
+    smileAsym: { mean: 0.02, sd: 0.03 },
   },
   moods: Object.fromEntries(FACE_MOOD_IDS.map((id) => [id, { mean: 0, sd: 1 }])) as FaceNorms['moods'],
 };
 
 /**
- * สูตรของแต่ละแบบหน้า วัดจากโครงหน้าตอนนิ่งที่คนมักอ่านเป็นอารมณ์นั้น (เช่น มุมปากลู่ลงโดยธรรมชาติ → ดูเศร้า)
- * เน้นสัดส่วนโครงหน้าซึ่งคงที่ ใช้ค่ากล้ามเนื้อชั่วขณะเป็นตัวเสริมเท่านั้น
+ * หน้านิ่งที่โครงหน้าคล้ายสัญญาณของอารมณ์ใด คนจะอ่านหน้านั้นเป็นอารมณ์นั้น (emotion overgeneralization)
+ * สัญญาณของแต่ละอารมณ์อิงตาม Ekman/FACS — เน้นสัดส่วนโครงหน้าซึ่งคงที่ ใช้ค่ากล้ามเนื้อชั่วขณะเป็นตัวเสริม
  * น้ำหนักบวก = ยิ่งสูงกว่าคนทั่วไปยิ่งใช่, ลบ = ยิ่งต่ำกว่ายิ่งใช่
  */
 export const MOOD_FORMULAS: Record<FaceMoodId, Partial<Record<FaceMetricId, number>>> = {
-  kind: { cornerDrop: -0.6, smile: 0.5 },
-  excited: { eyeOpen: 0.6, browHeight: 0.5 },
-  worried: { browSlant: 0.6, browGap: -0.3, browInnerUp: 0.2 },
-  sad: { cornerDrop: 0.6, browSlant: 0.3, mouthFrown: 0.1 },
-  gloomy: { eyeOpen: -0.7, browHeight: -0.3 },
-  fierce: { browHeight: -0.5, browGap: -0.4, browDown: 0.3, lipThickness: -0.2 },
-  grumpy: { mouthAsym: 0.7, lipThickness: -0.3, lipPress: 0.1 },
+  // มุมปากยก + กล้ามเนื้อยิ้ม (AU12)
+  happiness: { cornerDrop: -0.6, smile: 0.5 },
+  // มุมปากลู่ลง (AU15) + หัวคิ้วยกจนคิ้วลู่ (AU1)
+  sadness: { cornerDrop: 0.5, browSlant: 0.4, browInnerUp: 0.2, mouthFrown: 0.2 },
+  // ตาเบิก (AU5) + หัวคิ้วยกและชิดกัน (AU1+4) + ปากเผยอ/ตึง (AU20, AU25)
+  fear: { eyeOpen: 0.5, browSlant: 0.3, browInnerUp: 0.3, browGap: -0.2, jawOpen: 0.2, lipThickness: -0.2 },
+  // คิ้วต่ำชิดกัน (AU4) + ปากเม้มบาง (AU23/24)
+  anger: { browHeight: -0.5, browGap: -0.4, browDown: 0.3, lipThickness: -0.2, lipPress: 0.15 },
+  // คิ้วยกทั้งแนว (AU1+2) + ตาเบิก (AU5) + อ้าปาก (AU26)
+  surprise: { browHeight: 0.6, eyeOpen: 0.5, jawOpen: 0.3 },
+  // มุมปากยกข้างเดียว (unilateral AU12/14)
+  contempt: { mouthAsym: 0.6, smileAsym: 0.4 },
+  // ย่นจมูก (AU9) + ยกริมฝีปากบน (AU10) + คิ้วต่ำ/ตาแคบตามมา
+  disgust: { upperLipRaise: 0.5, noseSneer: 0.4, browHeight: -0.2, eyeOpen: -0.2 },
 };
 
 /** ความคมของการแปลงคะแนนเป็น % — สูงขึ้น = ผลชี้ขาดชัดขึ้นเมื่อหน้าต่างจากคนทั่วไปมาก */
@@ -239,6 +254,8 @@ export function extractFaceMetrics(landmarks: FaceLandmark[], blendshapes: Blend
     lipPress: avg(get('mouthPressLeft'), get('mouthPressRight')),
     mouthFrown: avg(get('mouthFrownLeft'), get('mouthFrownRight')),
     noseSneer: avg(get('noseSneerLeft'), get('noseSneerRight')),
+    upperLipRaise: avg(get('mouthUpperUpLeft'), get('mouthUpperUpRight')),
+    smileAsym: Math.abs(get('mouthSmileLeft') - get('mouthSmileRight')),
   };
 }
 
@@ -253,7 +270,7 @@ export function headPose(matrix: ArrayLike<number>): { yaw: number; pitch: numbe
 }
 
 /** เวอร์ชันของวิธีวัด — ใช้แยกผลสแกนเก่าที่วัดคนละแบบออกจากการคำนวณค่าปกติ */
-export const METRICS_VERSION = 3;
+export const METRICS_VERSION = 4;
 
 export const toStoredMetrics = (metrics: FaceMetrics) => ({ ...metrics, version: METRICS_VERSION });
 
@@ -304,7 +321,7 @@ const moodContributions = (mood: FaceMoodId, metrics: FaceMetrics, norms: FaceNo
   const z = metricDeviations(metrics, norms);
   const entries = Object.entries(MOOD_FORMULAS[mood]) as [FaceMetricId, number][];
   const weightNorm = Math.sqrt(entries.reduce((sum, [, w]) => sum + w * w, 0));
-  const damp = mood === 'kind' ? 0 : smileStrength(metrics);
+  const damp = mood === 'happiness' ? 0 : smileStrength(metrics);
   return entries.map(([id, w]) => {
     const raw = (w * z[id]) / weightNorm;
     return { id, contribution: raw > 0 ? raw * (1 - damp) : raw };

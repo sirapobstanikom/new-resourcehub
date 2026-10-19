@@ -322,7 +322,7 @@ const HomePage: React.FC = () => {
             </div>
             <h3 className="font-bold text-lg mb-2 text-white">Face Mood Scan</h3>
             <p className="text-gray-500 text-sm">
-              ลงทะเบียนแล้วสแกนหน้านิ่ง ๆ — AI บอกว่าหน้าคุณมีแนวโน้มไปทางใจดี ดุ เศร้า หรือซึม
+              ลงทะเบียนแล้วสแกนหน้านิ่ง ๆ — AI บอกว่าหน้าคุณดูคล้ายอารมณ์ไหนใน 7 อารมณ์พื้นฐานของ Ekman
             </p>
           </Link>
         </div>
