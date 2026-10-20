@@ -138,6 +138,44 @@
   }
 }
 
+/* Home hero */
+@keyframes homeHeroIn {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes homeBrandPulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+}
+
+.home-hero-in {
+  animation: homeHeroIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.home-hero-brand {
+  animation: homeBrandPulse 4.5s ease-in-out infinite;
+  filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.35));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-hero-in,
+  .home-hero-brand {
+    animation: none;
+  }
+}
+
 /* Animations (สำหรับหน้า /assessment/disc) */
 @keyframes discFadeSlideIn {
   from {
