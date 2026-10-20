@@ -119,7 +119,7 @@ const AdminStickycloudPage: React.FC = () => {
               >
                 <div className="flex items-center gap-3 sm:gap-4 min-w-0">
                   <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-amber-400/10 border border-amber-400/20 flex items-center justify-center shrink-0">
-                    <code className="font-mono font-bold text-amber-400 text-xs sm:text-sm">{r.room_code}</code>
+                    <code className="font-mono font-bold text-amber-700 text-xs sm:text-sm">{r.room_code}</code>
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="font-medium text-gray-900 truncate">{r.name}</p>
@@ -139,7 +139,7 @@ const AdminStickycloudPage: React.FC = () => {
                   </button>
                   <Link
                     to={`/room/${r.id}`}
-                    className="flex-1 sm:flex-none flex items-center justify-center gap-2 min-h-[44px] px-4 py-2.5 rounded-xl bg-amber-400/20 text-amber-400 hover:bg-amber-400/30 font-medium text-sm transition touch-manipulation"
+                    className="flex-1 sm:flex-none flex items-center justify-center gap-2 min-h-[44px] px-4 py-2.5 rounded-xl bg-amber-400/20 text-amber-700 hover:bg-amber-400/30 font-medium text-sm transition touch-manipulation"
                   >
                     <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -151,7 +151,7 @@ const AdminStickycloudPage: React.FC = () => {
                     type="button"
                     onClick={() => handleDelete(r.id)}
                     disabled={deletingId === r.id}
-                    className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2.5 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500/20 disabled:opacity-50 transition touch-manipulation"
+                    className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2.5 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 disabled:opacity-50 transition touch-manipulation"
                     title="ลบห้อง"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -169,7 +169,7 @@ const AdminStickycloudPage: React.FC = () => {
       <section className="rounded-2xl bg-white border border-[#D6D4CC] p-5 sm:p-8">
         <div className="flex items-center gap-3 mb-6">
           <div className="w-10 h-10 rounded-xl bg-amber-400/20 flex items-center justify-center shrink-0">
-            <svg className="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
           </div>
@@ -201,7 +201,7 @@ const AdminStickycloudPage: React.FC = () => {
             </select>
           </div>
           {error && (
-            <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-red-500/20 border border-red-500/30 text-red-300 text-sm">
+            <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-red-500/20 border border-red-500/30 text-red-600 text-sm">
               <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
@@ -235,7 +235,7 @@ const AdminStickycloudPage: React.FC = () => {
       </section>
 
       <p className="mt-8 text-sm text-slate-500">
-        ผู้ใช้ไปที่ <Link to="/room" className="text-amber-400 hover:underline font-medium">/room</Link> แล้วใส่รหัสห้อง เพื่อเข้า workspace แปะโพสต์อิท เลือกสี และสร้างบอร์ดใหม่ได้
+        ผู้ใช้ไปที่ <Link to="/room" className="text-amber-700 hover:underline font-medium">/room</Link> แล้วใส่รหัสห้อง เพื่อเข้า workspace แปะโพสต์อิท เลือกสี และสร้างบอร์ดใหม่ได้
       </p>
     </div>
   );

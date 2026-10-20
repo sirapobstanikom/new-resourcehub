@@ -1088,7 +1088,7 @@ function ResponseList({
                 type="button"
                 onClick={() => onDeleteRow(response.rowId)}
                 disabled={deletingRowId === response.rowId}
-                className="shrink-0 self-start rounded-md border border-red-400/25 bg-red-500/10 px-2.5 py-1 text-xs font-medium text-red-300 hover:bg-red-500/15 disabled:opacity-50"
+                className="shrink-0 self-start rounded-md border border-red-400/25 bg-red-50 px-2.5 py-1 text-xs font-medium text-red-600 hover:bg-red-500/15 disabled:opacity-50"
               >
                 {deletingRowId === response.rowId ? 'กำลังลบ...' : 'ลบข้อมูล'}
               </button>
@@ -1126,7 +1126,7 @@ function RowRecordsList({
               type="button"
               onClick={() => onDeleteRow(entry.rowId)}
               disabled={deletingRowId === entry.rowId}
-              className="shrink-0 self-start rounded-md border border-red-400/25 bg-red-500/10 px-2.5 py-1 text-xs font-medium text-red-300 hover:bg-red-500/15 disabled:opacity-50"
+              className="shrink-0 self-start rounded-md border border-red-400/25 bg-red-50 px-2.5 py-1 text-xs font-medium text-red-600 hover:bg-red-500/15 disabled:opacity-50"
             >
               {deletingRowId === entry.rowId ? 'กำลังลบ...' : 'ลบ'}
             </button>
@@ -1353,7 +1353,7 @@ function DashboardTopSectionsPanel({
                 <button
                   type="button"
                   onClick={() => removeSection(section.id)}
-                  className="rounded-md border border-red-400/25 bg-red-500/10 px-2 py-1 text-[11px] text-red-300 hover:bg-red-500/15"
+                  className="rounded-md border border-red-400/25 bg-red-50 px-2 py-1 text-[11px] text-red-600 hover:bg-red-500/15"
                 >
                   ลบหัวข้อ
                 </button>
@@ -1482,7 +1482,7 @@ function InsightCard({
                   <button
                     type="button"
                     onClick={onHideTopic}
-                    className="rounded-md border border-red-400/25 bg-red-500/10 px-2.5 py-1 text-xs font-medium text-red-300 hover:bg-red-500/15"
+                    className="rounded-md border border-red-400/25 bg-red-50 px-2.5 py-1 text-xs font-medium text-red-600 hover:bg-red-500/15"
                   >
                     ลบหัวข้อ
                   </button>
@@ -1729,7 +1729,7 @@ const AdminDatabaseSummaryDashboard: React.FC<AdminDatabaseSummaryDashboardProps
       )}
 
       {actionError && (
-        <div className="rounded-2xl border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm font-semibold text-red-200">
+        <div className="rounded-2xl border border-red-300 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
           {actionError}
         </div>
       )}

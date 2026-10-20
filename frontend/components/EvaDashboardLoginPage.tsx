@@ -44,8 +44,8 @@ const EvaDashboardLoginPage: React.FC = () => {
   if (loadingConfig) {
     return (
       <div className="md-page px-4 py-6 sm:px-6 sm:py-10">
-        <div className="max-w-md mx-auto rounded-3xl border border-white/10 bg-gradient-to-br from-white/10 via-white/5 to-black/30 p-6 text-center">
-          <p className="text-sm text-gray-300">กำลังโหลดการตั้งค่า Dashboard...</p>
+        <div className="max-w-md mx-auto rounded-3xl border border-[#D6D4CC] bg-gradient-to-br from-white/10 via-white/5 to-black/30 p-6 text-center">
+          <p className="text-sm text-gray-700">กำลังโหลดการตั้งค่า Dashboard...</p>
         </div>
       </div>
     );
@@ -54,10 +54,10 @@ const EvaDashboardLoginPage: React.FC = () => {
   if (!instance || !dashConfig) {
     return (
       <div className="md-page px-4 py-6 sm:px-6 sm:py-10">
-        <div className="max-w-md mx-auto rounded-3xl border border-white/10 bg-gradient-to-br from-white/10 via-white/5 to-black/30 p-6 text-center space-y-3">
-          <h1 className="text-xl font-bold text-yellow-300">ไม่พบ Dashboard</h1>
-          <p className="text-sm text-gray-400">
-            ระบุพารามิเตอร์ <span className="font-mono text-gray-300">?dash=id</span> หรือตรวจสอบใน Eva Editor
+        <div className="max-w-md mx-auto rounded-3xl border border-[#D6D4CC] bg-gradient-to-br from-white/10 via-white/5 to-black/30 p-6 text-center space-y-3">
+          <h1 className="text-xl font-bold text-yellow-800">ไม่พบ Dashboard</h1>
+          <p className="text-sm text-gray-600">
+            ระบุพารามิเตอร์ <span className="font-mono text-gray-700">?dash=id</span> หรือตรวจสอบใน Eva Editor
             ว่ามีการสร้าง dashboard อย่างน้อยหนึ่งรายการ
           </p>
           <a
@@ -87,32 +87,32 @@ const EvaDashboardLoginPage: React.FC = () => {
 
   return (
     <div className="md-page px-4 py-6 sm:px-6 sm:py-10">
-      <div className="max-w-md mx-auto rounded-3xl border border-white/10 bg-gradient-to-br from-white/10 via-white/5 to-black/30 p-5 sm:p-8 shadow-2xl shadow-black/30">
-        <h1 className="text-2xl sm:text-3xl font-bold text-yellow-300">{dashConfig.loginTitle}</h1>
-        <p className="text-gray-300 mt-2 text-sm sm:text-base whitespace-pre-line">{dashConfig.loginSubtitle}</p>
+      <div className="mx-auto max-w-md rounded-3xl border border-[#D6D4CC] bg-white p-5 shadow-md sm:p-8">
+        <h1 className="text-2xl sm:text-3xl font-bold text-yellow-800">{dashConfig.loginTitle}</h1>
+        <p className="text-gray-700 mt-2 text-sm sm:text-base whitespace-pre-line">{dashConfig.loginSubtitle}</p>
         {dashConfig.loginNote.trim() && (
-          <p className="text-xs text-gray-400 mt-1 whitespace-pre-line">{dashConfig.loginNote}</p>
+          <p className="text-xs text-gray-600 mt-1 whitespace-pre-line">{dashConfig.loginNote}</p>
         )}
 
         <form onSubmit={handleLogin} className="mt-5 space-y-4">
-          {loadError && <p className="text-xs text-amber-300 whitespace-pre-wrap">{loadError}</p>}
+          {loadError && <p className="text-xs text-amber-800 whitespace-pre-wrap">{loadError}</p>}
           <div>
-            <label className="text-sm text-gray-300 font-medium">{dashConfig.usernameLabel}</label>
+            <label className="text-sm text-gray-700 font-medium">{dashConfig.usernameLabel}</label>
             <input
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-white/20 bg-black/35 px-4 py-3 text-base"
+              className="mt-1 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-base"
               placeholder="กรอก username"
             />
           </div>
           <div>
-            <label className="text-sm text-gray-300 font-medium">{dashConfig.passwordLabel}</label>
+            <label className="text-sm text-gray-700 font-medium">{dashConfig.passwordLabel}</label>
             <div className="mt-1 relative">
               <input
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full rounded-xl border border-white/20 bg-black/35 pl-4 pr-24 py-3 text-base"
+                className="w-full rounded-xl border border-gray-200 bg-white pl-4 pr-24 py-3 text-base"
                 placeholder="กรอก password"
               />
               <button
@@ -120,8 +120,8 @@ const EvaDashboardLoginPage: React.FC = () => {
                 onClick={() => setShowPassword((v) => !v)}
                 className={`absolute right-2 top-1/2 -translate-y-1/2 inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${
                   showPassword
-                    ? 'border-yellow-300/50 bg-yellow-400/20 text-yellow-100 hover:bg-yellow-400/30'
-                    : 'border-white/25 bg-white/10 text-gray-100 hover:bg-white/20'
+                    ? 'border-yellow-300/50 bg-yellow-400/20 text-yellow-900 hover:bg-yellow-400/30'
+                    : 'border-gray-200 bg-gray-100 text-gray-900 hover:bg-gray-100'
                 }`}
               >
                 <span aria-hidden>{showPassword ? '🙈' : '👁️'}</span>
@@ -129,7 +129,7 @@ const EvaDashboardLoginPage: React.FC = () => {
               </button>
             </div>
           </div>
-          {loginError && <p className="text-sm text-red-300">{loginError}</p>}
+          {loginError && <p className="text-sm text-red-700">{loginError}</p>}
           <button
             type="submit"
             className="w-full rounded-xl bg-yellow-400 px-4 py-3 text-base font-semibold text-black hover:bg-yellow-300 transition-colors"

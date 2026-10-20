@@ -19,14 +19,14 @@ type VideoRow = {
 
 function PageShell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-[#090201] text-white selection:bg-yellow-300 selection:text-black innoclub-angsana">
+    <div className="min-h-screen bg-[#F3F2ED] text-gray-900 selection:bg-yellow-300 selection:text-black innoclub-angsana">
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_30%_0%,rgba(250,204,21,0.2),transparent_35%),linear-gradient(180deg,rgba(84,13,8,0.42),rgba(0,0,0,0.92))]" />
-      <header className="relative z-10 border-b border-yellow-200/20 bg-black/35 px-4 py-4 backdrop-blur">
+      <header className="relative z-10 border-b border-[#D6D4CC] bg-white px-4 py-4 backdrop-blur">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-3">
-          <Link to="/evaluation/innoclub-2" className="text-sm font-bold text-yellow-100/80 hover:text-yellow-100">
+          <Link to="/evaluation/innoclub-2" className="text-sm font-bold text-yellow-900/80 hover:text-yellow-900">
             กลับหน้า InnoClub-2
           </Link>
-          <div className="rounded-xl border border-yellow-200/25 bg-[#160503]/80 px-3 py-2 text-sm font-black text-yellow-100">
+          <div className="rounded-xl border border-yellow-300 bg-[#160503]/80 px-3 py-2 text-sm font-black text-yellow-900">
             INNO CLUB VIDEO
           </div>
         </div>
@@ -40,14 +40,14 @@ function PageShell({ children }: { children: React.ReactNode }) {
 
 function Hero({ dashboard }: { dashboard?: boolean }) {
   return (
-    <section className="mb-7 overflow-hidden rounded-[2rem] border border-yellow-200/25 bg-[linear-gradient(145deg,rgba(49,8,5,0.92),rgba(12,2,1,0.96))] p-6 text-center shadow-[0_24px_90px_rgba(0,0,0,0.52)] sm:p-9">
-      <p className="text-xs font-black uppercase tracking-[0.28em] text-yellow-100/80">
+    <section className="mb-7 overflow-hidden rounded-[2rem] border border-yellow-300 bg-[linear-gradient(145deg,rgba(49,8,5,0.92),rgba(12,2,1,0.96))] p-6 text-center shadow-[0_24px_90px_rgba(0,0,0,0.52)] sm:p-9">
+      <p className="text-xs font-black uppercase tracking-[0.28em] text-yellow-900/80">
         PTT GROUP INNO CLUB
       </p>
       <h1 className="mt-3 text-4xl font-black leading-tight text-[#fff3cf] sm:text-6xl">
         {dashboard ? 'Video Upload Dashboard' : 'อัปโหลดวิดีโอ'}
       </h1>
-      <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-yellow-50/75 sm:text-base">
+      <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-gray-700 sm:text-base">
         {dashboard
           ? 'ดูวิดีโอและรายละเอียดทั้งหมดที่ผู้เข้าร่วมอัปโหลด'
           : 'อัปโหลดวิดีโอผลงาน พร้อมกรอกรายละเอียดเพื่อรวบรวมไว้ใน Dashboard'}
@@ -55,7 +55,7 @@ function Hero({ dashboard }: { dashboard?: boolean }) {
       <div className="mt-5 flex flex-wrap justify-center gap-3">
         <Link
           to="/evaluation/innoclub-2/videos"
-          className="rounded-full border border-yellow-200/30 bg-black/35 px-4 py-2 text-sm font-black text-yellow-100 hover:bg-yellow-100/10"
+          className="rounded-full border border-yellow-200/30 bg-white px-4 py-2 text-sm font-black text-yellow-900 hover:bg-yellow-100/10"
         >
           หน้าอัปโหลด
         </Link>
@@ -165,11 +165,11 @@ function VideoUploadPage() {
   return (
     <PageShell>
       <Hero />
-      {message && <div className="mb-5 rounded-2xl border border-emerald-400/30 bg-emerald-400/10 p-4 font-bold text-emerald-100">{message}</div>}
-      {error && <div className="mb-5 rounded-2xl border border-red-400/30 bg-red-500/10 p-4 font-bold text-red-200">{error}</div>}
-      <form onSubmit={submit} className="space-y-5 rounded-[2rem] border border-yellow-200/20 bg-black/45 p-5 shadow-[0_18px_55px_rgba(0,0,0,0.38)] sm:p-7">
+      {message && <div className="mb-5 rounded-2xl border border-emerald-300 bg-emerald-400/10 p-4 font-bold text-emerald-800">{message}</div>}
+      {error && <div className="mb-5 rounded-2xl border border-red-300 bg-red-50 p-4 font-bold text-red-700">{error}</div>}
+      <form onSubmit={submit} className="space-y-5 rounded-[2rem] border border-[#D6D4CC] bg-white p-5 shadow-md sm:p-7">
         <div>
-          <label htmlFor="teamName" className="mb-2 block text-sm font-black text-yellow-100">
+          <label htmlFor="teamName" className="mb-2 block text-sm font-black text-yellow-900">
             ชื่อทีม *
           </label>
           <input
@@ -177,11 +177,11 @@ function VideoUploadPage() {
             value={teamName}
             onChange={(event) => setTeamName(event.target.value)}
             placeholder="เช่น Team A / ทีม 1"
-            className="w-full rounded-2xl border border-yellow-200/20 bg-black/45 px-4 py-3 text-yellow-50 outline-none placeholder:text-yellow-100/35 focus:border-yellow-300"
+            className="w-full rounded-2xl border border-[#D6D4CC] bg-white px-4 py-3 text-gray-900 outline-none placeholder:text-gray-400 focus:border-yellow-300"
           />
         </div>
         <div>
-          <label htmlFor="title" className="mb-2 block text-sm font-black text-yellow-100">
+          <label htmlFor="title" className="mb-2 block text-sm font-black text-yellow-900">
             ชื่อวิดีโอ *
           </label>
           <input
@@ -189,11 +189,11 @@ function VideoUploadPage() {
             value={title}
             onChange={(event) => setTitle(event.target.value)}
             placeholder="กรอกชื่อวิดีโอ"
-            className="w-full rounded-2xl border border-yellow-200/20 bg-black/45 px-4 py-3 text-yellow-50 outline-none placeholder:text-yellow-100/35 focus:border-yellow-300"
+            className="w-full rounded-2xl border border-[#D6D4CC] bg-white px-4 py-3 text-gray-900 outline-none placeholder:text-gray-400 focus:border-yellow-300"
           />
         </div>
         <div>
-          <label htmlFor="description" className="mb-2 block text-sm font-black text-yellow-100">
+          <label htmlFor="description" className="mb-2 block text-sm font-black text-yellow-900">
             รายละเอียดวิดีโอ
           </label>
           <textarea
@@ -202,11 +202,11 @@ function VideoUploadPage() {
             onChange={(event) => setDescription(event.target.value)}
             rows={4}
             placeholder="เล่ารายละเอียด คอนเซ็ปต์ หรือสิ่งที่อยากให้ผู้ชมรู้"
-            className="w-full resize-none rounded-2xl border border-yellow-200/20 bg-black/45 px-4 py-3 text-yellow-50 outline-none placeholder:text-yellow-100/35 focus:border-yellow-300"
+            className="w-full resize-none rounded-2xl border border-[#D6D4CC] bg-white px-4 py-3 text-gray-900 outline-none placeholder:text-gray-400 focus:border-yellow-300"
           />
         </div>
         <div>
-          <label htmlFor="video" className="mb-2 block text-sm font-black text-yellow-100">
+          <label htmlFor="video" className="mb-2 block text-sm font-black text-yellow-900">
             ไฟล์วิดีโอ *
           </label>
           <input
@@ -214,23 +214,23 @@ function VideoUploadPage() {
             type="file"
             accept="video/*"
             onChange={(event) => setFile(event.target.files?.[0] || null)}
-            className="w-full rounded-2xl border border-yellow-200/20 bg-black/45 px-4 py-3 text-yellow-50 file:mr-4 file:rounded-full file:border-0 file:bg-yellow-400 file:px-4 file:py-2 file:font-black file:text-black"
+            className="w-full rounded-2xl border border-[#D6D4CC] bg-white px-4 py-3 text-gray-900 file:mr-4 file:rounded-full file:border-0 file:bg-yellow-400 file:px-4 file:py-2 file:font-black file:text-black"
           />
-          <p className="mt-2 text-xs text-yellow-100/55">รองรับวิดีโอทั่วไป ขนาดไม่เกิน 250MB</p>
+          <p className="mt-2 text-xs text-yellow-900/55">รองรับวิดีโอทั่วไป ขนาดไม่เกิน 250MB</p>
         </div>
         {(uploading || uploadStatus) && (
-          <div className="rounded-2xl border border-yellow-200/20 bg-black/35 p-4">
-            <div className="mb-2 flex items-center justify-between gap-3 text-sm font-bold text-yellow-100">
+          <div className="rounded-2xl border border-[#D6D4CC] bg-white p-4">
+            <div className="mb-2 flex items-center justify-between gap-3 text-sm font-bold text-yellow-900">
               <span>{uploadStatus || 'กำลังอัปโหลด...'}</span>
               <span>{uploadProgress}%</span>
             </div>
-            <div className="h-3 overflow-hidden rounded-full bg-white/10">
+            <div className="h-3 overflow-hidden rounded-full bg-gray-100">
               <div
                 className="h-full rounded-full bg-gradient-to-r from-yellow-100 via-amber-300 to-yellow-600 transition-all duration-500"
                 style={{ width: `${uploadProgress}%` }}
               />
             </div>
-            <p className="mt-2 text-xs text-yellow-100/55">
+            <p className="mt-2 text-xs text-yellow-900/55">
               กรุณาอย่าปิดหน้านี้ระหว่างอัปโหลดวิดีโอ
             </p>
           </div>
@@ -324,13 +324,13 @@ function VideoDashboardPage() {
   return (
     <PageShell>
       <Hero dashboard />
-      {error && <div className="mb-5 rounded-2xl border border-red-400/30 bg-red-500/10 p-4 font-bold text-red-200">{error}</div>}
+      {error && <div className="mb-5 rounded-2xl border border-red-300 bg-red-50 p-4 font-bold text-red-700">{error}</div>}
       <section className="mb-5 grid gap-3 sm:grid-cols-[1fr_auto]">
         <input
           value={search}
           onChange={(event) => setSearch(event.target.value)}
           placeholder="ค้นหาชื่อทีม / ชื่อวิดีโอ / รายละเอียด"
-          className="rounded-2xl border border-yellow-200/20 bg-black/45 px-4 py-3 text-yellow-50 outline-none placeholder:text-yellow-100/35 focus:border-yellow-300"
+          className="rounded-2xl border border-[#D6D4CC] bg-white px-4 py-3 text-gray-900 outline-none placeholder:text-gray-400 focus:border-yellow-300"
         />
         <button
           type="button"
@@ -341,36 +341,36 @@ function VideoDashboardPage() {
         </button>
       </section>
       <section className="mb-5 grid grid-cols-2 gap-3">
-        <div className="rounded-3xl border border-yellow-200/20 bg-black/45 p-5">
-          <p className="text-xs font-bold text-yellow-100/55">จำนวนวิดีโอทั้งหมด</p>
-          <p className="mt-2 text-3xl font-black text-yellow-300">{videos.length}</p>
+        <div className="rounded-3xl border border-[#D6D4CC] bg-white p-5">
+          <p className="text-xs font-bold text-yellow-900/55">จำนวนวิดีโอทั้งหมด</p>
+          <p className="mt-2 text-3xl font-black text-yellow-800">{videos.length}</p>
         </div>
-        <div className="rounded-3xl border border-yellow-200/20 bg-black/45 p-5">
-          <p className="text-xs font-bold text-yellow-100/55">แสดงผลตอนนี้</p>
-          <p className="mt-2 text-3xl font-black text-yellow-300">{filteredVideos.length}</p>
+        <div className="rounded-3xl border border-[#D6D4CC] bg-white p-5">
+          <p className="text-xs font-bold text-yellow-900/55">แสดงผลตอนนี้</p>
+          <p className="mt-2 text-3xl font-black text-yellow-800">{filteredVideos.length}</p>
         </div>
       </section>
       {loading ? (
-        <div className="rounded-3xl border border-yellow-200/20 bg-black/45 p-8 text-center text-yellow-100">กำลังโหลดวิดีโอ...</div>
+        <div className="rounded-3xl border border-[#D6D4CC] bg-white p-8 text-center text-yellow-900">กำลังโหลดวิดีโอ...</div>
       ) : filteredVideos.length === 0 ? (
-        <div className="rounded-3xl border border-yellow-200/20 bg-black/45 p-8 text-center text-yellow-100">ยังไม่มีวิดีโอ</div>
+        <div className="rounded-3xl border border-[#D6D4CC] bg-white p-8 text-center text-yellow-900">ยังไม่มีวิดีโอ</div>
       ) : (
         <div className="grid gap-5 lg:grid-cols-2">
           {filteredVideos.map((video) => (
-            <article key={video.id} className="overflow-hidden rounded-[2rem] border border-yellow-200/20 bg-black/50 shadow-[0_18px_55px_rgba(0,0,0,0.35)]">
+            <article key={video.id} className="overflow-hidden rounded-[2rem] border border-[#D6D4CC] bg-white shadow-md">
               <video src={video.video_url} controls preload="metadata" className="aspect-video w-full bg-black object-contain" />
               <div className="space-y-3 p-5">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <p className="text-sm font-black text-yellow-300">{video.team_name}</p>
-                    <h2 className="text-2xl font-black text-yellow-50">{video.title}</h2>
+                    <p className="text-sm font-black text-yellow-800">{video.team_name}</p>
+                    <h2 className="text-2xl font-black text-gray-900">{video.title}</h2>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     <a
                       href={video.video_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="rounded-full border border-yellow-200/30 px-3 py-1 text-xs font-black text-yellow-100 hover:bg-yellow-100/10"
+                      className="rounded-full border border-yellow-200/30 px-3 py-1 text-xs font-black text-yellow-900 hover:bg-yellow-100/10"
                     >
                       เปิดวิดีโอ
                     </a>
@@ -378,14 +378,14 @@ function VideoDashboardPage() {
                       type="button"
                       onClick={() => deleteVideo(video)}
                       disabled={deletingId === video.id}
-                      className="rounded-full border border-red-400/35 bg-red-500/10 px-3 py-1 text-xs font-black text-red-200 hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-60"
+                      className="rounded-full border border-red-300 bg-red-50 px-3 py-1 text-xs font-black text-red-700 hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       {deletingId === video.id ? 'กำลังลบ...' : 'ลบวิดีโอ'}
                     </button>
                   </div>
                 </div>
-                {video.description && <p className="text-sm leading-relaxed text-yellow-50/75">{video.description}</p>}
-                <div className="flex flex-wrap gap-2 text-xs text-yellow-100/55">
+                {video.description && <p className="text-sm leading-relaxed text-gray-700">{video.description}</p>}
+                <div className="flex flex-wrap gap-2 text-xs text-yellow-900/55">
                   <span>{new Date(video.created_at).toLocaleString('th-TH')}</span>
                   {video.file_name && <span>ไฟล์: {video.file_name}</span>}
                   {video.file_size != null && <span>{(video.file_size / 1024 / 1024).toFixed(1)} MB</span>}

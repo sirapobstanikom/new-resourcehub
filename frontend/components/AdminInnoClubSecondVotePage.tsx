@@ -135,7 +135,7 @@ const AdminInnoClubSecondVotePage: React.FC = () => {
     <div className="flex flex-col min-h-full">
       <header className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 px-4 sm:px-6 py-4 sm:py-6 border-b border-[#D6D4CC]">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-yellow-400">Admin — InnoClub ครั้งที่ 2 Vote</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-yellow-700">Admin — InnoClub ครั้งที่ 2 Vote</h1>
           <p className="text-sm text-gray-400 mt-1">ตั้งค่าว่าให้ผู้เข้าร่วมโหวตทีม/ผลงานใดได้บ้าง</p>
         </div>
         <div className="flex flex-col sm:flex-row gap-2">
@@ -152,7 +152,7 @@ const AdminInnoClubSecondVotePage: React.FC = () => {
 
       <main className="flex-1 max-w-5xl mx-auto w-full px-3 sm:px-6 py-5 sm:py-8">
         {!isSupabaseConfigured ? (
-          <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-6 text-amber-900">
+          <div className="rounded-2xl border border-amber-500/30 bg-amber-50 p-6 text-amber-900">
             ยังไม่ได้ตั้งค่า Supabase
           </div>
         ) : (
@@ -160,10 +160,10 @@ const AdminInnoClubSecondVotePage: React.FC = () => {
             <section className="rounded-2xl border border-[#D6D4CC] bg-white p-5 sm:p-6">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
                 <div>
-                  <h2 className="font-bold text-lg text-gray-100">เพิ่มตัวเลือกโหวต</h2>
+                  <h2 className="font-bold text-lg text-gray-900">เพิ่มตัวเลือกโหวต</h2>
                   <p className="text-sm text-gray-500">เช่น Team 1, ชื่อกลุ่ม, หรือชื่อผลงาน</p>
                 </div>
-                <div className="rounded-xl border border-yellow-300/20 bg-yellow-300/10 px-3 py-2 text-sm text-yellow-100">
+                <div className="rounded-xl border border-yellow-300 bg-yellow-50 px-3 py-2 text-sm text-yellow-900">
                   เปิดโหวตอยู่ {activeCount} รายการ
                 </div>
               </div>
@@ -193,9 +193,9 @@ const AdminInnoClubSecondVotePage: React.FC = () => {
               </form>
             </section>
 
-            {error && <div className="rounded-xl bg-red-500/20 border border-red-500/40 text-red-300 px-4 py-3 text-sm">{error}</div>}
+            {error && <div className="rounded-xl bg-red-500/20 border border-red-500/40 text-red-600 px-4 py-3 text-sm">{error}</div>}
             {message && (
-              <div className="rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 px-4 py-3 text-sm">
+              <div className="rounded-xl bg-emerald-50 border border-emerald-500/40 text-emerald-700 px-4 py-3 text-sm">
                 {message}
               </div>
             )}
@@ -218,7 +218,7 @@ const AdminInnoClubSecondVotePage: React.FC = () => {
                 <div className="p-10 text-center text-gray-500">
                   ยังไม่มีตัวเลือกโหวต
                   <p className="text-sm mt-2">
-                    หากยังไม่มีตาราง ให้รันไฟล์ SQL ที่เพิ่มไว้ใน <code className="text-yellow-400">backend/supabase/create_innoclub_second_vote.sql</code>
+                    หากยังไม่มีตาราง ให้รันไฟล์ SQL ที่เพิ่มไว้ใน <code className="text-yellow-700">backend/supabase/create_innoclub_second_vote.sql</code>
                   </p>
                 </div>
               ) : (
@@ -246,7 +246,7 @@ const AdminInnoClubSecondVotePage: React.FC = () => {
                           </td>
                           <td className="px-4 py-3">
                             <div className="flex items-center gap-3">
-                              <div className="h-14 w-14 overflow-hidden rounded-full border border-yellow-300/35 bg-black/35">
+                              <div className="h-14 w-14 overflow-hidden rounded-full border border-yellow-300/35 bg-gray-100">
                                 {option.image_url ? (
                                   <img src={option.image_url} alt={option.label} className="h-full w-full object-cover" />
                                 ) : (
@@ -255,7 +255,7 @@ const AdminInnoClubSecondVotePage: React.FC = () => {
                                   </div>
                                 )}
                               </div>
-                              <label className="cursor-pointer rounded-lg border border-yellow-300/25 bg-yellow-300/10 px-3 py-2 text-xs font-bold text-yellow-100 hover:bg-yellow-300/20">
+                              <label className="cursor-pointer rounded-lg border border-yellow-300 bg-yellow-50 px-3 py-2 text-xs font-bold text-yellow-900 hover:bg-yellow-100">
                                 อัปโหลดรูป
                                 <input
                                   type="file"
@@ -317,7 +317,7 @@ const AdminInnoClubSecondVotePage: React.FC = () => {
                             <button
                               type="button"
                               onClick={() => deleteOption(option)}
-                              className="px-3 py-2 rounded-lg text-sm text-red-300 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20"
+                              className="px-3 py-2 rounded-lg text-sm text-red-600 bg-red-50 hover:bg-red-100 border border-red-500/20"
                             >
                               ลบ
                             </button>

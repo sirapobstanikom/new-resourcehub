@@ -98,7 +98,7 @@ const ScoreRow: React.FC<RowProps> = ({ team, index, maxScore, rowVh, cols, perC
     >
       <div
         className={`tb-card relative flex h-full items-center gap-[1.4vw] overflow-hidden rounded-[1.2vmin] border px-[1.4vw] ${
-          isLeader ? 'tb-leader border-yellow-300/60' : 'border-white/10'
+          isLeader ? 'tb-leader border-yellow-300/60' : 'border-[#D6D4CC]'
         } ${climbed ? 'tb-climb' : ''}`}
         style={{ ['--team' as string]: team.color }}
       >
@@ -117,13 +117,13 @@ const ScoreRow: React.FC<RowProps> = ({ team, index, maxScore, rowVh, cols, perC
 
         <div className="relative z-10 min-w-0 flex-1">
           <p
-            className="truncate font-black leading-tight text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)]"
+            className="truncate font-black leading-tight text-gray-900 drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)]"
             style={{ fontSize: nameSize }}
           >
             {team.name}
           </p>
           {podium && (
-            <p className="tb-mono mt-[0.2vh] text-[min(1.1vw,1.6vh)] font-bold tracking-[0.25em] text-white/60">
+            <p className="tb-mono mt-[0.2vh] text-[min(1.1vw,1.6vh)] font-bold tracking-[0.25em] text-gray-900/60">
               {team.rank === 1 ? 'LEADER' : team.rank === 2 ? '2ND PLACE' : '3RD PLACE'}
             </p>
           )}
@@ -134,7 +134,7 @@ const ScoreRow: React.FC<RowProps> = ({ team, index, maxScore, rowVh, cols, perC
             <span
               key={delta.key}
               className={`tb-delta tb-mono rounded-full px-[0.8vw] py-[0.3vh] font-black ${
-                delta.value > 0 ? 'bg-emerald-400 text-black' : 'bg-red-500 text-white'
+                delta.value > 0 ? 'bg-emerald-400 text-black' : 'bg-red-500 text-gray-900'
               }`}
               style={{ fontSize: `calc(${scoreSize} * 0.45)` }}
             >
@@ -142,7 +142,7 @@ const ScoreRow: React.FC<RowProps> = ({ team, index, maxScore, rowVh, cols, perC
             </span>
           )}
           <span
-            className="tb-mono tabular-nums font-black text-white drop-shadow-[0_0_18px_var(--team)]"
+            className="tb-mono tabular-nums font-black text-gray-900 drop-shadow-[0_0_18px_var(--team)]"
             style={{ fontSize: scoreSize }}
           >
             {formatScore(Math.round(shown * 10) / 10)}
@@ -224,7 +224,7 @@ const TeambuildingScoreboardPage: React.FC = () => {
   const rowVh = Math.min(16, 78 / perCol);
 
   return (
-    <div className="tb-stage relative flex h-[100dvh] max-h-[100dvh] flex-col overflow-hidden text-white">
+    <div className="tb-stage relative flex h-[100dvh] max-h-[100dvh] flex-col overflow-hidden text-gray-900">
       <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
         {BLOBS.map((b, i) => (
           <span
@@ -256,8 +256,8 @@ const TeambuildingScoreboardPage: React.FC = () => {
           <span
             className={`tb-mono flex items-center gap-2 rounded-full px-[1vw] py-[0.6vh] text-[min(0.95vw,1.6vh)] font-bold tracking-widest ${
               liveConnected
-                ? 'border border-emerald-400/40 bg-emerald-400/10 text-emerald-200'
-                : 'border border-white/10 bg-white/5 text-zinc-400'
+                ? 'border border-emerald-300 bg-emerald-400/10 text-emerald-800'
+                : 'border border-[#D6D4CC] bg-white text-zinc-400'
             }`}
           >
             <span className={`h-2 w-2 rounded-full ${liveConnected ? 'tb-live-dot bg-emerald-400' : 'bg-zinc-500'}`} />
@@ -266,7 +266,7 @@ const TeambuildingScoreboardPage: React.FC = () => {
           <button
             type="button"
             onClick={toggleFullscreen}
-            className="tb-mono rounded-full border border-white/15 bg-white/5 px-[1vw] py-[0.6vh] text-[min(0.95vw,1.6vh)] font-bold tracking-widest text-white/80 hover:bg-white/10"
+            className="tb-mono rounded-full border border-gray-200 bg-white px-[1vw] py-[0.6vh] text-[min(0.95vw,1.6vh)] font-bold tracking-widest text-gray-900/80 hover:bg-gray-100"
           >
             {isFullscreen ? 'EXIT FULL' : 'FULLSCREEN'}
           </button>
@@ -276,11 +276,11 @@ const TeambuildingScoreboardPage: React.FC = () => {
       <main className="relative z-10 min-h-0 flex-1 px-[1.9vw] pb-[2vh]">
         {loading ? (
           <div className="flex h-full items-center justify-center">
-            <div className="tb-spinner h-[8vmin] w-[8vmin] rounded-full border-4 border-white/10 border-t-fuchsia-400" />
+            <div className="tb-spinner h-[8vmin] w-[8vmin] rounded-full border-4 border-[#D6D4CC] border-t-fuchsia-400" />
           </div>
         ) : error ? (
           <div className="flex h-full items-center justify-center">
-            <p className="rounded-2xl border border-red-400/40 bg-red-500/10 px-8 py-6 text-[min(2vw,3vh)] text-red-200">
+            <p className="rounded-2xl border border-red-300 bg-red-50 px-8 py-6 text-[min(2vw,3vh)] text-red-700">
               {error}
             </p>
           </div>
@@ -288,7 +288,7 @@ const TeambuildingScoreboardPage: React.FC = () => {
           <div className="flex h-full flex-col items-center justify-center text-center">
             <p className="text-[min(5vw,8vh)]">🎯</p>
             <p className="mt-[2vh] text-[min(2.6vw,4.5vh)] font-black">รอทีมเข้าสู่สนาม…</p>
-            <p className="mt-[1vh] text-[min(1.4vw,2.4vh)] text-white/50">เพิ่มทีมได้ที่หน้า Admin → Dashboard Teambuilding</p>
+            <p className="mt-[1vh] text-[min(1.4vw,2.4vh)] text-gray-900/50">เพิ่มทีมได้ที่หน้า Admin → Dashboard Teambuilding</p>
           </div>
         ) : (
           <div className="relative h-full w-full">

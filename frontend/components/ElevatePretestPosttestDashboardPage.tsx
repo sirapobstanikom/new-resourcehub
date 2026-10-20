@@ -185,7 +185,7 @@ const ElevatePretestPosttestDashboardPage: React.FC = () => {
     return (
       <div className="md-page items-center justify-center gap-3 px-6 text-center">
         <p className="text-sm text-gray-500">ไม่พบชุดข้อสอบนี้</p>
-        <Link to="/elevate-pretest-posttest-editor" className="text-sm font-semibold text-yellow-400 hover:underline">
+        <Link to="/elevate-pretest-posttest-editor" className="text-sm font-semibold text-[#9A7200] hover:underline">
           กลับไปหน้า editor
         </Link>
       </div>
@@ -201,19 +201,19 @@ const ElevatePretestPosttestDashboardPage: React.FC = () => {
   const isBusy = deletingIds.length > 0;
 
   return (
-    <div className="md-page selection:bg-yellow-300">
+    <div className="md-page selection:bg-yellow-300 selection:text-black">
       <header className="border-b border-[#D6D4CC] bg-white">
-        <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-5 sm:flex-row sm:items-end sm:justify-between sm:px-6">
+        <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-yellow-400/80">ELEVATE</p>
-            <h1 className="mt-1 text-2xl font-black text-gray-900 sm:text-3xl">Pretest-Posttest Dashboard</h1>
-            <p className="mt-1 text-sm text-gray-500">{bank.name}</p>
+            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#9A7200]">Elevate</p>
+            <h1 className="mt-1 text-xl font-bold tracking-tight text-gray-900 sm:text-2xl">Pretest · Posttest Dashboard</h1>
+            <p className="mt-1 text-sm text-gray-600">{bank.name}</p>
           </div>
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
               onClick={() => setTick((n) => n + 1)}
-              className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:border-yellow-400/40"
+              className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:border-yellow-400"
             >
               รีเฟรช
             </button>
@@ -229,13 +229,13 @@ const ElevatePretestPosttestDashboardPage: React.FC = () => {
               type="button"
               onClick={downloadExcel}
               disabled={exportingExcel}
-              className="rounded-xl border border-emerald-400/40 bg-emerald-500/15 px-4 py-2 text-sm font-bold text-emerald-100 hover:bg-emerald-500/25 disabled:opacity-60"
+              className="rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-2 text-sm font-bold text-emerald-800 hover:bg-emerald-100 disabled:opacity-60"
             >
               {exportingExcel ? 'กำลังสร้าง Excel...' : 'Download Excel'}
             </button>
             <Link
               to="/elevate-pretest-posttest-editor"
-              className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:border-yellow-400/40"
+              className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:border-yellow-400"
             >
               กลับ Editor
             </Link>
@@ -245,38 +245,38 @@ const ElevatePretestPosttestDashboardPage: React.FC = () => {
 
       <div className="mx-auto max-w-6xl space-y-4 px-4 py-6 sm:px-6">
         {error && (
-          <p className="rounded-xl border border-red-400/40 bg-red-500/10 px-3 py-2 text-sm text-red-200">{error}</p>
+          <p className="rounded-xl border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
         )}
 
-        <div ref={dashboardRef} className="space-y-4 rounded-3xl bg-[#F3F2ED] p-1">
+        <div ref={dashboardRef} className="space-y-4">
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="rounded-2xl border border-gray-200 bg-white/[0.03] p-4">
-              <p className="text-xs text-zinc-500">ผู้ทำ Pretest</p>
+            <div className="rounded-2xl border border-[#D6D4CC] bg-white p-4 shadow-sm">
+              <p className="text-xs text-gray-600">ผู้ทำ Pretest</p>
               <p className="mt-2 text-3xl font-black text-gray-900">{stats.pretestCount}</p>
             </div>
-            <div className="rounded-2xl border border-gray-200 bg-white/[0.03] p-4">
-              <p className="text-xs text-zinc-500">ผู้ทำ Posttest</p>
+            <div className="rounded-2xl border border-gray-200 bg-white p-4">
+              <p className="text-xs text-gray-600">ผู้ทำ Posttest</p>
               <p className="mt-2 text-3xl font-black text-gray-900">{stats.posttestCount}</p>
             </div>
-            <div className="rounded-2xl border border-gray-200 bg-white/[0.03] p-4">
-              <p className="text-xs text-zinc-500">คะแนนเฉลี่ย Pretest</p>
-              <p className="mt-2 text-3xl font-black text-amber-200">
+            <div className="rounded-2xl border border-gray-200 bg-white p-4">
+              <p className="text-xs text-gray-600">คะแนนเฉลี่ย Pretest</p>
+              <p className="mt-2 text-3xl font-black text-amber-800">
                 {formatElevatePercent(stats.avgPretestPercent)}%
               </p>
             </div>
-            <div className="rounded-2xl border border-emerald-400/25 bg-emerald-500/10 p-4">
-              <p className="text-xs text-emerald-200/80">คะแนนเฉลี่ย Posttest</p>
-              <p className="mt-2 text-3xl font-black text-emerald-200">
+            <div className="rounded-2xl border border-emerald-400/25 bg-emerald-50 p-4">
+              <p className="text-xs text-emerald-700">คะแนนเฉลี่ย Posttest</p>
+              <p className="mt-2 text-3xl font-black text-emerald-800">
                 {formatElevatePercent(stats.avgPosttestPercent)}%
               </p>
             </div>
           </div>
 
-          <section className="rounded-2xl border border-yellow-400/25 bg-yellow-400/5 p-5">
-            <p className="text-xs font-semibold uppercase tracking-wide text-yellow-300/90">ความรู้เพิ่มขึ้น</p>
+          <section className="rounded-2xl border border-yellow-400/25 bg-yellow-50 p-5">
+            <p className="text-xs font-semibold uppercase tracking-wide text-yellow-800">ความรู้เพิ่มขึ้น</p>
             <div className="mt-3 flex flex-wrap items-end gap-6">
               <div>
-                <p className="text-4xl font-black text-yellow-300">{gainLabel}</p>
+                <p className="text-4xl font-black text-yellow-800">{gainLabel}</p>
                 <p className="mt-1 text-xs text-gray-500">จากคะแนนเฉลี่ยเดิม (Pre → Post)</p>
               </div>
               <div>
@@ -286,29 +286,29 @@ const ElevatePretestPosttestDashboardPage: React.FC = () => {
               <div className="text-sm text-gray-600">
                 <p>
                   จาก{' '}
-                  <span className="font-bold text-amber-200">
+                  <span className="font-bold text-amber-800">
                     {formatElevatePercent(stats.avgPretestPercent)}%
                   </span>
                   {' → '}
-                  <span className="font-bold text-emerald-200">
+                  <span className="font-bold text-emerald-800">
                     {formatElevatePercent(stats.avgPosttestPercent)}%
                   </span>
                 </p>
-                <p className="mt-1 text-xs text-zinc-500">จับคู่ผู้ทำตามชื่อ (ครั้งล่าสุดของแต่ละคน)</p>
+                <p className="mt-1 text-xs text-gray-600">จับคู่ผู้ทำตามชื่อ (ครั้งล่าสุดของแต่ละคน)</p>
               </div>
             </div>
           </section>
 
-          <section className="overflow-x-auto rounded-2xl border border-gray-200 bg-white/[0.03] p-4">
-            <h3 className="mb-3 text-sm font-bold text-yellow-300">ผลรายคน (จับคู่ Pretest + Posttest)</h3>
+          <section className="overflow-x-auto rounded-2xl border border-gray-200 bg-white p-4">
+            <h3 className="mb-3 text-sm font-bold text-yellow-800">ผลรายคน (จับคู่ Pretest + Posttest)</h3>
             {stats.paired.length === 0 ? (
-              <p className="text-sm text-zinc-500">
+              <p className="text-sm text-gray-600">
                 ยังไม่มีคนที่ทำครบทั้ง Pretest และ Posttest ด้วยชื่อเดียวกัน
               </p>
             ) : (
               <table className="w-full min-w-[720px] border-collapse text-sm">
                 <thead>
-                  <tr className="text-left text-xs text-zinc-500">
+                  <tr className="text-left text-xs text-gray-600">
                     <th className="border-b border-gray-200 px-2 py-2">ชื่อ</th>
                     <th className="border-b border-gray-200 px-2 py-2 text-right">Pretest</th>
                     <th className="border-b border-gray-200 px-2 py-2 text-right">Posttest</th>
@@ -320,37 +320,37 @@ const ElevatePretestPosttestDashboardPage: React.FC = () => {
                 <tbody>
                   {stats.paired.map((row) => (
                     <tr key={`${row.pretestId}-${row.posttestId}`} className="text-gray-700">
-                      <td className="border-b border-white/5 px-2 py-2 font-medium">{row.name}</td>
-                      <td className="border-b border-white/5 px-2 py-2 text-right">
+                      <td className="border-b border-gray-100 px-2 py-2 font-medium">{row.name}</td>
+                      <td className="border-b border-gray-100 px-2 py-2 text-right">
                         {formatElevatePercent(row.pretestPercent)}%
-                        <span className="ml-1 text-[11px] text-zinc-500">
+                        <span className="ml-1 text-[11px] text-gray-600">
                           ({row.pretestScore}/{row.pretestTotal})
                         </span>
                       </td>
-                      <td className="border-b border-white/5 px-2 py-2 text-right text-emerald-200">
+                      <td className="border-b border-gray-100 px-2 py-2 text-right text-emerald-800">
                         {formatElevatePercent(row.posttestPercent)}%
-                        <span className="ml-1 text-[11px] text-zinc-500">
+                        <span className="ml-1 text-[11px] text-gray-600">
                           ({row.posttestScore}/{row.posttestTotal})
                         </span>
                       </td>
                       <td
-                        className={`border-b border-white/5 px-2 py-2 text-right font-semibold ${
-                          row.gainPoints >= 0 ? 'text-emerald-300' : 'text-red-300'
+                        className={`border-b border-gray-100 px-2 py-2 text-right font-semibold ${
+                          row.gainPoints >= 0 ? 'text-emerald-800' : 'text-red-700'
                         }`}
                       >
                         {row.gainPoints >= 0 ? '+' : ''}
                         {formatElevatePercent(row.gainPoints)}
                       </td>
                       <td
-                        className={`border-b border-white/5 px-2 py-2 text-right font-semibold ${
-                          (row.gainFromBaselinePercent ?? 0) >= 0 ? 'text-yellow-300' : 'text-red-300'
+                        className={`border-b border-gray-100 px-2 py-2 text-right font-semibold ${
+                          (row.gainFromBaselinePercent ?? 0) >= 0 ? 'text-yellow-800' : 'text-red-700'
                         }`}
                       >
                         {row.gainFromBaselinePercent == null
                           ? '—'
                           : `${row.gainFromBaselinePercent >= 0 ? '+' : ''}${formatElevatePercent(row.gainFromBaselinePercent)}%`}
                       </td>
-                      <td className="border-b border-white/5 px-2 py-2 text-right">
+                      <td className="border-b border-gray-100 px-2 py-2 text-right">
                         <button
                           type="button"
                           disabled={isBusy}
@@ -360,7 +360,7 @@ const ElevatePretestPosttestDashboardPage: React.FC = () => {
                               `${row.name} (Pretest + Posttest)`
                             )
                           }
-                          className="rounded-lg border border-red-400/30 bg-red-500/10 px-2.5 py-1 text-xs font-semibold text-red-200 hover:bg-red-500/20 disabled:opacity-50"
+                          className="rounded-lg border border-red-300 bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700 hover:bg-red-100 disabled:opacity-50"
                         >
                           ลบ
                         </button>
@@ -374,15 +374,15 @@ const ElevatePretestPosttestDashboardPage: React.FC = () => {
 
           {(stats.unpairedPretest.length > 0 || stats.unpairedPosttest.length > 0) && (
             <section className="grid gap-3 md:grid-cols-2">
-              <div className="rounded-2xl border border-gray-200 bg-white/[0.03] p-4">
-                <h3 className="text-xs font-bold uppercase tracking-wide text-zinc-500">ทำแค่ Pretest</h3>
+              <div className="rounded-2xl border border-gray-200 bg-white p-4">
+                <h3 className="text-xs font-bold uppercase tracking-wide text-gray-600">ทำแค่ Pretest</h3>
                 <ul className="mt-2 space-y-2 text-sm text-gray-600">
                   {stats.unpairedPretest.length === 0 && <li className="text-zinc-600">—</li>}
                   {stats.unpairedPretest.map((row) => (
                     <li key={row.id} className="flex items-center justify-between gap-2">
                       <span>
                         {row.respondentName}{' '}
-                        <span className="text-zinc-500">
+                        <span className="text-gray-600">
                           ({formatElevatePercent(scorePercent(row.score, row.total))}%)
                         </span>
                       </span>
@@ -392,7 +392,7 @@ const ElevatePretestPosttestDashboardPage: React.FC = () => {
                         onClick={() =>
                           void deleteResponses([row.id], `${row.respondentName} (Pretest)`)
                         }
-                        className="shrink-0 rounded-lg border border-red-400/30 bg-red-500/10 px-2 py-0.5 text-[11px] font-semibold text-red-200 hover:bg-red-500/20 disabled:opacity-50"
+                        className="shrink-0 rounded-lg border border-red-300 bg-red-50 px-2 py-0.5 text-[11px] font-semibold text-red-700 hover:bg-red-100 disabled:opacity-50"
                       >
                         ลบ
                       </button>
@@ -400,15 +400,15 @@ const ElevatePretestPosttestDashboardPage: React.FC = () => {
                   ))}
                 </ul>
               </div>
-              <div className="rounded-2xl border border-gray-200 bg-white/[0.03] p-4">
-                <h3 className="text-xs font-bold uppercase tracking-wide text-zinc-500">ทำแค่ Posttest</h3>
+              <div className="rounded-2xl border border-gray-200 bg-white p-4">
+                <h3 className="text-xs font-bold uppercase tracking-wide text-gray-600">ทำแค่ Posttest</h3>
                 <ul className="mt-2 space-y-2 text-sm text-gray-600">
                   {stats.unpairedPosttest.length === 0 && <li className="text-zinc-600">—</li>}
                   {stats.unpairedPosttest.map((row) => (
                     <li key={row.id} className="flex items-center justify-between gap-2">
                       <span>
                         {row.respondentName}{' '}
-                        <span className="text-zinc-500">
+                        <span className="text-gray-600">
                           ({formatElevatePercent(scorePercent(row.score, row.total))}%)
                         </span>
                       </span>
@@ -418,7 +418,7 @@ const ElevatePretestPosttestDashboardPage: React.FC = () => {
                         onClick={() =>
                           void deleteResponses([row.id], `${row.respondentName} (Posttest)`)
                         }
-                        className="shrink-0 rounded-lg border border-red-400/30 bg-red-500/10 px-2 py-0.5 text-[11px] font-semibold text-red-200 hover:bg-red-500/20 disabled:opacity-50"
+                        className="shrink-0 rounded-lg border border-red-300 bg-red-50 px-2 py-0.5 text-[11px] font-semibold text-red-700 hover:bg-red-100 disabled:opacity-50"
                       >
                         ลบ
                       </button>
@@ -430,20 +430,20 @@ const ElevatePretestPosttestDashboardPage: React.FC = () => {
           )}
         </div>
 
-        <section className="overflow-x-auto rounded-2xl border border-gray-200 bg-white/[0.03] p-4">
+        <section className="overflow-x-auto rounded-2xl border border-gray-200 bg-white p-4">
           <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
             <div>
-              <h3 className="text-sm font-bold text-yellow-300">รายการคำตอบทั้งหมด</h3>
-              <p className="mt-1 text-xs text-zinc-500">ลบรายการทีละครั้งได้</p>
+              <h3 className="text-sm font-bold text-yellow-800">รายการคำตอบทั้งหมด</h3>
+              <p className="mt-1 text-xs text-gray-600">ลบรายการทีละครั้งได้</p>
             </div>
-            <p className="text-xs text-zinc-500">{bankResponses.length} รายการ</p>
+            <p className="text-xs text-gray-600">{bankResponses.length} รายการ</p>
           </div>
           {bankResponses.length === 0 ? (
-            <p className="text-sm text-zinc-500">ยังไม่มีคำตอบในชุดนี้</p>
+            <p className="text-sm text-gray-600">ยังไม่มีคำตอบในชุดนี้</p>
           ) : (
             <table className="w-full min-w-[640px] border-collapse text-sm">
               <thead>
-                <tr className="text-left text-xs text-zinc-500">
+                <tr className="text-left text-xs text-gray-600">
                   <th className="border-b border-gray-200 px-2 py-2">ชื่อ</th>
                   <th className="border-b border-gray-200 px-2 py-2">รอบ</th>
                   <th className="border-b border-gray-200 px-2 py-2 text-right">คะแนน</th>
@@ -456,28 +456,28 @@ const ElevatePretestPosttestDashboardPage: React.FC = () => {
                   const busy = deletingIds.includes(row.id);
                   return (
                     <tr key={row.id} className="text-gray-700">
-                      <td className="border-b border-white/5 px-2 py-2 font-medium">
+                      <td className="border-b border-gray-100 px-2 py-2 font-medium">
                         {row.respondentName || '—'}
                       </td>
-                      <td className="border-b border-white/5 px-2 py-2">
+                      <td className="border-b border-gray-100 px-2 py-2">
                         <span
                           className={
-                            row.phase === 'pretest' ? 'text-amber-200' : 'text-emerald-200'
+                            row.phase === 'pretest' ? 'text-amber-800' : 'text-emerald-800'
                           }
                         >
                           {row.phase === 'pretest' ? 'Pretest' : 'Posttest'}
                         </span>
                       </td>
-                      <td className="border-b border-white/5 px-2 py-2 text-right">
+                      <td className="border-b border-gray-100 px-2 py-2 text-right">
                         {row.score}/{row.total}
-                        <span className="ml-1 text-[11px] text-zinc-500">
+                        <span className="ml-1 text-[11px] text-gray-600">
                           ({formatElevatePercent(scorePercent(row.score, row.total))}%)
                         </span>
                       </td>
-                      <td className="border-b border-white/5 px-2 py-2 text-xs text-gray-500">
+                      <td className="border-b border-gray-100 px-2 py-2 text-xs text-gray-500">
                         {formatResponseTime(row.createdAt)}
                       </td>
-                      <td className="border-b border-white/5 px-2 py-2 text-right">
+                      <td className="border-b border-gray-100 px-2 py-2 text-right">
                         <button
                           type="button"
                           disabled={isBusy}
@@ -487,7 +487,7 @@ const ElevatePretestPosttestDashboardPage: React.FC = () => {
                               `${row.respondentName || 'ไม่ระบุชื่อ'} (${row.phase})`
                             )
                           }
-                          className="rounded-lg border border-red-400/30 bg-red-500/10 px-2.5 py-1 text-xs font-semibold text-red-200 hover:bg-red-500/20 disabled:opacity-50"
+                          className="rounded-lg border border-red-300 bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700 hover:bg-red-100 disabled:opacity-50"
                         >
                           {busy ? 'กำลังลบ...' : 'ลบ'}
                         </button>

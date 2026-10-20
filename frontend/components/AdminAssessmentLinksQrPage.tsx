@@ -122,7 +122,7 @@ const LinkCard: React.FC<{
       href={item.url}
       target="_blank"
       rel="noopener noreferrer"
-      className="mt-3 text-xs text-yellow-400/90 hover:text-yellow-800 break-all leading-relaxed"
+      className="mt-3 text-xs text-yellow-700 hover:text-yellow-800 break-all leading-relaxed"
     >
       {item.url}
     </a>
@@ -155,7 +155,7 @@ const LinkCard: React.FC<{
       <button
         type="button"
         onClick={() => onDelete(item.id)}
-        className="flex-1 py-2 rounded-xl text-sm font-bold border border-red-400/30 text-red-300 hover:bg-red-500/10 transition-colors"
+        className="flex-1 py-2 rounded-xl text-sm font-bold border border-red-300 text-red-600 hover:bg-red-50 transition-colors"
       >
         ลบ
       </button>
@@ -266,7 +266,7 @@ const AdminAssessmentLinksQrPage: React.FC = () => {
         onSubmit={handleSubmit}
         className="mb-10 rounded-2xl border border-yellow-400/20 bg-yellow-400/5 p-5 md:p-6 space-y-4"
       >
-        <h2 className="text-sm font-bold uppercase tracking-wider text-yellow-400">
+        <h2 className="text-sm font-bold uppercase tracking-wider text-yellow-700">
           {isEditing ? 'แก้ไขลิงก์' : 'เพิ่มลิงก์'}
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-[1fr_1.4fr_auto] gap-3">
@@ -275,14 +275,14 @@ const AdminAssessmentLinksQrPage: React.FC = () => {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="ชื่อ เช่น Growth Mindset"
-            className="w-full px-4 py-3 rounded-xl bg-black/50 border border-[#D6D4CC] text-gray-900 placeholder-gray-500 focus:outline-none focus:border-yellow-400"
+            className="w-full px-4 py-3 rounded-xl bg-white border border-[#D6D4CC] text-gray-900 placeholder-gray-500 focus:outline-none focus:border-yellow-400"
           />
           <input
             type="text"
             value={href}
             onChange={(e) => setHref(e.target.value)}
             placeholder="ลิงก์ เช่น /assessment/disc หรือ https://..."
-            className="w-full px-4 py-3 rounded-xl bg-black/50 border border-[#D6D4CC] text-gray-900 placeholder-gray-500 focus:outline-none focus:border-yellow-400"
+            className="w-full px-4 py-3 rounded-xl bg-white border border-[#D6D4CC] text-gray-900 placeholder-gray-500 focus:outline-none focus:border-yellow-400"
           />
           <button
             type="submit"
@@ -322,7 +322,7 @@ const AdminAssessmentLinksQrPage: React.FC = () => {
             </button>
           )}
         </div>
-        {formError && <p className="text-sm text-red-400">{formError}</p>}
+        {formError && <p className="text-sm text-red-600">{formError}</p>}
       </form>
 
       <section className="mb-12">

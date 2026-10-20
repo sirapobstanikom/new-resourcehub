@@ -209,7 +209,7 @@ const InnoClubGameResultsPage: React.FC = () => {
   }, [goNext, goBack, toggleSound, audioReady, enableAudio]);
 
   return (
-    <div className="icg-stage relative flex h-[100dvh] max-h-[100dvh] flex-col overflow-hidden text-white">
+    <div className="icg-stage relative flex h-[100dvh] max-h-[100dvh] flex-col overflow-hidden text-gray-900">
       {/* Atmosphere layers */}
       <div className="icg-aurora pointer-events-none absolute inset-0" aria-hidden />
       <div className="icg-grid pointer-events-none absolute inset-0" aria-hidden />
@@ -230,13 +230,13 @@ const InnoClubGameResultsPage: React.FC = () => {
         ))}
       </div>
 
-      <header className="relative z-20 shrink-0 border-b border-cyan-400/15 bg-black/40 px-[clamp(1rem,3vw,2.5rem)] py-[clamp(0.55rem,1.3vh,1.1rem)] backdrop-blur-md">
+      <header className="relative z-20 shrink-0 border-b border-cyan-400/15 bg-gray-100 px-[clamp(1rem,3vw,2.5rem)] py-[clamp(0.55rem,1.3vh,1.1rem)] backdrop-blur-md">
         <div className="mx-auto flex w-full max-w-[1600px] items-center justify-between gap-4">
           <div className="min-w-0">
             <p className="icg-mono text-[clamp(0.6rem,1.1vw,0.8rem)] font-bold uppercase tracking-[0.35em] text-cyan-300/90">
               InnoClub · Innovation Arena
             </p>
-            <h1 className="icg-display truncate text-[clamp(1.25rem,3vw,2.4rem)] font-black tracking-wide text-white">
+            <h1 className="icg-display truncate text-[clamp(1.25rem,3vw,2.4rem)] font-black tracking-wide text-gray-900">
               {stage === 'finalists' ? 'FINALISTS SIGNAL' : 'CHAMPION UNLOCKED'}
             </h1>
           </div>
@@ -246,8 +246,8 @@ const InnoClubGameResultsPage: React.FC = () => {
               onClick={() => void toggleSound()}
               className={`icg-mono rounded-full px-3 py-1.5 text-[clamp(0.55rem,0.95vw,0.72rem)] font-bold tracking-widest transition-colors ${
                 soundOn
-                  ? 'border border-amber-300/40 bg-amber-400/10 text-amber-100'
-                  : 'border border-white/15 bg-white/5 text-zinc-400'
+                  ? 'border border-amber-300/40 bg-amber-400/10 text-amber-900'
+                  : 'border border-gray-200 bg-white text-zinc-400'
               }`}
               title="กด M เพื่อเปิด/ปิดเสียง"
             >
@@ -256,8 +256,8 @@ const InnoClubGameResultsPage: React.FC = () => {
             <span
               className={`icg-mono rounded-full px-3 py-1.5 text-[clamp(0.55rem,0.95vw,0.72rem)] font-bold tracking-widest ${
                 liveConnected
-                  ? 'border border-cyan-400/40 bg-cyan-400/10 text-cyan-200 shadow-[0_0_20px_rgba(34,211,238,0.25)]'
-                  : 'border border-white/10 bg-white/5 text-zinc-500'
+                  ? 'border border-cyan-400/40 bg-cyan-400/10 text-cyan-800 shadow-[0_0_20px_rgba(34,211,238,0.25)]'
+                  : 'border border-[#D6D4CC] bg-white text-zinc-500'
               }`}
             >
               {liveConnected ? '● LIVE FEED' : 'SYNC…'}
@@ -266,7 +266,7 @@ const InnoClubGameResultsPage: React.FC = () => {
               <button
                 type="button"
                 onClick={goBack}
-                className="rounded-xl border border-white/20 bg-white/5 px-4 py-2 text-[clamp(0.75rem,1.3vw,0.95rem)] font-semibold text-white/90 hover:bg-white/10"
+                className="rounded-xl border border-gray-200 bg-white px-4 py-2 text-[clamp(0.75rem,1.3vw,0.95rem)] font-semibold text-gray-900/90 hover:bg-gray-100"
               >
                 ย้อนกลับ
               </button>
@@ -296,13 +296,13 @@ const InnoClubGameResultsPage: React.FC = () => {
             </p>
           </div>
         ) : error ? (
-          <div className="m-auto max-w-3xl rounded-2xl border border-red-400/40 bg-red-500/10 px-6 py-5 text-[clamp(1rem,2vw,1.3rem)] text-red-200">
+          <div className="m-auto max-w-3xl rounded-2xl border border-red-300 bg-red-50 px-6 py-5 text-[clamp(1rem,2vw,1.3rem)] text-red-700">
             {error}
           </div>
         ) : top4.length === 0 ? (
-          <div className="m-auto rounded-3xl border border-cyan-400/20 bg-white/5 px-8 py-12 text-center backdrop-blur">
-            <p className="text-[clamp(1.2rem,2.8vw,1.9rem)] font-bold text-white">ยังไม่มีทีมที่มีคะแนน</p>
-            <p className="mt-3 text-[clamp(0.9rem,1.6vw,1.15rem)] text-white/55">
+          <div className="m-auto rounded-3xl border border-cyan-400/20 bg-white px-8 py-12 text-center backdrop-blur">
+            <p className="text-[clamp(1.2rem,2.8vw,1.9rem)] font-bold text-gray-900">ยังไม่มีทีมที่มีคะแนน</p>
+            <p className="mt-3 text-[clamp(0.9rem,1.6vw,1.15rem)] text-gray-900/55">
               ให้แอดมินกรอกทีมและเงินในหน้า Admin ก่อน
             </p>
           </div>
@@ -311,14 +311,14 @@ const InnoClubGameResultsPage: React.FC = () => {
             <div className="shrink-0 text-center">
               <div className="icg-badge mx-auto inline-flex items-center gap-2 rounded-full border border-amber-300/30 bg-amber-400/10 px-4 py-1.5">
                 <span className="icg-pulse-dot h-2 w-2 rounded-full bg-amber-300" />
-                <span className="icg-mono text-[clamp(0.65rem,1.1vw,0.85rem)] font-bold tracking-[0.28em] text-amber-200">
+                <span className="icg-mono text-[clamp(0.65rem,1.1vw,0.85rem)] font-bold tracking-[0.28em] text-amber-800">
                   TOP SIGNAL · 4 TEAMS
                 </span>
               </div>
               <h2 className="icg-display mt-3 text-[clamp(1.5rem,4.2vw,3.1rem)] font-black leading-tight text-transparent bg-clip-text bg-gradient-to-r from-cyan-200 via-white to-amber-200">
                 4 ทีมที่ทำเงินได้สูงสุด
               </h2>
-              <p className="mt-2 text-[clamp(0.8rem,1.4vw,1.05rem)] text-white/50">
+              <p className="mt-2 text-[clamp(0.8rem,1.4vw,1.05rem)] text-gray-900/50">
                 กดถัดไปเพื่อปลดล็อกอันดับ 1 และจำนวนเงิน
               </p>
             </div>
@@ -327,7 +327,7 @@ const InnoClubGameResultsPage: React.FC = () => {
               {top4.map((team, index) => (
                 <article
                   key={team.id}
-                  className="icg-card group relative flex min-h-0 flex-col justify-center overflow-hidden rounded-[clamp(1rem,2vw,1.75rem)] border border-cyan-300/25 bg-black/35 px-[clamp(1rem,2.4vw,2rem)] py-[clamp(0.8rem,1.8vh,1.35rem)] backdrop-blur-md"
+                  className="icg-card group relative flex min-h-0 flex-col justify-center overflow-hidden rounded-[clamp(1rem,2vw,1.75rem)] border border-cyan-300/25 bg-white px-[clamp(1rem,2.4vw,2rem)] py-[clamp(0.8rem,1.8vh,1.35rem)] backdrop-blur-md"
                   style={{ animationDelay: `${120 + index * 140}ms` }}
                 >
                   <div className="icg-card-sheen pointer-events-none absolute inset-0" />
@@ -335,10 +335,10 @@ const InnoClubGameResultsPage: React.FC = () => {
                   <p className="icg-mono relative z-10 text-[clamp(0.65rem,1.15vw,0.9rem)] font-bold tracking-[0.24em] text-cyan-300/85">
                     NODE 0{index + 1}
                   </p>
-                  <p className="relative z-10 mt-[clamp(0.3rem,0.9vh,0.65rem)] break-words text-[clamp(1.4rem,4vw,3.2rem)] font-black leading-[1.12] text-white">
+                  <p className="relative z-10 mt-[clamp(0.3rem,0.9vh,0.65rem)] break-words text-[clamp(1.4rem,4vw,3.2rem)] font-black leading-[1.12] text-gray-900">
                     {team.name}
                   </p>
-                  <div className="relative z-10 mt-3 h-[2px] w-full overflow-hidden rounded bg-white/10">
+                  <div className="relative z-10 mt-3 h-[2px] w-full overflow-hidden rounded bg-gray-100">
                     <div className="icg-bar h-full w-2/3 bg-gradient-to-r from-cyan-400 via-amber-300 to-transparent" />
                   </div>
                 </article>
@@ -370,7 +370,7 @@ const InnoClubGameResultsPage: React.FC = () => {
                   <span className="icg-ring icg-ring-c" />
                 </div>
 
-                <p className="icg-mono relative z-10 text-[clamp(0.7rem,1.3vw,0.95rem)] font-bold tracking-[0.4em] text-amber-200">
+                <p className="icg-mono relative z-10 text-[clamp(0.7rem,1.3vw,0.95rem)] font-bold tracking-[0.4em] text-amber-800">
                   SYSTEM LOCK · RANK #01
                 </p>
                 <p className="icg-display relative z-10 mt-2 text-[clamp(2rem,5.8vw,5rem)] font-black leading-none text-transparent bg-clip-text bg-gradient-to-b from-white via-amber-100 to-amber-300">
@@ -379,10 +379,10 @@ const InnoClubGameResultsPage: React.FC = () => {
                 <p className="relative z-10 mt-[clamp(0.7rem,1.8vh,1.35rem)] max-w-[94%] break-words text-[clamp(1.6rem,5.2vw,4.4rem)] font-black leading-tight text-cyan-100 drop-shadow-[0_0_30px_rgba(34,211,238,0.35)]">
                   {champion.name}
                 </p>
-                <p className="icg-mono relative z-10 mt-[clamp(0.8rem,2vh,1.4rem)] text-[clamp(0.75rem,1.4vw,1.05rem)] tracking-[0.28em] text-white/55">
+                <p className="icg-mono relative z-10 mt-[clamp(0.8rem,2vh,1.4rem)] text-[clamp(0.75rem,1.4vw,1.05rem)] tracking-[0.28em] text-gray-900/55">
                   CAPITAL IN GAME
                 </p>
-                <p className="icg-display relative z-10 mt-1 text-[clamp(2.4rem,7.5vw,6rem)] font-black leading-none text-amber-300 drop-shadow-[0_0_40px_rgba(251,191,36,0.45)]">
+                <p className="icg-display relative z-10 mt-1 text-[clamp(2.4rem,7.5vw,6rem)] font-black leading-none text-amber-800 drop-shadow-[0_0_40px_rgba(251,191,36,0.45)]">
                   ฿{formatMoney(countedMoney)}
                 </p>
               </div>
@@ -393,16 +393,16 @@ const InnoClubGameResultsPage: React.FC = () => {
                 {runnersUp.map((team, i) => (
                   <article
                     key={team.id}
-                    className="icg-runner relative overflow-hidden rounded-[clamp(0.8rem,1.4vw,1.15rem)] border border-white/12 bg-white/[0.05] px-4 py-[clamp(0.55rem,1.4vh,0.95rem)] text-center backdrop-blur"
+                    className="icg-runner relative overflow-hidden rounded-[clamp(0.8rem,1.4vw,1.15rem)] border border-[#D6D4CC] bg-white/[0.05] px-4 py-[clamp(0.55rem,1.4vh,0.95rem)] text-center backdrop-blur"
                     style={{ animationDelay: `${220 + i * 120}ms` }}
                   >
                     <p className="icg-mono text-[clamp(0.65rem,1.1vw,0.85rem)] font-bold tracking-[0.2em] text-cyan-300/80">
                       RANK #{team.rank}
                     </p>
-                    <p className="mt-1 break-words text-[clamp(0.95rem,2.1vw,1.5rem)] font-bold leading-tight text-white">
+                    <p className="mt-1 break-words text-[clamp(0.95rem,2.1vw,1.5rem)] font-bold leading-tight text-gray-900">
                       {team.name}
                     </p>
-                    <p className="mt-1 text-[clamp(0.9rem,1.9vw,1.35rem)] font-semibold text-amber-200">
+                    <p className="mt-1 text-[clamp(0.9rem,1.9vw,1.35rem)] font-semibold text-amber-800">
                       ฿{formatMoney(team.money)}
                     </p>
                   </article>
@@ -413,7 +413,7 @@ const InnoClubGameResultsPage: React.FC = () => {
         )}
       </main>
 
-      <p className="icg-mono relative z-20 shrink-0 pb-2 text-center text-[clamp(0.55rem,0.95vw,0.7rem)] tracking-[0.18em] text-white/30">
+      <p className="icg-mono relative z-20 shrink-0 pb-2 text-center text-[clamp(0.55rem,0.95vw,0.7rem)] tracking-[0.18em] text-gray-900/30">
         → / ENTER = NEXT · ← = BACK · M = SOUND
       </p>
 

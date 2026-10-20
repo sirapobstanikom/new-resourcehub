@@ -97,7 +97,7 @@ function cleanupArOverlays(): void {
 function RouteFallback() {
   return (
     <div className="md-page items-center justify-center">
-      <p className="text-sm font-medium tracking-wide text-gray-500">กำลังโหลด...</p>
+      <p className="text-sm font-medium tracking-wide text-gray-700">กำลังโหลด...</p>
     </div>
   );
 }
@@ -192,7 +192,13 @@ function AdminLayout({ children }: { children: React.ReactNode }) {
   if (!isAdminAuthenticated()) {
     return <Navigate to="/admin/login" replace />;
   }
-  if (loading) return null;
+  if (loading) {
+    return (
+      <div className="flex min-h-dvh items-center justify-center bg-[#F3F2ED] text-gray-900">
+        <p className="text-base font-medium text-gray-700">กำลังโหลด Admin…</p>
+      </div>
+    );
+  }
   if (!user) return <Navigate to="/admin/login" replace />;
   return <>{children}</>;
 }

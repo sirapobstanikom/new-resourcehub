@@ -55,37 +55,37 @@ function MonthlySummarySection({
   const totals = yearTotals(events, monthly);
   const border =
     accent === 'sky' ? 'border-sky-400/25 bg-sky-400/[0.06]' : 'border-yellow-400/25 bg-yellow-400/[0.06]';
-  const titleColor = accent === 'sky' ? 'text-sky-300' : 'text-yellow-800';
+  const titleColor = accent === 'sky' ? 'text-sky-700' : 'text-yellow-800';
   const headerBorder = accent === 'sky' ? 'border-sky-400/15' : 'border-yellow-400/15';
   const activeCard =
     accent === 'sky' ? 'border-sky-400/35 bg-sky-400/10' : 'border-yellow-400/35 bg-yellow-400/10';
-  const dayColor = accent === 'sky' ? 'text-sky-300' : 'text-yellow-800';
+  const dayColor = accent === 'sky' ? 'text-sky-700' : 'text-yellow-800';
 
   return (
     <section className={`mb-6 rounded-2xl border ${border} overflow-hidden`}>
       <div className={`px-4 sm:px-5 py-4 border-b ${headerBorder} flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3`}>
         <div>
           <h2 className={`text-base sm:text-lg font-semibold ${titleColor}`}>{title}</h2>
-          <p className="mt-1 text-xs text-zinc-400">{subtitle}</p>
+          <p className="mt-1 text-xs text-gray-600">{subtitle}</p>
         </div>
         <div className="flex flex-wrap gap-3 text-sm">
           <div className="rounded-xl border border-[#D6D4CC] bg-gray-50 px-3 py-2">
-            <p className="text-[11px] text-zinc-500">ทั้งปี</p>
+            <p className="text-[11px] text-gray-500">ทั้งปี</p>
             <p className="font-semibold text-gray-900">
               {totals.courseCount} หลักสูตร · {totals.dayCount} วัน
             </p>
           </div>
           <div className="rounded-xl border border-[#D6D4CC] bg-gray-50 px-3 py-2">
-            <p className="text-[11px] text-zinc-500">เดือนที่มีงาน</p>
+            <p className="text-[11px] text-gray-500">เดือนที่มีงาน</p>
             <p className="font-semibold text-gray-900">{totals.monthsWithTraining} / 12</p>
           </div>
         </div>
       </div>
 
       {loading ? (
-        <div className="px-5 py-8 text-center text-sm text-zinc-400">กำลังคำนวณสรุป...</div>
+        <div className="px-5 py-8 text-center text-sm text-gray-600">กำลังคำนวณสรุป...</div>
       ) : events.length === 0 ? (
-        <div className="px-5 py-8 text-center text-sm text-zinc-500">ยังไม่มี {title.replace('สรุป ', '')} ในปี {year}</div>
+        <div className="px-5 py-8 text-center text-sm text-gray-500">ยังไม่มี {title.replace('สรุป ', '')} ในปี {year}</div>
       ) : (
         <div className="p-3 sm:p-4 overflow-x-auto">
           <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-12 gap-2 min-w-0">
@@ -98,10 +98,10 @@ function MonthlySummarySection({
                     hasData ? activeCard : 'border-gray-100 bg-white/[0.02] opacity-45'
                   }`}
                 >
-                  <p className="text-[11px] text-zinc-400">{group.label}</p>
+                  <p className="text-[11px] text-gray-600">{group.label}</p>
                   <p className="mt-1 text-lg font-bold text-gray-900 leading-none">{group.eventCount}</p>
-                  <p className="mt-1 text-[10px] text-zinc-400">หลักสูตร</p>
-                  <p className={`mt-2 text-sm font-semibold ${hasData ? dayColor : 'text-zinc-500'}`}>
+                  <p className="mt-1 text-[10px] text-gray-600">หลักสูตร</p>
+                  <p className={`mt-2 text-sm font-semibold ${hasData ? dayColor : 'text-gray-500'}`}>
                     {group.dayCount} วัน
                   </p>
                 </div>
@@ -136,9 +136,9 @@ function PersonEventList({
     [monthlyGroups]
   );
 
-  const titleColor = accent === 'sky' ? 'text-sky-300' : 'text-yellow-800';
+  const titleColor = accent === 'sky' ? 'text-sky-700' : 'text-yellow-800';
   const activeChip =
-    accent === 'sky' ? 'border-sky-400/30 bg-sky-400/10' : 'border-yellow-400/30 bg-yellow-400/10';
+    accent === 'sky' ? 'border-sky-300 bg-sky-400/10' : 'border-yellow-400/30 bg-yellow-400/10';
 
   return (
     <section className="rounded-2xl border border-[#D6D4CC] bg-white/[0.03] overflow-hidden">
@@ -147,7 +147,7 @@ function PersonEventList({
           {title}
           {summary?.label ? <span className="text-gray-900"> · {summary.label}</span> : null}
         </h2>
-        <p className="text-xs text-zinc-400 mt-1">
+        <p className="text-xs text-gray-600 mt-1">
           {summary?.eventCount || 0} รายการ · รวม {summary?.dayCount || 0} วัน · {monthsWithEvents.length} เดือนที่มีงาน
         </p>
       </div>
@@ -162,9 +162,9 @@ function PersonEventList({
                   group.eventCount > 0 ? activeChip : 'border-gray-100 bg-white/[0.02] opacity-40'
                 }`}
               >
-                <p className="text-[11px] text-zinc-400">{group.label}</p>
+                <p className="text-[11px] text-gray-600">{group.label}</p>
                 <p className="text-sm font-semibold text-gray-900 mt-0.5">{group.dayCount}</p>
-                <p className="text-[10px] text-zinc-500">{group.eventCount} รายการ</p>
+                <p className="text-[10px] text-gray-500">{group.eventCount} รายการ</p>
               </div>
             ))}
           </div>
@@ -172,16 +172,16 @@ function PersonEventList({
       )}
 
       {loading ? (
-        <div className="px-5 py-12 text-center text-sm text-zinc-400">กำลังดึงข้อมูลจาก Google Calendar...</div>
+        <div className="px-5 py-12 text-center text-sm text-gray-600">กำลังดึงข้อมูลจาก Google Calendar...</div>
       ) : !summary || summary.events.length === 0 ? (
-        <div className="px-5 py-12 text-center text-sm text-zinc-500">ยังไม่มีรายการในปีนี้</div>
+        <div className="px-5 py-12 text-center text-sm text-gray-500">ยังไม่มีรายการในปีนี้</div>
       ) : (
         <div className="divide-y divide-[#D6D4CC]">
           {monthsWithEvents.map((group) => (
             <div key={`${title}-list-${group.month}`}>
               <div className="px-4 sm:px-5 py-2.5 bg-gray-50 flex items-center justify-between gap-3">
                 <h3 className={`text-sm font-semibold ${titleColor}`}>{group.label}</h3>
-                <p className="text-xs text-zinc-400">
+                <p className="text-xs text-gray-600">
                   {group.eventCount} รายการ · {group.dayCount} วัน
                 </p>
               </div>
@@ -193,9 +193,9 @@ function PersonEventList({
                       key={event.id}
                       className="px-4 sm:px-5 py-3.5 flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-4"
                     >
-                      <div className="sm:w-56 shrink-0 text-xs sm:text-sm text-zinc-400">
+                      <div className="sm:w-56 shrink-0 text-xs sm:text-sm text-gray-600">
                         {formatOutingDateRange(event.start, event.end)}
-                        <span className="ml-2 text-zinc-600">({days} วัน)</span>
+                        <span className="ml-2 text-gray-600">({days} วัน)</span>
                       </div>
                       <div className="min-w-0 flex-1 text-sm text-gray-800 break-words">{event.summary}</div>
                     </li>
@@ -353,8 +353,8 @@ const AdminCourseOutingDashboardPage: React.FC = () => {
   if (!meta) {
     return (
       <div className="p-6 sm:p-8">
-        <p className="text-zinc-400 text-sm">ไม่พบหน้าที่ต้องการ</p>
-        <Link to="/admin" className="mt-3 inline-block text-yellow-400 text-sm hover:underline">
+        <p className="text-gray-600 text-sm">ไม่พบหน้าที่ต้องการ</p>
+        <Link to="/admin" className="mt-3 inline-block text-yellow-700 text-sm hover:underline">
           กลับ Admin
         </Link>
       </div>
@@ -365,18 +365,18 @@ const AdminCourseOutingDashboardPage: React.FC = () => {
     <div className="p-4 sm:p-6 lg:p-8 max-w-6xl">
       <header className="mb-6 sm:mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-xs uppercase tracking-wider text-zinc-500 mb-2">Course outing</p>
+          <p className="text-xs uppercase tracking-wider text-gray-500 mb-2">Course outing</p>
           <h1 className="text-xl sm:text-2xl font-bold text-yellow-800">{meta.title}</h1>
-          <p className="mt-2 text-sm text-zinc-400">{meta.blurb}</p>
+          <p className="mt-2 text-sm text-gray-600">{meta.blurb}</p>
           {metaInfo && (
-            <div className="mt-2 space-y-1 text-xs text-zinc-500">
+            <div className="mt-2 space-y-1 text-xs text-gray-500">
               <p>
                 ปี {year} · Training Confirmed {metaInfo.totalAfterDedup}
                 {showVirtual ? ` · Virtual ${metaInfo.virtualTotalAfterDedup}` : ''}
                 {unmatchedCount > 0 ? ` · TC ไม่เข้าใคร ${unmatchedCount}` : ''}
               </p>
               {metaInfo.trainingCalendars[0] && (
-                <p className="text-zinc-600 break-all">
+                <p className="text-gray-600 break-all">
                   แหล่ง TC: {metaInfo.trainingCalendars.map((c) => c.summary).join(', ')}
                   <span className="text-zinc-700"> ({metaInfo.trainingCalendars[0].id})</span>
                 </p>
@@ -391,7 +391,7 @@ const AdminCourseOutingDashboardPage: React.FC = () => {
           )}
         </div>
         <div className="flex items-center gap-2">
-          <label className="text-xs text-zinc-400" htmlFor="outing-year">
+          <label className="text-xs text-gray-600" htmlFor="outing-year">
             ปี
           </label>
           <select
@@ -418,12 +418,12 @@ const AdminCourseOutingDashboardPage: React.FC = () => {
       </header>
 
       {error && (
-        <div className="mb-4 rounded-xl border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm text-red-200 whitespace-pre-wrap">
+        <div className="mb-4 rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700 whitespace-pre-wrap">
           {error}
         </div>
       )}
       {showVirtual && virtualError && (
-        <div className="mb-4 rounded-xl border border-amber-400/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100 whitespace-pre-wrap">
+        <div className="mb-4 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 whitespace-pre-wrap">
           Virtual Training Confirmed: {virtualError}
         </div>
       )}
@@ -451,7 +451,7 @@ const AdminCourseOutingDashboardPage: React.FC = () => {
       )}
 
       <div className="mb-3">
-        <h2 className="text-sm font-semibold text-zinc-300">
+        <h2 className="text-sm font-semibold text-gray-700">
           {showVirtual ? 'สรุปตามวิทยากร (Training Confirmed)' : 'สรุปตามคน'}
         </h2>
       </div>
@@ -473,11 +473,11 @@ const AdminCourseOutingDashboardPage: React.FC = () => {
               <p className={`text-sm font-semibold ${active ? 'text-yellow-800' : 'text-gray-900'}`}>
                 {person.label}
               </p>
-              <p className="mt-1 text-xs text-zinc-400">
+              <p className="mt-1 text-xs text-gray-600">
                 TC {person.eventCount} · {person.dayCount} วัน
               </p>
               {showVirtual && (
-                <p className="mt-0.5 text-xs text-sky-300/80">
+                <p className="mt-0.5 text-xs text-sky-700">
                   Virtual {virtualPerson?.eventCount || 0} · {virtualPerson?.dayCount || 0} วัน
                 </p>
               )}
@@ -489,7 +489,7 @@ const AdminCourseOutingDashboardPage: React.FC = () => {
       {showVirtual && (
         <>
           <div className="mb-3">
-            <h2 className="text-sm font-semibold text-sky-300">สรุป Virtual Training Confirmed ตามวิทยากร</h2>
+            <h2 className="text-sm font-semibold text-sky-700">สรุป Virtual Training Confirmed ตามวิทยากร</h2>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-2 sm:gap-3 mb-6">
             {virtualSummaries.map((person) => {
@@ -508,7 +508,7 @@ const AdminCourseOutingDashboardPage: React.FC = () => {
                   <p className={`text-sm font-semibold ${active ? 'text-sky-700' : 'text-gray-900'}`}>
                     {person.label}
                   </p>
-                  <p className="mt-1 text-xs text-zinc-400">
+                  <p className="mt-1 text-xs text-gray-600">
                     {person.eventCount} รายการ · {person.dayCount} วัน
                   </p>
                 </button>

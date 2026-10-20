@@ -34,14 +34,14 @@ const INNOVATION_DASHBOARD_ARTWORK =
 
 function PageHeader({ subtitle, action }: { subtitle: string; action?: React.ReactNode }) {
   return (
-    <header className="sticky top-0 z-20 border-b border-yellow-400/15 bg-[#080808]/90 px-4 py-4 backdrop-blur">
+    <header className="sticky top-0 z-20 border-b border-[#D6D4CC] bg-white/95 px-4 py-4 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-3">
         <Link to="/" className="flex items-center gap-3">
           <BrandLogo className="text-[24px]" tone="dark" />
-          <span className="h-8 w-px bg-white/15" aria-hidden />
+          <span className="h-8 w-px bg-gray-200" aria-hidden />
           <div>
-            <p className="text-sm font-black text-white">แบบประเมิน Innovation</p>
-            <p className="text-xs font-semibold text-yellow-300">{subtitle}</p>
+            <p className="text-sm font-black text-gray-900">แบบประเมิน Innovation</p>
+            <p className="text-xs font-semibold text-yellow-800">{subtitle}</p>
           </div>
         </Link>
         {action}
@@ -65,15 +65,15 @@ function ScorePicker({
 }) {
   const points = criterionPoints(value, weight);
   return (
-    <section className="rounded-2xl border border-white/10 bg-white/[0.05] p-4">
+    <section className="rounded-2xl border border-[#D6D4CC] bg-white p-4">
       <div className="mb-3 flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h3 className="whitespace-pre-line text-sm font-bold leading-snug text-white sm:text-base">{label}</h3>
-          <p className="mt-1 text-xs text-zinc-400">
+          <h3 className="whitespace-pre-line text-sm font-bold leading-snug text-gray-900 sm:text-base">{label}</h3>
+          <p className="mt-1 text-xs text-gray-600">
             คะแนน 1–5 · น้ำหนัก {weight}% · คะแนนเต็ม {weight} คะแนน
           </p>
         </div>
-        <span className="shrink-0 rounded-full border border-yellow-400/25 bg-yellow-400/10 px-3 py-1 text-xs font-bold text-yellow-200">
+        <span className="shrink-0 rounded-full border border-yellow-300 bg-yellow-50 px-3 py-1 text-xs font-bold text-yellow-800">
           {value > 0 ? `${formatInnovationScore(points)} / ${weight}` : '—'}
         </span>
       </div>
@@ -89,7 +89,7 @@ function ScorePicker({
               className={`min-h-[44px] rounded-xl border text-sm font-black transition-all ${
                 selected
                   ? 'border-yellow-300 bg-yellow-400 text-black shadow-[0_0_18px_rgba(250,204,21,0.22)]'
-                  : 'border-white/10 bg-black/35 text-zinc-200 hover:border-yellow-300/50'
+                  : 'border-[#D6D4CC] bg-white text-gray-800 hover:border-yellow-300/50'
               } disabled:cursor-not-allowed disabled:opacity-45`}
             >
               {score}
@@ -251,7 +251,7 @@ function InnovationEvaluationFormPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#080808] text-white">
+    <div className="min-h-screen bg-[#F3F2ED] text-gray-900">
       <PageHeader
         subtitle={`กรอกคะแนนตามเกณฑ์ ${config.criteria.length} ข้อ`}
         action={
@@ -263,7 +263,7 @@ function InnovationEvaluationFormPage() {
                   setConfigMessage('');
                   setShowConfigEditor(true);
                 }}
-                className="inline-flex items-center gap-1.5 rounded-full border border-yellow-400/30 bg-yellow-400/10 px-3 py-2 text-xs font-bold text-yellow-200 hover:bg-yellow-400/20"
+                className="inline-flex items-center gap-1.5 rounded-full border border-yellow-300 bg-yellow-50 px-3 py-2 text-xs font-bold text-yellow-800 hover:bg-yellow-100"
               >
                 <Settings className="h-3.5 w-3.5" />
                 ตั้งค่า
@@ -271,7 +271,7 @@ function InnovationEvaluationFormPage() {
             )}
             <Link
               to="/evaluation/innovation/dashboard"
-              className="rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs font-bold text-zinc-300 hover:bg-white/10"
+              className="rounded-full border border-[#D6D4CC] bg-white px-3 py-2 text-xs font-bold text-gray-700 hover:bg-gray-100"
             >
               Dashboard
             </Link>
@@ -293,27 +293,27 @@ function InnovationEvaluationFormPage() {
       )}
       <main className="mx-auto max-w-3xl space-y-4 px-4 py-6 pb-24">
         {configMessage && (
-          <div className="rounded-2xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
+          <div className="rounded-2xl border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
             {configMessage}
           </div>
         )}
-        {error && <div className="rounded-2xl border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">{error}</div>}
+        {error && <div className="rounded-2xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
 
         {successTeamLabel && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-100 px-4">
             <div
-              className="w-full max-w-sm rounded-2xl border border-yellow-400/30 bg-[#121212] p-6 text-center shadow-[0_24px_60px_rgba(0,0,0,0.45)]"
+              className="w-full max-w-sm rounded-2xl border border-yellow-300 bg-[#121212] p-6 text-center shadow-[0_24px_60px_rgba(0,0,0,0.45)]"
               role="dialog"
               aria-modal="true"
               aria-labelledby="innovation-success-title"
             >
-              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-yellow-400/15 text-2xl">
+              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-yellow-50 text-2xl">
                 ✓
               </div>
-              <h2 id="innovation-success-title" className="text-lg font-black text-white">
+              <h2 id="innovation-success-title" className="text-lg font-black text-gray-900">
                 ประเมิน ({successTeamLabel}) เรียบร้อย
               </h2>
-              <p className="mt-2 text-sm text-zinc-400">บันทึกคะแนนเรียบร้อยแล้ว</p>
+              <p className="mt-2 text-sm text-gray-600">บันทึกคะแนนเรียบร้อยแล้ว</p>
               <button
                 type="button"
                 onClick={() => setSuccessTeamLabel(null)}
@@ -326,8 +326,8 @@ function InnovationEvaluationFormPage() {
         )}
 
         <form onSubmit={submit} className="space-y-4">
-          <section className="rounded-2xl border border-white/10 bg-white/[0.05] p-4">
-            <label className="mb-2 block text-sm font-bold text-white">ผู้ประเมิน *</label>
+          <section className="rounded-2xl border border-[#D6D4CC] bg-white p-4">
+            <label className="mb-2 block text-sm font-bold text-gray-900">ผู้ประเมิน *</label>
             <div className="grid gap-2 sm:grid-cols-2">
               {config.evaluators.map((evaluator) => {
                 const selected = evaluatorId === evaluator.id;
@@ -338,8 +338,8 @@ function InnovationEvaluationFormPage() {
                     onClick={() => setEvaluatorId(evaluator.id)}
                     className={`rounded-xl border px-4 py-3 text-left text-sm font-semibold transition-all ${
                       selected
-                        ? 'border-yellow-300 bg-yellow-400/15 text-yellow-100'
-                        : 'border-white/10 bg-black/30 text-zinc-300 hover:border-yellow-300/40'
+                        ? 'border-yellow-300 bg-yellow-50 text-yellow-900'
+                        : 'border-[#D6D4CC] bg-white text-gray-700 hover:border-yellow-300/40'
                     }`}
                   >
                     {evaluator.name}
@@ -349,8 +349,8 @@ function InnovationEvaluationFormPage() {
             </div>
           </section>
 
-          <section className="rounded-2xl border border-white/10 bg-white/[0.05] p-4">
-            <label htmlFor="evaluatee" className="mb-2 block text-sm font-bold text-white">
+          <section className="rounded-2xl border border-[#D6D4CC] bg-white p-4">
+            <label htmlFor="evaluatee" className="mb-2 block text-sm font-bold text-gray-900">
               ผู้ถูกประเมิน *
             </label>
             <select
@@ -358,7 +358,7 @@ function InnovationEvaluationFormPage() {
               value={evaluateeId}
               onChange={(e) => setEvaluateeId(e.target.value)}
               disabled={!evaluatorId}
-              className="w-full rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-white outline-none focus:border-yellow-300 disabled:opacity-45"
+              className="w-full rounded-xl border border-[#D6D4CC] bg-gray-100 px-4 py-3 text-gray-900 outline-none focus:border-yellow-300 disabled:opacity-45"
             >
               <option value="">— เลือกผู้ถูกประเมิน —</option>
               {evaluatees.map((evaluatee) => (
@@ -369,10 +369,10 @@ function InnovationEvaluationFormPage() {
               ))}
             </select>
             {evaluatees.length === 0 && (
-              <p className="mt-2 text-xs text-zinc-500">ยังไม่มีรายชื่อ — ให้ Admin เพิ่มที่ /admin/innovation-evaluatees</p>
+              <p className="mt-2 text-xs text-gray-600">ยังไม่มีรายชื่อ — ให้ Admin เพิ่มที่ /admin/innovation-evaluatees</p>
             )}
             {existingResponseId && (
-              <p className="mt-2 text-xs text-yellow-300">พบคะแนนเดิมของผู้ประเมินคนนี้ — บันทึกใหม่จะอัปเดตทับ</p>
+              <p className="mt-2 text-xs text-yellow-800">พบคะแนนเดิมของผู้ประเมินคนนี้ — บันทึกใหม่จะอัปเดตทับ</p>
             )}
           </section>
 
@@ -387,18 +387,18 @@ function InnovationEvaluationFormPage() {
             />
           ))}
 
-          <section className="rounded-2xl border border-yellow-400/20 bg-yellow-400/10 p-4">
+          <section className="rounded-2xl border border-yellow-400/20 bg-yellow-50 p-4">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <p className="text-sm font-bold text-yellow-100">คะแนนรวม</p>
-                <p className="text-xs text-yellow-200/70">รวมน้ำหนัก 100 คะแนน</p>
+                <p className="text-sm font-bold text-yellow-900">คะแนนรวม</p>
+                <p className="text-xs text-yellow-800/70">รวมน้ำหนัก 100 คะแนน</p>
               </div>
-              <p className="text-3xl font-black text-yellow-300">{formatInnovationScore(totalScore)}</p>
+              <p className="text-3xl font-black text-yellow-800">{formatInnovationScore(totalScore)}</p>
             </div>
           </section>
 
-          <section className="rounded-2xl border border-white/10 bg-white/[0.05] p-4">
-            <label htmlFor="note" className="mb-2 block text-sm font-bold text-zinc-200">
+          <section className="rounded-2xl border border-[#D6D4CC] bg-white p-4">
+            <label htmlFor="note" className="mb-2 block text-sm font-bold text-gray-800">
               หมายเหตุ (ไม่บังคับ)
             </label>
             <textarea
@@ -407,7 +407,7 @@ function InnovationEvaluationFormPage() {
               onChange={(e) => setNote(e.target.value)}
               rows={3}
               disabled={!evaluateeId}
-              className="w-full resize-none rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-sm text-white outline-none focus:border-yellow-300 disabled:opacity-45"
+              className="w-full resize-none rounded-xl border border-[#D6D4CC] bg-gray-100 px-4 py-3 text-sm text-gray-900 outline-none focus:border-yellow-300 disabled:opacity-45"
             />
           </section>
 
@@ -520,7 +520,7 @@ function InnovationEvaluationDashboardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#080808] text-white">
+    <div className="min-h-screen bg-[#F3F2ED] text-gray-900">
       <PageHeader
         subtitle="สรุปคะแนนรวม"
         action={
@@ -528,15 +528,15 @@ function InnovationEvaluationDashboardPage() {
             <span
               className={`hidden rounded-full px-2.5 py-1 text-[10px] font-bold sm:inline ${
                 liveConnected
-                  ? 'border border-emerald-400/30 bg-emerald-500/10 text-emerald-300'
-                  : 'border border-white/10 bg-white/5 text-zinc-500'
+                  ? 'border border-emerald-300 bg-emerald-50 text-emerald-800'
+                  : 'border border-[#D6D4CC] bg-white text-gray-600'
               }`}
             >
               {liveConnected ? '● LIVE' : 'กำลังเชื่อมต่อ...'}
             </span>
             <Link
               to="/evaluation/innovation"
-              className="rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs font-bold text-zinc-300 hover:bg-white/10"
+              className="rounded-full border border-[#D6D4CC] bg-white px-3 py-2 text-xs font-bold text-gray-700 hover:bg-gray-100"
             >
               แบบประเมิน
             </Link>
@@ -544,7 +544,7 @@ function InnovationEvaluationDashboardPage() {
               type="button"
               onClick={exportExcel}
               disabled={summaries.length === 0}
-              className="rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-2 text-xs font-bold text-emerald-300 disabled:opacity-45"
+              className="rounded-full border border-emerald-300 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-800 disabled:opacity-45"
             >
               Excel
             </button>
@@ -552,9 +552,9 @@ function InnovationEvaluationDashboardPage() {
         }
       />
       <main className="mx-auto max-w-6xl space-y-5 px-4 py-6">
-        <section className="overflow-hidden rounded-2xl border border-yellow-400/15 bg-black shadow-[0_20px_60px_rgba(0,0,0,0.35)]">
+        <section className="overflow-hidden rounded-2xl border border-[#D6D4CC] bg-white shadow-md">
           <div className="relative flex items-center justify-center px-4 py-5 sm:px-8 sm:py-7">
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(250,204,21,0.08),transparent_65%)]" />
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(250,204,21,0.12),transparent_65%)]" />
             <img
               src={INNOVATION_DASHBOARD_ARTWORK}
               alt="Innovation Evaluation"
@@ -563,10 +563,10 @@ function InnovationEvaluationDashboardPage() {
           </div>
         </section>
 
-        {error && <div className="rounded-2xl border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">{error}</div>}
-        {loading && <p className="text-sm text-zinc-500">กำลังโหลด...</p>}
+        {error && <div className="rounded-2xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
+        {loading && <p className="text-sm text-gray-600">กำลังโหลด...</p>}
         {lastUpdated && !loading && (
-          <p className="text-xs text-zinc-500">
+          <p className="text-xs text-gray-600">
             อัปเดตล่าสุด{' '}
             {lastUpdated.toLocaleString('th-TH', {
               timeZone: 'Asia/Bangkok',
@@ -577,42 +577,42 @@ function InnovationEvaluationDashboardPage() {
         )}
 
         <section className="grid gap-3 sm:grid-cols-3">
-          <article className="rounded-2xl border border-white/10 bg-white/[0.05] p-4">
-            <p className="text-xs text-zinc-500">ผู้ถูกประเมิน</p>
-            <p className="mt-1 text-2xl font-black text-white">{summaries.length}</p>
+          <article className="rounded-2xl border border-[#D6D4CC] bg-white p-4">
+            <p className="text-xs text-gray-600">ผู้ถูกประเมิน</p>
+            <p className="mt-1 text-2xl font-black text-gray-900">{summaries.length}</p>
           </article>
-          <article className="rounded-2xl border border-white/10 bg-white/[0.05] p-4">
-            <p className="text-xs text-zinc-500">คำตอบทั้งหมด</p>
-            <p className="mt-1 text-2xl font-black text-white">{responses.length}</p>
+          <article className="rounded-2xl border border-[#D6D4CC] bg-white p-4">
+            <p className="text-xs text-gray-600">คำตอบทั้งหมด</p>
+            <p className="mt-1 text-2xl font-black text-gray-900">{responses.length}</p>
           </article>
-          <article className="rounded-2xl border border-yellow-400/20 bg-yellow-400/10 p-4">
-            <p className="text-xs text-yellow-200/70">สูตรคะแนนรวม</p>
-            <p className="mt-1 text-sm font-bold text-yellow-100">{formatEvaluatorWeightFormula(config)}</p>
+          <article className="rounded-2xl border border-yellow-400/20 bg-yellow-50 p-4">
+            <p className="text-xs text-yellow-800/70">สูตรคะแนนรวม</p>
+            <p className="mt-1 text-sm font-bold text-yellow-900">{formatEvaluatorWeightFormula(config)}</p>
           </article>
         </section>
 
-        <section className="rounded-2xl border border-white/10 bg-white/[0.05] p-4 sm:p-5">
-          <h2 className="mb-4 text-lg font-black text-white">อันดับคะแนนรวม</h2>
+        <section className="rounded-2xl border border-[#D6D4CC] bg-white p-4 sm:p-5">
+          <h2 className="mb-4 text-lg font-black text-gray-900">อันดับคะแนนรวม</h2>
           {summaries.length === 0 ? (
-            <p className="text-sm text-zinc-500">ยังไม่มีข้อมูล</p>
+            <p className="text-sm text-gray-600">ยังไม่มีข้อมูล</p>
           ) : (
             <div className="space-y-3">
               {summaries.map((summary, index) => (
-                <article key={summary.evaluateeId} className="rounded-xl border border-white/10 bg-black/25 p-4">
+                <article key={summary.evaluateeId} className="rounded-xl border border-[#D6D4CC] bg-gray-50 p-4">
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div>
-                      <p className="text-xs font-bold text-yellow-300">#{index + 1}</p>
-                      <h3 className="text-base font-black text-white">{summary.name}</h3>
-                      <p className="text-xs text-zinc-500">{summary.teamName}</p>
+                      <p className="text-xs font-bold text-yellow-800">#{index + 1}</p>
+                      <h3 className="text-base font-black text-gray-900">{summary.name}</h3>
+                      <p className="text-xs text-gray-600">{summary.teamName}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-xs text-zinc-500">คะแนนรวม</p>
-                      <p className="text-2xl font-black text-yellow-300">
+                      <p className="text-xs text-gray-600">คะแนนรวม</p>
+                      <p className="text-2xl font-black text-yellow-800">
                         {summary.finalScore != null ? formatInnovationScore(summary.finalScore) : '—'}
                       </p>
                     </div>
                   </div>
-                  <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/10">
+                  <div className="mt-3 h-2 overflow-hidden rounded-full bg-gray-100">
                     <div
                       className="h-full rounded-full bg-gradient-to-r from-yellow-500 via-yellow-300 to-yellow-100"
                       style={{ width: `${Math.min(100, summary.finalScore ?? 0)}%` }}
@@ -622,9 +622,9 @@ function InnovationEvaluationDashboardPage() {
                     {config.evaluators.map((evaluator) => {
                       const score = summary.evaluatorScores[evaluator.id];
                       return (
-                        <p key={evaluator.id} className="rounded-lg bg-black/30 px-3 py-2 text-xs text-zinc-300">
+                        <p key={evaluator.id} className="rounded-lg bg-white px-3 py-2 text-xs text-gray-700">
                           {evaluator.name} ({evaluator.weight}%):{' '}
-                          <span className="font-bold text-white">
+                          <span className="font-bold text-gray-900">
                             {score != null ? formatInnovationScore(score) : 'ยังไม่ประเมิน'}
                           </span>
                         </p>
@@ -637,12 +637,12 @@ function InnovationEvaluationDashboardPage() {
           )}
         </section>
 
-        <section className="rounded-2xl border border-white/10 bg-white/[0.05] p-4 sm:p-5">
-          <h2 className="mb-4 text-lg font-black text-white">รายละเอียดตามเกณฑ์</h2>
+        <section className="rounded-2xl border border-[#D6D4CC] bg-white p-4 sm:p-5">
+          <h2 className="mb-4 text-lg font-black text-gray-900">รายละเอียดตามเกณฑ์</h2>
           <div className="overflow-x-auto">
             <table className="min-w-full text-left text-sm">
               <thead>
-                <tr className="border-b border-white/10 text-xs text-zinc-500">
+                <tr className="border-b border-[#D6D4CC] text-xs text-gray-600">
                   <th className="px-3 py-2">ผู้ถูกประเมิน</th>
                   <th className="px-3 py-2">ผู้ประเมิน</th>
                   {config.criteria.map((criterion, index) => (
@@ -658,15 +658,15 @@ function InnovationEvaluationDashboardPage() {
                   const evaluatee = evaluatees.find((item) => item.id === row.evaluatee_id);
                   const rowScores = getResponseScores(row);
                   return (
-                    <tr key={row.id} className="border-b border-white/5 text-zinc-300">
-                      <td className="px-3 py-2 font-medium text-white">{evaluatee?.name || row.evaluatee_id}</td>
+                    <tr key={row.id} className="border-b border-gray-100 text-gray-700">
+                      <td className="px-3 py-2 font-medium text-gray-900">{evaluatee?.name || row.evaluatee_id}</td>
                       <td className="px-3 py-2">{getEvaluatorName(config, row.evaluator_id)}</td>
                       {config.criteria.map((criterion) => (
                         <td key={criterion.id} className="px-3 py-2">
                           {rowScores[criterion.id] ?? '—'}
                         </td>
                       ))}
-                      <td className="px-3 py-2 font-bold text-yellow-300">
+                      <td className="px-3 py-2 font-bold text-yellow-800">
                         {formatInnovationScore(responseTotalScore(row, config))}
                       </td>
                     </tr>

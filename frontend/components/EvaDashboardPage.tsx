@@ -397,7 +397,7 @@ const EvaDashboardPage: React.FC = () => {
   if (loadingDashStore) {
     return (
       <div className="md-page items-center justify-center">
-        <p className="text-sm text-gray-300">กำลังโหลดการตั้งค่า Dashboard...</p>
+        <p className="text-sm text-gray-700">กำลังโหลดการตั้งค่า Dashboard...</p>
       </div>
     );
   }
@@ -565,20 +565,20 @@ const EvaDashboardPage: React.FC = () => {
 
   return (
     <div className="md-page">
-      <header className="sticky top-0 z-20 border-b border-white/10 bg-black/70 backdrop-blur px-4 py-3 sm:px-6 sm:py-5">
+      <header className="sticky top-0 z-20 border-b border-[#D6D4CC] bg-white/95 backdrop-blur px-4 py-3 sm:px-6 sm:py-5">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={() => setSidebarOpen(true)}
-              className="lg:hidden inline-flex items-center justify-center rounded-lg border border-white/15 bg-white/5 w-10 h-10 text-gray-200 hover:bg-white/10"
+              className="lg:hidden inline-flex items-center justify-center rounded-lg border border-gray-200 bg-white w-10 h-10 text-gray-800 hover:bg-gray-100"
               aria-label="เปิดรายการแบบประเมิน"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </button>
-            <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-yellow-300">{dashInstance.dashboardTitle}</h1>
+            <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-yellow-800">{dashInstance.dashboardTitle}</h1>
           </div>
           <button
             type="button"
@@ -586,7 +586,7 @@ const EvaDashboardPage: React.FC = () => {
               sessionStorage.removeItem(evaDashboardAuthStorageKey(dashInstance.id));
               navigate(`/evaluation/dashboard/login?dash=${encodeURIComponent(dashInstance.id)}`, { replace: true });
             }}
-            className="rounded-lg border border-white/15 px-3 py-2 text-xs sm:text-sm text-gray-300 hover:bg-white/10"
+            className="rounded-lg border border-gray-200 px-3 py-2 text-xs sm:text-sm text-gray-700 hover:bg-gray-100"
           >
             ออกจาก Dashboard
           </button>
@@ -594,12 +594,12 @@ const EvaDashboardPage: React.FC = () => {
       </header>
 
       <main className="max-w-7xl mx-auto px-3 py-4 sm:px-6 sm:py-8 lg:grid lg:grid-cols-[320px_minmax(0,1fr)] lg:gap-6">
-        <section className="hidden lg:block rounded-2xl border border-white/10 bg-white/5 p-4 h-fit max-h-[75vh] overflow-y-auto">
-          <h2 className="font-semibold text-gray-200 mb-2 sm:mb-3 text-sm sm:text-base">แบบประเมิน</h2>
+        <section className="hidden lg:block rounded-2xl border border-[#D6D4CC] bg-white p-4 h-fit max-h-[75vh] overflow-y-auto">
+          <h2 className="font-semibold text-gray-800 mb-2 sm:mb-3 text-sm sm:text-base">แบบประเมิน</h2>
           {loading ? (
-            <p className="text-sm text-gray-400">กำลังโหลดข้อมูล...</p>
+            <p className="text-sm text-gray-600">กำลังโหลดข้อมูล...</p>
           ) : templates.length === 0 ? (
-            <p className="text-sm text-gray-400">ยังไม่มีแบบประเมินที่สร้างไว้</p>
+            <p className="text-sm text-gray-600">ยังไม่มีแบบประเมินที่สร้างไว้</p>
           ) : (
             <div className="space-y-2">
               {templates.map((item) => (
@@ -607,8 +607,8 @@ const EvaDashboardPage: React.FC = () => {
                   key={item.id}
                   className={`w-full text-left rounded-xl border px-2.5 sm:px-3 py-2.5 transition-colors ${
                     selectedTemplateId === item.id
-                      ? 'border-yellow-400/60 bg-yellow-400/10 text-yellow-100'
-                      : 'border-white/10 bg-black/20 text-gray-200'
+                      ? 'border-yellow-500 bg-yellow-50 text-yellow-900'
+                      : 'border-[#D6D4CC] bg-white text-gray-800'
                   }`}
                 >
                   <button
@@ -621,7 +621,7 @@ const EvaDashboardPage: React.FC = () => {
                     className="w-full text-left"
                   >
                     <p className="font-medium text-sm sm:text-base line-clamp-2 leading-snug">{item.name}</p>
-                    <p className="text-[11px] sm:text-xs text-gray-400 mt-1">
+                    <p className="text-[11px] sm:text-xs text-gray-600 mt-1">
                       {item.responseCount} คำตอบ
                     </p>
                   </button>
@@ -630,7 +630,7 @@ const EvaDashboardPage: React.FC = () => {
                       type="button"
                       onClick={() => void downloadTemplateResponses(item)}
                       disabled={exportingTemplateId === item.id}
-                      className="rounded-lg border border-emerald-400/35 bg-emerald-500/15 px-2 py-1 text-[11px] text-emerald-200 hover:bg-emerald-500/25 disabled:opacity-60"
+                      className="rounded-lg border border-emerald-300 bg-emerald-50 px-2 py-1 text-[11px] text-emerald-800 hover:bg-emerald-100 disabled:opacity-60"
                     >
                       {exportingTemplateId === item.id ? 'กำลังสร้าง...' : 'Download Excel'}
                     </button>
@@ -638,7 +638,7 @@ const EvaDashboardPage: React.FC = () => {
                       href={`/evaluation/form/${encodeURIComponent(item.id)}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="rounded-lg border border-white/20 bg-white/5 px-2 py-1 text-[11px] text-gray-200 hover:bg-white/10"
+                      className="rounded-lg border border-gray-200 bg-white px-2 py-1 text-[11px] text-gray-800 hover:bg-gray-100"
                     >
                       เปิดลิงก์ฟอร์ม
                     </a>
@@ -647,53 +647,53 @@ const EvaDashboardPage: React.FC = () => {
               ))}
             </div>
           )}
-          {error && <p className="mt-3 text-sm text-amber-300">{error}</p>}
+          {error && <p className="mt-3 text-sm text-amber-800">{error}</p>}
         </section>
 
-        <section className="rounded-2xl border border-white/10 bg-white/5 p-3.5 sm:p-5 min-h-[calc(100dvh-7.5rem)] sm:min-h-0 mt-3 lg:mt-0">
+        <section className="rounded-2xl border border-[#D6D4CC] bg-white p-3.5 sm:p-5 min-h-[calc(100dvh-7.5rem)] sm:min-h-0 mt-3 lg:mt-0">
           {!selectedTemplate ? (
-            <p className="text-gray-400">เลือกแบบประเมินจากรายการทางซ้ายเพื่อดูรายละเอียด</p>
+            <p className="text-gray-600">เลือกแบบประเมินจากรายการทางซ้ายเพื่อดูรายละเอียด</p>
           ) : (
             <div className="space-y-4">
               <div>
-                <p className="text-xs uppercase tracking-[0.12em] text-yellow-200/80">แบบประเมินที่เลือก</p>
-                <h2 className="text-lg sm:text-2xl font-bold text-yellow-100 mt-1 leading-snug">{selectedTemplate.name}</h2>
+                <p className="text-xs uppercase tracking-[0.12em] text-yellow-800">แบบประเมินที่เลือก</p>
+                <h2 className="text-lg sm:text-2xl font-bold text-yellow-900 mt-1 leading-snug">{selectedTemplate.name}</h2>
                 {selectedTemplate.description?.trim() && (
-                  <p className="text-sm sm:text-base text-gray-300 mt-2 whitespace-pre-line leading-relaxed">{selectedTemplate.description}</p>
+                  <p className="text-sm sm:text-base text-gray-700 mt-2 whitespace-pre-line leading-relaxed">{selectedTemplate.description}</p>
                 )}
               </div>
 
               <div className="grid grid-cols-1 xl:grid-cols-3 gap-2">
-                <div className="rounded-xl border border-white/10 bg-black/20 p-3">
-                  <p className="text-xs text-gray-400">จำนวนรายการในแบบประเมิน</p>
-                  <p className="text-lg sm:text-xl font-semibold text-white mt-1">{selectedTemplate.prompts.length}</p>
+                <div className="rounded-xl border border-[#D6D4CC] bg-white p-3">
+                  <p className="text-xs text-gray-600">จำนวนรายการในแบบประเมิน</p>
+                  <p className="text-lg sm:text-xl font-semibold text-gray-900 mt-1">{selectedTemplate.prompts.length}</p>
                 </div>
-                <div className="rounded-xl border border-white/10 bg-black/20 p-3">
-                  <p className="text-xs text-gray-400">จำนวนคำตอบที่บันทึก</p>
-                  <p className="text-lg sm:text-xl font-semibold text-white mt-1">{selectedTemplate.responseCount}</p>
+                <div className="rounded-xl border border-[#D6D4CC] bg-white p-3">
+                  <p className="text-xs text-gray-600">จำนวนคำตอบที่บันทึก</p>
+                  <p className="text-lg sm:text-xl font-semibold text-gray-900 mt-1">{selectedTemplate.responseCount}</p>
                 </div>
-                <div className="rounded-xl border border-white/10 bg-black/20 p-3">
-                  <p className="text-xs text-gray-400">จำนวนผู้ตอบ</p>
-                  <p className="text-lg sm:text-xl font-semibold text-white mt-1">{userCards.length}</p>
+                <div className="rounded-xl border border-[#D6D4CC] bg-white p-3">
+                  <p className="text-xs text-gray-600">จำนวนผู้ตอบ</p>
+                  <p className="text-lg sm:text-xl font-semibold text-gray-900 mt-1">{userCards.length}</p>
                 </div>
               </div>
 
               <div>
-                <h3 className="font-semibold text-gray-200 mb-2">ผู้ตอบแบบประเมิน </h3>
+                <h3 className="font-semibold text-gray-800 mb-2">ผู้ตอบแบบประเมิน </h3>
                 {userCards.length > 0 && (
                   <div className="mb-3">
                     <input
                       value={userSearch}
                       onChange={(e) => setUserSearch(e.target.value)}
                       placeholder="ค้นหาชื่อผู้ตอบ..."
-                      className="w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2.5 text-sm"
+                      className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900"
                     />
                   </div>
                 )}
                 {userCards.length === 0 ? (
-                  <p className="text-sm text-gray-400">ยังไม่มีผู้ตอบแบบประเมินนี้</p>
+                  <p className="text-sm text-gray-600">ยังไม่มีผู้ตอบแบบประเมินนี้</p>
                 ) : filteredUserCards.length === 0 ? (
-                  <p className="text-sm text-gray-400">ไม่พบชื่อผู้ตอบตามคำค้นหา</p>
+                  <p className="text-sm text-gray-600">ไม่พบชื่อผู้ตอบตามคำค้นหา</p>
                 ) : (
                   <div className="max-h-[60vh] overflow-y-auto pr-1">
                     <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
@@ -702,8 +702,8 @@ const EvaDashboardPage: React.FC = () => {
                           key={user.userName}
                           className={`rounded-2xl border px-4 py-3.5 text-left transition-colors min-h-[96px] ${
                             selectedUserName === user.userName
-                              ? 'border-yellow-400/70 bg-yellow-400/10'
-                              : 'border-white/10 bg-black/20'
+                              ? 'border-yellow-400/70 bg-yellow-50'
+                              : 'border-[#D6D4CC] bg-white'
                           }`}
                         >
                           <button
@@ -711,15 +711,15 @@ const EvaDashboardPage: React.FC = () => {
                             onClick={() => setSelectedUserName(user.userName)}
                             className="w-full text-left hover:opacity-95"
                           >
-                            <p className="text-base font-semibold text-white truncate">{user.userName}</p>
-                            <p className="text-xs text-gray-300 mt-1">ส่งคำตอบ {user.responseCount} ครั้ง</p>
-                            <p className="text-xs text-gray-400 mt-1">ล่าสุด: {formatThaiDateTime(user.latestAt)}</p>
+                            <p className="text-base font-semibold text-gray-900 truncate">{user.userName}</p>
+                            <p className="text-xs text-gray-700 mt-1">ส่งคำตอบ {user.responseCount} ครั้ง</p>
+                            <p className="text-xs text-gray-600 mt-1">ล่าสุด: {formatThaiDateTime(user.latestAt)}</p>
                           </button>
                           <button
                             type="button"
                             onClick={() => void deleteUserCard(user.userName)}
                             disabled={deletingUserName === user.userName}
-                            className="mt-2 rounded-lg border border-red-400/35 bg-red-500/15 px-2.5 py-1.5 text-xs text-red-200 hover:bg-red-500/25 disabled:opacity-60"
+                            className="mt-2 rounded-lg border border-red-300 bg-red-50 px-2.5 py-1.5 text-xs text-red-700 hover:bg-red-100 disabled:opacity-60"
                           >
                             {deletingUserName === user.userName ? 'กำลังลบ...' : 'ลบ'}
                           </button>
@@ -736,25 +736,25 @@ const EvaDashboardPage: React.FC = () => {
       {sidebarOpen && (
         <div className="fixed inset-0 z-40 lg:hidden">
           <div
-            className="absolute inset-0 bg-black/70"
+            className="absolute inset-0 bg-black/40"
             onClick={() => setSidebarOpen(false)}
             aria-hidden
           />
-          <aside className="absolute left-0 top-0 bottom-0 w-[86vw] max-w-[340px] border-r border-white/10 bg-zinc-950/95 backdrop-blur p-3 overflow-y-auto">
+          <aside className="absolute left-0 top-0 bottom-0 w-[86vw] max-w-[340px] overflow-y-auto border-r border-[#D6D4CC] bg-white p-3 shadow-xl">
             <div className="flex items-center justify-between mb-3">
-              <h2 className="font-semibold text-gray-100">เลือกแบบประเมิน</h2>
+              <h2 className="font-semibold text-gray-900">เลือกแบบประเมิน</h2>
               <button
                 type="button"
                 onClick={() => setSidebarOpen(false)}
-                className="rounded-lg border border-white/15 px-2.5 py-1.5 text-xs text-gray-300"
+                className="rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs text-gray-700"
               >
                 ปิด
               </button>
             </div>
             {loading ? (
-              <p className="text-sm text-gray-400">กำลังโหลดข้อมูล...</p>
+              <p className="text-sm text-gray-600">กำลังโหลดข้อมูล...</p>
             ) : templates.length === 0 ? (
-              <p className="text-sm text-gray-400">ยังไม่มีแบบประเมินที่สร้างไว้</p>
+              <p className="text-sm text-gray-600">ยังไม่มีแบบประเมินที่สร้างไว้</p>
             ) : (
               <div className="space-y-2">
                 {templates.map((item) => (
@@ -762,8 +762,8 @@ const EvaDashboardPage: React.FC = () => {
                     key={item.id}
                     className={`w-full text-left rounded-xl border px-3 py-2.5 transition-colors ${
                       selectedTemplateId === item.id
-                        ? 'border-yellow-400/60 bg-yellow-400/10 text-yellow-100'
-                        : 'border-white/10 bg-black/20 text-gray-200'
+                        ? 'border-yellow-500 bg-yellow-50 text-yellow-900'
+                        : 'border-[#D6D4CC] bg-white text-gray-800'
                     }`}
                   >
                     <button
@@ -777,14 +777,14 @@ const EvaDashboardPage: React.FC = () => {
                       className="w-full text-left"
                     >
                       <p className="font-medium text-sm line-clamp-2 leading-snug">{item.name}</p>
-                    <p className="text-[11px] text-gray-400 mt-1">{item.responseCount} คำตอบ</p>
+                    <p className="text-[11px] text-gray-600 mt-1">{item.responseCount} คำตอบ</p>
                     </button>
                     <div className="mt-2 flex items-center gap-2">
                       <button
                         type="button"
                         onClick={() => void downloadTemplateResponses(item)}
                         disabled={exportingTemplateId === item.id}
-                        className="rounded-lg border border-emerald-400/35 bg-emerald-500/15 px-2 py-1 text-[11px] text-emerald-200 hover:bg-emerald-500/25 disabled:opacity-60"
+                        className="rounded-lg border border-emerald-300 bg-emerald-50 px-2 py-1 text-[11px] text-emerald-800 hover:bg-emerald-100 disabled:opacity-60"
                       >
                         {exportingTemplateId === item.id ? 'กำลังสร้าง...' : 'Download Excel'}
                       </button>
@@ -792,7 +792,7 @@ const EvaDashboardPage: React.FC = () => {
                         href={`/evaluation/form/${encodeURIComponent(item.id)}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="rounded-lg border border-white/20 bg-white/5 px-2 py-1 text-[11px] text-gray-200 hover:bg-white/10"
+                        className="rounded-lg border border-gray-200 bg-white px-2 py-1 text-[11px] text-gray-800 hover:bg-gray-100"
                       >
                         เปิดลิงก์ฟอร์ม
                       </a>
@@ -801,35 +801,35 @@ const EvaDashboardPage: React.FC = () => {
                 ))}
               </div>
             )}
-            {error && <p className="mt-3 text-sm text-amber-300">{error}</p>}
+            {error && <p className="mt-3 text-sm text-amber-800">{error}</p>}
           </aside>
         </div>
       )}
       {selectedUserCard && (
         <div
-          className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm p-0 sm:p-6"
+          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm p-0 sm:p-6"
           role="dialog"
           aria-modal="true"
           onClick={() => setSelectedUserName('')}
         >
           <div
-            className="mx-auto h-[92dvh] sm:h-full w-full max-w-4xl rounded-t-3xl sm:rounded-2xl border border-white/15 bg-zinc-950/95 flex flex-col mt-[8dvh] sm:mt-0"
+            className="mx-auto mt-[8dvh] flex h-[92dvh] w-full max-w-4xl flex-col rounded-t-3xl border border-gray-200 bg-white sm:mt-0 sm:h-full sm:rounded-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="sticky top-0 z-10 bg-zinc-950/95 flex items-start justify-between gap-3 border-b border-white/10 p-4 sm:p-5">
+            <div className="sticky top-0 z-10 flex items-start justify-between gap-3 border-b border-[#D6D4CC] bg-white p-4 sm:p-5">
               <div className="min-w-0">
-                <div className="w-10 h-1 rounded-full bg-white/20 mx-auto mb-3 sm:hidden" />
-                <h3 className="font-semibold text-yellow-100 truncate">
+                <div className="w-10 h-1 rounded-full bg-gray-300 mx-auto mb-3 sm:hidden" />
+                <h3 className="font-semibold text-yellow-900 truncate">
                   รายละเอียดคำตอบของ: {selectedUserCard.userName}
                 </h3>
-                <p className="text-sm text-gray-300 mt-1">
-                  จำนวนครั้งที่ส่ง: <span className="text-white font-semibold">{selectedUserCard.responseCount}</span>
+                <p className="text-sm text-gray-700 mt-1">
+                  จำนวนครั้งที่ส่ง: <span className="text-gray-900 font-semibold">{selectedUserCard.responseCount}</span>
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setSelectedUserName('')}
-                className="rounded-lg border border-white/20 px-3 py-2 text-sm text-gray-200 hover:bg-white/10 shrink-0"
+                className="rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-800 hover:bg-gray-100 shrink-0"
               >
                 ปิด
               </button>
@@ -839,7 +839,7 @@ const EvaDashboardPage: React.FC = () => {
                 type="button"
                 onClick={() => void deleteUserCard(selectedUserCard.userName)}
                 disabled={deletingUserName === selectedUserCard.userName}
-                className="rounded-lg border border-red-400/35 bg-red-500/15 px-3 py-2 text-sm text-red-200 hover:bg-red-500/25 disabled:opacity-60"
+                className="rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700 hover:bg-red-100 disabled:opacity-60"
               >
                 {deletingUserName === selectedUserCard.userName ? 'กำลังลบข้อมูลผู้ตอบ...' : 'ลบผู้ตอบนี้'}
               </button>
@@ -848,14 +848,14 @@ const EvaDashboardPage: React.FC = () => {
               {selectedUserCard.submissions.map((submission, submitIdx) => (
                 <div
                   key={`${selectedUserCard.userName}-${submission.createdAt}-${submitIdx}`}
-                  className="rounded-lg border border-white/10 bg-black/25 p-3"
+                  className="rounded-lg border border-[#D6D4CC] bg-gray-50 p-3"
                 >
-                  <p className="text-xs text-gray-400 mb-2">
+                  <p className="text-xs text-gray-600 mb-2">
                     ส่งเมื่อ: {formatThaiDateTime(submission.createdAt)}
                   </p>
                   {submission.answers.some((answer) => answer.promptType === 'scored_choice') && (
-                    <div className="mb-3 rounded-lg border border-yellow-400/25 bg-yellow-400/10 px-3 py-2">
-                      <p className="text-sm font-semibold text-yellow-100">
+                    <div className="mb-3 rounded-lg border border-yellow-400/25 bg-yellow-50 px-3 py-2">
+                      <p className="text-sm font-semibold text-yellow-900">
                         คะแนน:{' '}
                         {
                           submission.answers.filter(
@@ -870,22 +870,22 @@ const EvaDashboardPage: React.FC = () => {
                     {buildAnswerDisplayBlocks(submission.answers).map((block, bi) => (
                       <Fragment key={`${submission.createdAt}-block-${bi}`}>
                         {block.kind === 'plain' && (
-                          <div className="text-sm rounded-lg border border-white/8 bg-black/20 p-3">
-                            <p className="text-gray-200 font-medium leading-snug">
+                          <div className="text-sm rounded-lg border border-gray-200 bg-white p-3">
+                            <p className="text-gray-800 font-medium leading-snug">
                               {bi + 1}.{' '}
                               {block.answer.subPrompt
                                 ? `${block.answer.prompt} :: ${block.answer.subPrompt}`
                                 : block.answer.prompt || '-'}
                             </p>
-                            <p className="text-yellow-100/95 mt-2 whitespace-pre-wrap leading-relaxed">
+                            <p className="text-yellow-900 mt-2 whitespace-pre-wrap leading-relaxed">
                               {block.answer.answer ?? '-'}
                             </p>
                             {block.answer.promptType === 'scored_choice' && (
                               <p
                                 className={`mt-2 inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${
                                   block.answer.isCorrect
-                                    ? 'bg-emerald-400/15 text-emerald-200'
-                                    : 'bg-red-400/15 text-red-200'
+                                    ? 'bg-emerald-50 text-emerald-800'
+                                    : 'bg-red-50 text-red-700'
                                 }`}
                               >
                                 {block.answer.isCorrect ? 'ตอบถูก' : `ตอบผิด · เฉลย: ${block.answer.correctAnswer || '-'}`}
@@ -894,25 +894,25 @@ const EvaDashboardPage: React.FC = () => {
                           </div>
                         )}
                         {block.kind === 'commitment_table' && (
-                          <div className="text-sm rounded-xl border border-amber-400/25 bg-amber-950/25 p-3 sm:p-4">
-                            <p className="text-gray-100 font-semibold text-base leading-snug">
+                          <div className="rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm sm:p-4">
+                            <p className="text-gray-900 font-semibold text-base leading-snug">
                               {bi + 1}. {block.prompt}
                             </p>
-                            <p className="text-xs text-amber-200/75 mt-1 mb-3">ตาราง COMMITMENT / BY WHEN / HOW</p>
-                            <div className="overflow-x-auto rounded-lg border border-white/10 bg-black/40 shadow-inner">
+                            <p className="text-xs text-amber-800 mt-1 mb-3">ตาราง COMMITMENT / BY WHEN / HOW</p>
+                            <div className="overflow-x-auto rounded-lg border border-[#D6D4CC] bg-gray-100 shadow-inner">
                               <table className="w-full min-w-[560px] text-left text-sm border-collapse">
                                 <thead>
-                                  <tr className="border-b border-white/15 bg-white/[0.06]">
-                                    <th className="px-2.5 sm:px-3 py-2.5 font-semibold text-amber-100/95 w-10 whitespace-nowrap">
+                                  <tr className="border-b border-gray-200 bg-gray-50">
+                                    <th className="px-2.5 sm:px-3 py-2.5 font-semibold text-amber-900 w-10 whitespace-nowrap">
                                       #
                                     </th>
-                                    <th className="px-2.5 sm:px-3 py-2.5 font-semibold text-amber-100/95 align-bottom min-w-[10rem]">
+                                    <th className="px-2.5 sm:px-3 py-2.5 font-semibold text-amber-900 align-bottom min-w-[10rem]">
                                       {block.headers[0]}
                                     </th>
-                                    <th className="px-2.5 sm:px-3 py-2.5 font-semibold text-amber-100/95 align-bottom min-w-[7.5rem]">
+                                    <th className="px-2.5 sm:px-3 py-2.5 font-semibold text-amber-900 align-bottom min-w-[7.5rem]">
                                       {block.headers[1]}
                                     </th>
-                                    <th className="px-2.5 sm:px-3 py-2.5 font-semibold text-amber-100/95 align-bottom min-w-[9rem]">
+                                    <th className="px-2.5 sm:px-3 py-2.5 font-semibold text-amber-900 align-bottom min-w-[9rem]">
                                       {block.headers[2]}
                                     </th>
                                   </tr>
@@ -921,22 +921,22 @@ const EvaDashboardPage: React.FC = () => {
                                   {block.rows.map((r) => (
                                     <tr
                                       key={r.rowIndex}
-                                      className="border-b border-white/[0.07] last:border-0 align-top hover:bg-white/[0.04]"
+                                      className="border-b border-gray-100 last:border-0 align-top hover:bg-gray-50"
                                     >
                                       <td className="px-2.5 sm:px-3 py-2.5 text-gray-500 tabular-nums whitespace-nowrap">
                                         {r.rowIndex + 1}
                                       </td>
-                                      <td className="px-2.5 sm:px-3 py-2.5 text-gray-200 leading-relaxed [overflow-wrap:anywhere]">
+                                      <td className="px-2.5 sm:px-3 py-2.5 text-gray-800 leading-relaxed [overflow-wrap:anywhere]">
                                         {r.commitment || '—'}
                                       </td>
-                                      <td className="px-2.5 sm:px-3 py-2.5 text-yellow-100/95 leading-relaxed">
+                                      <td className="px-2.5 sm:px-3 py-2.5 text-yellow-900 leading-relaxed">
                                         <EvaAnswerHoverPopover text={r.byWhen} className="block max-w-full">
                                           <span className="block line-clamp-3 cursor-help [overflow-wrap:anywhere]">
                                             {r.byWhen || '—'}
                                           </span>
                                         </EvaAnswerHoverPopover>
                                       </td>
-                                      <td className="px-2.5 sm:px-3 py-2.5 text-emerald-100/90 leading-relaxed">
+                                      <td className="px-2.5 sm:px-3 py-2.5 text-emerald-800 leading-relaxed">
                                         <EvaAnswerHoverPopover text={r.howKnow} className="block max-w-full">
                                           <span className="block line-clamp-3 cursor-help [overflow-wrap:anywhere]">
                                             {r.howKnow || '—'}
@@ -951,20 +951,20 @@ const EvaDashboardPage: React.FC = () => {
                           </div>
                         )}
                         {block.kind === 'commitment_table_legacy' && (
-                          <div className="text-sm space-y-2 rounded-lg border border-white/8 bg-black/20 p-3">
-                            <p className="text-gray-200 font-medium leading-snug">
+                          <div className="text-sm space-y-2 rounded-lg border border-gray-200 bg-white p-3">
+                            <p className="text-gray-800 font-medium leading-snug">
                               {bi + 1}. {block.prompt}
                             </p>
                             <p className="text-xs text-gray-500">ตาราง (บันทึกแบบเก่า — แสดงรายข้อ)</p>
                             {block.items.map((answer, j) => (
                               <div
                                 key={`${submission.createdAt}-leg-${j}`}
-                                className="border-t border-white/8 pt-2 first:border-t-0 first:pt-0"
+                                className="border-t border-gray-200 pt-2 first:border-t-0 first:pt-0"
                               >
-                                <p className="text-gray-300 leading-snug">
+                                <p className="text-gray-700 leading-snug">
                                   {answer.subPrompt || answer.prompt || '-'}
                                 </p>
-                                <p className="text-yellow-100/95 mt-1 whitespace-pre-wrap leading-relaxed">
+                                <p className="text-yellow-900 mt-1 whitespace-pre-wrap leading-relaxed">
                                   {answer.answer || '-'}
                                 </p>
                               </div>

@@ -370,7 +370,7 @@ const HogwartsInnoclubPage: React.FC = () => {
     setSuccess('ลบคำตอบเรียบร้อย');
   };
 
-  const inputClass = 'w-full rounded-lg bg-black/40 border border-amber-200/25 px-3 py-2 text-amber-50 placeholder:text-amber-100/40';
+  const inputClass = 'w-full rounded-lg bg-gray-100 border border-amber-200/25 px-3 py-2 text-amber-900 placeholder:text-amber-400';
   const dashboardBackgroundStyle = {
     backgroundImage: "url('/images/hogwarts/3.png')",
     backgroundSize: '100%',
@@ -378,7 +378,7 @@ const HogwartsInnoclubPage: React.FC = () => {
     backgroundRepeat: 'no-repeat',
   } as const;
   return (
-    <div className="relative min-h-screen text-white innoclub-hogwarts-font bg-[#07050f] overflow-hidden">
+    <div className="relative min-h-screen text-gray-900 innoclub-hogwarts-font bg-[#07050f] overflow-hidden">
       {view === 'form' ? (
         <div
           className="absolute inset-0"
@@ -399,29 +399,29 @@ const HogwartsInnoclubPage: React.FC = () => {
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-lg bg-amber-300 text-black font-black flex items-center justify-center">H</div>
             <div>
-              <p className="text-xs uppercase tracking-[0.2em] text-amber-200/90">Hogwarts Mode</p>
-              <h1 className="font-bold text-amber-50 leading-tight">InnoClub Answer System</h1>
-              <p className="text-xs text-amber-100/70 mt-0.5">Role: {isAdmin ? 'Admin' : 'Guest'}</p>
+              <p className="text-xs uppercase tracking-[0.2em] text-amber-800/90">Hogwarts Mode</p>
+              <h1 className="font-bold text-amber-900 leading-tight">InnoClub Answer System</h1>
+              <p className="text-xs text-amber-800 mt-0.5">Role: {isAdmin ? 'Admin' : 'Guest'}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <Link
               to="/"
-              className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-amber-200/25 bg-white/10 text-amber-100 hover:bg-white/20 transition-colors"
+              className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-amber-200/25 bg-gray-100 text-amber-900 hover:bg-gray-100 transition-colors"
             >
               <BrandLogo className="text-[18px]" tone="dark" />
             </Link>
             <button
               type="button"
               onClick={() => setView('form')}
-              className={`px-3 py-2 rounded-lg text-sm font-semibold ${view === 'form' ? 'bg-amber-300 text-black' : 'bg-white/10 text-amber-100'}`}
+              className={`px-3 py-2 rounded-lg text-sm font-semibold ${view === 'form' ? 'bg-amber-300 text-black' : 'bg-gray-100 text-amber-900'}`}
             >
               กรอกคำตอบ
             </button>
             <button
               type="button"
               onClick={() => setView('dashboard')}
-              className={`px-3 py-2 rounded-lg text-sm font-semibold ${view === 'dashboard' ? 'bg-amber-300 text-black' : 'bg-white/10 text-amber-100'}`}
+              className={`px-3 py-2 rounded-lg text-sm font-semibold ${view === 'dashboard' ? 'bg-amber-300 text-black' : 'bg-gray-100 text-amber-900'}`}
             >
               Dashboard
             </button>
@@ -432,16 +432,16 @@ const HogwartsInnoclubPage: React.FC = () => {
       <main className="max-w-6xl mx-auto px-4 py-8">
         {view === 'form' ? (
           <form onSubmit={submit} className="max-w-3xl mx-auto space-y-6 lg:space-y-7">
-            <div className="rounded-2xl border border-amber-200/20 bg-black/35 p-5">
-              <h2 className="text-xl font-bold text-amber-100 mb-1">เลือกฐานและกลุ่ม</h2>
-              <p className="text-sm text-amber-100/75 mb-4">เริ่มจากเลือกฐานและกลุ่มก่อนเข้าสู่การตอบคำถาม</p>
+            <div className="rounded-2xl border border-amber-200/20 bg-white p-5">
+              <h2 className="text-xl font-bold text-amber-900 mb-1">เลือกฐานและกลุ่ม</h2>
+              <p className="text-sm text-amber-900/75 mb-4">เริ่มจากเลือกฐานและกลุ่มก่อนเข้าสู่การตอบคำถาม</p>
               <div className="grid sm:grid-cols-2 gap-4">
                 <label className="space-y-2">
-                  <span className="text-sm text-amber-100">ฐาน *</span>
+                  <span className="text-sm text-amber-900">ฐาน *</span>
                   <select
                     value={form.base_name}
                     onChange={(e) => setForm((prev) => ({ ...prev, base_name: e.target.value }))}
-                    className="w-full rounded-lg bg-black/40 border border-amber-200/25 px-3 py-2 text-amber-50"
+                    className="w-full rounded-lg bg-gray-100 border border-amber-200/25 px-3 py-2 text-amber-900"
                   >
                     <option value="">เลือกฐาน</option>
                     {baseOptions.map((base) => (
@@ -450,11 +450,11 @@ const HogwartsInnoclubPage: React.FC = () => {
                   </select>
                 </label>
                 <label className="space-y-2">
-                  <span className="text-sm text-amber-100">กลุ่ม *</span>
+                  <span className="text-sm text-amber-900">กลุ่ม *</span>
                   <select
                     value={form.group_name}
                     onChange={(e) => setForm((prev) => ({ ...prev, group_name: e.target.value }))}
-                    className="w-full rounded-lg bg-black/40 border border-amber-200/25 px-3 py-2 text-amber-50"
+                    className="w-full rounded-lg bg-gray-100 border border-amber-200/25 px-3 py-2 text-amber-900"
                   >
                     <option value="">เลือกกลุ่ม</option>
                     {groupOptions.map((group) => (
@@ -464,7 +464,7 @@ const HogwartsInnoclubPage: React.FC = () => {
                 </label>
               </div>
               <label className="block space-y-2 mt-4">
-                <span className="text-sm text-amber-100">ชื่อผู้ตอบ (ไม่บังคับ)</span>
+                <span className="text-sm text-amber-900">ชื่อผู้ตอบ (ไม่บังคับ)</span>
                 <input
                   value={form.respondent_name}
                   onChange={(e) => setForm((prev) => ({ ...prev, respondent_name: e.target.value }))}
@@ -476,9 +476,9 @@ const HogwartsInnoclubPage: React.FC = () => {
 
             {isAdmin && (
               <div className="rounded-2xl border border-emerald-200/25 bg-emerald-950/20 p-5 space-y-5">
-                <h3 className="text-lg font-bold text-emerald-200">จัดการฐาน/กลุ่ม (Admin)</h3>
+                <h3 className="text-lg font-bold text-emerald-800">จัดการฐาน/กลุ่ม (Admin)</h3>
                 <div>
-                  <p className="text-sm text-emerald-100 mb-2">แก้ไขชื่อฐาน / ชื่อหัวข้อฐาน</p>
+                  <p className="text-sm text-emerald-800 mb-2">แก้ไขชื่อฐาน / ชื่อหัวข้อฐาน</p>
                   <div className="space-y-2">
                     {baseOptions.map((base) => (
                       <div key={base.id} className="grid sm:grid-cols-[1fr_2fr] gap-2">
@@ -510,13 +510,13 @@ const HogwartsInnoclubPage: React.FC = () => {
                     onClick={() => {
                       setError('ระบบรองรับการเพิ่มฐานเฉพาะ 1-4 เท่านั้นในเวอร์ชันนี้ (แก้ไขชื่อได้)');
                     }}
-                    className="rounded-lg bg-white/10 text-emerald-100 px-3 py-2 text-sm font-semibold hover:bg-white/20"
+                    className="rounded-lg bg-gray-100 text-emerald-800 px-3 py-2 text-sm font-semibold hover:bg-gray-100"
                   >
                     เพิ่มฐาน
                   </button>
                 </div>
                 <div>
-                  <p className="text-sm text-emerald-100 mb-2">แก้ไข/เพิ่มกลุ่ม</p>
+                  <p className="text-sm text-emerald-800 mb-2">แก้ไข/เพิ่มกลุ่ม</p>
                   <div className="flex flex-wrap gap-2 mb-3">
                     {groupOptions.map((group, idx) => (
                       <input
@@ -527,7 +527,7 @@ const HogwartsInnoclubPage: React.FC = () => {
                           next[idx] = e.target.value;
                           saveGroupOptions(next);
                         }}
-                        className="w-16 rounded-lg bg-black/40 border border-amber-200/25 px-2 py-2 text-amber-50 text-center"
+                        className="w-16 rounded-lg bg-gray-100 border border-amber-200/25 px-2 py-2 text-amber-900 text-center"
                       />
                     ))}
                   </div>
@@ -542,7 +542,7 @@ const HogwartsInnoclubPage: React.FC = () => {
                         saveGroupOptions([...groupOptions, label]);
                         setNewGroupLabel('');
                       }}
-                      className="rounded-lg bg-white/10 text-emerald-100 px-3 py-2 text-sm font-semibold hover:bg-white/20"
+                      className="rounded-lg bg-gray-100 text-emerald-800 px-3 py-2 text-sm font-semibold hover:bg-gray-100"
                     >
                       เพิ่มกลุ่ม
                     </button>
@@ -552,10 +552,10 @@ const HogwartsInnoclubPage: React.FC = () => {
             )}
 
             {selectedBase && (
-              <div className="rounded-2xl border border-amber-200/20 bg-black/35 p-5 space-y-4 min-h-[340px] sm:min-h-[380px] lg:min-h-[430px] transition-all duration-300">
+              <div className="rounded-2xl border border-amber-200/20 bg-white p-5 space-y-4 min-h-[340px] sm:min-h-[380px] lg:min-h-[430px] transition-all duration-300">
                 <div className="flex items-center justify-between gap-3">
-                  <h3 className="text-lg font-bold text-amber-100">{selectedBase.title}</h3>
-                  <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-300/20 border border-amber-200/30 text-amber-100">
+                  <h3 className="text-lg font-bold text-amber-900">{selectedBase.title}</h3>
+                  <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-300/20 border border-amber-200/30 text-amber-900">
                     {baseOptions.findIndex((b) => b.id === selectedBase.id) + 1}/4
                   </span>
                 </div>
@@ -563,7 +563,7 @@ const HogwartsInnoclubPage: React.FC = () => {
                 {form.base_name === 'base1' && (
                   <>
                     <label className="block space-y-2">
-                      <span className="text-sm text-amber-100">1. Link Chatbot ที่สร้าง *</span>
+                      <span className="text-sm text-amber-900">1. Link Chatbot ที่สร้าง *</span>
                       <input
                         value={form.base1_chatbot_link}
                         onChange={(e) => setForm((prev) => ({ ...prev, base1_chatbot_link: e.target.value }))}
@@ -577,15 +577,15 @@ const HogwartsInnoclubPage: React.FC = () => {
                 {form.base_name === 'base2' && (
                   <>
                     <label className="block space-y-2">
-                      <span className="text-sm text-amber-100">1. เปรียบเทียบยอดขายในช่วงเวลาต่าง ๆ เพื่อดูการเติบโต *</span>
+                      <span className="text-sm text-amber-900">1. เปรียบเทียบยอดขายในช่วงเวลาต่าง ๆ เพื่อดูการเติบโต *</span>
                       <textarea rows={4} value={form.base2_q1} onChange={(e) => setForm((prev) => ({ ...prev, base2_q1: e.target.value }))} className={`${inputClass} min-h-[110px] resize-y`} />
                     </label>
                     <label className="block space-y-2">
-                      <span className="text-sm text-amber-100">2. Top 3 ผลิตภัณฑ์ที่กำไรสูงสุด และแนวทางขยายยอดขาย *</span>
+                      <span className="text-sm text-amber-900">2. Top 3 ผลิตภัณฑ์ที่กำไรสูงสุด และแนวทางขยายยอดขาย *</span>
                       <textarea rows={4} value={form.base2_q2} onChange={(e) => setForm((prev) => ({ ...prev, base2_q2: e.target.value }))} className={`${inputClass} min-h-[110px] resize-y`} />
                     </label>
                     <label className="block space-y-2">
-                      <span className="text-sm text-amber-100">3. แนวโน้มโดยรวมเมื่อเวลาผ่านไป (เติบโต/คงที่/ลดลง) *</span>
+                      <span className="text-sm text-amber-900">3. แนวโน้มโดยรวมเมื่อเวลาผ่านไป (เติบโต/คงที่/ลดลง) *</span>
                       <textarea rows={4} value={form.base2_q3} onChange={(e) => setForm((prev) => ({ ...prev, base2_q3: e.target.value }))} className={`${inputClass} min-h-[110px] resize-y`} />
                     </label>
                   </>
@@ -594,15 +594,15 @@ const HogwartsInnoclubPage: React.FC = () => {
                 {form.base_name === 'base3' && (
                   <>
                     <label className="block space-y-2">
-                      <span className="text-sm text-amber-100">1. วิเคราะห์ SWOT ทั้ง 4 ช่อง *</span>
+                      <span className="text-sm text-amber-900">1. วิเคราะห์ SWOT ทั้ง 4 ช่อง *</span>
                       <textarea rows={5} value={form.base3_swot} onChange={(e) => setForm((prev) => ({ ...prev, base3_swot: e.target.value }))} className={`${inputClass} min-h-[132px] resize-y`} />
                     </label>
                     <label className="block space-y-2">
-                      <span className="text-sm text-amber-100">2. เป้าหมายกำไรเท่าไร และเพราะเหตุใด *</span>
+                      <span className="text-sm text-amber-900">2. เป้าหมายกำไรเท่าไร และเพราะเหตุใด *</span>
                       <textarea rows={4} value={form.base3_profit_target} onChange={(e) => setForm((prev) => ({ ...prev, base3_profit_target: e.target.value }))} className={`${inputClass} min-h-[110px] resize-y`} />
                     </label>
                     <label className="block space-y-2">
-                      <span className="text-sm text-amber-100">3. กลยุทธ์ที่จะใช้มีอะไรบ้าง *</span>
+                      <span className="text-sm text-amber-900">3. กลยุทธ์ที่จะใช้มีอะไรบ้าง *</span>
                       <textarea rows={4} value={form.base3_strategies} onChange={(e) => setForm((prev) => ({ ...prev, base3_strategies: e.target.value }))} className={`${inputClass} min-h-[110px] resize-y`} />
                     </label>
                   </>
@@ -611,7 +611,7 @@ const HogwartsInnoclubPage: React.FC = () => {
                 {form.base_name === 'base4' && (
                   <>
                     <label className="block space-y-2">
-                      <span className="text-sm text-amber-100">Logo ที่สร้าง (Link ถ้ามี)</span>
+                      <span className="text-sm text-amber-900">Logo ที่สร้าง (Link ถ้ามี)</span>
                       <input
                         value={form.base4_logo_link}
                         onChange={(e) => setForm((prev) => ({ ...prev, base4_logo_link: e.target.value }))}
@@ -620,7 +620,7 @@ const HogwartsInnoclubPage: React.FC = () => {
                       />
                     </label>
                     <label className="block space-y-2">
-                      <span className="text-sm text-amber-100">อัปโหลดไฟล์รูปโลโก้ *</span>
+                      <span className="text-sm text-amber-900">อัปโหลดไฟล์รูปโลโก้ *</span>
                       <input
                         type="file"
                         accept="image/*"
@@ -642,19 +642,19 @@ const HogwartsInnoclubPage: React.FC = () => {
                             base4_logo_data_url: dataUrl,
                           }));
                         }}
-                        className="w-full rounded-lg bg-black/40 border border-amber-200/25 px-3 py-2 text-amber-50 file:mr-3 file:rounded-md file:border-0 file:bg-amber-300 file:px-3 file:py-1.5 file:text-black file:font-semibold"
+                        className="w-full rounded-lg bg-gray-100 border border-amber-200/25 px-3 py-2 text-amber-900 file:mr-3 file:rounded-md file:border-0 file:bg-amber-300 file:px-3 file:py-1.5 file:text-black file:font-semibold"
                       />
                     </label>
                     {form.base4_logo_file_name && (
-                      <p className="text-sm text-amber-100/80">ไฟล์ที่เลือก: {form.base4_logo_file_name}</p>
+                      <p className="text-sm text-amber-800">ไฟล์ที่เลือก: {form.base4_logo_file_name}</p>
                     )}
                   </>
                 )}
               </div>
             )}
 
-            {error && <div className="rounded-lg border border-red-400/35 bg-red-500/10 px-4 py-3 text-red-200 text-sm">{error}</div>}
-            {success && <div className="rounded-lg border border-emerald-400/35 bg-emerald-500/10 px-4 py-3 text-emerald-200 text-sm">{success}</div>}
+            {error && <div className="rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-red-700 text-sm">{error}</div>}
+            {success && <div className="rounded-lg border border-emerald-300 bg-emerald-50 px-4 py-3 text-emerald-800 text-sm">{success}</div>}
 
             <button
               type="submit"
@@ -666,27 +666,27 @@ const HogwartsInnoclubPage: React.FC = () => {
           </form>
         ) : (
           <div className="space-y-4">
-            <div className="rounded-2xl border border-amber-200/20 bg-black/35 p-5">
+            <div className="rounded-2xl border border-amber-200/20 bg-white p-5">
               <div className="flex flex-wrap items-end justify-between gap-3">
                 <div>
-                  <h2 className="text-2xl font-bold text-amber-100">Dashboard รายกลุ่ม</h2>
-                  <p className="text-sm text-amber-100/70 mt-1">เลือกกลุ่ม แล้วดูคำตอบแยกตามฐาน 1-4</p>
+                  <h2 className="text-2xl font-bold text-amber-900">Dashboard รายกลุ่ม</h2>
+                  <p className="text-sm text-amber-800 mt-1">เลือกกลุ่ม แล้วดูคำตอบแยกตามฐาน 1-4</p>
                 </div>
                 <button
                   type="button"
                   onClick={loadAnswers}
-                  className="rounded-lg bg-white/10 text-amber-100 px-3 py-2 text-sm font-semibold hover:bg-white/20"
+                  className="rounded-lg bg-gray-100 text-amber-900 px-3 py-2 text-sm font-semibold hover:bg-gray-100"
                 >
                   รีเฟรชข้อมูล
                 </button>
               </div>
               <div className="mt-4 max-w-xs">
                 <label className="space-y-2 block">
-                  <span className="text-sm text-amber-100">เลือกกลุ่ม</span>
+                  <span className="text-sm text-amber-900">เลือกกลุ่ม</span>
                   <select
                     value={selectedDashboardGroup}
                     onChange={(e) => setSelectedDashboardGroup(e.target.value)}
-                    className="w-full rounded-lg bg-black/40 border border-amber-200/25 px-3 py-2 text-amber-50"
+                    className="w-full rounded-lg bg-gray-100 border border-amber-200/25 px-3 py-2 text-amber-900"
                   >
                     {dashboardGroupOptions.map((group) => (
                       <option key={group} value={group}>
@@ -698,28 +698,28 @@ const HogwartsInnoclubPage: React.FC = () => {
               </div>
             </div>
 
-            {loadingDashboard && <p className="text-amber-100/80">กำลังเรียกข้อมูล...</p>}
-            {error && <div className="rounded-lg border border-red-400/35 bg-red-500/10 px-4 py-3 text-red-200 text-sm">{error}</div>}
+            {loadingDashboard && <p className="text-amber-800">กำลังเรียกข้อมูล...</p>}
+            {error && <div className="rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-red-700 text-sm">{error}</div>}
             {!loadingDashboard && dashboardAnswersByBase.every((section) => section.rows.length === 0) && (
-              <div className="rounded-xl border border-amber-200/20 bg-black/30 p-6 text-amber-100/80">
+              <div className="rounded-xl border border-amber-200/20 bg-white p-6 text-amber-800">
                 ยังไม่มีคำตอบสำหรับกลุ่มนี้
               </div>
             )}
 
             {dashboardAnswersByBase.map(({ base, rows }) => (
-              <section key={base.id} className="rounded-2xl border border-amber-200/20 bg-black/35 p-5">
+              <section key={base.id} className="rounded-2xl border border-amber-200/20 bg-white p-5">
                 <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-                  <h3 className="text-lg font-bold text-amber-100">{base.title || base.label}</h3>
-                  <div className="text-sm text-amber-100/85">จำนวนคำตอบ {rows.length}</div>
+                  <h3 className="text-lg font-bold text-amber-900">{base.title || base.label}</h3>
+                  <div className="text-sm text-amber-900/85">จำนวนคำตอบ {rows.length}</div>
                 </div>
                 {rows.length === 0 ? (
-                  <p className="text-amber-100/70 text-sm">ยังไม่มีคำตอบในฐานนี้</p>
+                  <p className="text-amber-800 text-sm">ยังไม่มีคำตอบในฐานนี้</p>
                 ) : (
                   <div className="space-y-3">
                     {rows.map((row) => (
-                      <div key={row.id} className="rounded-xl border border-white/10 bg-white/5 p-4">
+                      <div key={row.id} className="rounded-xl border border-[#D6D4CC] bg-white p-4">
                         <div className="flex flex-wrap items-start justify-between gap-3 mb-2">
-                          <div className="text-xs text-amber-100/70">
+                          <div className="text-xs text-amber-800">
                             {new Date(row.created_at).toLocaleString('th-TH')} · ผู้ตอบ: {row.respondent_name || '-'}
                           </div>
                           {isAdmin && (
@@ -730,7 +730,7 @@ const HogwartsInnoclubPage: React.FC = () => {
                                     type="button"
                                     onClick={() => saveEditAnswer(row)}
                                     disabled={rowActionLoadingId === row.id}
-                                    className="rounded-md bg-emerald-400/25 border border-emerald-300/40 px-2.5 py-1 text-xs font-semibold text-emerald-100 hover:bg-emerald-400/35 disabled:opacity-60"
+                                    className="rounded-md bg-emerald-400/25 border border-emerald-300/40 px-2.5 py-1 text-xs font-semibold text-emerald-800 hover:bg-emerald-400/35 disabled:opacity-60"
                                   >
                                     บันทึก
                                   </button>
@@ -738,7 +738,7 @@ const HogwartsInnoclubPage: React.FC = () => {
                                     type="button"
                                     onClick={cancelEditAnswer}
                                     disabled={rowActionLoadingId === row.id}
-                                    className="rounded-md bg-white/10 border border-white/20 px-2.5 py-1 text-xs font-semibold text-amber-100 hover:bg-white/20 disabled:opacity-60"
+                                    className="rounded-md bg-gray-100 border border-gray-200 px-2.5 py-1 text-xs font-semibold text-amber-900 hover:bg-gray-100 disabled:opacity-60"
                                   >
                                     ยกเลิก
                                   </button>
@@ -748,7 +748,7 @@ const HogwartsInnoclubPage: React.FC = () => {
                                   type="button"
                                   onClick={() => startEditAnswer(row)}
                                   disabled={rowActionLoadingId === row.id}
-                                  className="rounded-md bg-white/10 border border-white/20 px-2.5 py-1 text-xs font-semibold text-amber-100 hover:bg-white/20 disabled:opacity-60"
+                                  className="rounded-md bg-gray-100 border border-gray-200 px-2.5 py-1 text-xs font-semibold text-amber-900 hover:bg-gray-100 disabled:opacity-60"
                                 >
                                   แก้ไข
                                 </button>
@@ -757,7 +757,7 @@ const HogwartsInnoclubPage: React.FC = () => {
                                 type="button"
                                 onClick={() => deleteAnswer(row)}
                                 disabled={rowActionLoadingId === row.id}
-                                className="rounded-md bg-red-500/25 border border-red-300/40 px-2.5 py-1 text-xs font-semibold text-red-100 hover:bg-red-500/35 disabled:opacity-60"
+                                className="rounded-md bg-red-500/25 border border-red-300/40 px-2.5 py-1 text-xs font-semibold text-red-800 hover:bg-red-500/35 disabled:opacity-60"
                               >
                                 ลบ
                               </button>
@@ -767,7 +767,7 @@ const HogwartsInnoclubPage: React.FC = () => {
                         {editingAnswerId === row.id ? (
                           <div className="space-y-3">
                             <label className="block space-y-1">
-                              <span className="text-xs text-amber-100/75">ผู้ตอบ</span>
+                              <span className="text-xs text-amber-900/75">ผู้ตอบ</span>
                               <input
                                 value={editRespondentName}
                                 onChange={(e) => setEditRespondentName(e.target.value)}
@@ -776,7 +776,7 @@ const HogwartsInnoclubPage: React.FC = () => {
                               />
                             </label>
                             <label className="block space-y-1">
-                              <span className="text-xs text-amber-100/75">สรุปคำตอบ</span>
+                              <span className="text-xs text-amber-900/75">สรุปคำตอบ</span>
                               <textarea
                                 rows={3}
                                 value={editSummaryText}
@@ -787,10 +787,10 @@ const HogwartsInnoclubPage: React.FC = () => {
                             </label>
                           </div>
                         ) : (
-                          <div className="text-sm text-amber-50 whitespace-pre-wrap">{row.summary_text || '-'}</div>
+                          <div className="text-sm text-amber-900 whitespace-pre-wrap">{row.summary_text || '-'}</div>
                         )}
                         {row.attachment_name && (
-                          <div className="text-xs text-amber-100/70 mt-2">ไฟล์แนบ: {row.attachment_name}</div>
+                          <div className="text-xs text-amber-800 mt-2">ไฟล์แนบ: {row.attachment_name}</div>
                         )}
                         {row.base_name === 'base4' && (row.answers_json.logo_data_url || row.answers_json.logo_link) && (
                           <div className="mt-3">
@@ -805,10 +805,10 @@ const HogwartsInnoclubPage: React.FC = () => {
                               <img
                                 src={row.answers_json.logo_data_url || row.answers_json.logo_link}
                                 alt={row.attachment_name || 'uploaded logo'}
-                                className="max-h-56 w-auto rounded-lg border border-amber-200/25 bg-black/30 object-contain hover:opacity-90 transition-opacity"
+                                className="max-h-56 w-auto rounded-lg border border-amber-200/25 bg-white object-contain hover:opacity-90 transition-opacity"
                               />
                             </button>
-                            <p className="text-xs text-amber-100/70 mt-1">คลิกรูปเพื่อขยาย</p>
+                            <p className="text-xs text-amber-800 mt-1">คลิกรูปเพื่อขยาย</p>
                           </div>
                         )}
                       </div>
@@ -827,7 +827,7 @@ const HogwartsInnoclubPage: React.FC = () => {
         >
           <button
             type="button"
-            className="absolute top-4 right-4 rounded-lg bg-white/10 border border-white/20 px-3 py-1.5 text-sm text-white hover:bg-white/20"
+            className="absolute top-4 right-4 rounded-lg bg-gray-100 border border-gray-200 px-3 py-1.5 text-sm text-gray-900 hover:bg-gray-100"
             onClick={() => setPreviewImageSrc(null)}
           >
             ปิด
@@ -835,7 +835,7 @@ const HogwartsInnoclubPage: React.FC = () => {
           <img
             src={previewImageSrc}
             alt={previewImageAlt}
-            className="max-h-[90vh] max-w-[92vw] rounded-xl border border-amber-200/25 bg-black/40 object-contain"
+            className="max-h-[90vh] max-w-[92vw] rounded-xl border border-amber-200/25 bg-gray-100 object-contain"
             onClick={(e) => e.stopPropagation()}
           />
         </div>

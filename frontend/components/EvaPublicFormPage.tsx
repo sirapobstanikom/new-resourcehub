@@ -410,8 +410,8 @@ const EvaPublicFormPage: React.FC = () => {
   if (loadingTemplate) {
     return (
       <div className="md-page px-6 py-10">
-        <div className="max-w-3xl mx-auto rounded-2xl border border-white/10 bg-white/5 p-6">
-          <p className="text-gray-300">{copy.loading}</p>
+        <div className="max-w-3xl mx-auto rounded-2xl border border-[#D6D4CC] bg-white p-6">
+          <p className="text-gray-700">{copy.loading}</p>
         </div>
       </div>
     );
@@ -420,9 +420,9 @@ const EvaPublicFormPage: React.FC = () => {
   if (!activeTemplate) {
     return (
       <div className="md-page px-6 py-10">
-        <div className="max-w-3xl mx-auto rounded-2xl border border-red-400/30 bg-red-500/10 p-6">
-          <h1 className="text-2xl font-bold text-red-200">{copy.notFoundTitle}</h1>
-          <p className="text-red-100/90 mt-3">{copy.notFoundBody}</p>
+        <div className="max-w-3xl mx-auto rounded-2xl border border-red-300 bg-red-50 p-6">
+          <h1 className="text-2xl font-bold text-red-700">{copy.notFoundTitle}</h1>
+          <p className="text-red-800 mt-3">{copy.notFoundBody}</p>
           <Link to="/" className="inline-block mt-5 rounded-lg bg-yellow-400 px-4 py-2 font-semibold text-black hover:bg-yellow-300 transition-colors">
             {copy.backHome}
           </Link>
@@ -434,16 +434,16 @@ const EvaPublicFormPage: React.FC = () => {
   if (submitted) {
     return (
       <div className="md-page px-6 py-10">
-        <div className="max-w-3xl mx-auto rounded-2xl border border-emerald-400/30 bg-emerald-500/10 p-6 text-center">
-          <h1 className="text-2xl font-bold text-emerald-200">{copy.submittedTitle}</h1>
-          <p className="text-emerald-100/90 mt-3">{copy.submittedBody}</p>
+        <div className="max-w-3xl mx-auto rounded-2xl border border-emerald-300 bg-emerald-50 p-6 text-center">
+          <h1 className="text-2xl font-bold text-emerald-800">{copy.submittedTitle}</h1>
+          <p className="text-emerald-800 mt-3">{copy.submittedBody}</p>
           {scoreResult && (
-            <div className="mt-5 rounded-2xl border border-yellow-400/30 bg-yellow-400/10 p-5">
-              <p className="text-sm text-yellow-100/80">{copy.yourScore}</p>
-              <p className="mt-1 text-3xl font-black text-yellow-300">
+            <div className="mt-5 rounded-2xl border border-yellow-300 bg-yellow-50 p-5">
+              <p className="text-sm text-yellow-900/80">{copy.yourScore}</p>
+              <p className="mt-1 text-3xl font-black text-yellow-800">
                 {scoreResult.score} / {scoreResult.total}
               </p>
-              <p className="mt-1 text-sm text-yellow-100/70">
+              <p className="mt-1 text-sm text-yellow-900/70">
                 {copy.scoreHint}
               </p>
             </div>
@@ -459,21 +459,21 @@ const EvaPublicFormPage: React.FC = () => {
   return (
     <div className="md-page" lang={isEnglish ? 'en' : 'th'}>
       <main className="max-w-4xl mx-auto px-6 py-10">
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-6 md:p-8">
-          <div className="mb-6 rounded-2xl border border-yellow-300/20 bg-gradient-to-br from-yellow-400/10 via-amber-300/5 to-transparent p-4 md:p-5">
+        <div className="rounded-2xl border border-[#D6D4CC] bg-white p-6 md:p-8">
+          <div className="mb-6 rounded-2xl border border-yellow-300 bg-gradient-to-br from-yellow-400/10 via-amber-300/5 to-transparent p-4 md:p-5">
             {translatingContent ? (
-              <p className="mb-3 text-xs text-yellow-200/85">{copy.translating}</p>
+              <p className="mb-3 text-xs text-yellow-800">{copy.translating}</p>
             ) : null}
             {activeTemplate.heading?.trim() && (
               <h1
                 title={activeTemplate.heading}
-                className="text-2xl md:text-4xl font-black text-white leading-tight break-words [overflow-wrap:anywhere] mb-3"
+                className="text-2xl md:text-4xl font-black text-gray-900 leading-tight break-words [overflow-wrap:anywhere] mb-3"
               >
                 {activeTemplate.heading}
               </h1>
             )}
             <p
-              className={`text-xs md:text-sm uppercase tracking-[0.14em] text-yellow-200/75 ${
+              className={`text-xs md:text-sm uppercase tracking-[0.14em] text-yellow-800 ${
                 activeTemplate.name?.trim() ? 'mb-2' : 'mb-0'
               }`}
             >
@@ -482,7 +482,7 @@ const EvaPublicFormPage: React.FC = () => {
             {activeTemplate.name?.trim() && (
               <p
                 title={activeTemplate.name}
-                className={`leading-relaxed break-words [overflow-wrap:anywhere] text-yellow-100 ${
+                className={`leading-relaxed break-words [overflow-wrap:anywhere] text-yellow-900 ${
                   activeTemplate.heading?.trim()
                     ? 'text-lg md:text-xl font-semibold'
                     : 'text-xl md:text-3xl font-bold'
@@ -492,7 +492,7 @@ const EvaPublicFormPage: React.FC = () => {
               </p>
             )}
             {activeTemplate.description?.trim() && (
-              <p className="text-gray-300/90 text-base md:text-lg mt-3 leading-relaxed whitespace-pre-line">
+              <p className="text-gray-700/90 text-base md:text-lg mt-3 leading-relaxed whitespace-pre-line">
                 {activeTemplate.description}
               </p>
             )}
@@ -542,7 +542,7 @@ const EvaPublicFormPage: React.FC = () => {
                     }}
                   >
                     {titleVisible && (
-                      <p className="text-base md:text-lg font-medium text-gray-100 leading-relaxed">
+                      <p className="text-base md:text-lg font-medium text-gray-900 leading-relaxed">
                         {prefix}
                         {prompt.title}
                       </p>
@@ -552,7 +552,7 @@ const EvaPublicFormPage: React.FC = () => {
                     {(prompt.options || []).map((option) => (
                       <label
                         key={`${prompt.id}-${option}`}
-                        className="flex items-center gap-3 rounded-xl border border-white/10 bg-black/20 px-3 py-2.5 text-base text-gray-100 hover:bg-white/10 transition-colors"
+                        className="flex items-center gap-3 rounded-xl border border-[#D6D4CC] bg-white px-3 py-2.5 text-base text-gray-900 hover:bg-gray-100 transition-colors"
                       >
                         <input
                           type="radio"
@@ -571,7 +571,7 @@ const EvaPublicFormPage: React.FC = () => {
                           setAnswers((prev) => ({ ...prev, [`${prompt.id}${OTHER_TEXT_KEY_SUFFIX}`]: e.target.value }))
                         }
                         placeholder={copy.pleaseSpecify}
-                        className="w-full rounded-xl border border-white/15 bg-black/30 px-4 py-3 text-base"
+                        className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-base"
                       />
                     )}
                   </div>
@@ -582,7 +582,7 @@ const EvaPublicFormPage: React.FC = () => {
                       return (
                         <label
                           key={`${prompt.id}-${option}`}
-                          className="flex items-center gap-3 rounded-xl border border-white/10 bg-black/20 px-3 py-2.5 text-base text-gray-100 hover:bg-white/10 transition-colors"
+                          className="flex items-center gap-3 rounded-xl border border-[#D6D4CC] bg-white px-3 py-2.5 text-base text-gray-900 hover:bg-gray-100 transition-colors"
                         >
                           <input
                             type="checkbox"
@@ -600,7 +600,7 @@ const EvaPublicFormPage: React.FC = () => {
                           setAnswers((prev) => ({ ...prev, [`${prompt.id}${OTHER_TEXT_KEY_SUFFIX}`]: e.target.value }))
                         }
                         placeholder={copy.pleaseSpecify}
-                        className="w-full rounded-xl border border-white/15 bg-black/30 px-4 py-3 text-base"
+                        className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-base"
                       />
                     )}
                   </div>
@@ -609,7 +609,7 @@ const EvaPublicFormPage: React.FC = () => {
                     {getEvaRatingSubItems(prompt).length > 0 ? (
                       getEvaRatingSubItems(prompt).map((subItem, itemIdx) => (
                         <div key={`${prompt.id}-rating-${itemIdx}`} className="space-y-2.5">
-                          <p className="text-base text-gray-200">
+                          <p className="text-base text-gray-800">
                             {formatEvaRatingSubItemPrefix(subItem, itemIdx)}
                             {subItem.text}
                           </p>
@@ -625,8 +625,8 @@ const EvaPublicFormPage: React.FC = () => {
                                   }
                                   className={`w-11 h-11 md:w-12 md:h-12 rounded-xl border text-base font-semibold transition-colors ${
                                     selected
-                                      ? 'border-yellow-300 bg-yellow-400/20 text-yellow-100'
-                                      : 'border-white/20 bg-black/30 text-gray-200 hover:bg-white/10'
+                                      ? 'border-yellow-300 bg-yellow-400/20 text-yellow-900'
+                                      : 'border-gray-200 bg-white text-gray-800 hover:bg-gray-100'
                                   }`}
                                 >
                                   {n}
@@ -649,8 +649,8 @@ const EvaPublicFormPage: React.FC = () => {
                               }
                               className={`w-11 h-11 md:w-12 md:h-12 rounded-xl border text-base font-semibold transition-colors ${
                                 selected
-                                  ? 'border-yellow-300 bg-yellow-400/20 text-yellow-100'
-                                  : 'border-white/20 bg-black/30 text-gray-200 hover:bg-white/10'
+                                  ? 'border-yellow-300 bg-yellow-400/20 text-yellow-900'
+                                  : 'border-gray-200 bg-white text-gray-800 hover:bg-gray-100'
                               }`}
                             >
                               {n}
@@ -662,12 +662,12 @@ const EvaPublicFormPage: React.FC = () => {
                   </div>
                 ) : prompt.type === 'commitment_table' ? (
                   <div className="space-y-3">
-                    <div className="overflow-x-auto rounded-xl border border-white/12 bg-black/25">
+                    <div className="overflow-x-auto rounded-xl border border-[#D6D4CC] bg-gray-50">
                       <table className="w-full min-w-[520px] text-left text-sm">
                         <thead>
-                          <tr className="border-b border-white/10 bg-white/[0.06]">
+                          <tr className="border-b border-[#D6D4CC] bg-gray-50">
                             {(prompt.commitmentHeaders ?? EVA_DEFAULT_COMMITMENT_HEADERS).map((h) => (
-                              <th key={h} className="px-3 py-2.5 font-semibold text-yellow-200/90 whitespace-nowrap">
+                              <th key={h} className="px-3 py-2.5 font-semibold text-yellow-800 whitespace-nowrap">
                                 {h}
                               </th>
                             ))}
@@ -676,8 +676,8 @@ const EvaPublicFormPage: React.FC = () => {
                         <tbody>
                           {(prompt.commitmentRows?.length ? prompt.commitmentRows : defaultEvaCommitmentRows()).map(
                             (row, ri) => (
-                              <tr key={`${prompt.id}-ct-${ri}`} className="border-b border-white/8 last:border-0">
-                                <td className="px-3 py-3 text-gray-200 align-top max-w-[14rem] sm:max-w-xs leading-snug">
+                              <tr key={`${prompt.id}-ct-${ri}`} className="border-b border-gray-200 last:border-0">
+                                <td className="px-3 py-3 text-gray-800 align-top max-w-[14rem] sm:max-w-xs leading-snug">
                                   {row.commitment}
                                 </td>
                                 <td className="px-3 py-2 align-top">
@@ -695,7 +695,7 @@ const EvaPublicFormPage: React.FC = () => {
                                         }))
                                       }
                                       placeholder={row.byWhenPlaceholder || copy.enterPlaceholder}
-                                      className="w-full min-w-[8rem] rounded-lg border border-white/15 bg-black/40 px-3 py-2 text-base"
+                                      className="w-full min-w-[8rem] rounded-lg border border-gray-200 bg-gray-100 px-3 py-2 text-base"
                                     />
                                   </EvaAnswerHoverPopover>
                                 </td>
@@ -714,7 +714,7 @@ const EvaPublicFormPage: React.FC = () => {
                                         }))
                                       }
                                       placeholder={row.howKnowPlaceholder || copy.enterPlaceholder}
-                                      className="w-full min-w-[10rem] rounded-lg border border-white/15 bg-black/40 px-3 py-2 text-base"
+                                      className="w-full min-w-[10rem] rounded-lg border border-gray-200 bg-gray-100 px-3 py-2 text-base"
                                     />
                                   </EvaAnswerHoverPopover>
                                 </td>
@@ -726,15 +726,15 @@ const EvaPublicFormPage: React.FC = () => {
                     </div>
                   </div>
                 ) : prompt.type === 'fill_sentence' ? (
-                  <div className="space-y-4 rounded-xl border border-white/12 bg-black/20 p-4 md:p-5">
-                    <p className="text-sm md:text-base font-semibold text-sky-200/95 tracking-wide uppercase">
+                  <div className="space-y-4 rounded-xl border border-[#D6D4CC] bg-white p-4 md:p-5">
+                    <p className="text-sm md:text-base font-semibold text-sky-800/95 tracking-wide uppercase">
                       {prompt.fillIntroEn ?? EVA_DEFAULT_FILL_INTRO_EN}
                     </p>
                     {!isEnglish && (
-                      <p className="text-base md:text-lg text-gray-200">{prompt.fillIntroTh ?? EVA_DEFAULT_FILL_INTRO_TH}</p>
+                      <p className="text-base md:text-lg text-gray-800">{prompt.fillIntroTh ?? EVA_DEFAULT_FILL_INTRO_TH}</p>
                     )}
                     <div className="max-w-full">
-                      <div className="flex max-w-full flex-wrap content-start items-baseline gap-x-1 gap-y-1.5 text-base md:text-lg leading-relaxed text-gray-100">
+                      <div className="flex max-w-full flex-wrap content-start items-baseline gap-x-1 gap-y-1.5 text-base md:text-lg leading-relaxed text-gray-900">
                         <span className="shrink-0 translate-y-px text-gray-400 select-none" aria-hidden>
                           &ldquo;
                         </span>
@@ -751,7 +751,7 @@ const EvaPublicFormPage: React.FC = () => {
                             width: `${Math.max(14, (answers[`${prompt.id}::fs::a`] || '').length + 2)}ch`,
                             maxWidth: '100%',
                           }}
-                          className="box-border min-h-[1.6em] min-w-[10ch] max-w-full shrink-0 resize-y self-baseline border-0 border-b-2 border-yellow-400/50 bg-transparent px-0.5 pb-0.5 pt-0 leading-relaxed text-white break-words [field-sizing:content] focus:border-yellow-300 focus:outline-none"
+                          className="box-border min-h-[1.6em] min-w-[10ch] max-w-full shrink-0 resize-y self-baseline border-0 border-b-2 border-yellow-400/50 bg-transparent px-0.5 pb-0.5 pt-0 leading-relaxed text-gray-900 break-words [field-sizing:content] focus:border-yellow-300 focus:outline-none"
                         />
                         <span className="min-w-0 max-w-full shrink translate-y-px break-words">
                           {prompt.fillBridge ?? EVA_DEFAULT_FILL_BRIDGE}
@@ -766,7 +766,7 @@ const EvaPublicFormPage: React.FC = () => {
                             width: `${Math.max(14, (answers[`${prompt.id}::fs::b`] || '').length + 2)}ch`,
                             maxWidth: '100%',
                           }}
-                          className="box-border min-h-[1.6em] min-w-[10ch] max-w-full shrink-0 resize-y self-baseline border-0 border-b-2 border-yellow-400/50 bg-transparent px-0.5 pb-0.5 pt-0 leading-relaxed text-white break-words [field-sizing:content] focus:border-yellow-300 focus:outline-none"
+                          className="box-border min-h-[1.6em] min-w-[10ch] max-w-full shrink-0 resize-y self-baseline border-0 border-b-2 border-yellow-400/50 bg-transparent px-0.5 pb-0.5 pt-0 leading-relaxed text-gray-900 break-words [field-sizing:content] focus:border-yellow-300 focus:outline-none"
                         />
                         <span className="min-w-0 max-w-full shrink translate-y-px break-words">
                           {prompt.fillClosing ?? EVA_DEFAULT_FILL_CLOSING}
@@ -782,17 +782,17 @@ const EvaPublicFormPage: React.FC = () => {
                     rows={4}
                     value={answers[prompt.id] || ''}
                     onChange={(e) => setAnswers((prev) => ({ ...prev, [prompt.id]: e.target.value }))}
-                    className="w-full rounded-xl border border-white/15 bg-black/30 px-4 py-3 text-base leading-relaxed resize-y"
+                    className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-base leading-relaxed resize-y"
                   />
                 )}
                 {missingPromptIds.includes(prompt.id) && (
-                  <p className="text-sm text-red-300">{copy.pleaseAnswer}</p>
+                  <p className="text-sm text-red-700">{copy.pleaseAnswer}</p>
                 )}
               </div>
                 );
               });
             })()}
-            {error && <p className="text-base text-red-300">{error}</p>}
+            {error && <p className="text-base text-red-700">{error}</p>}
             <button
               type="submit"
               className="rounded-xl bg-yellow-400 px-6 py-3 text-base md:text-lg font-semibold text-black hover:bg-yellow-300 transition-colors"

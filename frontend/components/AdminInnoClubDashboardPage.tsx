@@ -118,7 +118,7 @@ const AdminInnoClubDashboardPage: React.FC = () => {
     <div className="flex flex-col min-h-full text-gray-900">
       <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-4 sm:px-6 py-4 sm:py-6 border-b border-[#D6D4CC]">
         <div className="min-w-0">
-          <p className="text-xs uppercase tracking-[0.18em] text-yellow-400/80">InnoClub Game</p>
+          <p className="text-xs uppercase tracking-[0.18em] text-yellow-700/80">InnoClub Game</p>
           <h1 className="text-xl sm:text-2xl font-bold text-yellow-800 mt-1">กรอกทีม & คะแนนเงิน</h1>
           <p className="text-sm text-gray-400 mt-1">
             คะแนน = เงินในเกมพัฒนาธุรกิจ · หน้าผลลัพธ์จะโชว์ Top 4 แล้วเปิดอันดับ 1
@@ -144,17 +144,17 @@ const AdminInnoClubDashboardPage: React.FC = () => {
 
       <div className="flex-1 px-4 sm:px-6 py-6 space-y-6">
         {error && (
-          <div className="rounded-xl border border-red-400/40 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+          <div className="rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
             {error}
             {tableMissing && (
-              <pre className="mt-3 whitespace-pre-wrap rounded-lg bg-gray-100 p-3 text-[11px] text-red-100/90 overflow-x-auto">
+              <pre className="mt-3 whitespace-pre-wrap rounded-lg bg-gray-100 p-3 text-[11px] text-red-800 overflow-x-auto">
                 {INNOCLUB_GAME_SQL}
               </pre>
             )}
           </div>
         )}
         {message && (
-          <div className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
+          <div className="rounded-xl border border-emerald-600/30 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
             {message}
           </div>
         )}
@@ -185,7 +185,7 @@ const AdminInnoClubDashboardPage: React.FC = () => {
           </form>
         </section>
 
-        <section className="rounded-2xl border border-yellow-300/20 bg-gradient-to-br from-yellow-500/10 to-transparent p-4 sm:p-5">
+        <section className="rounded-2xl border border-yellow-300 bg-gradient-to-br from-yellow-500/10 to-transparent p-4 sm:p-5">
           <h2 className="text-sm font-semibold text-yellow-800">พรีวิว Top 4 (หน้าผลลัพธ์)</h2>
           {top4.length === 0 ? (
             <p className="mt-3 text-sm text-gray-500">ยังไม่มีทีม</p>
@@ -247,7 +247,7 @@ const AdminInnoClubDashboardPage: React.FC = () => {
                       onClick={() => void updateTeam(team.id, { is_active: !team.is_active })}
                       className={`rounded-lg px-3 py-2 text-xs font-semibold ${
                         team.is_active
-                          ? 'border border-emerald-400/30 bg-emerald-500/10 text-emerald-300'
+                          ? 'border border-emerald-400/30 bg-emerald-500/10 text-emerald-700'
                           : 'border border-[#D6D4CC] bg-white text-gray-400'
                       }`}
                     >
@@ -256,7 +256,7 @@ const AdminInnoClubDashboardPage: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => void deleteTeam(team)}
-                      className="rounded-lg border border-red-400/30 bg-red-500/10 px-3 py-2 text-xs font-semibold text-red-200 hover:bg-red-500/20"
+                      className="rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700 hover:bg-red-100"
                     >
                       ลบ
                     </button>

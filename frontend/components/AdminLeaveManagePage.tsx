@@ -493,7 +493,7 @@ const AdminLeaveManagePage: React.FC = () => {
             <BrandLogo className="text-[22px] sm:text-[28px]" tone="dark" />
           </Link>
           <span className="hidden sm:inline text-gray-500">|</span>
-          <span className="text-amber-400 font-semibold text-sm sm:text-base truncate">จัดการคำขอลา</span>
+          <span className="text-amber-700 font-semibold text-sm sm:text-base truncate">จัดการคำขอลา</span>
         </div>
         <Link
           to="/admin/leave"
@@ -508,7 +508,7 @@ const AdminLeaveManagePage: React.FC = () => {
         <p className="text-sm text-gray-500">หน้านี้เห็นได้เฉพาะผู้จัดการลา (pink, koy, tonji@minddojo.me)</p>
 
         {error && (
-          <div className="rounded-xl bg-red-500/20 border border-red-500/40 text-red-400 px-4 py-3 text-sm">
+          <div className="rounded-xl bg-red-500/20 border border-red-500/40 text-red-600 px-4 py-3 text-sm">
             {error}
           </div>
         )}
@@ -528,14 +528,14 @@ const AdminLeaveManagePage: React.FC = () => {
             <table className="w-full text-left text-sm min-w-[680px]">
               <thead>
                 <tr className="border-b border-[#D6D4CC] bg-white">
-                  <th className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-400">ผู้ลา</th>
-                  <th className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-400">คำขอ</th>
-                  <th className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-400">ประเภท</th>
-                  <th className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-400">วันเริ่ม</th>
-                  <th className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-400">วันสิ้นสุด</th>
-                  <th className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-400">เหตุผล / ลาอื่น</th>
-                  <th className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-400">แนบ</th>
-                  <th className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-400 text-right">ดำเนินการ</th>
+                  <th className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-700">ผู้ลา</th>
+                  <th className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-700">คำขอ</th>
+                  <th className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-700">ประเภท</th>
+                  <th className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-700">วันเริ่ม</th>
+                  <th className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-700">วันสิ้นสุด</th>
+                  <th className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-700">เหตุผล / ลาอื่น</th>
+                  <th className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-700">แนบ</th>
+                  <th className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-700 text-right">ดำเนินการ</th>
                 </tr>
               </thead>
               <tbody>
@@ -545,7 +545,7 @@ const AdminLeaveManagePage: React.FC = () => {
                       {row.user_display_name || row.user_email}
                     </td>
                     <td className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm">
-                      <span className={row.status === 'cancel_requested' ? 'text-amber-300' : 'text-amber-400'}>
+                      <span className={row.status === 'cancel_requested' ? 'text-amber-700' : 'text-amber-700'}>
                         {row.status === 'cancel_requested' ? 'ขอยกเลิก' : 'ขอลา'}
                       </span>
                     </td>
@@ -559,7 +559,7 @@ const AdminLeaveManagePage: React.FC = () => {
                       title={(row.status === 'cancel_requested' ? row.cancel_reason : stripWfhSwapTag(row.reason)) || ''}
                     >
                       {row.other_leave_purpose ? (
-                        <span className="block text-cyan-300/90 text-[11px] mb-0.5">ลาอื่น: {row.other_leave_purpose}</span>
+                        <span className="block text-cyan-800 text-[11px] mb-0.5">ลาอื่น: {row.other_leave_purpose}</span>
                       ) : null}
                       <span className="truncate block">
                         {(row.status === 'cancel_requested' ? row.cancel_reason : stripWfhSwapTag(row.reason)) || '—'}
@@ -571,7 +571,7 @@ const AdminLeaveManagePage: React.FC = () => {
                           href={row.attachment_url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-yellow-400 hover:underline"
+                          className="text-yellow-700 hover:underline"
                         >
                           เปิดไฟล์
                         </a>
@@ -585,7 +585,7 @@ const AdminLeaveManagePage: React.FC = () => {
                           type="button"
                           onClick={() => handleStatus(row, 'approve')}
                           disabled={actionId === row.id}
-                          className="min-h-[40px] min-w-[72px] px-3 py-2 rounded-lg text-xs font-medium bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 border border-emerald-500/30 disabled:opacity-50 touch-manipulation"
+                          className="min-h-[40px] min-w-[72px] px-3 py-2 rounded-lg text-xs font-medium bg-emerald-50 text-emerald-700 hover:bg-emerald-500/30 border border-emerald-500/30 disabled:opacity-50 touch-manipulation"
                         >
                           {row.status === 'cancel_requested' ? 'อนุมัติยกเลิก' : 'อนุมัติ'}
                         </button>
@@ -593,7 +593,7 @@ const AdminLeaveManagePage: React.FC = () => {
                           type="button"
                           onClick={() => handleStatus(row, 'reject')}
                           disabled={actionId === row.id}
-                          className="min-h-[40px] min-w-[72px] px-3 py-2 rounded-lg text-xs font-medium bg-red-500/20 text-red-300 hover:bg-red-500/30 border border-red-500/30 disabled:opacity-50 touch-manipulation"
+                          className="min-h-[40px] min-w-[72px] px-3 py-2 rounded-lg text-xs font-medium bg-red-500/20 text-red-600 hover:bg-red-500/30 border border-red-500/30 disabled:opacity-50 touch-manipulation"
                         >
                           {row.status === 'cancel_requested' ? 'ไม่อนุมัติยกเลิก' : 'ไม่อนุมัติ'}
                         </button>
@@ -616,7 +616,7 @@ const AdminLeaveManagePage: React.FC = () => {
               กำลังโหลด...
             </div>
           ) : approvedSummaryError ? (
-            <div className="min-h-[80px] rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-300 text-xs p-4 text-center">
+            <div className="min-h-[80px] rounded-xl bg-red-50 border border-red-500/20 flex items-center justify-center text-red-600 text-xs p-4 text-center">
               {approvedSummaryError}
             </div>
           ) : approvedSummaryRows.length === 0 ? (
@@ -628,9 +628,9 @@ const AdminLeaveManagePage: React.FC = () => {
               <table className="w-full text-left text-xs min-w-[680px]">
                 <thead>
                   <tr className="border-b border-[#D6D4CC] bg-white">
-                    <th className="px-2 py-2 font-semibold text-gray-400">ผู้ลา</th>
+                    <th className="px-2 py-2 font-semibold text-gray-700">ผู้ลา</th>
                     {LEAVE_TYPES.map((t) => (
-                      <th key={t.id} className="px-2 py-2 font-semibold text-gray-400">
+                      <th key={t.id} className="px-2 py-2 font-semibold text-gray-700">
                         {t.label}
                       </th>
                     ))}
@@ -666,7 +666,7 @@ const AdminLeaveManagePage: React.FC = () => {
             ) : (
               debugLogs.map((l, idx) => (
                 <div key={`${l.at}-${idx}`} className="break-words whitespace-pre-wrap">
-                  <span className={l.level === 'error' ? 'text-red-400' : l.level === 'warn' ? 'text-amber-300' : 'text-emerald-300'}>
+                  <span className={l.level === 'error' ? 'text-red-600' : l.level === 'warn' ? 'text-amber-700' : 'text-emerald-700'}>
                     [{l.level.toUpperCase()}]
                   </span>{' '}
                   {l.at} {l.text}

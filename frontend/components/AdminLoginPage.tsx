@@ -70,9 +70,9 @@ const AdminLoginPage: React.FC = () => {
           <div className="flex flex-col items-center mb-10">
             <BrandLogo className="mb-5 text-[34px]" tone="dark" />
             <h1 className="text-2xl font-semibold tracking-tight text-center text-gray-900">
-              Login Admin <span className="text-[#FFCC00]">MindDojo</span>
+              Login Admin <span className="text-[#9A7200]">MindDojo</span>
             </h1>
-            <p className="text-gray-500 text-sm mt-2">ใช้บัญชีใน Supabase Authentication เพื่อเข้าสู่ระบบ</p>
+            <p className="mt-2 text-sm text-gray-600">ใช้บัญชีใน Supabase Authentication เพื่อเข้าสู่ระบบ</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
@@ -127,7 +127,7 @@ const AdminLoginPage: React.FC = () => {
           </form>
 
           <p className="text-center text-gray-500 text-sm mt-6">
-            <Link to="/" className="text-gray-400 hover:underline">← กลับหน้าหลัก</Link>
+            <Link to="/" className="font-medium text-gray-700 hover:underline">← กลับหน้าหลัก</Link>
           </p>
         </div>
       </div>

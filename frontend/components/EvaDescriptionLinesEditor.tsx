@@ -42,9 +42,9 @@ export function EvaDescriptionLinesEditor({
   };
 
   return (
-    <div className="space-y-3 text-xs text-gray-400">
+    <div className="space-y-3 text-xs text-gray-600">
       <fieldset className="space-y-1">
-        <legend className="font-medium text-gray-300">จัดตำแหน่งทั้งบล็อก</legend>
+        <legend className="font-medium text-gray-700">จัดตำแหน่งทั้งบล็อก</legend>
         <div className="flex flex-wrap gap-3">
           <label className="inline-flex items-center gap-1.5 cursor-pointer select-none">
             <input
@@ -69,12 +69,12 @@ export function EvaDescriptionLinesEditor({
         </div>
       </fieldset>
 
-      <p className="font-medium text-gray-300">เนื้อหาแยกบรรทัด (เลือกสไตล์ต่อบรรทัด)</p>
+      <p className="font-medium text-gray-700">เนื้อหาแยกบรรทัด (เลือกสไตล์ต่อบรรทัด)</p>
       <div className="space-y-2">
         {lines.map((line, lineIdx) => (
           <div
             key={`${fieldId}-line-${lineIdx}`}
-            className="rounded-lg border border-white/10 bg-black/25 p-2 space-y-2"
+            className="rounded-lg border border-[#D6D4CC] bg-gray-50 p-2 space-y-2"
           >
             <div className="flex items-center gap-2">
               <span className="text-[10px] text-gray-500 tabular-nums w-5 shrink-0">{lineIdx + 1}.</span>
@@ -83,12 +83,12 @@ export function EvaDescriptionLinesEditor({
                 value={line.text}
                 onChange={(e) => updateLine(lineIdx, { text: e.target.value })}
                 placeholder="ข้อความบรรทัดนี้"
-                className="flex-1 min-w-0 rounded-md border border-white/15 bg-black/40 px-2 py-1.5 text-sm text-gray-100"
+                className="flex-1 min-w-0 rounded-md border border-gray-200 bg-gray-100 px-2 py-1.5 text-sm text-gray-900"
               />
               <button
                 type="button"
                 onClick={() => removeLine(lineIdx)}
-                className="shrink-0 rounded-md bg-red-500/15 border border-red-400/35 px-2 py-1 text-[10px] font-semibold text-red-200 hover:bg-red-500/25"
+                className="shrink-0 rounded-md bg-red-50 border border-red-300 px-2 py-1 text-[10px] font-semibold text-red-700 hover:bg-red-100"
               >
                 ลบ
               </button>
@@ -97,7 +97,7 @@ export function EvaDescriptionLinesEditor({
               {LINE_STYLES.map((opt) => (
                 <label
                   key={opt.value}
-                  className="inline-flex items-center gap-1 cursor-pointer select-none rounded-md border border-white/10 bg-white/5 px-2 py-1 hover:bg-white/10"
+                  className="inline-flex items-center gap-1 cursor-pointer select-none rounded-md border border-[#D6D4CC] bg-white px-2 py-1 hover:bg-gray-100"
                 >
                   <input
                     type="radio"
@@ -116,7 +116,7 @@ export function EvaDescriptionLinesEditor({
       <button
         type="button"
         onClick={addLine}
-        className="rounded-md border border-amber-400/35 bg-amber-500/10 px-2.5 py-1 text-[11px] font-medium text-amber-100 hover:bg-amber-500/20"
+        className="rounded-md border border-amber-300 bg-amber-50 px-2.5 py-1 text-[11px] font-medium text-amber-900 hover:bg-amber-100"
       >
         + เพิ่มบรรทัด
       </button>

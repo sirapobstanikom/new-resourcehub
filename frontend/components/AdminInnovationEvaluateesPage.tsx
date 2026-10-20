@@ -135,21 +135,21 @@ const AdminInnovationEvaluateesPage: React.FC = () => {
       </div>
 
       {!isSupabaseConfigured ? (
-        <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-6 text-amber-900">
+        <div className="rounded-2xl border border-amber-500/30 bg-amber-50 p-6 text-amber-900">
           <p className="font-medium">ยังไม่ได้ตั้งค่า Supabase</p>
         </div>
       ) : (
         <>
           {error && (
-            <div className="mb-4 rounded-xl border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+            <div className="mb-4 rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
               {error}
               {error.includes('innovation_evaluatees') && (
-                <p className="mt-2 text-xs text-red-200/80">รัน SQL: {INNOVATION_EVALUATION_SQL}</p>
+                <p className="mt-2 text-xs text-red-700">รัน SQL: {INNOVATION_EVALUATION_SQL}</p>
               )}
             </div>
           )}
           {message && (
-            <div className="mb-4 rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
+            <div className="mb-4 rounded-xl border border-emerald-600/30 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
               {message}
             </div>
           )}
@@ -246,7 +246,7 @@ const AdminInnovationEvaluateesPage: React.FC = () => {
                         onClick={() => updateEvaluatee(evaluatee.id, { is_active: !evaluatee.is_active })}
                         className={`rounded-lg px-3 py-2 text-xs font-medium ${
                           evaluatee.is_active
-                            ? 'border border-emerald-400/30 bg-emerald-500/10 text-emerald-300'
+                            ? 'border border-emerald-400/30 bg-emerald-500/10 text-emerald-700'
                             : 'border border-[#D6D4CC] bg-white text-gray-400'
                         }`}
                       >
@@ -255,7 +255,7 @@ const AdminInnovationEvaluateesPage: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => deleteEvaluatee(evaluatee)}
-                        className="rounded-lg border border-red-400/25 bg-red-500/10 px-3 py-2 text-xs font-medium text-red-300"
+                        className="rounded-lg border border-red-400/25 bg-red-50 px-3 py-2 text-xs font-medium text-red-600"
                       >
                         ลบ
                       </button>

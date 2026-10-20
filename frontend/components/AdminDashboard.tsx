@@ -221,7 +221,7 @@ const AdminDashboard: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-full">
+    <div className="flex min-h-full flex-col bg-[#F3F2ED] text-gray-900">
         <header className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 px-4 sm:px-6 py-4 sm:py-6 border-b border-[#D6D4CC]">
           <div className="flex flex-wrap items-center gap-2 sm:gap-4 min-w-0">
             <Link to="/" className="flex items-center gap-2 sm:gap-3 shrink-0">
@@ -240,9 +240,9 @@ const AdminDashboard: React.FC = () => {
 
         <main className="flex-1 max-w-6xl mx-auto w-full px-3 sm:px-6 py-5 sm:py-8">
         {!isSupabaseConfigured ? (
-          <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-6 text-amber-900">
+          <div className="rounded-2xl border border-amber-500/30 bg-amber-50 p-6 text-amber-900">
             <p className="font-medium">ยังไม่ได้ตั้งค่า Supabase</p>
-            <p className="text-sm text-gray-400 mt-1">
+            <p className="text-sm text-gray-600 mt-1">
               ใส่ VITE_SUPABASE_URL และ VITE_SUPABASE_ANON_KEY ใน .env
             </p>
           </div>
@@ -250,7 +250,7 @@ const AdminDashboard: React.FC = () => {
           <>
             <section className="mb-8 rounded-2xl border border-yellow-400/20 bg-yellow-400/5 p-4 sm:p-5">
               <h2 className="text-lg font-bold text-yellow-800 mb-1">แบบประเมิน Innovation</h2>
-              <p className="text-sm text-gray-400 mb-4">
+              <p className="text-sm text-gray-600 mb-4">
                 ผู้ประเมิน 2 คน · เกณฑ์ 5 ข้อ · คะแนนรวม 100 · Dashboard เฉลี่ย 50/50
               </p>
               <div className="flex flex-wrap gap-2">
@@ -291,8 +291,8 @@ const AdminDashboard: React.FC = () => {
                       : 'border-[#D6D4CC] bg-white hover:bg-gray-100 hover:border-gray-200'
                   }`}
                 >
-                  <div className="font-bold mb-1">{col.label}</div>
-                  <div className="text-sm text-gray-500">{col.description}</div>
+                  <div className="mb-1 font-bold text-gray-900">{col.label}</div>
+                  <div className="text-sm text-gray-600">{col.description}</div>
                 </button>
               ))}
             </div>
@@ -302,7 +302,7 @@ const AdminDashboard: React.FC = () => {
               <div className="rounded-2xl border border-[#D6D4CC] bg-white overflow-hidden">
                 <div className="px-4 sm:px-6 py-4 border-b border-[#D6D4CC] space-y-3">
                   <div className="flex flex-col gap-3">
-                    <h3 className="font-bold text-lg">{COLLECTIONS.find((c) => c.id === selectedCollection)?.label}</h3>
+                    <h3 className="text-lg font-bold text-gray-900">{COLLECTIONS.find((c) => c.id === selectedCollection)?.label}</h3>
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 flex-wrap">
                       <span className="text-sm text-gray-500">
                         {sortedRows.length} แถว · {displayColumns.length} คอลัมน์ · หน้า {currentPage}/{totalPages}
@@ -320,7 +320,7 @@ const AdminDashboard: React.FC = () => {
                           type="button"
                           onClick={downloadExcel}
                           disabled={sortedRows.length === 0}
-                          className="px-4 py-2 rounded-xl text-sm font-medium bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 border border-emerald-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors w-full sm:w-auto"
+                          className="w-full rounded-xl border border-emerald-600/40 bg-emerald-50 px-4 py-2 text-sm font-bold text-emerald-800 transition-colors hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
                         >
                           ดาวน์โหลด Excel
                         </button>
@@ -330,7 +330,7 @@ const AdminDashboard: React.FC = () => {
                   <div className="flex flex-col gap-3 sm:gap-4">
                     {columns.length > 0 && (
                       <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                        <label className="text-sm text-gray-400 w-full sm:w-auto">เรียงตาม</label>
+                        <label className="text-sm text-gray-600 w-full sm:w-auto">เรียงตาม</label>
                         <select
                           value={sortColumn ?? ''}
                           onChange={(e) => {
@@ -350,7 +350,7 @@ const AdminDashboard: React.FC = () => {
                       </div>
                     )}
                     <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-2 sm:border-l sm:border-[#D6D4CC] sm:pl-4">
-                      <span className="text-sm text-gray-400">ช่วงเวลา (คอลัมน์ {DATE_COLUMN})</span>
+                      <span className="text-sm text-gray-600">ช่วงเวลา (คอลัมน์ {DATE_COLUMN})</span>
                       <div className="flex flex-wrap items-center gap-2">
                         <input
                           type="datetime-local"
@@ -379,7 +379,7 @@ const AdminDashboard: React.FC = () => {
                               setDateTo('');
                               setPage(1);
                             }}
-                            className="px-3 py-2 rounded-lg text-sm text-gray-400 hover:text-gray-900 hover:bg-gray-100"
+                            className="px-3 py-2 rounded-lg text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100"
                           >
                             ล้างช่วง
                           </button>
@@ -406,9 +406,9 @@ const AdminDashboard: React.FC = () => {
                   <div className="p-12 text-center text-gray-400">กำลังโหลด...</div>
                 ) : error ? (
                   <div className="p-6 mx-6 my-4 space-y-2">
-                    <div className="bg-red-500/10 text-red-400 rounded-xl p-4">{error}</div>
+                    <div className="bg-red-50 text-red-600 rounded-xl p-4">{error}</div>
                     {isPermissionError && selectedCollection === 'innoclub_evaluation_responses' && (
-                      <div className="bg-amber-500/10 text-amber-900 rounded-xl p-4 text-sm">
+                      <div className="bg-amber-50 text-amber-900 rounded-xl p-4 text-sm">
                         <p className="font-medium mb-1">ให้เห็นข้อมูลแบบประเมิน INNO Club:</p>
                         <p className="text-gray-400 mb-2">ไปที่ Supabase → SQL Editor แล้วรัน:</p>
                         <code className="block bg-gray-100 p-3 rounded-lg text-xs overflow-x-auto whitespace-pre">
@@ -419,7 +419,7 @@ create policy "Allow read innoclub_evaluation"
                       </div>
                     )}
                     {isPermissionError && selectedCollection === 'persuasion_results' && (
-                      <div className="bg-amber-500/10 text-amber-900 rounded-xl p-4 text-sm">
+                      <div className="bg-amber-50 text-amber-900 rounded-xl p-4 text-sm">
                         <p className="font-medium mb-1">ให้เห็นข้อมูล Persuasion Test:</p>
                         <p className="text-gray-400 mb-2">ไปที่ Supabase → SQL Editor แล้วเพิ่ม policy ให้ role ที่ใช้ดูแอดมิน (ตัวอย่างอ่านได้ทุกแถว):</p>
                         <code className="block bg-gray-100 p-3 rounded-lg text-xs overflow-x-auto whitespace-pre">
@@ -430,7 +430,7 @@ create policy "Allow read persuasion_results admin"
                       </div>
                     )}
                     {isPermissionError && selectedCollection === 'growth_fixed_mindset_results' && (
-                      <div className="bg-amber-500/10 text-amber-900 rounded-xl p-4 text-sm">
+                      <div className="bg-amber-50 text-amber-900 rounded-xl p-4 text-sm">
                         <p className="font-medium mb-1">ให้เห็นข้อมูล Growth vs Fixed Mindset:</p>
                         <p className="text-gray-400 mb-2">ไปที่ Supabase → SQL Editor แล้วรัน:</p>
                         <code className="block bg-gray-100 p-3 rounded-lg text-xs overflow-x-auto whitespace-pre">
@@ -441,10 +441,10 @@ create policy "Allow read growth fixed mindset results"
                       </div>
                     )}
                     {isPermissionError && selectedCollection === 'reactive_proactive_mindset_results' && (
-                      <div className="bg-amber-500/10 text-amber-900 rounded-xl p-4 text-sm">
+                      <div className="bg-amber-50 text-amber-900 rounded-xl p-4 text-sm">
                         <p className="font-medium mb-1">ให้เห็นข้อมูล Reactive vs Proactive:</p>
                         <p className="text-gray-400 mb-2">
-                          รัน migration ในโฟลเดอร์ <code className="text-yellow-400/90">backend/supabase/migrations</code> หรือเพิ่ม policy ใน SQL Editor:
+                          รัน migration ในโฟลเดอร์ <code className="text-yellow-700">backend/supabase/migrations</code> หรือเพิ่ม policy ใน SQL Editor:
                         </p>
                         <code className="block bg-gray-100 p-3 rounded-lg text-xs overflow-x-auto whitespace-pre">
 {`drop policy if exists "Allow read reactive proactive mindset results" on public.reactive_proactive_mindset_results;
@@ -454,10 +454,10 @@ create policy "Allow read reactive proactive mindset results"
                       </div>
                     )}
                     {isPermissionError && selectedCollection === 'conflict_management_style_results' && (
-                      <div className="bg-amber-500/10 text-amber-900 rounded-xl p-4 text-sm">
+                      <div className="bg-amber-50 text-amber-900 rounded-xl p-4 text-sm">
                         <p className="font-medium mb-1">ให้เห็นข้อมูล Conflict Management Style:</p>
                         <p className="text-gray-400 mb-2">
-                          รัน migration ในโฟลเดอร์ <code className="text-yellow-400/90">backend/supabase/migrations</code> หรือเพิ่ม policy ใน SQL Editor:
+                          รัน migration ในโฟลเดอร์ <code className="text-yellow-700">backend/supabase/migrations</code> หรือเพิ่ม policy ใน SQL Editor:
                         </p>
                         <code className="block bg-gray-100 p-3 rounded-lg text-xs overflow-x-auto whitespace-pre">
 {`drop policy if exists "Allow read conflict management style results" on public.conflict_management_style_results;
@@ -467,10 +467,10 @@ create policy "Allow read conflict management style results"
                       </div>
                     )}
                     {isPermissionError && selectedCollection === 'key_principles_results' && (
-                      <div className="bg-amber-500/10 text-amber-900 rounded-xl p-4 text-sm">
+                      <div className="bg-amber-50 text-amber-900 rounded-xl p-4 text-sm">
                         <p className="font-medium mb-1">ให้เห็นข้อมูล Key Principles:</p>
                         <p className="text-gray-400 mb-2">
-                          รัน migration ในโฟลเดอร์ <code className="text-yellow-400/90">backend/supabase/migrations</code> หรือเพิ่ม policy ใน SQL Editor:
+                          รัน migration ในโฟลเดอร์ <code className="text-yellow-700">backend/supabase/migrations</code> หรือเพิ่ม policy ใน SQL Editor:
                         </p>
                         <code className="block bg-gray-100 p-3 rounded-lg text-xs overflow-x-auto whitespace-pre">
 {`drop policy if exists "Allow read key principles results" on public.key_principles_results;
@@ -482,11 +482,11 @@ create policy "Allow read key principles results"
                     {isPermissionError &&
                       (selectedCollection === 'whale_done_conflict_canvas_responses' ||
                         selectedCollection === 'whale_done_accountability_commitments') && (
-                      <div className="bg-amber-500/10 text-amber-900 rounded-xl p-4 text-sm">
+                      <div className="bg-amber-50 text-amber-900 rounded-xl p-4 text-sm">
                         <p className="font-medium mb-1">ให้เห็นข้อมูล Whale Done Role Play:</p>
                         <p className="text-gray-400 mb-2">
                           รันไฟล์{' '}
-                          <code className="text-yellow-400/90">
+                          <code className="text-yellow-700">
                             backend/supabase/migrations/whale_done_role_play_forms.sql
                           </code>{' '}
                           ใน Supabase SQL Editor
@@ -504,18 +504,18 @@ create policy "Allow read key principles results"
                       <thead>
                         <tr className="border-b border-[#D6D4CC]">
                           {displayColumns.map((col) => (
-                            <th key={col} className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-400 whitespace-nowrap">
+                            <th key={col} className="px-3 sm:px-4 py-2 sm:py-3 font-semibold text-gray-800 whitespace-nowrap bg-gray-50">
                               <button
                                 type="button"
                                 onClick={() => {
                                   handleSort(col);
                                   setPage(1);
                                 }}
-                                className="flex items-center gap-1.5 text-left hover:text-yellow-400 transition-colors w-full"
+                                className="flex w-full items-center gap-1.5 text-left text-gray-800 hover:text-yellow-800 transition-colors"
                               >
                                 {col}
                                 {sortColumn === col && (
-                                  <span className="text-yellow-400" aria-hidden>↑</span>
+                                  <span className="text-yellow-700" aria-hidden>↑</span>
                                 )}
                               </button>
                             </th>
@@ -524,7 +524,7 @@ create policy "Allow read key principles results"
                       </thead>
                       <tbody>
                         {paginatedRows.map((row, i) => (
-                          <tr key={(currentPage - 1) * PER_PAGE + i} className="border-b border-gray-100 hover:bg-white">
+                          <tr key={(currentPage - 1) * PER_PAGE + i} className="border-b border-gray-100 odd:bg-white even:bg-gray-50/80 hover:bg-yellow-50">
                             {displayColumns.map((col) => {
                               const val = row[col];
                               const display =
@@ -534,7 +534,7 @@ create policy "Allow read key principles results"
                                     ? JSON.stringify(val)
                                     : String(val ?? '—');
                               return (
-                                <td key={col} className="px-3 sm:px-4 py-2 sm:py-3 text-gray-700 max-w-[200px] sm:max-w-xs truncate" title={col === 'created_at' ? formatThaiTime(val) : String(val ?? '')}>
+                                <td key={col} className="max-w-[200px] truncate px-3 py-2.5 text-sm text-gray-900 sm:max-w-xs sm:px-4 sm:py-3" title={col === 'created_at' ? formatThaiTime(val) : String(val ?? '')}>
                                   {display}
                                 </td>
                               );
@@ -558,7 +558,7 @@ create policy "Allow read key principles results"
                         >
                           ← ก่อนหน้า
                         </button>
-                        <span className="text-sm text-gray-400 px-1 sm:px-2">
+                        <span className="text-sm text-gray-600 px-1 sm:px-2">
                           หน้า {currentPage} / {totalPages}
                         </span>
                         <button

@@ -119,8 +119,8 @@ function EvaNumberStyleControls({
   onFixedPrefixChange: (value: string) => void;
 }) {
   return (
-    <div className="space-y-2 text-xs text-gray-400">
-      <p className="font-medium text-gray-300">เลข / ข้อความนำหน้า</p>
+    <div className="space-y-2 text-xs text-gray-600">
+      <p className="font-medium text-gray-700">เลข / ข้อความนำหน้า</p>
       <div className="flex flex-wrap gap-x-4 gap-y-1.5">
         <label className="inline-flex items-center gap-1.5 cursor-pointer select-none">
           <input
@@ -128,7 +128,7 @@ function EvaNumberStyleControls({
             name={groupName}
             checked={style === 'auto'}
             onChange={() => onStyleChange('auto')}
-            className="border-white/30 bg-black/40 accent-yellow-400"
+            className="border-gray-300 bg-gray-100 accent-yellow-400"
           />
           อัตโนมัติ (1. 2. …)
         </label>
@@ -138,7 +138,7 @@ function EvaNumberStyleControls({
             name={groupName}
             checked={style === 'none'}
             onChange={() => onStyleChange('none')}
-            className="border-white/30 bg-black/40 accent-yellow-400"
+            className="border-gray-300 bg-gray-100 accent-yellow-400"
           />
           ไม่มีนำหน้า
         </label>
@@ -148,7 +148,7 @@ function EvaNumberStyleControls({
             name={groupName}
             checked={style === 'fixed'}
             onChange={() => onStyleChange('fixed')}
-            className="border-white/30 bg-black/40 accent-yellow-400"
+            className="border-gray-300 bg-gray-100 accent-yellow-400"
           />
           กำหนดเอง
         </label>
@@ -159,7 +159,7 @@ function EvaNumberStyleControls({
           value={fixedPrefix}
           onChange={(e) => onFixedPrefixChange(e.target.value)}
           placeholder="เช่น ก. หรือ Q1a. (ใส่ช่องว่างท้ายได้)"
-          className="w-full max-w-md rounded-lg border border-white/15 bg-black/30 px-2 py-1.5 text-sm text-gray-100 placeholder:text-gray-500"
+          className="w-full max-w-md rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-sm text-gray-900 placeholder:text-gray-500"
         />
       )}
     </div>
@@ -1191,9 +1191,9 @@ const EvaEditorPage: React.FC = () => {
   if (!isAdmin) {
     return (
       <div className="md-page px-6 py-10">
-        <div className="max-w-3xl mx-auto rounded-2xl border border-red-400/30 bg-red-500/10 p-6">
-          <h1 className="text-2xl font-bold text-red-200">Eva editor</h1>
-          <p className="text-red-100/90 mt-3">หน้านี้สำหรับผู้ดูแลระบบเท่านั้น กรุณาเข้าสู่ระบบแอดมินก่อนใช้งาน</p>
+        <div className="max-w-3xl mx-auto rounded-2xl border border-red-300 bg-red-50 p-6">
+          <h1 className="text-2xl font-bold text-red-700">Eva editor</h1>
+          <p className="text-red-800 mt-3">หน้านี้สำหรับผู้ดูแลระบบเท่านั้น กรุณาเข้าสู่ระบบแอดมินก่อนใช้งาน</p>
           <Link to="/admin/login" className="inline-block mt-5 rounded-lg bg-yellow-400 px-4 py-2 font-semibold text-black hover:bg-yellow-300 transition-colors">
             ไปหน้า Admin Login
           </Link>
@@ -1204,11 +1204,11 @@ const EvaEditorPage: React.FC = () => {
 
   return (
     <div className="md-page">
-      <header className="border-b border-white/10 px-6 py-5">
+      <header className="border-b border-[#D6D4CC] px-6 py-5">
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
-          <h1 className="text-xl md:text-2xl font-bold text-yellow-300">Eva editor</h1>
+          <h1 className="text-xl md:text-2xl font-bold text-yellow-800">Eva editor</h1>
           <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-            <div className="flex rounded-xl border border-white/15 bg-black/30 p-1">
+            <div className="flex rounded-xl border border-gray-200 bg-white p-1">
               <button
                 type="button"
                 onClick={() => {
@@ -1217,8 +1217,8 @@ const EvaEditorPage: React.FC = () => {
                 }}
                 className={`rounded-lg px-3 py-2 text-xs sm:text-sm font-medium transition-colors ${
                   pageMode === 'templates'
-                    ? 'bg-yellow-400/25 text-yellow-100'
-                    : 'text-gray-400 hover:text-white'
+                    ? 'bg-yellow-400/25 text-yellow-900'
+                    : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
                 แก้ไขแบบประเมิน
@@ -1232,14 +1232,14 @@ const EvaEditorPage: React.FC = () => {
                 }}
                 className={`rounded-lg px-3 py-2 text-xs sm:text-sm font-medium transition-colors ${
                   pageMode === 'dashboard'
-                    ? 'bg-yellow-400/25 text-yellow-100'
-                    : 'text-gray-400 hover:text-white'
+                    ? 'bg-yellow-400/25 text-yellow-900'
+                    : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
                 แก้ไข Dashboard
               </button>
             </div>
-            <Link to="/admin" className="text-sm text-gray-300 hover:text-white">
+            <Link to="/admin" className="text-sm text-gray-700 hover:text-gray-900">
               กลับหน้าแอดมิน
             </Link>
           </div>
@@ -1248,16 +1248,16 @@ const EvaEditorPage: React.FC = () => {
 
       {pageMode === 'dashboard' ? (
         <main className="max-w-3xl mx-auto px-6 py-8 space-y-6">
-          <p className="text-sm text-gray-400 leading-relaxed">
-            ตั้งค่าได้หลาย Dashboard — แยกลิงก์ด้วย <span className="font-mono text-gray-300">?dash=id</span> บันทึกใน
+          <p className="text-sm text-gray-600 leading-relaxed">
+            ตั้งค่าได้หลาย Dashboard — แยกลิงก์ด้วย <span className="font-mono text-gray-700">?dash=id</span> บันทึกใน
             Supabase (พร้อม cache ในเครื่อง)
           </p>
 
-          <section className="rounded-2xl border border-white/10 bg-white/5 p-5 space-y-4">
-            <h2 className="font-semibold text-yellow-100">เลือก / จัดการ Dashboard</h2>
+          <section className="rounded-2xl border border-[#D6D4CC] bg-white p-5 space-y-4">
+            <h2 className="font-semibold text-yellow-900">เลือก / จัดการ Dashboard</h2>
             <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3 items-stretch sm:items-end">
               <div className="flex-1 min-w-[180px]">
-                <label className="text-sm text-gray-400">เลือก Dashboard ที่จะแก้ไข</label>
+                <label className="text-sm text-gray-600">เลือก Dashboard ที่จะแก้ไข</label>
                 <select
                   value={selectedDashId}
                   onChange={(e) => {
@@ -1267,7 +1267,7 @@ const EvaEditorPage: React.FC = () => {
                     setSelectedDashId(id);
                     setDraftDashboard({ ...inst });
                   }}
-                  className="mt-1 w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm"
+                  className="mt-1 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900"
                 >
                   {dashStore.dashboards.map((d) => (
                     <option key={d.id} value={d.id}>
@@ -1282,7 +1282,7 @@ const EvaEditorPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => void addDashboardSlot()}
-                  className="rounded-xl border border-emerald-400/40 bg-emerald-500/15 px-4 py-2 text-sm font-medium text-emerald-100 hover:bg-emerald-500/25"
+                  className="rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-800 hover:bg-emerald-100"
                 >
                   + สร้าง Dashboard ใหม่
                 </button>
@@ -1290,28 +1290,28 @@ const EvaEditorPage: React.FC = () => {
                   type="button"
                   disabled={dashStore.dashboards.length <= 1}
                   onClick={() => void deleteSelectedDashboard()}
-                  className="rounded-xl border border-red-400/35 bg-red-500/15 px-4 py-2 text-sm font-medium text-red-100 hover:bg-red-500/25 disabled:opacity-40 disabled:pointer-events-none"
+                  className="rounded-xl border border-red-300 bg-red-50 px-4 py-2 text-sm font-medium text-red-800 hover:bg-red-100 disabled:opacity-40 disabled:pointer-events-none"
                 >
                   ลบที่เลือก
                 </button>
               </div>
             </div>
             <div>
-              <label className="text-sm text-gray-400">ชื่อภายใน (แสดงในรายการ editor)</label>
+              <label className="text-sm text-gray-600">ชื่อภายใน (แสดงในรายการ editor)</label>
               <input
                 value={draftDashboard.label}
                 onChange={(e) => setDraftDashboard((c) => ({ ...c, label: e.target.value }))}
                 placeholder="เช่น Dashboard การอบรม A"
-                className="mt-1 w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900"
               />
               <p className="mt-1 text-[11px] text-gray-500">
                 ชื่อในรายการเลือกด้านบนและหัวข้อลิงก์ด้านล่างใช้ค่านี้เดียวกัน (บันทึกแล้ว sync ไป Supabase)
               </p>
             </div>
             {selectedDashId && draftDashboard.id === selectedDashId && (
-              <div className="rounded-xl border border-yellow-400/25 bg-yellow-400/10 p-3 space-y-2">
-                <p className="text-xs font-medium text-gray-400">ลิงก์ของ Dashboard นี้ (เปิดแท็บใหม่)</p>
-                <p className="text-sm font-semibold text-yellow-100">
+              <div className="rounded-xl border border-yellow-400/25 bg-yellow-50 p-3 space-y-2">
+                <p className="text-xs font-medium text-gray-600">ลิงก์ของ Dashboard นี้ (เปิดแท็บใหม่)</p>
+                <p className="text-sm font-semibold text-yellow-900">
                   {draftDashboard.label.trim() || '(ตั้งชื่อภายในก่อนหรือกรอกที่ช่องด้านบน)'}
                 </p>
                 <div className="flex gap-2 items-stretch">
@@ -1319,7 +1319,7 @@ const EvaEditorPage: React.FC = () => {
                     readOnly
                     value={`${typeof window !== 'undefined' ? window.location.origin : ''}/evaluation/dashboard?dash=${draftDashboard.id}`}
                     onFocus={(e) => e.currentTarget.select()}
-                    className="flex-1 min-w-0 rounded-lg border border-white/15 bg-black/40 px-3 py-2 text-xs text-gray-100 font-mono"
+                    className="flex-1 min-w-0 rounded-lg border border-gray-200 bg-gray-100 px-3 py-2 text-xs text-gray-900 font-mono"
                   />
                   <button
                     type="button"
@@ -1345,7 +1345,7 @@ const EvaEditorPage: React.FC = () => {
                     href={`/evaluation/dashboard?dash=${draftDashboard.id}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex rounded-lg border border-white/20 bg-white/10 px-2.5 py-1 text-xs font-medium text-gray-100 hover:bg-white/15"
+                    className="inline-flex rounded-lg border border-gray-200 bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-900 hover:bg-gray-100"
                   >
                     ไปที่ หน้า Dashboard ของแบบประเมินนี้
                   </a>
@@ -1353,107 +1353,107 @@ const EvaEditorPage: React.FC = () => {
               </div>
             )}
             <p className="text-xs text-gray-500">
-              <span className="text-gray-400">dash id (พารามิเตอร์ </span>
-              <span className="font-mono text-gray-400">?dash=</span>
-              <span className="text-gray-400">): </span>
-              <span className="font-mono text-gray-300 break-all">{draftDashboard.id}</span>
+              <span className="text-gray-600">dash id (พารามิเตอร์ </span>
+              <span className="font-mono text-gray-600">?dash=</span>
+              <span className="text-gray-600">): </span>
+              <span className="font-mono text-gray-700 break-all">{draftDashboard.id}</span>
             </p>
           </section>
 
-          <section className="rounded-2xl border border-white/10 bg-white/5 p-5 space-y-4">
-            <h2 className="font-semibold text-yellow-100">ข้อความหน้า Login Dashboard</h2>
+          <section className="rounded-2xl border border-[#D6D4CC] bg-white p-5 space-y-4">
+            <h2 className="font-semibold text-yellow-900">ข้อความหน้า Login Dashboard</h2>
             <div className="space-y-3">
               <div>
-                <label className="text-sm text-gray-400">หัวข้อ (Title)</label>
+                <label className="text-sm text-gray-600">หัวข้อ (Title)</label>
                 <input
                   value={draftDashboard.loginTitle}
                   onChange={(e) => setDraftDashboard((c) => ({ ...c, loginTitle: e.target.value }))}
-                  className="mt-1 w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm"
+                  className="mt-1 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900"
                 />
               </div>
               <div>
-                <label className="text-sm text-gray-400">ข้อความใต้หัวข้อ</label>
+                <label className="text-sm text-gray-600">ข้อความใต้หัวข้อ</label>
                 <textarea
                   value={draftDashboard.loginSubtitle}
                   onChange={(e) => setDraftDashboard((c) => ({ ...c, loginSubtitle: e.target.value }))}
                   rows={3}
-                  className="mt-1 w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm resize-y"
+                  className="mt-1 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 resize-y"
                 />
               </div>
               <div>
-                <label className="text-sm text-gray-400">ข้อความหมายเหตุด้านบนแบบฟอร์ม (ปล่อยว่างได้)</label>
+                <label className="text-sm text-gray-600">ข้อความหมายเหตุด้านบนแบบฟอร์ม (ปล่อยว่างได้)</label>
                 <textarea
                   value={draftDashboard.loginNote}
                   onChange={(e) => setDraftDashboard((c) => ({ ...c, loginNote: e.target.value }))}
                   rows={2}
-                  className="mt-1 w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm resize-y"
+                  className="mt-1 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 resize-y"
                 />
               </div>
               <div className="grid sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="text-sm text-gray-400">ป้ายกำกับช่อง Username</label>
+                  <label className="text-sm text-gray-600">ป้ายกำกับช่อง Username</label>
                   <input
                     value={draftDashboard.usernameLabel}
                     onChange={(e) => setDraftDashboard((c) => ({ ...c, usernameLabel: e.target.value }))}
-                    className="mt-1 w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm"
+                    className="mt-1 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900"
                   />
                 </div>
                 <div>
-                  <label className="text-sm text-gray-400">ป้ายกำกับช่อง Password</label>
+                  <label className="text-sm text-gray-600">ป้ายกำกับช่อง Password</label>
                   <input
                     value={draftDashboard.passwordLabel}
                     onChange={(e) => setDraftDashboard((c) => ({ ...c, passwordLabel: e.target.value }))}
-                    className="mt-1 w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm"
+                    className="mt-1 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900"
                   />
                 </div>
               </div>
               <div className="grid sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="text-sm text-gray-400">ข้อความปุ่มเข้าระบบ</label>
+                  <label className="text-sm text-gray-600">ข้อความปุ่มเข้าระบบ</label>
                   <input
                     value={draftDashboard.loginButtonText}
                     onChange={(e) => setDraftDashboard((c) => ({ ...c, loginButtonText: e.target.value }))}
-                    className="mt-1 w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm"
+                    className="mt-1 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900"
                   />
                 </div>
                 <div>
-                  <label className="text-sm text-gray-400">ข้อความเมื่อผิดรหัส</label>
+                  <label className="text-sm text-gray-600">ข้อความเมื่อผิดรหัส</label>
                   <input
                     value={draftDashboard.loginErrorMessage}
                     onChange={(e) => setDraftDashboard((c) => ({ ...c, loginErrorMessage: e.target.value }))}
-                    className="mt-1 w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm"
+                    className="mt-1 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900"
                   />
                 </div>
               </div>
             </div>
           </section>
 
-          <section className="rounded-2xl border border-white/10 bg-white/5 p-5 space-y-4">
-            <h2 className="font-semibold text-yellow-100">รหัสเข้าสู่ Dashboard</h2>
+          <section className="rounded-2xl border border-[#D6D4CC] bg-white p-5 space-y-4">
+            <h2 className="font-semibold text-yellow-900">รหัสเข้าสู่ Dashboard</h2>
             <div className="grid sm:grid-cols-2 gap-3">
               <div>
-                <label className="text-sm text-gray-400">Username</label>
+                <label className="text-sm text-gray-600">Username</label>
                 <input
                   value={draftDashboard.username}
                   onChange={(e) => setDraftDashboard((c) => ({ ...c, username: e.target.value }))}
                   autoComplete="off"
-                  className="mt-1 w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm font-mono"
+                  className="mt-1 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-mono"
                 />
               </div>
               <div>
-                <label className="text-sm text-gray-400">Password</label>
+                <label className="text-sm text-gray-600">Password</label>
                 <div className="mt-1 flex gap-2">
                   <input
                     type={dashShowPw ? 'text' : 'password'}
                     value={draftDashboard.password}
                     onChange={(e) => setDraftDashboard((c) => ({ ...c, password: e.target.value }))}
                     autoComplete="new-password"
-                    className="flex-1 rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm font-mono"
+                    className="flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-mono"
                   />
                   <button
                     type="button"
                     onClick={() => setDashShowPw((v) => !v)}
-                    className="rounded-lg border border-white/20 px-3 py-2 text-xs text-gray-300 hover:bg-white/10 whitespace-nowrap"
+                    className="rounded-lg border border-gray-200 px-3 py-2 text-xs text-gray-700 hover:bg-gray-100 whitespace-nowrap"
                   >
                     {dashShowPw ? 'ซ่อน' : 'แสดง'}
                   </button>
@@ -1462,20 +1462,20 @@ const EvaEditorPage: React.FC = () => {
             </div>
           </section>
 
-          <section className="rounded-2xl border border-white/10 bg-white/5 p-5 space-y-4">
-            <h2 className="font-semibold text-yellow-100">หน้ารายการ Dashboard</h2>
+          <section className="rounded-2xl border border-[#D6D4CC] bg-white p-5 space-y-4">
+            <h2 className="font-semibold text-yellow-900">หน้ารายการ Dashboard</h2>
             <div>
-              <label className="text-sm text-gray-400">หัวข้อแถบบนเมื่อเข้าระบบแล้ว</label>
+              <label className="text-sm text-gray-600">หัวข้อแถบบนเมื่อเข้าระบบแล้ว</label>
               <input
                 value={draftDashboard.dashboardTitle}
                 onChange={(e) => setDraftDashboard((c) => ({ ...c, dashboardTitle: e.target.value }))}
-                className="mt-1 w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900"
               />
             </div>
           </section>
 
-          <section className="rounded-2xl border border-white/10 bg-white/5 p-5 space-y-4">
-            <h2 className="font-semibold text-yellow-100">แบบประเมินที่แสดงบน Dashboard</h2>
+          <section className="rounded-2xl border border-[#D6D4CC] bg-white p-5 space-y-4">
+            <h2 className="font-semibold text-yellow-900">แบบประเมินที่แสดงบน Dashboard</h2>
             <label className="flex items-start gap-3 cursor-pointer">
               <input
                 type="checkbox"
@@ -1489,12 +1489,12 @@ const EvaEditorPage: React.FC = () => {
                 }}
                 className="mt-1 shrink-0"
               />
-              <span className="text-sm text-gray-300 leading-relaxed">
+              <span className="text-sm text-gray-700 leading-relaxed">
                 จำกัดเฉพาะแบบประเมินที่เลือก (ถ้าไม่เลือกกล่องนี้ จะ<strong>แสดงแบบประเมินทั้งหมด</strong>ที่มีในระบบบน Dashboard)
               </span>
             </label>
             {restrictDashboardList && (
-              <div className="rounded-lg border border-white/10 bg-black/25 p-3 max-h-64 overflow-y-auto space-y-2">
+              <div className="rounded-lg border border-[#D6D4CC] bg-gray-50 p-3 max-h-64 overflow-y-auto space-y-2">
                 {templates.length === 0 ? (
                   <p className="text-sm text-gray-500">ยังไม่มีแบบประเมิน ให้ไปที่แท็บ &quot;แก้ไขแบบประเมิน&quot; เพื่อสร้างก่อน</p>
                 ) : (
@@ -1514,7 +1514,7 @@ const EvaEditorPage: React.FC = () => {
                           }}
                           className="mt-1 shrink-0"
                         />
-                        <span className="text-sm text-gray-200 leading-snug">{item.name}</span>
+                        <span className="text-sm text-gray-800 leading-snug">{item.name}</span>
                       </label>
                     );
                   })
@@ -1539,32 +1539,32 @@ const EvaEditorPage: React.FC = () => {
                 void refreshDashboardEditorState();
                 setMessage('โหลดค่าล่าสุดจากระบบแล้ว');
               }}
-              className="rounded-xl border border-white/20 px-4 py-2.5 text-sm text-gray-200 hover:bg-white/10 transition-colors"
+              className="rounded-xl border border-gray-200 px-4 py-2.5 text-sm text-gray-800 hover:bg-gray-100 transition-colors"
             >
               โหลดค่าที่บันทึกไว้
             </button>
           </div>
-          {message && <p className="text-sm text-emerald-300">{message}</p>}
-          {syncError && <p className="text-sm text-amber-300">{syncError}</p>}
+          {message && <p className="text-sm text-emerald-800">{message}</p>}
+          {syncError && <p className="text-sm text-amber-800">{syncError}</p>}
         </main>
       ) : (
       <main className="max-w-7xl mx-auto px-6 py-8 grid lg:grid-cols-[320px_minmax(0,1fr)] gap-6">
-        <section className="rounded-2xl border border-white/10 bg-white/5 p-4 h-fit">
-          <h2 className="font-semibold text-gray-200 mb-3">รายการแบบประเมิน</h2>
-          <div className="mb-3 rounded-lg border border-white/10 bg-black/20 p-3 space-y-2">
-            <p className="text-xs text-gray-400">กรองช่วงวันที่ก่อนดาวน์โหลด Excel</p>
+        <section className="rounded-2xl border border-[#D6D4CC] bg-white p-4 h-fit">
+          <h2 className="font-semibold text-gray-800 mb-3">รายการแบบประเมิน</h2>
+          <div className="mb-3 rounded-lg border border-[#D6D4CC] bg-white p-3 space-y-2">
+            <p className="text-xs text-gray-600">กรองช่วงวันที่ก่อนดาวน์โหลด Excel</p>
             <div className="grid grid-cols-2 gap-2">
               <input
                 type="date"
                 value={exportDateFrom}
                 onChange={(e) => setExportDateFrom(e.target.value)}
-                className="rounded-lg border border-white/15 bg-black/30 px-2 py-1.5 text-xs"
+                className="rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-xs"
               />
               <input
                 type="date"
                 value={exportDateTo}
                 onChange={(e) => setExportDateTo(e.target.value)}
-                className="rounded-lg border border-white/15 bg-black/30 px-2 py-1.5 text-xs"
+                className="rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-xs"
               />
             </div>
             <button
@@ -1573,7 +1573,7 @@ const EvaEditorPage: React.FC = () => {
                 setExportDateFrom('');
                 setExportDateTo('');
               }}
-              className="text-xs text-gray-300 underline underline-offset-2 hover:text-white"
+              className="text-xs text-gray-700 underline underline-offset-2 hover:text-gray-900"
             >
               ล้างช่วงวันที่
             </button>
@@ -1584,13 +1584,13 @@ const EvaEditorPage: React.FC = () => {
                 key={item.id}
                 className={`rounded-lg border px-3 py-2 transition-colors ${
                   selectedId === item.id
-                    ? 'border-yellow-400/60 bg-yellow-400/10 text-yellow-200'
-                    : 'border-white/10 bg-black/20 text-gray-200'
+                    ? 'border-yellow-500 bg-yellow-50 text-yellow-800'
+                    : 'border-[#D6D4CC] bg-white text-gray-800'
                 }`}
               >
                 <button type="button" onClick={() => setSelectedId(item.id)} className="w-full text-left">
                   <p className="font-medium truncate">{item.name}</p>
-                  <p className="text-xs text-gray-400 mt-1">{item.prompts.length} รายการ</p>
+                  <p className="text-xs text-gray-600 mt-1">{item.prompts.length} รายการ</p>
                 </button>
                 <p className="mt-1.5 text-[10px] leading-snug text-gray-500 break-all font-mono" title={buildPublicPath(item.id)}>
                   {buildPublicPath(item.id)}
@@ -1599,7 +1599,7 @@ const EvaEditorPage: React.FC = () => {
                   href={buildPublicPath(item.id)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-block mt-2 text-xs text-yellow-200 hover:text-yellow-100 underline underline-offset-2"
+                  className="inline-block mt-2 text-xs text-yellow-800 hover:text-yellow-900 underline underline-offset-2"
                 >
                   เปิดลิงก์
                 </a>
@@ -1607,7 +1607,7 @@ const EvaEditorPage: React.FC = () => {
                   type="button"
                   onClick={() => downloadTemplateResponses(item)}
                   disabled={exportingTemplateId === item.id}
-                  className="mt-2 ml-3 inline-block text-xs rounded-md bg-emerald-400/20 border border-emerald-300/35 px-2.5 py-1.5 text-emerald-100 hover:bg-emerald-400/30 disabled:opacity-60"
+                  className="mt-2 ml-3 inline-block text-xs rounded-md bg-emerald-50 border border-emerald-300 px-2.5 py-1.5 text-emerald-800 hover:bg-emerald-100 disabled:opacity-60"
                 >
                   {exportingTemplateId === item.id ? 'กำลังสร้างไฟล์...' : 'Download Excel'}
                 </button>
@@ -1619,7 +1619,7 @@ const EvaEditorPage: React.FC = () => {
               value={newTemplateName}
               onChange={(e) => setNewTemplateName(e.target.value)}
               placeholder="ชื่อแบบประเมินใหม่"
-              className="w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm"
+              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900"
             />
             <button
               type="button"
@@ -1631,70 +1631,70 @@ const EvaEditorPage: React.FC = () => {
           </div>
         </section>
 
-        <section className="rounded-2xl border border-white/10 bg-white/5 p-5">
+        <section className="rounded-2xl border border-[#D6D4CC] bg-white p-5">
           {!selectedTemplate ? (
-            <p className="text-gray-400">ยังไม่มีแบบประเมิน กรุณาเพิ่มรายการใหม่</p>
+            <p className="text-gray-600">ยังไม่มีแบบประเมิน กรุณาเพิ่มรายการใหม่</p>
           ) : (
             <div className="space-y-5">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex-1 min-w-[220px]">
-                  <label className="text-sm text-gray-400">Heading แบบประเมิน (ไม่บังคับ)</label>
+                  <label className="text-sm text-gray-600">Heading แบบประเมิน (ไม่บังคับ)</label>
                   <input
                     value={selectedTemplate.heading || ''}
                     onChange={(e) => updateTemplateHeading(e.target.value)}
                     placeholder="หัวข้อใหญ่บนฟอร์มผู้ตอบ — ใส่ก่อนชื่อแบบประเมินได้"
-                    className="mt-1 w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2"
+                    className="mt-1 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-gray-900"
                   />
-                  <label className="text-sm text-gray-400 mt-3 block">ชื่อแบบประเมิน</label>
+                  <label className="text-sm text-gray-600 mt-3 block">ชื่อแบบประเมิน</label>
                   <input
                     value={selectedTemplate.name}
                     onChange={(e) => updateTemplateName(e.target.value)}
                     onBlur={syncTemplateLinkFromName}
-                    className="mt-1 w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2"
+                    className="mt-1 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-gray-900"
                   />
-                  <label className="text-sm text-gray-400 mt-3 block">คำอธิบายใต้ชื่อแบบประเมิน</label>
+                  <label className="text-sm text-gray-600 mt-3 block">คำอธิบายใต้ชื่อแบบประเมิน</label>
                   <textarea
                     value={selectedTemplate.description || ''}
                     onChange={(e) => updateTemplateDescription(e.target.value)}
                     rows={3}
                     placeholder="เช่น โปรดตอบตามความคิดเห็นจริง ใช้เวลาประมาณ 3-5 นาที"
-                    className="mt-1 w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm resize-y"
+                    className="mt-1 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 resize-y"
                   />
                   <div className="mt-4 rounded-xl border border-emerald-400/25 bg-emerald-500/5 p-3 space-y-3">
-                    <p className="text-sm font-semibold text-emerald-200">ข้อความหลังส่งคำตอบ</p>
+                    <p className="text-sm font-semibold text-emerald-800">ข้อความหลังส่งคำตอบ</p>
                     <p className="text-[11px] text-gray-500">
                       แสดงเมื่อผู้ตอบกดส่งแบบประเมินสำเร็จ — ว่างไว้จะใช้ข้อความเริ่มต้น
                     </p>
                     <div>
-                      <label className="text-sm text-gray-400">หัวข้อ</label>
+                      <label className="text-sm text-gray-600">หัวข้อ</label>
                       <input
                         value={selectedTemplate.submittedTitle || ''}
                         onChange={(e) => updateTemplateSubmittedTitle(e.target.value)}
                         placeholder="ส่งคำตอบเรียบร้อย"
-                        className="mt-1 w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm"
+                        className="mt-1 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900"
                       />
                     </div>
                     <div>
-                      <label className="text-sm text-gray-400">รายละเอียด</label>
+                      <label className="text-sm text-gray-600">รายละเอียด</label>
                       <textarea
                         value={selectedTemplate.submittedBody || ''}
                         onChange={(e) => updateTemplateSubmittedBody(e.target.value)}
                         rows={2}
                         placeholder="ขอบคุณสำหรับการทำแบบประเมิน"
-                        className="mt-1 w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm resize-y"
+                        className="mt-1 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 resize-y"
                       />
                     </div>
                   </div>
                   <div className="mt-3">
-                    <p className="text-sm text-gray-400">ภาษาบนฟอร์มผู้ตอบ</p>
-                    <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1.5 text-sm text-gray-200">
+                    <p className="text-sm text-gray-600">ภาษาบนฟอร์มผู้ตอบ</p>
+                    <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1.5 text-sm text-gray-800">
                       <label className="inline-flex items-center gap-1.5 cursor-pointer select-none">
                         <input
                           type="radio"
                           name={`eva-lang-${selectedTemplate.id}`}
                           checked={getEvaFormLanguage(selectedTemplate) === 'th'}
                           onChange={() => updateTemplateLanguage('th')}
-                          className="border-white/30 bg-black/40 accent-yellow-400"
+                          className="border-gray-300 bg-gray-100 accent-yellow-400"
                         />
                         ไทย
                       </label>
@@ -1704,7 +1704,7 @@ const EvaEditorPage: React.FC = () => {
                           name={`eva-lang-${selectedTemplate.id}`}
                           checked={getEvaFormLanguage(selectedTemplate) === 'en'}
                           onChange={() => updateTemplateLanguage('en')}
-                          className="border-white/30 bg-black/40 accent-yellow-400"
+                          className="border-gray-300 bg-gray-100 accent-yellow-400"
                         />
                         English
                       </label>
@@ -1713,17 +1713,17 @@ const EvaEditorPage: React.FC = () => {
                       เลือก English แล้วใช้ลิงก์ผู้ตอบได้เลย — ระบบแปลโจทย์ให้อัตโนมัติ
                     </p>
                     {englishSyncingId === selectedTemplate.id ? (
-                      <p className="mt-1 text-[11px] text-yellow-200/90">กำลังแปลเป็นภาษาอังกฤษ...</p>
+                      <p className="mt-1 text-[11px] text-yellow-800">กำลังแปลเป็นภาษาอังกฤษ...</p>
                     ) : null}
                   </div>
                   <div className="mt-3 rounded-xl border border-yellow-400/25 bg-yellow-400/5 p-3 space-y-2">
-                    <p className="text-xs font-semibold text-yellow-100">ลิงก์สำหรับผู้ตอบแบบประเมิน</p>
+                    <p className="text-xs font-semibold text-yellow-900">ลิงก์สำหรับผู้ตอบแบบประเมิน</p>
                     <div className="flex gap-2 items-stretch">
                       <input
                         readOnly
                         value={buildPublicLink(selectedTemplate.id)}
                         onFocus={(e) => e.currentTarget.select()}
-                        className="flex-1 min-w-0 rounded-lg border border-white/15 bg-black/40 px-3 py-2 text-xs text-gray-100 font-mono break-all"
+                        className="flex-1 min-w-0 rounded-lg border border-gray-200 bg-gray-100 px-3 py-2 text-xs text-gray-900 font-mono break-all"
                       />
                       <button
                         type="button"
@@ -1741,13 +1741,13 @@ const EvaEditorPage: React.FC = () => {
                       </button>
                     </div>
                     <p className="text-[11px] text-gray-500 break-all">
-                      path: <span className="font-mono text-gray-400">{buildPublicPath(selectedTemplate.id)}</span>
+                      path: <span className="font-mono text-gray-600">{buildPublicPath(selectedTemplate.id)}</span>
                     </p>
                     <a
                       href={buildPublicPath(selectedTemplate.id)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex text-xs rounded-md bg-white/10 px-2.5 py-1.5 text-gray-200 hover:bg-white/20 transition-colors"
+                      className="inline-flex text-xs rounded-md bg-gray-100 px-2.5 py-1.5 text-gray-800 hover:bg-gray-100 transition-colors"
                     >
                       เปิดลิงก์ในแท็บใหม่
                     </a>
@@ -1756,24 +1756,24 @@ const EvaEditorPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={deleteTemplate}
-                  className="rounded-lg bg-red-500/20 border border-red-400/40 px-3 py-2 text-sm font-semibold text-red-200 hover:bg-red-500/30 transition-colors"
+                  className="rounded-lg bg-red-50 border border-red-300 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-100 transition-colors"
                 >
                   ลบแบบประเมิน
                 </button>
               </div>
 
               <div>
-                <h3 className="font-semibold text-gray-200 mb-3">
+                <h3 className="font-semibold text-gray-800 mb-3">
                   โจทย์และคำอธิบาย ({selectedTemplate.prompts.length})
                 </h3>
                 <div className="space-y-3">
                   {selectedTemplate.prompts.map((prompt, idx) => (
-                    <div key={`${selectedTemplate.id}-${prompt.id}`} className="rounded-lg border border-white/10 bg-black/20 p-3">
+                    <div key={`${selectedTemplate.id}-${prompt.id}`} className="rounded-lg border border-[#D6D4CC] bg-white p-3">
                       <div className="flex items-start gap-2 mb-2">
-                        <span className="text-sm text-gray-400 pt-2 w-7 shrink-0 text-right tabular-nums">{idx + 1}.</span>
+                        <span className="text-sm text-gray-600 pt-2 w-7 shrink-0 text-right tabular-nums">{idx + 1}.</span>
                         <div className="flex-1 min-w-0 space-y-1.5">
                           {prompt.type === 'description' && (
-                            <span className="inline-block rounded-md border border-amber-400/40 bg-amber-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-100">
+                            <span className="inline-block rounded-md border border-amber-300 bg-amber-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-900">
                               คำอธิบาย
                             </span>
                           )}
@@ -1791,12 +1791,12 @@ const EvaEditorPage: React.FC = () => {
                               onChange={(e) => updatePromptTitle(idx, e.target.value)}
                               rows={2}
                               placeholder="ข้อความโจทย์ที่ผู้ตอบเห็น"
-                              className="w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm resize-y"
+                              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 resize-y"
                             />
                           )}
                           {prompt.type !== 'description' && (
-                            <div className="space-y-2 text-xs text-gray-400">
-                              <p className="font-medium text-gray-300">เลข / ข้อความนำหน้าบนฟอร์มผู้ตอบ</p>
+                            <div className="space-y-2 text-xs text-gray-600">
+                              <p className="font-medium text-gray-700">เลข / ข้อความนำหน้าบนฟอร์มผู้ตอบ</p>
                               <div className="flex flex-wrap gap-x-4 gap-y-1.5">
                                 <label className="inline-flex items-center gap-1.5 cursor-pointer select-none">
                                   <input
@@ -1804,7 +1804,7 @@ const EvaEditorPage: React.FC = () => {
                                     name={`eva-num-${selectedTemplate.id}-${prompt.id}`}
                                     checked={getPromptNumberStyle(prompt) === 'auto'}
                                     onChange={() => setPromptNumberStyle(idx, 'auto')}
-                                    className="border-white/30 bg-black/40 accent-yellow-400"
+                                    className="border-gray-300 bg-gray-100 accent-yellow-400"
                                   />
                                   อัตโนมัติ (1. 2. …)
                                 </label>
@@ -1814,7 +1814,7 @@ const EvaEditorPage: React.FC = () => {
                                     name={`eva-num-${selectedTemplate.id}-${prompt.id}`}
                                     checked={getPromptNumberStyle(prompt) === 'none'}
                                     onChange={() => setPromptNumberStyle(idx, 'none')}
-                                    className="border-white/30 bg-black/40 accent-yellow-400"
+                                    className="border-gray-300 bg-gray-100 accent-yellow-400"
                                   />
                                   ไม่มีนำหน้า
                                 </label>
@@ -1824,7 +1824,7 @@ const EvaEditorPage: React.FC = () => {
                                     name={`eva-num-${selectedTemplate.id}-${prompt.id}`}
                                     checked={getPromptNumberStyle(prompt) === 'fixed'}
                                     onChange={() => setPromptNumberStyle(idx, 'fixed')}
-                                    className="border-white/30 bg-black/40 accent-yellow-400"
+                                    className="border-gray-300 bg-gray-100 accent-yellow-400"
                                   />
                                   กำหนดเอง
                                 </label>
@@ -1835,7 +1835,7 @@ const EvaEditorPage: React.FC = () => {
                                   value={prompt.fixedNumberPrefix ?? ''}
                                   onChange={(e) => updatePromptFixedNumberPrefix(idx, e.target.value)}
                                   placeholder="เช่น Q1. หรือ ข้อ ก. (ใส่ช่องว่างท้ายได้)"
-                                  className="w-full max-w-md rounded-lg border border-white/15 bg-black/30 px-2 py-1.5 text-sm text-gray-100 placeholder:text-gray-500"
+                                  className="w-full max-w-md rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-sm text-gray-900 placeholder:text-gray-500"
                                 />
                               )}
                             </div>
@@ -1844,7 +1844,7 @@ const EvaEditorPage: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => removePrompt(idx)}
-                          className="rounded-lg bg-red-500/20 border border-red-400/40 px-2.5 py-2 text-xs font-semibold text-red-200 hover:bg-red-500/30 transition-colors shrink-0"
+                          className="rounded-lg bg-red-50 border border-red-300 px-2.5 py-2 text-xs font-semibold text-red-700 hover:bg-red-100 transition-colors shrink-0"
                         >
                           ลบ
                         </button>
@@ -1853,14 +1853,14 @@ const EvaEditorPage: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => insertPromptAt(idx, makeNewTextPrompt())}
-                          className="rounded-md border border-emerald-400/35 bg-emerald-500/10 px-2 py-1 text-[11px] font-medium text-emerald-100 hover:bg-emerald-500/20"
+                          className="rounded-md border border-emerald-300 bg-emerald-50 px-2 py-1 text-[11px] font-medium text-emerald-800 hover:bg-emerald-100"
                         >
                           แทรกโจทย์ด้านบน
                         </button>
                         <button
                           type="button"
                           onClick={() => insertPromptAt(idx, makeNewDescriptionPrompt())}
-                          className="rounded-md border border-amber-400/35 bg-amber-500/10 px-2 py-1 text-[11px] font-medium text-amber-100 hover:bg-amber-500/20"
+                          className="rounded-md border border-amber-300 bg-amber-50 px-2 py-1 text-[11px] font-medium text-amber-900 hover:bg-amber-100"
                         >
                           แทรกคำอธิบายด้านบน
                         </button>
@@ -1868,7 +1868,7 @@ const EvaEditorPage: React.FC = () => {
                           type="button"
                           disabled={idx === 0}
                           onClick={() => movePrompt(idx, -1)}
-                          className="rounded-md border border-white/15 bg-white/5 px-2 py-1 text-[11px] text-gray-200 hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-35"
+                          className="rounded-md border border-gray-200 bg-white px-2 py-1 text-[11px] text-gray-800 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-35"
                         >
                           เลื่อนขึ้น
                         </button>
@@ -1876,7 +1876,7 @@ const EvaEditorPage: React.FC = () => {
                           type="button"
                           disabled={idx >= selectedTemplate.prompts.length - 1}
                           onClick={() => movePrompt(idx, 1)}
-                          className="rounded-md border border-white/15 bg-white/5 px-2 py-1 text-[11px] text-gray-200 hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-35"
+                          className="rounded-md border border-gray-200 bg-white px-2 py-1 text-[11px] text-gray-800 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-35"
                         >
                           เลื่อนลง
                         </button>
@@ -1885,7 +1885,7 @@ const EvaEditorPage: React.FC = () => {
                         <select
                           value={prompt.type}
                           onChange={(e) => updatePromptType(idx, e.target.value as EvaPromptType)}
-                          className="rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm"
+                          className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900"
                         >
                           <option value="text">คำตอบแบบข้อความ</option>
                           <option value="choice">คำตอบแบบช้อยส์</option>
@@ -1908,7 +1908,7 @@ const EvaEditorPage: React.FC = () => {
                             {(prompt.options || []).map((option, optionIdx) => (
                               <div key={`${prompt.id}-option-${optionIdx}`} className="flex items-center gap-2">
                                 {prompt.type === 'scored_choice' && (
-                                  <label className="inline-flex items-center gap-1.5 text-xs text-emerald-200">
+                                  <label className="inline-flex items-center gap-1.5 text-xs text-emerald-800">
                                     <input
                                       type="radio"
                                       name={`correct-${prompt.id}`}
@@ -1922,12 +1922,12 @@ const EvaEditorPage: React.FC = () => {
                                 <input
                                   value={isOtherOption(option) ? getOtherOptionLabel(option) : option}
                                   onChange={(e) => updatePromptOptionItem(idx, optionIdx, e.target.value)}
-                                  className="flex-1 rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm"
+                                  className="flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900"
                                 />
                                 <button
                                   type="button"
                                   onClick={() => removePromptOptionItem(idx, optionIdx)}
-                                  className="rounded-lg bg-red-500/20 border border-red-400/40 px-2.5 py-2 text-xs font-semibold text-red-200 hover:bg-red-500/30 transition-colors"
+                                  className="rounded-lg bg-red-50 border border-red-300 px-2.5 py-2 text-xs font-semibold text-red-700 hover:bg-red-100 transition-colors"
                                 >
                                   ลบ
                                 </button>
@@ -1936,7 +1936,7 @@ const EvaEditorPage: React.FC = () => {
                             <button
                               type="button"
                               onClick={() => addPromptOptionItem(idx)}
-                              className="rounded-lg bg-emerald-400/20 border border-emerald-300/40 px-3 py-2 text-xs font-semibold text-emerald-100 hover:bg-emerald-400/30 transition-colors"
+                              className="rounded-lg bg-emerald-50 border border-emerald-300 px-3 py-2 text-xs font-semibold text-emerald-800 hover:bg-emerald-100 transition-colors"
                             >
                               + เพิ่มตัวเลือก
                             </button>
@@ -1944,13 +1944,13 @@ const EvaEditorPage: React.FC = () => {
                               <button
                                 type="button"
                                 onClick={() => addOtherOptionItem(idx)}
-                                className="ml-2 rounded-lg bg-amber-400/20 border border-amber-300/40 px-3 py-2 text-xs font-semibold text-amber-100 hover:bg-amber-400/30 transition-colors"
+                                className="ml-2 rounded-lg bg-amber-50 border border-amber-300 px-3 py-2 text-xs font-semibold text-amber-900 hover:bg-amber-100 transition-colors"
                               >
                                 + เพิ่ม Other:
                               </button>
                             )}
                             {prompt.type === 'scored_choice' && (
-                              <p className="text-xs text-emerald-300">
+                              <p className="text-xs text-emerald-800">
                                 เลือก radio “ถูก” ด้านหน้าตัวเลือกที่เป็นคำตอบถูก
                               </p>
                             )}
@@ -1964,19 +1964,19 @@ const EvaEditorPage: React.FC = () => {
                             {getEvaRatingSubItems(prompt).map((subItem, itemIdx) => (
                               <div
                                 key={`${prompt.id}-rating-item-${itemIdx}`}
-                                className="space-y-2 rounded-lg border border-white/10 bg-black/25 p-3"
+                                className="space-y-2 rounded-lg border border-[#D6D4CC] bg-gray-50 p-3"
                               >
                                 <div className="flex items-start gap-2">
                                   <input
                                     value={subItem.text}
                                     onChange={(e) => updatePromptRatingSubItemText(idx, itemIdx, e.target.value)}
                                     placeholder="ข้อความข้อย่อย"
-                                    className="flex-1 rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm"
+                                    className="flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900"
                                   />
                                   <button
                                     type="button"
                                     onClick={() => removePromptRatingItem(idx, itemIdx)}
-                                    className="rounded-lg bg-red-500/20 border border-red-400/40 px-2.5 py-2 text-xs font-semibold text-red-200 hover:bg-red-500/30 transition-colors shrink-0"
+                                    className="rounded-lg bg-red-50 border border-red-300 px-2.5 py-2 text-xs font-semibold text-red-700 hover:bg-red-100 transition-colors shrink-0"
                                   >
                                     ลบ
                                   </button>
@@ -1995,14 +1995,14 @@ const EvaEditorPage: React.FC = () => {
                             <button
                               type="button"
                               onClick={() => addPromptRatingItem(idx)}
-                              className="rounded-lg bg-emerald-400/20 border border-emerald-300/40 px-3 py-2 text-xs font-semibold text-emerald-100 hover:bg-emerald-400/30 transition-colors"
+                              className="rounded-lg bg-emerald-50 border border-emerald-300 px-3 py-2 text-xs font-semibold text-emerald-800 hover:bg-emerald-100 transition-colors"
                             >
                               + เพิ่มข้อย่อย
                             </button>
                           </div>
                         )}
                         {prompt.type === 'commitment_table' && (
-                          <div className="space-y-3 rounded-lg border border-white/10 bg-black/25 p-3">
+                          <div className="space-y-3 rounded-lg border border-[#D6D4CC] bg-gray-50 p-3">
                             <p className="text-xs text-gray-500">หัวตาราง (3 คอลัมน์)</p>
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                               {([0, 1, 2] as const).map((col) => (
@@ -2010,18 +2010,18 @@ const EvaEditorPage: React.FC = () => {
                                   key={col}
                                   value={(prompt.commitmentHeaders ?? EVA_DEFAULT_COMMITMENT_HEADERS)[col]}
                                   onChange={(e) => updatePromptCommitmentHeader(idx, col, e.target.value)}
-                                  className="rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-xs"
+                                  className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs"
                                 />
                               ))}
                             </div>
                             <p className="text-xs text-gray-500">แถว — คอลัมน์ 2–3 ใช้เป็นข้อความตัวอย่าง (placeholder) บนฟอร์มผู้ตอบ</p>
                             {(prompt.commitmentRows ?? defaultEvaCommitmentRows()).map((row, ri) => (
-                              <div key={`${prompt.id}-er-${ri}`} className="space-y-2 rounded border border-white/8 p-2">
+                              <div key={`${prompt.id}-er-${ri}`} className="space-y-2 rounded border border-gray-200 p-2">
                                 <div className="flex justify-end">
                                   <button
                                     type="button"
                                     onClick={() => removePromptCommitmentRow(idx, ri)}
-                                    className="text-xs text-red-300 hover:underline"
+                                    className="text-xs text-red-700 hover:underline"
                                   >
                                     ลบแถว
                                   </button>
@@ -2030,7 +2030,7 @@ const EvaEditorPage: React.FC = () => {
                                   value={row.commitment}
                                   onChange={(e) => updatePromptCommitmentRow(idx, ri, 'commitment', e.target.value)}
                                   placeholder="ข้อความ COMMITMENT"
-                                  className="w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm"
+                                  className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900"
                                 />
                                 <input
                                   value={row.byWhenPlaceholder || ''}
@@ -2038,7 +2038,7 @@ const EvaEditorPage: React.FC = () => {
                                     updatePromptCommitmentRow(idx, ri, 'byWhenPlaceholder', e.target.value)
                                   }
                                   placeholder="placeholder BY WHEN (เช่น By end of week)"
-                                  className="w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-xs"
+                                  className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs"
                                 />
                                 <input
                                   value={row.howKnowPlaceholder || ''}
@@ -2046,50 +2046,50 @@ const EvaEditorPage: React.FC = () => {
                                     updatePromptCommitmentRow(idx, ri, 'howKnowPlaceholder', e.target.value)
                                   }
                                   placeholder="placeholder HOW I'LL KNOW..."
-                                  className="w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-xs"
+                                  className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs"
                                 />
                               </div>
                             ))}
                             <button
                               type="button"
                               onClick={() => addPromptCommitmentRow(idx)}
-                              className="rounded-lg bg-emerald-400/20 border border-emerald-300/40 px-3 py-2 text-xs font-semibold text-emerald-100"
+                              className="rounded-lg bg-emerald-50 border border-emerald-300 px-3 py-2 text-xs font-semibold text-emerald-800"
                             >
                               + เพิ่มแถว
                             </button>
                           </div>
                         )}
                         {prompt.type === 'fill_sentence' && (
-                          <div className="space-y-2 rounded-lg border border-white/10 bg-black/25 p-3">
+                          <div className="space-y-2 rounded-lg border border-[#D6D4CC] bg-gray-50 p-3">
                             <input
                               value={prompt.fillIntroEn ?? ''}
                               onChange={(e) => updatePromptFillField(idx, 'fillIntroEn', e.target.value)}
                               placeholder="หัวข้อ EN"
-                              className="w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm"
+                              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900"
                             />
                             <input
                               value={prompt.fillIntroTh ?? ''}
                               onChange={(e) => updatePromptFillField(idx, 'fillIntroTh', e.target.value)}
                               placeholder="หัวข้อ TH"
-                              className="w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm"
+                              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900"
                             />
                             <input
                               value={prompt.fillLeadIn ?? ''}
                               onChange={(e) => updatePromptFillField(idx, 'fillLeadIn', e.target.value)}
                               placeholder="ก่อนช่องว่างแรก (เช่น I commit to )"
-                              className="w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-xs"
+                              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs"
                             />
                             <input
                               value={prompt.fillBridge ?? ''}
                               onChange={(e) => updatePromptFillField(idx, 'fillBridge', e.target.value)}
                               placeholder="ระหว่างช่องว่าง"
-                              className="w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-xs"
+                              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs"
                             />
                             <input
                               value={prompt.fillClosing ?? ''}
                               onChange={(e) => updatePromptFillField(idx, 'fillClosing', e.target.value)}
                               placeholder="หลังช่องว่างที่สอง (เช่น .)"
-                              className="w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-xs"
+                              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs"
                             />
                           </div>
                         )}
@@ -2101,12 +2101,12 @@ const EvaEditorPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="rounded-lg border border-white/10 bg-black/20 p-3">
-                <label className="text-sm text-gray-400">เพิ่มโจทย์ใหม่</label>
+              <div className="rounded-lg border border-[#D6D4CC] bg-white p-3">
+                <label className="text-sm text-gray-600">เพิ่มโจทย์ใหม่</label>
                 <select
                   value={newPromptType}
                   onChange={(e) => setNewPromptType(e.target.value as EvaPromptType)}
-                  className="mt-2 w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm"
+                  className="mt-2 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900"
                 >
                   <option value="text">คำตอบแบบข้อความ</option>
                   <option value="choice">คำตอบแบบช้อยส์</option>
@@ -2134,7 +2134,7 @@ const EvaEditorPage: React.FC = () => {
                     onChange={(e) => setNewPromptTitle(e.target.value)}
                     rows={3}
                     placeholder="พิมพ์โจทย์ที่ต้องการเพิ่ม..."
-                    className="mt-1 w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm resize-y"
+                    className="mt-1 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 resize-y"
                   />
                 )}
                 {(newPromptType === 'choice' || newPromptType === 'scored_choice' || newPromptType === 'multi_choice') && (
@@ -2142,7 +2142,7 @@ const EvaEditorPage: React.FC = () => {
                     {newPromptOptions.map((option, idx) => (
                       <div key={`new-option-${idx}`} className="flex items-center gap-2">
                         {newPromptType === 'scored_choice' && (
-                          <label className="inline-flex items-center gap-1.5 text-xs text-emerald-200">
+                          <label className="inline-flex items-center gap-1.5 text-xs text-emerald-800">
                             <input
                               type="radio"
                               name="new-scored-correct"
@@ -2176,7 +2176,7 @@ const EvaEditorPage: React.FC = () => {
                               return next;
                             })
                           }
-                          className="flex-1 rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm"
+                          className="flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900"
                         />
                         <button
                           type="button"
@@ -2189,7 +2189,7 @@ const EvaEditorPage: React.FC = () => {
                               return next;
                             })
                           }
-                          className="rounded-lg bg-red-500/20 border border-red-400/40 px-2.5 py-2 text-xs font-semibold text-red-200 hover:bg-red-500/30 transition-colors"
+                          className="rounded-lg bg-red-50 border border-red-300 px-2.5 py-2 text-xs font-semibold text-red-700 hover:bg-red-100 transition-colors"
                         >
                           ลบ
                         </button>
@@ -2198,7 +2198,7 @@ const EvaEditorPage: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setNewPromptOptions((prev) => [...prev, `ตัวเลือก ${prev.length + 1}`])}
-                      className="rounded-lg bg-emerald-400/20 border border-emerald-300/40 px-3 py-2 text-xs font-semibold text-emerald-100 hover:bg-emerald-400/30 transition-colors"
+                      className="rounded-lg bg-emerald-50 border border-emerald-300 px-3 py-2 text-xs font-semibold text-emerald-800 hover:bg-emerald-100 transition-colors"
                     >
                       + เพิ่มตัวเลือก
                     </button>
@@ -2212,13 +2212,13 @@ const EvaEditorPage: React.FC = () => {
                               : [...prev, buildOtherOptionValue('Other:')]
                           )
                         }
-                        className="ml-2 rounded-lg bg-amber-400/20 border border-amber-300/40 px-3 py-2 text-xs font-semibold text-amber-100 hover:bg-amber-400/30 transition-colors"
+                        className="ml-2 rounded-lg bg-amber-50 border border-amber-300 px-3 py-2 text-xs font-semibold text-amber-900 hover:bg-amber-100 transition-colors"
                       >
                         + เพิ่ม Other:
                       </button>
                     )}
                     {newPromptType === 'scored_choice' && (
-                      <p className="text-xs text-emerald-300">
+                      <p className="text-xs text-emerald-800">
                         เลือก radio “ถูก” ด้านหน้าตัวเลือกที่เป็นคำตอบถูก ระบบจะคิดคะแนนหลังส่ง
                       </p>
                     )}
@@ -2230,7 +2230,7 @@ const EvaEditorPage: React.FC = () => {
                       ข้อย่อย (ไม่บังคับ) — ถ้าไม่เพิ่ม ผู้ตอบจะเห็นแค่ข้อโจทย์หลักกับปุ่ม 1–5
                     </p>
                     {newPromptRatingSubItems.map((subItem, idx) => (
-                      <div key={`new-rating-item-${idx}`} className="space-y-2 rounded-lg border border-white/10 bg-black/25 p-3">
+                      <div key={`new-rating-item-${idx}`} className="space-y-2 rounded-lg border border-[#D6D4CC] bg-gray-50 p-3">
                         <div className="flex items-start gap-2">
                           <input
                             value={subItem.text}
@@ -2240,12 +2240,12 @@ const EvaEditorPage: React.FC = () => {
                               )
                             }
                             placeholder="ข้อความข้อย่อย"
-                            className="flex-1 rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm"
+                            className="flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900"
                           />
                           <button
                             type="button"
                             onClick={() => setNewPromptRatingSubItems((prev) => prev.filter((_, i) => i !== idx))}
-                            className="rounded-lg bg-red-500/20 border border-red-400/40 px-2.5 py-2 text-xs font-semibold text-red-200 hover:bg-red-500/30 transition-colors shrink-0"
+                            className="rounded-lg bg-red-50 border border-red-300 px-2.5 py-2 text-xs font-semibold text-red-700 hover:bg-red-100 transition-colors shrink-0"
                           >
                             ลบ
                           </button>
@@ -2286,7 +2286,7 @@ const EvaEditorPage: React.FC = () => {
                       onClick={() =>
                         setNewPromptRatingSubItems((prev) => [...prev, { text: `คำถาม ${prev.length + 1}` }])
                       }
-                      className="rounded-lg bg-emerald-400/20 border border-emerald-300/40 px-3 py-2 text-xs font-semibold text-emerald-100 hover:bg-emerald-400/30 transition-colors"
+                      className="rounded-lg bg-emerald-50 border border-emerald-300 px-3 py-2 text-xs font-semibold text-emerald-800 hover:bg-emerald-100 transition-colors"
                     >
                       + เพิ่มข้อย่อย
                     </button>
@@ -2300,14 +2300,14 @@ const EvaEditorPage: React.FC = () => {
                   </p>
                 )}
                 {newPromptType === 'commitment_table' && (
-                  <div className="mt-2 space-y-3 rounded-lg border border-white/10 bg-black/25 p-3">
+                  <div className="mt-2 space-y-3 rounded-lg border border-[#D6D4CC] bg-gray-50 p-3">
                     <button
                       type="button"
                       onClick={() => {
                         setNewCommitmentHeaders([...EVA_DEFAULT_COMMITMENT_HEADERS]);
                         setNewCommitmentRows(defaultEvaCommitmentRows().map((r) => ({ ...r })));
                       }}
-                      className="rounded-lg bg-sky-500/20 border border-sky-400/40 px-3 py-2 text-xs font-semibold text-sky-100 hover:bg-sky-500/30"
+                      className="rounded-lg bg-sky-50 border border-sky-300 px-3 py-2 text-xs font-semibold text-sky-800 hover:bg-sky-100"
                     >
                       ใส่ตัวอย่าง Accountability / Whale Done
                     </button>
@@ -2324,7 +2324,7 @@ const EvaEditorPage: React.FC = () => {
                               return n;
                             })
                           }
-                          className="rounded-lg border border-white/15 bg-black/30 px-2 py-1.5 text-xs"
+                          className="rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-xs"
                         />
                       ))}
                     </div>
@@ -2332,7 +2332,7 @@ const EvaEditorPage: React.FC = () => {
                       แต่ละแถว: คอลัมน์ 2–3 เป็นข้อความตัวอย่าง (placeholder) บนฟอร์มผู้ตอบ
                     </p>
                     {newCommitmentRows.map((row, ri) => (
-                      <div key={`new-ct-${ri}`} className="space-y-1 rounded border border-white/8 p-2">
+                      <div key={`new-ct-${ri}`} className="space-y-1 rounded border border-gray-200 p-2">
                         <div className="flex justify-end">
                           <button
                             type="button"
@@ -2341,7 +2341,7 @@ const EvaEditorPage: React.FC = () => {
                                 prev.length <= 1 ? prev : prev.filter((_, i) => i !== ri)
                               )
                             }
-                            className="text-xs text-red-300 hover:underline"
+                            className="text-xs text-red-700 hover:underline"
                           >
                             ลบแถว
                           </button>
@@ -2354,7 +2354,7 @@ const EvaEditorPage: React.FC = () => {
                             )
                           }
                           placeholder="COMMITMENT"
-                          className="w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm"
+                          className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900"
                         />
                         <input
                           value={row.byWhenPlaceholder || ''}
@@ -2364,7 +2364,7 @@ const EvaEditorPage: React.FC = () => {
                             )
                           }
                           placeholder="placeholder BY WHEN"
-                          className="w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-xs"
+                          className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs"
                         />
                         <input
                           value={row.howKnowPlaceholder || ''}
@@ -2374,7 +2374,7 @@ const EvaEditorPage: React.FC = () => {
                             )
                           }
                           placeholder="placeholder HOW I'LL KNOW"
-                          className="w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-xs"
+                          className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs"
                         />
                       </div>
                     ))}
@@ -2386,14 +2386,14 @@ const EvaEditorPage: React.FC = () => {
                           { commitment: '', byWhenPlaceholder: '', howKnowPlaceholder: '' },
                         ])
                       }
-                      className="rounded-lg bg-emerald-400/20 border border-emerald-300/40 px-3 py-2 text-xs font-semibold text-emerald-100"
+                      className="rounded-lg bg-emerald-50 border border-emerald-300 px-3 py-2 text-xs font-semibold text-emerald-800"
                     >
                       + เพิ่มแถว
                     </button>
                   </div>
                 )}
                 {newPromptType === 'fill_sentence' && (
-                  <div className="mt-2 space-y-2 rounded-lg border border-white/10 bg-black/25 p-3">
+                  <div className="mt-2 space-y-2 rounded-lg border border-[#D6D4CC] bg-gray-50 p-3">
                     <button
                       type="button"
                       onClick={() => {
@@ -2403,7 +2403,7 @@ const EvaEditorPage: React.FC = () => {
                         setNewFillBridge(EVA_DEFAULT_FILL_BRIDGE);
                         setNewFillClosing(EVA_DEFAULT_FILL_CLOSING);
                       }}
-                      className="rounded-lg bg-sky-500/20 border border-sky-400/40 px-3 py-2 text-xs font-semibold text-sky-100 hover:bg-sky-500/30"
+                      className="rounded-lg bg-sky-50 border border-sky-300 px-3 py-2 text-xs font-semibold text-sky-800 hover:bg-sky-100"
                     >
                       ใส่ตัวอย่างประโยคคำมั่นผู้นำ
                     </button>
@@ -2411,46 +2411,46 @@ const EvaEditorPage: React.FC = () => {
                       value={newFillIntroEn}
                       onChange={(e) => setNewFillIntroEn(e.target.value)}
                       placeholder="หัวข้อ EN"
-                      className="w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm"
+                      className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900"
                     />
                     <input
                       value={newFillIntroTh}
                       onChange={(e) => setNewFillIntroTh(e.target.value)}
                       placeholder="หัวข้อ TH"
-                      className="w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm"
+                      className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900"
                     />
                     <input
                       value={newFillLeadIn}
                       onChange={(e) => setNewFillLeadIn(e.target.value)}
                       placeholder="ก่อนช่องว่างแรก"
-                      className="w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-xs"
+                      className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs"
                     />
                     <input
                       value={newFillBridge}
                       onChange={(e) => setNewFillBridge(e.target.value)}
                       placeholder="ระหว่างช่องว่าง"
-                      className="w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-xs"
+                      className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs"
                     />
                     <input
                       value={newFillClosing}
                       onChange={(e) => setNewFillClosing(e.target.value)}
                       placeholder="หลังช่องว่างที่สอง"
-                      className="w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-xs"
+                      className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs"
                     />
                   </div>
                 )}
                 <button
                   type="button"
                   onClick={addPrompt}
-                  className="mt-2 rounded-lg bg-emerald-400/25 border border-emerald-300/40 px-3 py-2 text-sm font-semibold text-emerald-100 hover:bg-emerald-400/35 transition-colors"
+                  className="mt-2 rounded-lg bg-emerald-50 border border-emerald-300 px-3 py-2 text-sm font-semibold text-emerald-800 hover:bg-emerald-100 transition-colors"
                 >
                   เพิ่มโจทย์
                 </button>
               </div>
             </div>
           )}
-          {message && <p className="mt-4 text-sm text-emerald-300">{message}</p>}
-          {syncError && <p className="mt-2 text-sm text-amber-300">{syncError}</p>}
+          {message && <p className="mt-4 text-sm text-emerald-800">{message}</p>}
+          {syncError && <p className="mt-2 text-sm text-amber-800">{syncError}</p>}
         </section>
       </main>
       )}

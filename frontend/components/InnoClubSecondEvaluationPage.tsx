@@ -87,7 +87,7 @@ const VOTE_RESULT_COLUMNS: Record<VoteCategoryId, keyof VoteRow> = {
 const SCORE_OPTIONS = [1, 2, 3, 4, 5] as const;
 
 const THEATER_PAGE_CLASS =
-  'min-h-screen bg-transparent text-white flex flex-col selection:bg-yellow-300 selection:text-black innoclub-angsana';
+  'min-h-screen bg-transparent text-gray-900 flex flex-col selection:bg-yellow-300 selection:text-black innoclub-angsana';
 
 const INNOCLUB_SECOND_BACKGROUND_URL =
   'https://axaasphuaaadzjoffznj.supabase.co/storage/v1/object/public/images/PTT%20Group%20Innoclub/Background%20PTT%20Group.png';
@@ -106,8 +106,8 @@ function TheaterBackdrop() {
 function EventTitle({ eyebrow }: { eyebrow: string }) {
   return (
     <div className="relative text-center">
-      <p className="text-[11px] sm:text-xs font-black uppercase tracking-[0.32em] text-yellow-100/80">{eyebrow}</p>
-      <h1 className="mt-3 text-4xl sm:text-6xl lg:text-7xl font-black leading-none text-[#fff3cf] drop-shadow-[0_5px_0_rgba(63,18,5,0.75)]">
+      <p className="text-[11px] sm:text-xs font-black uppercase tracking-[0.32em] text-yellow-900/80">{eyebrow}</p>
+      <h1 className="mt-3 text-4xl sm:text-6xl lg:text-7xl font-black leading-none text-yellow-900 drop-shadow-sm">
         PTT GROUP INNO CLUB
       </h1>
       <p className="mt-2 font-serif text-3xl sm:text-5xl italic font-bold text-[#ffe6a6] drop-shadow-[0_4px_12px_rgba(0,0,0,0.85)]">
@@ -326,8 +326,8 @@ const InnoClubSecondEvaluationPage: React.FC<InnoClubSecondEvaluationPageProps> 
             key={score}
             className={`flex min-h-[44px] cursor-pointer items-center justify-center rounded-xl border px-2 py-2 transition-all sm:min-h-[50px] sm:min-w-[52px] ${
               selected
-                ? 'border-yellow-200 bg-yellow-200/20 text-yellow-50 shadow-[0_0_0_1px_rgba(254,240,138,0.38),0_0_18px_rgba(250,204,21,0.18)]'
-                : 'border-yellow-100/15 bg-black/30 text-yellow-100/75 hover:border-yellow-200/45'
+                ? 'border-yellow-200 bg-yellow-50 text-gray-900 shadow-[0_0_0_1px_rgba(254,240,138,0.38),0_0_18px_rgba(250,204,21,0.18)]'
+                : 'border-gray-200 bg-white text-yellow-900/75 hover:border-yellow-200/45'
             }`}
           >
             <input
@@ -562,19 +562,19 @@ const InnoClubSecondEvaluationPage: React.FC<InnoClubSecondEvaluationPageProps> 
   };
 
   const renderHeader = () => (
-    <header className="relative z-10 border-b border-yellow-200/20 bg-black/35 px-4 py-4 sm:px-6 xl:px-10 backdrop-blur">
+    <header className="relative z-10 border-b border-[#D6D4CC] bg-white px-4 py-4 sm:px-6 xl:px-10 backdrop-blur">
       <div className="max-w-5xl mx-auto flex items-center justify-between gap-3">
-        <Link to="/" className="flex items-center gap-2 text-yellow-100/75 hover:text-yellow-100 text-sm font-medium">
+        <Link to="/" className="flex items-center gap-2 text-yellow-900/75 hover:text-yellow-900 text-sm font-medium">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
           หน้าหลัก
         </Link>
-        <div className="flex items-center gap-2 rounded-xl border border-yellow-200/25 bg-[#160503]/80 px-3 py-2 shadow-[0_0_24px_rgba(250,204,21,0.12)]">
+        <div className="flex items-center gap-2 rounded-xl border border-yellow-300 bg-yellow-400 px-3 py-2 shadow-[0_0_24px_rgba(250,204,21,0.12)]">
           <div className="w-8 h-8 bg-gradient-to-br from-yellow-200 to-amber-500 rounded-lg flex items-center justify-center">
             <span className="text-black font-black text-sm">PTT</span>
           </div>
-          <span className="font-black tracking-tight text-sm text-yellow-100">INNO CLUB</span>
+          <span className="font-black tracking-tight text-sm text-yellow-900">INNO CLUB</span>
         </div>
       </div>
     </header>
@@ -586,7 +586,7 @@ const InnoClubSecondEvaluationPage: React.FC<InnoClubSecondEvaluationPageProps> 
       {renderHeader()}
 
       <main className="relative z-10 flex-1 max-w-5xl mx-auto w-full px-4 sm:px-6 xl:px-10 py-8 sm:py-14">
-        <section className="relative mb-7 overflow-hidden rounded-[2rem] border border-yellow-200/25 bg-[linear-gradient(180deg,rgba(24,5,3,0.82),rgba(8,2,1,0.92))] p-5 sm:p-9 shadow-[0_24px_90px_rgba(0,0,0,0.6)]">
+        <section className="relative mb-7 overflow-hidden rounded-[2rem] border border-yellow-300 bg-white p-5 sm:p-9 shadow-md">
           <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-yellow-100 to-transparent" />
           <div className="absolute inset-x-0 bottom-0 h-2 bg-[repeating-linear-gradient(90deg,rgba(255,240,190,0.8)_0_9px,transparent_9px_20px)] opacity-70" />
           <EventTitle
@@ -598,7 +598,7 @@ const InnoClubSecondEvaluationPage: React.FC<InnoClubSecondEvaluationPageProps> 
                   : 'Post-Activity Reflection Questions'
             }
           />
-          <p className="mx-auto mt-6 max-w-2xl text-center text-yellow-50/80 text-sm sm:text-base leading-relaxed">
+          <p className="mx-auto mt-6 max-w-2xl text-center text-gray-700 text-sm sm:text-base leading-relaxed">
             {resultsOnly
               ? 'Dashboard'
               : 'ตอบคำถามวัดผลจากกิจกรรม innovation in motion'}
@@ -613,7 +613,7 @@ const InnoClubSecondEvaluationPage: React.FC<InnoClubSecondEvaluationPageProps> 
               </Link>
               <Link
                 to="/evaluation/innoclub-2/videos/dashboard"
-                className="rounded-full border border-yellow-200/30 bg-black/35 px-4 py-2 text-sm font-black text-yellow-100 hover:bg-yellow-100/10"
+                className="rounded-full border border-yellow-300 bg-white px-4 py-2 text-sm font-black text-yellow-900 hover:bg-yellow-50"
               >
                 Dashboard วิดีโอ
               </Link>
@@ -623,7 +623,7 @@ const InnoClubSecondEvaluationPage: React.FC<InnoClubSecondEvaluationPageProps> 
             <div className="mt-6 flex flex-wrap justify-center gap-3">
               <Link
                 to="/evaluation/innoclub-2"
-                className="rounded-full border border-yellow-200/30 bg-black/35 px-4 py-2 text-sm font-black text-yellow-100 hover:bg-yellow-100/10"
+                className="rounded-full border border-yellow-300 bg-white px-4 py-2 text-sm font-black text-yellow-900 hover:bg-yellow-50"
               >
                 ไปหน้าประเมิน
               </Link>
@@ -639,21 +639,21 @@ const InnoClubSecondEvaluationPage: React.FC<InnoClubSecondEvaluationPageProps> 
         </section>
 
         {error && (
-          <div className="mb-5 rounded-xl bg-red-500/20 border border-red-500/40 text-red-300 px-4 py-3 text-sm">
+          <div className="mb-5 rounded-xl bg-red-500/20 border border-red-500/40 text-red-700 px-4 py-3 text-sm">
             {error}
           </div>
         )}
 
         {!reflectionSubmitted && (
           <>
-            <div className="mb-6 rounded-2xl border border-yellow-200/25 bg-black/45 px-4 py-3 shadow-[0_12px_34px_rgba(0,0,0,0.35)]">
+            <div className="mb-6 rounded-2xl border border-yellow-300 bg-white px-4 py-3 shadow-[0_12px_34px_rgba(0,0,0,0.35)]">
               <div className="flex items-center justify-between text-sm">
-                <p className="text-yellow-100 font-bold">ความคืบหน้าแบบประเมิน</p>
-                <p className="text-white font-medium">
-                  {answeredQuestionCount}/{requiredQuestionCount} <span className="text-gray-400">ข้อ</span>
+                <p className="text-yellow-900 font-bold">ความคืบหน้าแบบประเมิน</p>
+                <p className="text-gray-900 font-medium">
+                  {answeredQuestionCount}/{requiredQuestionCount} <span className="text-gray-600">ข้อ</span>
                 </p>
               </div>
-              <div className="mt-2 h-3 rounded-full bg-white/10 overflow-hidden border border-yellow-200/10">
+              <div className="mt-2 h-3 rounded-full bg-gray-100 overflow-hidden border border-yellow-200/10">
                 <div
                   className="h-full bg-gradient-to-r from-red-700 via-yellow-200 to-amber-500 transition-all shadow-[0_0_18px_rgba(250,204,21,0.48)]"
                   style={{ width: `${(answeredQuestionCount / requiredQuestionCount) * 100}%` }}
@@ -662,17 +662,17 @@ const InnoClubSecondEvaluationPage: React.FC<InnoClubSecondEvaluationPageProps> 
             </div>
 
             <form onSubmit={handleReflectionSubmit} className="space-y-6">
-              <section className="rounded-[1.75rem] border border-yellow-200/20 bg-[linear-gradient(145deg,rgba(38,7,5,0.88),rgba(10,2,1,0.88))] p-4 shadow-[0_18px_50px_rgba(0,0,0,0.38)] sm:p-7">
-                <h2 className="mb-7 text-xl font-black text-yellow-300 sm:text-2xl">Facilitator</h2>
+              <section className="rounded-[1.75rem] border border-[#D6D4CC] bg-[linear-gradient(145deg,rgba(38,7,5,0.88),rgba(10,2,1,0.88))] p-4 shadow-[0_18px_50px_rgba(0,0,0,0.38)] sm:p-7">
+                <h2 className="mb-7 text-xl font-black text-yellow-800 sm:text-2xl">Facilitator</h2>
                 <div className="space-y-5">
                   <div>
-                    <p className="mb-3 text-base font-bold leading-relaxed text-yellow-50 sm:text-xl">
+                    <p className="mb-3 text-base font-bold leading-relaxed text-gray-900 sm:text-xl">
                       1. ความพึงพอใจโดยรวมต่อ Facilitator *
                     </p>
                     {renderScoreGroup('facilitator_score', 'facilitator_score')}
                   </div>
                   <div>
-                    <label htmlFor="facilitator_comment" className="mb-3 block text-sm font-bold text-yellow-100/65">
+                    <label htmlFor="facilitator_comment" className="mb-3 block text-sm font-bold text-yellow-900/65">
                       2. ข้อเสนอแนะ
                     </label>
                     <textarea
@@ -681,23 +681,23 @@ const InnoClubSecondEvaluationPage: React.FC<InnoClubSecondEvaluationPageProps> 
                       onChange={(e) => setText('facilitator_comment', e.target.value)}
                       rows={3}
                       placeholder="ระบุข้อเสนอแนะ (ถ้ามี)..."
-                      className="w-full resize-none rounded-2xl border border-yellow-200/20 bg-black/45 px-4 py-3 text-base text-yellow-50 placeholder-yellow-100/35 focus:border-yellow-300 focus:outline-none"
+                      className="w-full resize-none rounded-2xl border border-[#D6D4CC] bg-white px-4 py-3 text-base text-gray-900 placeholder:text-gray-400 focus:border-yellow-300 focus:outline-none"
                     />
                   </div>
                 </div>
               </section>
 
-              <section className="rounded-[1.75rem] border border-yellow-200/20 bg-[linear-gradient(145deg,rgba(38,7,5,0.88),rgba(10,2,1,0.88))] p-4 shadow-[0_18px_50px_rgba(0,0,0,0.38)] sm:p-7">
-                <h2 className="mb-7 text-xl font-black text-yellow-300 sm:text-2xl">เนื้อหาของ PTT GROUP INNO Club</h2>
+              <section className="rounded-[1.75rem] border border-[#D6D4CC] bg-[linear-gradient(145deg,rgba(38,7,5,0.88),rgba(10,2,1,0.88))] p-4 shadow-[0_18px_50px_rgba(0,0,0,0.38)] sm:p-7">
+                <h2 className="mb-7 text-xl font-black text-yellow-800 sm:text-2xl">เนื้อหาของ PTT GROUP INNO Club</h2>
                 <div className="space-y-5">
                   <div>
-                    <p className="mb-3 text-base font-bold leading-relaxed text-yellow-50 sm:text-xl">
+                    <p className="mb-3 text-base font-bold leading-relaxed text-gray-900 sm:text-xl">
                       1. ความพึงพอใจโดยรวมต่อเนื้อหาของกิจกรรม *
                     </p>
                     {renderScoreGroup('content_score', 'content_score')}
                   </div>
                   <div>
-                    <label htmlFor="content_comment" className="mb-3 block text-sm font-bold text-yellow-100/65">
+                    <label htmlFor="content_comment" className="mb-3 block text-sm font-bold text-yellow-900/65">
                       2. ข้อเสนอแนะ
                     </label>
                     <textarea
@@ -706,37 +706,37 @@ const InnoClubSecondEvaluationPage: React.FC<InnoClubSecondEvaluationPageProps> 
                       onChange={(e) => setText('content_comment', e.target.value)}
                       rows={3}
                       placeholder="ระบุข้อเสนอแนะ (ถ้ามี)..."
-                      className="w-full resize-none rounded-2xl border border-yellow-200/20 bg-black/45 px-4 py-3 text-base text-yellow-50 placeholder-yellow-100/35 focus:border-yellow-300 focus:outline-none"
+                      className="w-full resize-none rounded-2xl border border-[#D6D4CC] bg-white px-4 py-3 text-base text-gray-900 placeholder:text-gray-400 focus:border-yellow-300 focus:outline-none"
                     />
                   </div>
                 </div>
               </section>
 
-              <section className="rounded-[1.75rem] border border-yellow-200/20 bg-[linear-gradient(145deg,rgba(38,7,5,0.88),rgba(10,2,1,0.88))] p-4 shadow-[0_18px_50px_rgba(0,0,0,0.38)] sm:p-7">
-                <h2 className="mb-7 text-xl font-black leading-relaxed text-yellow-300 sm:text-2xl">
+              <section className="rounded-[1.75rem] border border-[#D6D4CC] bg-[linear-gradient(145deg,rgba(38,7,5,0.88),rgba(10,2,1,0.88))] p-4 shadow-[0_18px_50px_rgba(0,0,0,0.38)] sm:p-7">
+                <h2 className="mb-7 text-xl font-black leading-relaxed text-yellow-800 sm:text-2xl">
                   ความพึงพอใจโดยรวมและความคิดเห็นต่อ PTT GROUP INNO Club
                 </h2>
                 <div className="space-y-7">
                   <div>
-                    <p className="mb-3 text-base font-bold leading-relaxed text-yellow-50 sm:text-xl">
+                    <p className="mb-3 text-base font-bold leading-relaxed text-gray-900 sm:text-xl">
                       1. ความพึงพอใจโดยรวมต่อ PTT GROUP INNO Club *
                     </p>
                     {renderScoreGroup('overall_score', 'overall_score')}
                   </div>
                   <div>
-                    <p className="mb-3 text-base font-bold leading-relaxed text-yellow-50 sm:text-xl">
+                    <p className="mb-3 text-base font-bold leading-relaxed text-gray-900 sm:text-xl">
                       2. ท่านเห็นบรรยากาศ PTT GROUP INNO Club ครั้งนี้ ส่งเสริมให้ทุกคนกล้าแสดงความคิดเห็น และสร้างการมีส่วนร่วมมากน้อยเพียงใด *
                     </p>
                     {renderScoreGroup('atmosphere_score', 'atmosphere_score')}
                   </div>
                   <div>
-                    <p className="mb-3 text-base font-bold leading-relaxed text-yellow-50 sm:text-xl">
+                    <p className="mb-3 text-base font-bold leading-relaxed text-gray-900 sm:text-xl">
                       3. PTT GROUP INNO Club ครั้งนี้ มีการแบ่งปัน แลกเปลี่ยนข้อมูลระหว่างกันมากน้อยเพียงใด *
                     </p>
                     {renderScoreGroup('sharing_score', 'sharing_score')}
                   </div>
                   <div>
-                    <label htmlFor="overall_comment" className="mb-3 block text-sm font-bold text-yellow-100/65">
+                    <label htmlFor="overall_comment" className="mb-3 block text-sm font-bold text-yellow-900/65">
                       4. ข้อเสนอแนะเพิ่มเติม
                     </label>
                     <textarea
@@ -745,7 +745,7 @@ const InnoClubSecondEvaluationPage: React.FC<InnoClubSecondEvaluationPageProps> 
                       onChange={(e) => setText('overall_comment', e.target.value)}
                       rows={3}
                       placeholder="ระบุข้อเสนอแนะ (ถ้ามี)..."
-                      className="w-full resize-none rounded-2xl border border-yellow-200/20 bg-black/45 px-4 py-3 text-base text-yellow-50 placeholder-yellow-100/35 focus:border-yellow-300 focus:outline-none"
+                      className="w-full resize-none rounded-2xl border border-[#D6D4CC] bg-white px-4 py-3 text-base text-gray-900 placeholder:text-gray-400 focus:border-yellow-300 focus:outline-none"
                     />
                   </div>
                 </div>
@@ -754,12 +754,12 @@ const InnoClubSecondEvaluationPage: React.FC<InnoClubSecondEvaluationPageProps> 
               {REFLECTION_QUESTIONS.map((question, index) => (
                 <section
                   key={question.id}
-                  className="rounded-[1.75rem] border border-yellow-200/20 bg-[linear-gradient(145deg,rgba(38,7,5,0.88),rgba(10,2,1,0.88))] p-4 sm:p-7 shadow-[0_18px_50px_rgba(0,0,0,0.38)]"
+                  className="rounded-[1.75rem] border border-[#D6D4CC] bg-[linear-gradient(145deg,rgba(38,7,5,0.88),rgba(10,2,1,0.88))] p-4 sm:p-7 shadow-[0_18px_50px_rgba(0,0,0,0.38)]"
                 >
-                  <h2 className="mb-4 text-xl font-black leading-relaxed text-yellow-300 sm:text-2xl">
+                  <h2 className="mb-4 text-xl font-black leading-relaxed text-yellow-800 sm:text-2xl">
                     {question.sectionTitle}
                   </h2>
-                  <label htmlFor={question.id} className="block text-yellow-50 font-bold text-base sm:text-xl leading-relaxed mb-3">
+                  <label htmlFor={question.id} className="block text-gray-900 font-bold text-base sm:text-xl leading-relaxed mb-3">
                     {index + 1}. {question.title} *
                   </label>
                   <textarea
@@ -768,12 +768,12 @@ const InnoClubSecondEvaluationPage: React.FC<InnoClubSecondEvaluationPageProps> 
                     onChange={(e) => setAnswer(question.id, e.target.value)}
                     rows={5}
                     placeholder="กรุณาตอบคำถาม..."
-                    className="w-full px-4 py-3 rounded-2xl bg-black/45 border border-yellow-200/20 text-yellow-50 placeholder-yellow-100/35 text-base focus:outline-none focus:border-yellow-300 resize-none"
+                    className="w-full px-4 py-3 rounded-2xl bg-white border border-[#D6D4CC] text-gray-900 placeholder:text-gray-400 text-base focus:outline-none focus:border-yellow-300 resize-none"
                   />
                 </section>
               ))}
 
-              <div className="sticky bottom-0 z-20 -mx-4 border-t border-yellow-200/20 bg-[#120302]/95 px-4 pt-3 pb-4 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0">
+              <div className="sticky bottom-0 z-20 -mx-4 border-t border-[#D6D4CC] bg-white/95 px-4 pt-3 pb-4 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0">
                 <button
                   type="submit"
                   disabled={submittingReflection || !canSubmitReflection}
@@ -790,28 +790,28 @@ const InnoClubSecondEvaluationPage: React.FC<InnoClubSecondEvaluationPageProps> 
           <form onSubmit={handleVoteSubmit} className="space-y-7">
             <section
               ref={voteHeaderRef}
-              className="relative overflow-hidden rounded-[2rem] border border-yellow-200/25 bg-[linear-gradient(145deg,rgba(49,8,5,0.9),rgba(12,2,1,0.92)_52%,rgba(35,13,3,0.95))] p-5 shadow-[0_18px_60px_rgba(0,0,0,0.44)] sm:p-8"
+              className="relative overflow-hidden rounded-[2rem] border border-yellow-300 bg-[linear-gradient(145deg,rgba(49,8,5,0.9),rgba(12,2,1,0.92)_52%,rgba(35,13,3,0.95))] p-5 shadow-[0_18px_60px_rgba(0,0,0,0.44)] sm:p-8"
             >
               <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-yellow-100/80 to-transparent" />
               <div className="relative">
                 <div className="mx-auto mb-5 h-1.5 max-w-sm rounded-full bg-gradient-to-r from-transparent via-yellow-100 to-transparent" />
-                <p className="text-center text-xs sm:text-sm font-black uppercase tracking-[0.32em] text-yellow-100/90">
+                <p className="text-center text-xs sm:text-sm font-black uppercase tracking-[0.32em] text-yellow-900/90">
                   PTT GROUP INNO CLUB · Innovation In Motion
                 </p>
-                <h2 className="mt-3 text-center text-3xl sm:text-5xl font-black leading-tight text-[#fff0c4] drop-shadow-[0_4px_0_rgba(56,12,3,0.8)]">
+                <h2 className="mt-3 text-center text-3xl sm:text-5xl font-black leading-tight text-yellow-900 drop-shadow-sm">
                   Stop Motion & AI Video Creation Vote
                 </h2>
-                <p className="mx-auto mt-4 max-w-2xl text-center text-sm sm:text-lg text-amber-50/80">
+                <p className="mx-auto mt-4 max-w-2xl text-center text-sm sm:text-lg text-amber-900/80">
                 </p>
               </div>
             </section>
 
             {loadingOptions ? (
-              <div className="rounded-[2rem] border border-yellow-300/20 bg-black/50 p-10 text-center text-yellow-100">
+              <div className="rounded-[2rem] border border-yellow-300 bg-white p-10 text-center text-yellow-900">
                 กำลังโหลดตัวเลือกโหวต...
               </div>
             ) : voteOptions.length === 0 ? (
-              <div className="rounded-[2rem] border border-amber-500/30 bg-amber-500/10 p-6 text-amber-200">
+              <div className="rounded-[2rem] border border-amber-500/30 bg-amber-50 p-6 text-amber-800">
                 ยังไม่มีตัวเลือกโหวต กรุณาแจ้งผู้ดูแลให้เพิ่มรายชื่อในหน้า Admin
               </div>
             ) : (
@@ -819,22 +819,22 @@ const InnoClubSecondEvaluationPage: React.FC<InnoClubSecondEvaluationPageProps> 
                 <section
                   key={category.id}
                   ref={voteSubmitted ? undefined : voteCategoryRef}
-                  className="relative overflow-hidden rounded-[2rem] border border-yellow-200/25 bg-[linear-gradient(145deg,rgba(49,8,5,0.9),rgba(12,2,1,0.92)_52%,rgba(35,13,3,0.95))] p-4 sm:p-7 shadow-[0_18px_60px_rgba(0,0,0,0.44)]"
+                  className="relative overflow-hidden rounded-[2rem] border border-yellow-300 bg-[linear-gradient(145deg,rgba(49,8,5,0.9),rgba(12,2,1,0.92)_52%,rgba(35,13,3,0.95))] p-4 sm:p-7 shadow-[0_18px_60px_rgba(0,0,0,0.44)]"
                 >
                   <div className="absolute right-0 top-0 h-28 w-28 rounded-bl-full bg-yellow-100/10" />
                   <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-yellow-100/80 to-transparent" />
                   <div className="relative mb-7 flex flex-col gap-4 sm:flex-row sm:items-start">
-                    <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full border border-yellow-100/50 bg-yellow-100/15 text-3xl font-black text-yellow-100 shadow-[0_0_24px_rgba(250,204,21,0.18)]">
+                    <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full border border-yellow-300 bg-yellow-100/15 text-3xl font-black text-yellow-900 shadow-[0_0_24px_rgba(250,204,21,0.18)]">
                       {voteSubmitted ? index + 1 : activeVoteIndex + 1}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="inline-flex rounded-full border border-yellow-200/30 bg-yellow-100/10 px-3 py-1 text-sm font-black uppercase tracking-[0.18em] text-yellow-100">
+                      <p className="inline-flex rounded-full border border-yellow-300 bg-yellow-100/10 px-3 py-1 text-sm font-black uppercase tracking-[0.18em] text-yellow-900">
                         Award Category
                       </p>
                       <h3 className="mt-3 text-2xl font-black leading-tight text-[#ffe8a8] sm:text-4xl">
                         {category.title}
                       </h3>
-                      <div className="mt-3 space-y-2 text-lg leading-relaxed text-amber-50/85 sm:text-xl">
+                      <div className="mt-3 space-y-2 text-lg leading-relaxed text-amber-900/85 sm:text-xl">
                         {category.description.split('\n').map((line, lineIdx) => {
                           const cleanLine = line.replace(/^-+\s*/, '').trim();
                           if (!cleanLine) return null;
@@ -851,9 +851,9 @@ const InnoClubSecondEvaluationPage: React.FC<InnoClubSecondEvaluationPageProps> 
                     </div>
                   </div>
                   {!voteSubmitted && (
-                    <div className="relative mb-7 rounded-[1.5rem] border border-yellow-100/20 bg-black/30 p-4">
+                    <div className="relative mb-7 rounded-[1.5rem] border border-yellow-100/20 bg-white p-4">
                       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                        <div className="rounded-full border border-red-500/25 bg-red-950/35 px-4 py-2 text-sm font-bold text-yellow-100">
+                        <div className="rounded-full border border-red-500/25 bg-red-950/35 px-4 py-2 text-sm font-bold text-yellow-900">
                           รางวัล {activeVoteIndex + 1} / {VOTE_CATEGORIES.length}
                         </div>
                         <div className="flex flex-1 items-center justify-between gap-2">
@@ -869,22 +869,22 @@ const InnoClubSecondEvaluationPage: React.FC<InnoClubSecondEvaluationPageProps> 
                                     isActive
                                       ? 'border-yellow-100 bg-gradient-to-br from-yellow-100 to-amber-500 text-black shadow-[0_0_22px_rgba(250,204,21,0.36)]'
                                       : isDone
-                                        ? 'border-yellow-200/50 bg-yellow-100/20 text-yellow-100'
-                                        : 'border-white/20 bg-black/35 text-white/60'
+                                        ? 'border-yellow-200/50 bg-yellow-100/20 text-yellow-900'
+                                        : 'border-gray-200 bg-white text-gray-600'
                                   }`}
                                   aria-label={`ไปยังรางวัล ${stepIndex + 1}`}
                                 >
                                   {stepIndex + 1}
                                 </button>
                                 {stepIndex < VOTE_CATEGORIES.length - 1 && (
-                                  <div className={`h-0.5 flex-1 ${stepIndex < activeVoteIndex ? 'bg-yellow-300' : 'bg-white/15'}`} />
+                                  <div className={`h-0.5 flex-1 ${stepIndex < activeVoteIndex ? 'bg-yellow-300' : 'bg-gray-200'}`} />
                                 )}
                               </React.Fragment>
                             );
                           })}
                         </div>
                       </div>
-                      <div className="mt-3 grid grid-cols-3 gap-2 text-center text-[11px] text-yellow-100/70">
+                      <div className="mt-3 grid grid-cols-3 gap-2 text-center text-[11px] text-yellow-900/70">
                         <span>Storytelling</span>
                         <span>Product Launch</span>
                         <span>Market Impact</span>
@@ -920,7 +920,7 @@ const InnoClubSecondEvaluationPage: React.FC<InnoClubSecondEvaluationPageProps> 
                             className={`group relative flex cursor-pointer items-center gap-4 rounded-[1.5rem] border p-3 text-left transition-all sm:p-4 ${
                               selected
                                 ? 'border-yellow-100 bg-[radial-gradient(circle_at_0%_50%,rgba(250,204,21,0.22),transparent_34%),linear-gradient(135deg,rgba(91,7,5,0.95),rgba(19,4,2,0.92))] shadow-[0_0_0_1px_rgba(255,245,190,0.5),0_0_30px_rgba(250,204,21,0.24)]'
-                                : 'border-yellow-100/15 bg-black/35 hover:border-yellow-100/40 hover:bg-black/50'
+                                : 'border-gray-200 bg-white hover:border-yellow-300 hover:bg-white'
                             }`}
                           >
                             <input
@@ -936,20 +936,20 @@ const InnoClubSecondEvaluationPage: React.FC<InnoClubSecondEvaluationPageProps> 
                                 {option.image_url ? (
                                   <img src={option.image_url} alt={option.label} className="h-full w-full object-cover" />
                                 ) : (
-                                  <div className="flex h-full w-full items-center justify-center bg-[radial-gradient(circle,rgba(250,204,21,0.18),rgba(0,0,0,0.8))] px-2 text-center text-[10px] font-black text-yellow-100/70">
+                                  <div className="flex h-full w-full items-center justify-center bg-[radial-gradient(circle,rgba(250,204,21,0.18),rgba(0,0,0,0.8))] px-2 text-center text-[10px] font-black text-yellow-900/70">
                                     เพิ่มรูปใน Admin
                                   </div>
                                 )}
                               </div>
                             </div>
                             <div className="min-w-0 flex-1">
-                              <p className="text-2xl font-black text-yellow-50 sm:text-3xl">{option.label}</p>
+                              <p className="text-2xl font-black text-gray-900 sm:text-3xl">{option.label}</p>
                             </div>
                             <div
                               className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full border-2 text-sm font-black ${
                                 selected
                                   ? 'border-yellow-100 bg-gradient-to-br from-yellow-100 to-amber-500 text-black'
-                                  : 'border-white/40 bg-black/20 text-white/40'
+                                  : 'border-gray-300 bg-white text-gray-500'
                               }`}
                             >
                               {selected ? (
@@ -965,27 +965,27 @@ const InnoClubSecondEvaluationPage: React.FC<InnoClubSecondEvaluationPageProps> 
                         return (
                           <div
                             key={option.id}
-                            className="order-4 col-span-3 flex items-center gap-3 rounded-2xl border border-yellow-100/12 bg-black/28 px-3 py-3 text-left sm:px-4"
+                            className="order-4 col-span-3 flex items-center gap-3 rounded-2xl border border-gray-200 bg-gray-50 px-3 py-3 text-left sm:px-4"
                           >
-                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/15 bg-white/5 text-sm font-black text-yellow-100/70">
+                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-gray-200 bg-white text-sm font-black text-yellow-900/70">
                               {rank}
                             </div>
                             <div className="h-12 w-12 shrink-0 overflow-hidden rounded-full border border-yellow-100/20 bg-black">
                               {option.image_url ? (
                                 <img src={option.image_url} alt={option.label} className="h-full w-full object-cover" />
                               ) : (
-                                <div className="flex h-full w-full items-center justify-center text-[9px] font-bold text-yellow-100/45">
+                                <div className="flex h-full w-full items-center justify-center text-[9px] font-bold text-yellow-900/45">
                                   ไม่มีรูป
                                 </div>
                               )}
                             </div>
                             <div className="min-w-0 flex-1">
-                              <p className="truncate text-sm font-black text-yellow-50 sm:text-base">{option.label}</p>
-                              <p className="text-[11px] font-bold text-yellow-100/50">อันดับ {rank}</p>
+                              <p className="truncate text-sm font-black text-gray-900 sm:text-base">{option.label}</p>
+                              <p className="text-[11px] font-bold text-yellow-900/50">อันดับ {rank}</p>
                             </div>
                             <div className="shrink-0 text-right">
-                              <p className="text-sm font-black text-yellow-100">{result.percent}%</p>
-                              <p className="text-[11px] font-bold text-yellow-100/55">{result.count} คะแนนโหวต</p>
+                              <p className="text-sm font-black text-yellow-900">{result.percent}%</p>
+                              <p className="text-[11px] font-bold text-yellow-900/55">{result.count} คะแนนโหวต</p>
                             </div>
                           </div>
                         );
@@ -1024,8 +1024,8 @@ const InnoClubSecondEvaluationPage: React.FC<InnoClubSecondEvaluationPageProps> 
                                   : rank === 2
                                     ? 'border-slate-100 bg-gradient-to-r from-white via-slate-300 to-slate-500 text-slate-950 shadow-[0_0_22px_rgba(226,232,240,0.35)]'
                                     : rank === 3
-                                      ? 'border-orange-100 bg-gradient-to-r from-orange-100 via-amber-600 to-red-800 text-white shadow-[0_0_22px_rgba(194,65,12,0.38)]'
-                                  : 'border-yellow-100/25 bg-black/35 text-yellow-100'
+                                      ? 'border-orange-100 bg-gradient-to-r from-orange-100 via-amber-600 to-red-800 text-gray-900 shadow-[0_0_22px_rgba(194,65,12,0.38)]'
+                                  : 'border-gray-200 bg-white text-yellow-900'
                               }`}
                             >
                               {rank === 1 && (
@@ -1083,13 +1083,13 @@ const InnoClubSecondEvaluationPage: React.FC<InnoClubSecondEvaluationPageProps> 
                               {option.image_url ? (
                                 <img src={option.image_url} alt={option.label} className="h-full w-full object-cover" />
                               ) : (
-                                <div className="flex h-full w-full items-center justify-center bg-[radial-gradient(circle,rgba(250,204,21,0.18),rgba(0,0,0,0.8))] px-4 text-center text-sm font-black text-yellow-100/70">
+                                <div className="flex h-full w-full items-center justify-center bg-[radial-gradient(circle,rgba(250,204,21,0.18),rgba(0,0,0,0.8))] px-4 text-center text-sm font-black text-yellow-900/70">
                                   เพิ่มรูปใน Admin
                                 </div>
                               )}
                             </div>
                             {selected && !voteSubmitted && (
-                              <div className="absolute right-0 top-1/2 flex h-14 w-14 -translate-y-1/2 items-center justify-center rounded-full border-2 border-yellow-100 bg-[#6d170c] text-xs font-black text-yellow-100 shadow-[0_0_22px_rgba(250,204,21,0.45)]">
+                              <div className="absolute right-0 top-1/2 flex h-14 w-14 -translate-y-1/2 items-center justify-center rounded-full border-2 border-yellow-100 bg-[#6d170c] text-xs font-black text-yellow-900 shadow-[0_0_22px_rgba(250,204,21,0.45)]">
                                 เลือก
                               </div>
                             )}
@@ -1103,10 +1103,10 @@ const InnoClubSecondEvaluationPage: React.FC<InnoClubSecondEvaluationPageProps> 
                                 <div
                                   className={`rounded-xl border px-1.5 py-1 shadow-[0_0_18px_rgba(0,0,0,0.55)] backdrop-blur sm:rounded-2xl sm:px-2.5 sm:py-2 ${
                                     rank === 2
-                                      ? 'border-slate-100/60 bg-slate-500/95 text-white'
+                                      ? 'border-slate-100/60 bg-slate-500/95 text-gray-900'
                                       : rank === 3
                                         ? 'border-orange-100/60 bg-red-900/95 text-orange-100'
-                                        : 'border-yellow-100/50 bg-[#5b140b]/95 text-yellow-100'
+                                        : 'border-yellow-300 bg-[#5b140b]/95 text-yellow-900'
                                   }`}
                                 >
                                   <span className="block text-xs font-black leading-none sm:text-lg">{result.percent}%</span>
@@ -1115,11 +1115,11 @@ const InnoClubSecondEvaluationPage: React.FC<InnoClubSecondEvaluationPageProps> 
                               </div>
                             )}
                           </div>
-                          <div className="mx-auto mt-9 w-fit max-w-full rounded-full border border-yellow-100/50 bg-[#5b140b]/90 px-2 py-1 text-[10px] font-black text-yellow-50 shadow-[0_8px_20px_rgba(0,0,0,0.35)] sm:mt-5 sm:px-4 sm:py-1.5 sm:text-base">
+                          <div className="mx-auto mt-9 w-fit max-w-full rounded-full border border-yellow-300 bg-amber-800 px-2 py-1 text-[10px] font-black text-white shadow-md sm:mt-5 sm:px-4 sm:py-1.5 sm:text-base">
                             {option.label}
                           </div>
                           {voteSubmitted ? (
-                            <div className="mx-auto mt-2 w-fit rounded-full border border-yellow-100/30 bg-black/35 px-2 py-1 text-[9px] font-black text-yellow-100 sm:mt-3 sm:px-3 sm:text-[11px]">
+                            <div className="mx-auto mt-2 w-fit rounded-full border border-yellow-100/30 bg-white px-2 py-1 text-[9px] font-black text-yellow-900 sm:mt-3 sm:px-3 sm:text-[11px]">
                               {result.count} คะแนนโหวต
                             </div>
                           ) : (
@@ -1180,22 +1180,22 @@ const InnoClubSecondEvaluationPage: React.FC<InnoClubSecondEvaluationPageProps> 
             )}
 
             {voteSubmitted ? (
-              <div className="rounded-[2rem] border border-yellow-200/30 bg-[radial-gradient(circle_at_50%_0%,rgba(255,238,190,0.22),transparent_36%),linear-gradient(135deg,rgba(17,5,3,0.95),rgba(78,11,8,0.78))] p-7 text-center shadow-[0_24px_70px_rgba(0,0,0,0.45)]">
-                <p className="text-xs font-bold uppercase tracking-[0.28em] text-yellow-100/80">Ballot Submitted</p>
+              <div className="rounded-[2rem] border border-yellow-300 bg-[radial-gradient(circle_at_50%_0%,rgba(255,238,190,0.22),transparent_36%),linear-gradient(135deg,rgba(17,5,3,0.95),rgba(78,11,8,0.78))] p-7 text-center shadow-[0_24px_70px_rgba(0,0,0,0.45)]">
+                <p className="text-xs font-bold uppercase tracking-[0.28em] text-yellow-900/80">Ballot Submitted</p>
                 <h2 className="mt-2 text-2xl font-black text-[#ffe8a8]">ส่งผลโหวตแล้ว</h2>
-                <p className="mt-2 text-amber-50/80">เปอร์เซ็นต์ด้านบนคำนวณแยกตามแต่ละหมวดรางวัล</p>
+                <p className="mt-2 text-amber-900/80">เปอร์เซ็นต์ด้านบนคำนวณแยกตามแต่ละหมวดรางวัล</p>
               </div>
             ) : (
               <div
                 ref={voteActionsRef}
-                className="sticky bottom-0 z-20 -mx-4 border-t border-yellow-200/20 bg-[#120302]/95 px-4 pt-3 pb-4 backdrop-blur sm:mx-0 sm:rounded-[2rem] sm:border sm:bg-black/55 sm:p-4"
+                className="sticky bottom-0 z-20 -mx-4 border-t border-[#D6D4CC] bg-white/95 px-4 pt-3 pb-4 backdrop-blur sm:mx-0 sm:rounded-[2rem] sm:border sm:bg-white sm:p-4"
               >
                 <div className="flex flex-col gap-3 sm:flex-row">
                   {activeVoteIndex > 0 && (
                     <button
                       type="button"
                       onClick={goToPreviousVoteCategory}
-                      className="w-full rounded-full border border-yellow-100/25 bg-black/35 px-8 py-4 text-base font-black text-yellow-100 transition-all hover:bg-black/55 sm:w-auto"
+                      className="w-full rounded-full border border-gray-200 bg-white px-8 py-4 text-base font-black text-yellow-900 transition-all hover:bg-white sm:w-auto"
                     >
                       ย้อนกลับ
                     </button>
@@ -1214,7 +1214,7 @@ const InnoClubSecondEvaluationPage: React.FC<InnoClubSecondEvaluationPageProps> 
                     {submittingVote ? 'กำลังส่งผลโหวต...' : isLastVoteCategory ? 'ส่งโหวต' : 'ถัดไป'}
                   </button>
                 </div>
-                <p className="mt-2 text-center text-xs text-yellow-100/60">
+                <p className="mt-2 text-center text-xs text-yellow-900/60">
                   เลือกครบ 1 ทีม เพื่อไปยังรางวัลถัดไป
                 </p>
               </div>
@@ -1226,8 +1226,8 @@ const InnoClubSecondEvaluationPage: React.FC<InnoClubSecondEvaluationPageProps> 
       {showVotePrompt && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 px-4">
           <div className="w-full max-w-md rounded-2xl border border-yellow-300/30 bg-[#111] p-7 text-center shadow-2xl">
-            <h2 className="text-2xl font-bold text-yellow-300 mb-3">ส่งคำตอบเรียบร้อยแล้ว</h2>
-            <p className="text-gray-300 mb-6">ขั้นตอนถัดไปคือการโหวตรางวัล Stop Motion & AI Video Creation</p>
+            <h2 className="text-2xl font-bold text-yellow-800 mb-3">ส่งคำตอบเรียบร้อยแล้ว</h2>
+            <p className="text-gray-700 mb-6">ขั้นตอนถัดไปคือการโหวตรางวัล Stop Motion & AI Video Creation</p>
             <button
               type="button"
               onClick={() => {

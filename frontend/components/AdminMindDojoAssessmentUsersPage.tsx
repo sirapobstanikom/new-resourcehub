@@ -83,10 +83,10 @@ const AdminMindDojoAssessmentUsersPage: React.FC = () => {
   return (
     <div className="p-4 md:p-8 max-w-5xl mx-auto text-gray-900">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-yellow-400 mb-2">อนุมัติผู้ใช้ MindDoJo AI Assessment</h1>
+        <h1 className="text-2xl font-bold text-yellow-700 mb-2">อนุมัติผู้ใช้ MindDoJo AI Assessment</h1>
         <p className="text-gray-400 text-sm leading-relaxed">
-          บัญชีเหล่านี้เก็บในตาราง <code className="text-yellow-400/90">minddojo_assessment_accounts</code> แยกจาก
-          ข้อมูลแอดมินและ ResourceHub — ผู้ใช้สมัครที่ <code className="text-yellow-400/90">/assessment/minddojo</code>{' '}
+          บัญชีเหล่านี้เก็บในตาราง <code className="text-yellow-700">minddojo_assessment_accounts</code> แยกจาก
+          ข้อมูลแอดมินและ ResourceHub — ผู้ใช้สมัครที่ <code className="text-yellow-700">/assessment/minddojo</code>{' '}
           แล้วเข้าได้หลังคุณกดอนุมัติ
         </p>
         <button
@@ -99,7 +99,7 @@ const AdminMindDojoAssessmentUsersPage: React.FC = () => {
       </div>
 
       {error && (
-        <div className="mb-6 p-4 rounded-xl bg-red-500/15 border border-red-500/25 text-red-300 text-sm">{error}</div>
+        <div className="mb-6 p-4 rounded-xl bg-red-500/15 border border-red-500/25 text-red-600 text-sm">{error}</div>
       )}
 
       {loading ? (
@@ -109,7 +109,7 @@ const AdminMindDojoAssessmentUsersPage: React.FC = () => {
           <section className="mb-10">
             <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
               รออนุมัติ
-              <span className="text-xs font-normal px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400">
+              <span className="text-xs font-normal px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-700">
                 {pending.length}
               </span>
             </h2>
@@ -123,7 +123,7 @@ const AdminMindDojoAssessmentUsersPage: React.FC = () => {
                     className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-xl border border-[#D6D4CC] bg-gray-50 p-4"
                   >
                     <div>
-                      <p className="font-mono font-semibold text-yellow-400">@{r.username}</p>
+                      <p className="font-mono font-semibold text-yellow-700">@{r.username}</p>
                       <p className="text-xs text-gray-500 mt-1">สมัคร {formatThaiTime(r.created_at)}</p>
                     </div>
                     <div className="flex gap-2 shrink-0">
@@ -139,7 +139,7 @@ const AdminMindDojoAssessmentUsersPage: React.FC = () => {
                         type="button"
                         disabled={busyUser === r.username}
                         onClick={() => void onReject(r.username)}
-                        className="px-4 py-2 rounded-xl text-sm font-medium bg-gray-100 border border-[#D6D4CC] hover:bg-red-500/20 hover:border-red-500/30 disabled:opacity-50"
+                        className="px-4 py-2 rounded-xl text-sm font-medium bg-gray-100 border border-[#D6D4CC] hover:bg-red-100 hover:border-red-500/30 disabled:opacity-50"
                       >
                         ปฏิเสธ
                       </button>
@@ -147,7 +147,7 @@ const AdminMindDojoAssessmentUsersPage: React.FC = () => {
                         type="button"
                         disabled={busyUser === r.username}
                         onClick={() => void onDelete(r.username)}
-                        className="px-4 py-2 rounded-xl text-sm font-medium bg-red-950/50 border border-red-500/40 text-red-300 hover:bg-red-900/40 disabled:opacity-50"
+                        className="px-4 py-2 rounded-xl text-sm font-medium bg-red-950/50 border border-red-500/40 text-red-600 hover:bg-red-900/40 disabled:opacity-50"
                       >
                         ลบ
                       </button>
@@ -188,10 +188,10 @@ const AdminMindDojoAssessmentUsersPage: React.FC = () => {
                           <span
                             className={
                               r.status === 'approved'
-                                ? 'text-emerald-400'
+                                ? 'text-emerald-700'
                                 : r.status === 'rejected'
-                                  ? 'text-red-400'
-                                  : 'text-amber-400'
+                                  ? 'text-red-600'
+                                  : 'text-amber-700'
                             }
                           >
                             {r.status}
@@ -208,7 +208,7 @@ const AdminMindDojoAssessmentUsersPage: React.FC = () => {
                             type="button"
                             disabled={busyUser === r.username}
                             onClick={() => void onDelete(r.username)}
-                            className="text-xs font-medium px-2 py-1 rounded-lg bg-red-950/40 border border-red-500/35 text-red-300 hover:bg-red-900/35 disabled:opacity-50"
+                            className="text-xs font-medium px-2 py-1 rounded-lg bg-red-950/40 border border-red-500/35 text-red-600 hover:bg-red-900/35 disabled:opacity-50"
                           >
                             ลบ
                           </button>

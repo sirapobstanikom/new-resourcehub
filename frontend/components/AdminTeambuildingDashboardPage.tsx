@@ -237,7 +237,7 @@ const AdminTeambuildingDashboardPage: React.FC = () => {
     <div className="flex flex-col min-h-full text-gray-900">
       <header className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 px-4 sm:px-6 py-4 sm:py-6 border-b border-[#D6D4CC]">
         <div className="min-w-0">
-          <p className="text-xs uppercase tracking-[0.18em] text-yellow-400/80">Admin</p>
+          <p className="text-xs uppercase tracking-[0.18em] text-yellow-700/80">Admin</p>
           <h1 className="text-xl sm:text-2xl font-bold text-yellow-800 mt-1">Dashboard Teambuilding</h1>
           <p className="text-sm text-gray-400 mt-1">เพิ่ม/แก้ไขทีมและคะแนน — หน้าจอแสดงผลอัปเดตทันที</p>
         </div>
@@ -245,8 +245,8 @@ const AdminTeambuildingDashboardPage: React.FC = () => {
           <span
             className={`rounded-full px-2.5 py-1 text-[10px] font-bold ${
               liveConnected
-                ? 'border border-emerald-400/30 bg-emerald-500/10 text-emerald-300'
-                : 'border border-[#D6D4CC] bg-white text-zinc-500'
+                ? 'border border-emerald-400/30 bg-emerald-500/10 text-emerald-700'
+                : 'border border-[#D6D4CC] bg-white text-gray-500'
             }`}
           >
             {liveConnected ? '● LIVE' : 'กำลังเชื่อมต่อ...'}
@@ -255,7 +255,7 @@ const AdminTeambuildingDashboardPage: React.FC = () => {
             type="button"
             onClick={() => void resetAllScores()}
             disabled={teams.length === 0}
-            className="rounded-xl border border-red-400/30 bg-red-500/10 px-3 py-2 text-xs font-semibold text-red-200 hover:bg-red-500/20 disabled:opacity-40"
+            className="rounded-xl border border-red-600/30 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700 hover:bg-red-100 disabled:opacity-40"
           >
             รีเซ็ตคะแนนทั้งหมด
           </button>
@@ -272,10 +272,10 @@ const AdminTeambuildingDashboardPage: React.FC = () => {
 
       <div className="flex-1 px-4 sm:px-6 py-6 space-y-6">
         {error && (
-          <div className="rounded-xl border border-red-400/40 bg-red-500/10 px-4 py-3 text-sm text-red-200">{error}</div>
+          <div className="rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
         )}
         {message && (
-          <div className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
+          <div className="rounded-xl border border-emerald-600/30 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
             {message}
           </div>
         )}
@@ -388,26 +388,26 @@ const AdminTeambuildingDashboardPage: React.FC = () => {
                 </div>
 
                 <div className="mt-3 flex flex-wrap items-center gap-1.5">
-                  <span className="w-8 text-xs font-semibold text-emerald-300">เพิ่ม</span>
+                  <span className="w-8 text-xs font-semibold text-emerald-700">เพิ่ม</span>
                   {ADD_STEPS.map((step) => (
                     <button
                       key={`add-${step}`}
                       type="button"
                       onClick={() => addScore(team, step)}
-                      className="min-w-[4rem] rounded-lg border border-emerald-400/30 bg-emerald-500/10 px-3 py-2 text-sm font-bold text-emerald-200 transition-transform hover:bg-emerald-500/20 active:scale-95"
+                      className="min-w-[4rem] rounded-lg border border-emerald-600/40 bg-emerald-50 px-3 py-2 text-sm font-bold text-emerald-800 transition-transform hover:bg-emerald-100 active:scale-95"
                     >
                       +{step.toLocaleString('th-TH')}
                     </button>
                   ))}
                 </div>
                 <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-                  <span className="w-8 text-xs font-semibold text-red-300">ลด</span>
+                  <span className="w-8 text-xs font-semibold text-red-600">ลด</span>
                   {SUBTRACT_STEPS.map((step) => (
                     <button
                       key={`sub-${step}`}
                       type="button"
                       onClick={() => addScore(team, -step)}
-                      className="min-w-[4rem] rounded-lg border border-red-400/30 bg-red-500/10 px-3 py-2 text-sm font-bold text-red-200 transition-transform hover:bg-red-500/20 active:scale-95"
+                      className="min-w-[4rem] rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm font-bold text-red-700 transition-transform hover:bg-red-100 active:scale-95"
                     >
                       −{step.toLocaleString('th-TH')}
                     </button>
@@ -447,7 +447,7 @@ const AdminTeambuildingDashboardPage: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => void deleteTeam(team)}
-                      className="rounded-lg border border-red-400/30 bg-red-500/10 px-3 py-2 text-xs font-semibold text-red-200 hover:bg-red-500/20"
+                      className="rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700 hover:bg-red-100"
                     >
                       ลบ
                     </button>
