@@ -298,7 +298,7 @@ const CardLink: React.FC<{ item: HubCard; actionLabel: string }> = ({ item, acti
       <p className="mt-2 flex-1 text-sm leading-relaxed text-gray-700">{item.description}</p>
       <div className="mt-5 flex items-center justify-between border-t border-[#E8E6DF] pt-4">
         {item.comingSoon ? (
-          <span className="rounded-full bg-[#FFCC00] px-2.5 py-0.5 text-[10px] font-extrabold text-black">เร็วๆ นี้</span>
+          <span className="rounded-[10px] bg-[#FFCC00] px-2.5 py-0.5 text-[10px] font-extrabold text-black">เร็วๆ นี้</span>
         ) : (
           <span />
         )}
@@ -306,7 +306,7 @@ const CardLink: React.FC<{ item: HubCard; actionLabel: string }> = ({ item, acti
           {item.comingSoon ? 'เร็วๆ นี้' : actionLabel}
           <span
             aria-hidden
-            className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#FFCC00] text-xs text-black transition group-hover:translate-x-0.5"
+            className="inline-flex h-6 w-6 items-center justify-center rounded-[6px] bg-[#FFCC00] text-xs text-black transition group-hover:translate-x-0.5"
           >
             →
           </span>
@@ -387,11 +387,15 @@ const HomePage: React.FC = () => {
             </a>
           </nav>
           {loggedIn ? (
-            <button type="button" onClick={() => navigate('/resourcehub')} className="md-btn-primary !py-2.5 !text-sm">
+            <button
+              type="button"
+              onClick={() => navigate('/resourcehub')}
+              className="md-btn-primary !rounded-[10px] !py-2.5 !text-sm"
+            >
               เข้าสู่ Resource Hub
             </button>
           ) : (
-            <Link to="/login" className="md-btn-primary !py-2.5 !text-sm">
+            <Link to="/login" className="md-btn-primary !rounded-[10px] !py-2.5 !text-sm">
               เข้าสู่ Resource Hub
             </Link>
           )}
@@ -460,11 +464,15 @@ const HomePage: React.FC = () => {
                 </div>
               </div>
               {loggedIn ? (
-                <button type="button" onClick={() => navigate('/resourcehub')} className="md-btn-primary shrink-0">
+                <button
+                  type="button"
+                  onClick={() => navigate('/resourcehub')}
+                  className="md-btn-primary !rounded-[10px] shrink-0"
+                >
                   เข้า ResourceHub
                 </button>
               ) : (
-                <Link to="/login" className="md-btn-primary shrink-0 text-center">
+                <Link to="/login" className="md-btn-primary !rounded-[10px] shrink-0 text-center">
                   เข้าสู่ระบบเพื่อเข้า ResourceHub
                 </Link>
               )}
@@ -489,7 +497,7 @@ const HomePage: React.FC = () => {
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="ค้นหาแบบประเมิน"
-                  className="md-input !rounded-full !border-[#C4C1B6] !bg-white !py-2.5 pl-10 pr-4 text-sm font-medium"
+                  className="md-input !rounded-[10px] !border-[#C4C1B6] !bg-white !py-2.5 pl-10 pr-4 text-sm font-medium"
                 />
               </label>
             </div>
@@ -512,7 +520,7 @@ const HomePage: React.FC = () => {
                 </p>
                 <h2 className="mt-1 text-2xl font-black text-gray-950 sm:text-3xl">Gamification ของ MindDoJo</h2>
               </div>
-              <span className="rounded-full border border-[#C4C1B6] bg-white px-3.5 py-1.5 text-xs font-extrabold text-gray-900 shadow-sm">
+              <span className="rounded-[10px] border border-[#C4C1B6] bg-white px-3.5 py-1.5 text-xs font-extrabold text-gray-900 shadow-sm">
                 {GAMES.length} เกม
               </span>
             </div>
@@ -527,7 +535,7 @@ const HomePage: React.FC = () => {
 
       <Link
         to="/admin/login"
-        className="fixed bottom-4 right-4 z-10 rounded-lg border border-[#C4C1B6] bg-white px-3 py-1.5 text-xs font-bold text-gray-700 shadow-md transition hover:border-gray-500 hover:text-gray-950"
+        className="fixed bottom-4 right-4 z-10 rounded-[10px] border border-[#C4C1B6] bg-white px-3 py-1.5 text-xs font-bold text-gray-700 shadow-md transition hover:border-gray-500 hover:text-gray-950"
         title="Login Admin MindDojo"
       >
         Admin

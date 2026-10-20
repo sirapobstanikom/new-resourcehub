@@ -1,18 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import BrandLogo from './BrandLogo';
-import { Chart } from 'react-google-charts';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import {
   PERSUASION_QUESTIONS,
-  PERSUASION_CHANNEL_LABELS,
-  PERSUASION_CHANNEL_DESCRIPTIONS,
-  PERSUASION_CHANNEL_DASHBOARD_LABELS,
   getTotalPersuasionQuestionCount,
   type PersuasionChannelId,
 } from '../data/persuasionData';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import PersuasionResultView from './persuasion/PersuasionResultView';
 
 const QUESTIONS_PER_PAGE = 5;
 const PERSUASION_RESULT_KEY = 'persuasion_result';
@@ -22,34 +19,6 @@ type SavedPersuasionResult = {
   scores: Record<PersuasionChannelId, number>;
   dominantChannels: PersuasionChannelId[];
 };
-
-/** ลำดับช่องทางสำหรับ Pie Chart (เรียงตาม PIE_COLORS) */
-const PIE_CHANNEL_ORDER: { id: PersuasionChannelId; label: string }[] = [
-  { id: 'authority', label: 'Authority' },
-  { id: 'logic', label: 'Rationality' },
-  { id: 'vision', label: 'Vision' },
-  { id: 'relationship', label: 'Relationship' },
-  { id: 'influence', label: 'Interest-Based' },
-  { id: 'negotiation', label: 'Politics' },
-];
-/** สีพายชาร์ต 6 ช่องทาง – ใช้สีเหลือง #fed201 ทั้งหมด */
-const PIE_COLORS = ['#fed201', '#fed201', '#fed201', '#fed201', '#fed201', '#fed201'];
-
-function hexToRgb(hex: string): string {
-  const r = Math.min(255, Math.max(0, parseInt(hex.slice(1, 3), 16) || 0));
-  const g = Math.min(255, Math.max(0, parseInt(hex.slice(3, 5), 16) || 0));
-  const b = Math.min(255, Math.max(0, parseInt(hex.slice(5, 7), 16) || 0));
-  return 'rgb(' + r + ',' + g + ',' + b + ')';
-}
-function hexBlendWithDark(hex: string, mix: number): string {
-  const R = parseInt(hex.slice(1, 3), 16) || 0;
-  const G = parseInt(hex.slice(3, 5), 16) || 0;
-  const B = parseInt(hex.slice(5, 7), 16) || 0;
-  const r = Math.min(255, Math.max(0, Math.round(R * mix + 38 * (1 - mix))));
-  const g = Math.min(255, Math.max(0, Math.round(G * mix + 38 * (1 - mix))));
-  const b = Math.min(255, Math.max(0, Math.round(B * mix + 38 * (1 - mix))));
-  return 'rgb(' + r + ',' + g + ',' + b + ')';
-}
 
 type Step = 'login' | 'assessment' | 'result';
 
@@ -84,26 +53,7 @@ const PersuasionAssessment: React.FC = () => {
   const [savedResult, setSavedResult] = useState<SavedPersuasionResult | null>(null);
   const [pdfLoading, setPdfLoading] = useState(false);
   const [pngLoading, setPngLoading] = useState(false);
-  const [chartHeight, setChartHeight] = useState(580);
-  const [isPieChartReady, setIsPieChartReady] = useState(false);
   const resultCardRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const updateChartHeight = () => {
-      const w = typeof window !== 'undefined' ? window.innerWidth : 768;
-      if (w < 640) setChartHeight(340);
-      else if (w < 768) setChartHeight(480);
-      else setChartHeight(580);
-    };
-    updateChartHeight();
-    window.addEventListener('resize', updateChartHeight);
-    return () => window.removeEventListener('resize', updateChartHeight);
-  }, []);
-
-  // รีเซ็ตสถานะเมื่อเข้า/ออกผลลัพธ์ เพื่อซ่อนปุ่มดาวน์โหลดระหว่างกราฟยังโหลดไม่เสร็จ
-  useEffect(() => {
-    if (step === 'result') setIsPieChartReady(false);
-  }, [step]);
 
   useEffect(() => {
     try {
@@ -248,6 +198,36 @@ const PersuasionAssessment: React.FC = () => {
       setPngLoading(false);
     }
   };
+
+  if (step === 'result') {
+    const scores = savedResult?.scores ?? getScoresByChannel();
+    const dominantChannels = savedResult?.dominantChannels ?? getDominantChannels();
+    const displayUser = savedResult?.user ?? user;
+    return (
+      <PersuasionResultView
+        userName={displayUser.name}
+        scores={scores}
+        dominantChannels={dominantChannels}
+        exportRef={resultCardRef}
+        pdfLoading={pdfLoading}
+        pngLoading={pngLoading}
+        onDownloadPdf={handleDownloadPdf}
+        onDownloadPng={handleDownloadPng}
+        onRestart={() => {
+          setStep('login');
+          setAnswers({});
+          setPageIndex(0);
+          setSavedResult(null);
+          try {
+            localStorage.removeItem(PERSUASION_RESULT_KEY);
+          } catch {
+            /* ignore */
+          }
+          window.scrollTo(0, 0);
+        }}
+      />
+    );
+  }
 
   return (
     <div className="md-page">
@@ -461,279 +441,6 @@ const PersuasionAssessment: React.FC = () => {
           </div>
         )}
 
-        {step === 'result' && (() => {
-          const scores = savedResult?.scores ?? getScoresByChannel();
-          const dominantChannels = savedResult?.dominantChannels ?? getDominantChannels();
-          const displayUser = savedResult?.user ?? user;
-          const maxScore = Math.max(...Object.values(scores).map(Number), 1);
-          const totalScore = Math.max(
-            0.001,
-            PIE_CHANNEL_ORDER.reduce((sum, item) => sum + Math.max(Number(scores[item.id]) || 0, 0), 0)
-          );
-          // PieChart: ใส่ชื่อ + เปอร์เซ็นต์บนชิ้น
-          // บังคับให้ขึ้นด้วย newline เพื่อไม่ให้ยาวจนชน/หาย
-          const chartData: (string | number | { role: string; type: string; p?: string })[][] = [
-            ['Channel', 'Score', { role: 'tooltip', type: 'string' }],
-            ...PIE_CHANNEL_ORDER.map((item) => {
-              const score = Math.max(Number(scores[item.id]) || 0, 0.001);
-              const pct = Math.round((score / totalScore) * 100);
-              // บนมือถือบาง slice (เช่น Interest-Based) มักไม่โชว์ข้อความเพราะพื้นที่ไม่พอ
-              // เลยทำชื่อให้สั้นลงเฉพาะ slice นี้
-              const isMobile = chartHeight <= 400;
-              const shortName = item.id === 'influence' && isMobile ? 'Interest' : item.label;
-              const label = `${shortName}\n${pct}%`;
-              const tooltip = `คะแนน: ${score}\nเปอร์เซ็นต์: ${pct}%`;
-              return [label, score, tooltip];
-            }),
-          ];
-          const maxSliceInfo = (() => {
-            const items = PIE_CHANNEL_ORDER.filter((it) => Number(scores[it.id]) === maxScore);
-            if (items.length === 0) return null;
-            const pct = Math.round((Number(scores[items[0].id]) / totalScore) * 100);
-            const label = items.map((it) => `${it.label} (${PERSUASION_CHANNEL_LABELS[it.id]})`).join(', ');
-            return { label, pct };
-          })();
-          const slices: Record<number, { color: string; offset?: number }> = {};
-          const FROSTED_GRAY = '#9ca3af';
-          PIE_CHANNEL_ORDER.forEach((item, i) => {
-            const isDominant = dominantChannels.includes(item.id);
-            const score = Math.max(Number(scores[item.id]) || 0, 0);
-            let color: string;
-            if (isDominant) {
-              color = hexToRgb(PIE_COLORS[i]);
-            } else {
-              // คะแนนยิ่งน้อย -> เทายิ่งจาง/ดรอป
-              const ratio = maxScore > 0 ? Math.min(1, score / maxScore) : 0;
-              const mix = 0.04 + ratio * 0.14; // 0.04..0.18
-              color = hexBlendWithDark(FROSTED_GRAY, mix);
-            }
-            slices[i] = {
-              color,
-              ...(isDominant ? { offset: 0.1 } : {}),
-            };
-          });
-          const sortedByScore = ([...PIE_CHANNEL_ORDER] as { id: PersuasionChannelId; label: string }[]).sort(
-            (a, b) => scores[b.id] - scores[a.id]
-          );
-          // ลดขนาดตัวอักษรเพื่อให้ slice เล็กๆยังแสดงข้อความได้
-          const sliceFontSize = chartHeight <= 400 ? 8 : chartHeight <= 500 ? 9 : 10;
-          const chartOptions = {
-            title: '6 ช่องทางโน้มน้าวจูงใจ',
-            pieHole: 0.38,
-            is3D: true,
-            pieSliceText: 'label',
-            pieSliceTextStyle: { color: '#111827', fontSize: sliceFontSize, bold: true },
-            titleTextStyle: { color: '#854d0e', fontSize: chartHeight <= 400 ? 14 : 16 },
-            legend: 'none',
-            slices,
-            backgroundColor: 'transparent',
-            // เพิ่มพื้นที่ให้กราฟ/ข้อความมากขึ้น
-            chartArea: { left: 16, top: chartHeight <= 400 ? 38 : 50, width: '90%', height: '78%' },
-            pieSliceBorderColor: '#D6D4CC',
-            pieSliceBorderWidth: 2,
-            tooltip: { trigger: 'selection' },
-          };
-          return (
-            <div className="space-y-10">
-              <div ref={resultCardRef} className="md-card p-6 md:p-8 space-y-8 overflow-visible">
-                <div className="text-center">
-                  <h1 className="text-2xl md:text-4xl font-black text-gray-900 mb-2">
-                    6 Channel Persuasion Test
-                  </h1>
-                  <p className="text-lg md:text-xl text-yellow-800 font-semibold">
-                    &quot;ความถนัด&quot; ทางธรรมชาติในการโน้มน้าวใจของคุณ
-                  </p>
-                  <p className="text-gray-600 text-sm mt-2">
-                    {displayUser.name || 'ผู้ประเมิน'}
-                  </p>
-                </div>
-
-                {/* Pie Chart 3D (Google Charts - ไม่มี trial) */}
-                <div className="w-full max-w-4xl mx-auto rounded-xl bg-gray-50 border border-gray-200 flex flex-col items-center justify-center overflow-visible relative" style={{ minHeight: chartHeight }}>
-                  <Chart
-                    chartType="PieChart"
-                    data={chartData}
-                    options={chartOptions}
-                    chartEvents={[
-                      {
-                        eventName: 'ready',
-                        callback: () => {
-                          setIsPieChartReady(true);
-                        },
-                      },
-                    ]}
-                    width="100%"
-                    height={chartHeight}
-                    style={{ maxWidth: '100%' }}
-                    loader={<div className="text-gray-600 py-20">กำลังโหลดกราฟ...</div>}
-                  />
-                  {/* แสดงข้อมูลชิ้นคะแนนสูงสุดตั้งแต่โหลด (เหมือนทูลทิปที่โผล่ตอนกด) */}
-                  {maxSliceInfo && (
-                    <div
-                      className="absolute bottom-3 left-1/2 -translate-x-1/2 px-4 py-2 rounded-lg bg-white border border-gray-200 shadow-md text-center pointer-events-none"
-                      style={{ whiteSpace: 'nowrap' }}
-                      role="status"
-                      aria-label={`คะแนนมากที่สุด: ${maxSliceInfo.label} ${maxSliceInfo.pct}%`}
-                    >
-                      <span className="text-gray-700 text-sm">{maxSliceInfo.label}</span>
-                      <span className="text-yellow-800 font-bold text-sm ml-1.5">{maxSliceInfo.pct}%</span>
-                    </div>
-                  )}
-                </div>
-
-                {/* หลอดคะแนน เรียงลำดับจากสูงไปต่ำ */}
-                <div className="space-y-2 min-w-0 overflow-visible pb-2">
-                  <p className="text-sm font-semibold text-gray-600 mb-3 leading-normal">
-                    คะแนนแต่ละช่องทาง (เรียงจากสูงไปต่ำ) · Score by channel (highest to lowest)
-                  </p>
-
-                  {sortedByScore.map((item, rank) => {
-                    const score = scores[item.id];
-                    const isDominant = dominantChannels.includes(item.id);
-
-                    // ความยาวหลอด: อัดความต่างให้อ่านง่ายขึ้น (ไม่ให้บางช่องสั้นมากจนมองไม่ออก)
-                    const ratio = maxScore > 0 ? score / maxScore : 0; // 0..1
-                    const compressed = Math.pow(Math.min(1, Math.max(0, ratio)), 0.55);
-                    const barWidthPct = Math.max(25, Math.round(compressed * 100));
-
-                    // เปอร์เซ็นต์ที่แสดง: คำนวณจากผลรวม 6 ช่องทางจริง
-                    const actualPct = totalScore > 0 ? Math.round((score / totalScore) * 100) : 0;
-
-                    return (
-                      <div
-                        key={item.id}
-                        className={`rounded-xl border p-3 transition-colors min-w-0 ${
-                          isDominant
-                            ? 'bg-yellow-50 border-yellow-300'
-                            : 'bg-gray-50 border-gray-200'
-                        }`}
-                      >
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="min-w-0">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span
-                                className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold tabular-nums ${
-                                  isDominant ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-600'
-                                }`}
-                              >
-                                {rank + 1}
-                              </span>
-                              <span
-                                className={`text-sm font-semibold break-words leading-snug ${
-                                  isDominant ? 'text-yellow-800' : 'text-gray-700'
-                                }`}
-                                title={`${item.label} (${PERSUASION_CHANNEL_LABELS[item.id]})`}
-                              >
-                                {item.label} ({PERSUASION_CHANNEL_LABELS[item.id]})
-                              </span>
-                              {isDominant && (
-                                <span className="text-[10px] font-bold px-2 py-1 rounded-full bg-yellow-50 text-yellow-800 border border-yellow-300">
-                                  สูงสุด
-                                </span>
-                              )}
-                            </div>
-                            <div className="mt-1 text-xs text-gray-600">
-                              {actualPct}% จากทั้งหมด 6 ช่องทาง
-                            </div>
-                          </div>
-
-                          <div className="text-right flex flex-col items-end gap-1">
-                            <span
-                              className={`text-sm tabular-nums font-bold ${
-                                isDominant ? 'text-yellow-800' : 'text-gray-700'
-                              }`}
-                            >
-                              {actualPct}%
-                            </span>
-                            <span className={`text-[11px] tabular-nums ${isDominant ? 'text-yellow-700' : 'text-gray-500'}`}>
-                              score {score}
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="mt-3">
-                          <div className="h-3 sm:h-3.5 rounded-full bg-gray-200 overflow-hidden">
-                            <div
-                              className={`h-full rounded-full transition-all duration-500 ${
-                                isDominant ? 'shadow-[0_0_18px_rgba(250,204,21,0.20)]' : ''
-                              }`}
-                              style={{
-                                width: `${barWidthPct}%`,
-                                backgroundColor: isDominant ? 'rgb(250, 204, 21)' : 'rgba(250, 204, 21, 0.18)',
-                              }}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {/* คำอธิบายช่องทางที่ถนัด (ใช้ displayUser จาก savedResult หรือ user) */}
-                {dominantChannels.length > 0 && (
-                  <div className="rounded-2xl border border-yellow-300 bg-yellow-50 p-5 md:p-6">
-                    <p className="text-sm font-bold text-yellow-800 mb-2">ความถนัดของคุณ</p>
-                    <p className="text-gray-700 text-sm leading-relaxed">
-                      {PERSUASION_CHANNEL_DESCRIPTIONS[dominantChannels[0]]}
-                    </p>
-                    {dominantChannels.length > 1 && (
-                      <p className="text-gray-600 text-xs mt-2">
-                        คุณอาจถนัดหลายรูปแบบ: {dominantChannels.map((id) => PERSUASION_CHANNEL_LABELS[id]).join(' · ')}
-                      </p>
-                    )}
-                  </div>
-                )}
-
-                {isPieChartReady && (
-                  <div className="pt-4 border-t border-gray-200" data-no-capture="true">
-                    <p className="text-gray-600 text-sm mb-4">ดาวน์โหลดผลลัพธ์</p>
-                    <div className="flex flex-wrap gap-3">
-                      <button
-                        type="button"
-                        onClick={handleDownloadPdf}
-                        disabled={pdfLoading}
-                        className="flex-1 min-w-[140px] py-3.5 px-6 rounded-xl font-bold bg-yellow-400 text-black hover:bg-yellow-300 text-center shadow-lg shadow-yellow-400/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        {pdfLoading ? 'กำลังสร้าง...' : 'โหลดเป็น PDF'}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleDownloadPng}
-                        disabled={pngLoading}
-                        className="flex-1 min-w-[140px] py-3.5 px-6 rounded-xl font-bold border-2 border-yellow-400 text-yellow-800 hover:bg-yellow-50 text-center transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        {pngLoading ? 'กำลังสร้าง...' : 'โหลดเป็น PNG'}
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-3 justify-center flex-wrap">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setStep('login');
-                    setAnswers({});
-                    setPageIndex(0);
-                    setSavedResult(null);
-                    try { localStorage.removeItem(PERSUASION_RESULT_KEY); } catch (_) {}
-                    window.scrollTo(0, 0);
-                  }}
-                  className="px-6 py-3 rounded-xl font-bold border border-yellow-400 text-yellow-800 hover:bg-yellow-50 transition-all"
-                >
-                  ทำแบบประเมินใหม่
-                </button>
-                <Link
-                  to="/"
-                  className="px-6 py-3 rounded-xl font-bold bg-yellow-400 text-black hover:bg-yellow-300 text-center transition-all"
-                >
-                  กลับหน้าแรก
-                </Link>
-              </div>
-            </div>
-          );
-        })()}
       </main>
 
       <footer className="py-6 border-t border-gray-200">
