@@ -117,33 +117,33 @@ function parseStoredAnswers(raw: Record<string, unknown> | undefined): Record<nu
 
 const INTRO_BODY = (
   <>
-    <p className="mb-5 text-gray-300 leading-relaxed text-[15px]">
+    <p className="mb-5 text-gray-700 leading-relaxed text-[15px]">
       อ่านแต่ละข้อความแล้วเลือกคำตอบที่ตรงกับตัวคุณมากที่สุด โดยพิจารณาว่าข้อความนั้นสะท้อนแนวโน้ม วิธีคิด
       หรือวิธีการที่คุณมักใช้เมื่อต้องจัดการกับความขัดแย้งมากน้อยเพียงใด ไม่มีคำตอบที่ถูกหรือผิด
       ขอให้ตอบตามความเป็นจริง เพื่อให้ผลลัพธ์สะท้อนรูปแบบของคุณได้ใกล้เคียงที่สุด
     </p>
-    <div className="rounded-2xl border border-sky-500/20 bg-gradient-to-br from-sky-500/10 via-black/20 to-yellow-500/5 overflow-hidden text-left mb-5">
+    <div className="rounded-2xl border border-sky-300 bg-gradient-to-br from-sky-50 via-white to-yellow-50 overflow-hidden text-left mb-5">
       <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
-        <p className="text-[11px] font-bold uppercase tracking-wider text-sky-300/90">สเกลการตอบ</p>
+        <p className="text-[11px] font-bold uppercase tracking-wider text-sky-700">สเกลการตอบ</p>
         <p className="text-xs text-gray-500 mt-0.5">แตะเลข 1–4 ตามความถี่ที่คุณทำแบบนั้น</p>
       </div>
-      <div className="grid grid-cols-2 gap-px bg-white/10">
+      <div className="grid grid-cols-2 gap-px bg-gray-200">
         {([1, 2, 3, 4] as const).map((s) => (
           <div
             key={s}
             className="flex items-center gap-3 bg-gray-50 px-3 py-3 sm:px-4 sm:py-3.5"
           >
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-yellow-400/15 text-sm font-black tabular-nums text-yellow-300 ring-1 ring-yellow-400/30">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-yellow-50 text-sm font-black tabular-nums text-yellow-800 ring-1 ring-yellow-300">
               {s}
             </span>
-            <span className="text-sm text-gray-200 leading-snug">{CMS_SCALE_LABELS[s]}</span>
+            <span className="text-sm text-gray-800 leading-snug">{CMS_SCALE_LABELS[s]}</span>
           </div>
         ))}
       </div>
     </div>
     <p className="text-xs text-gray-500 leading-relaxed rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
       เมื่อทำครบ 15 ข้อ ระบบจะรวมคะแนนตามรูปแบบ 5 ประเภท ได้แก่ การหลีกหนี การยอมตาม การเอาชนะ การร่วมมือ และการประนีประนอม
-      <span className="text-gray-400"> (แต่ละแบบคะแนนเต็ม 12)</span>
+      <span className="text-gray-600"> (แต่ละแบบคะแนนเต็ม 12)</span>
     </p>
   </>
 );
@@ -451,7 +451,7 @@ const ConflictManagementStyleAssessment: React.FC = () => {
                     🤝
                   </span>
                 </div>
-                <p className="text-[10px] uppercase tracking-[0.2em] text-sky-400/90 mb-1">{SUBTITLE}</p>
+                <p className="text-[10px] uppercase tracking-[0.2em] text-sky-700 mb-1">{SUBTITLE}</p>
                 <h2 className="text-lg sm:text-xl font-black text-gray-900 tracking-tight leading-snug">{ASSESSMENT_TITLE}</h2>
               </div>
               <div className="text-sm sm:text-[15px] text-left">{INTRO_BODY}</div>
@@ -476,7 +476,7 @@ const ConflictManagementStyleAssessment: React.FC = () => {
           </Link>
           {step === 'assessment' && (
             <div className="flex flex-col items-end gap-1 min-w-0">
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-sky-400/90 truncate max-w-[14rem] sm:max-w-none">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-sky-700 truncate max-w-[14rem] sm:max-w-none">
                 ความคืบหน้า
               </span>
               <span className="text-sm font-bold tabular-nums text-gray-900">
@@ -493,14 +493,14 @@ const ConflictManagementStyleAssessment: React.FC = () => {
         {step === 'login' && (
           <div className="max-w-md mx-auto space-y-8">
             <div className="text-center space-y-3">
-              <div className="inline-flex items-center gap-2 rounded-full border border-sky-500/25 bg-sky-500/10 px-3 py-1">
-                <span className="h-1.5 w-1.5 rounded-full bg-sky-400 animate-pulse" aria-hidden />
-                <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-sky-300/95">{SUBTITLE}</span>
+              <div className="inline-flex items-center gap-2 rounded-full border border-sky-500 bg-sky-100 px-3 py-1">
+                <span className="h-1.5 w-1.5 rounded-full bg-sky-500 animate-pulse" aria-hidden />
+                <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-sky-900">{SUBTITLE}</span>
               </div>
               <h1 className="text-2xl sm:text-3xl md:text-[2rem] font-black tracking-tight leading-[1.15] text-gray-900">
                 {ASSESSMENT_TITLE}
               </h1>
-              <p className="text-gray-400 text-sm sm:text-[15px] leading-relaxed max-w-sm mx-auto">
+              <p className="text-gray-700 text-sm sm:text-[15px] leading-relaxed max-w-sm mx-auto">
                 สำรวจแนวโน้มของคุณผ่านคำถาม 15 ข้อ และสเกล 4 ระดับ — เหมาะสำหรับอบรมหรือทำความเข้าใจตนเอง
               </p>
             </div>
@@ -510,7 +510,7 @@ const ConflictManagementStyleAssessment: React.FC = () => {
               className="md-card p-6 sm:p-8 space-y-5"
             >
               <div className="space-y-1.5">
-                <label htmlFor="cms-name" className="block text-xs font-semibold uppercase tracking-wider text-gray-400">
+                <label htmlFor="cms-name" className="block text-xs font-semibold uppercase tracking-wider text-gray-600">
                   ชื่อ
                 </label>
                 <input
@@ -525,7 +525,7 @@ const ConflictManagementStyleAssessment: React.FC = () => {
                 />
               </div>
               <div className="space-y-1.5">
-                <label htmlFor="cms-email" className="block text-xs font-semibold uppercase tracking-wider text-gray-400">
+                <label htmlFor="cms-email" className="block text-xs font-semibold uppercase tracking-wider text-gray-600">
                   อีเมล
                 </label>
                 <input
@@ -540,7 +540,7 @@ const ConflictManagementStyleAssessment: React.FC = () => {
                 />
               </div>
               <div className="space-y-1.5">
-                <label htmlFor="cms-company" className="block text-xs font-semibold uppercase tracking-wider text-gray-400">
+                <label htmlFor="cms-company" className="block text-xs font-semibold uppercase tracking-wider text-gray-600">
                   บริษัท / องค์กร
                 </label>
                 <input
@@ -569,10 +569,10 @@ const ConflictManagementStyleAssessment: React.FC = () => {
 
         {step === 'assessment' && (
           <div className="space-y-8 sm:space-y-10">
-            <div className="rounded-3xl border border-gray-200 bg-gradient-to-br from-white/[0.07] via-black/20 to-sky-500/[0.04] p-5 sm:p-6 shadow-xl shadow-black/5 ring-1 ring-white/5">
+            <div className="rounded-3xl border border-gray-200 bg-gradient-to-br from-white via-white to-sky-50 p-5 sm:p-6 shadow-xl shadow-black/5 ring-1 ring-gray-200">
               <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-5">
                 <div>
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-sky-400/90 mb-1">
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-sky-700 mb-1">
                     {CMS_SECTION_TITLES[sectionIndex] ?? `ส่วนที่ ${sectionIndex + 1}`}
                   </p>
                   <h2 className="text-lg sm:text-xl font-bold text-gray-900 tracking-tight">
@@ -593,7 +593,7 @@ const ConflictManagementStyleAssessment: React.FC = () => {
                             ? 'bg-sky-400'
                             : i < sectionIndex
                               ? 'bg-sky-400/35'
-                              : 'bg-white/15'
+                              : 'bg-gray-200'
                         }`}
                         aria-hidden
                       />
@@ -604,9 +604,9 @@ const ConflictManagementStyleAssessment: React.FC = () => {
               <div className="space-y-2">
                 <div className="flex justify-between text-[11px] text-gray-500 uppercase tracking-wider font-semibold">
                   <span>ความคืบหน้ารวม</span>
-                  <span className="tabular-nums text-sky-300/90">{Math.round(progress)}%</span>
+                  <span className="tabular-nums text-sky-700">{Math.round(progress)}%</span>
                 </div>
-                <div className="h-2 rounded-full bg-gray-100 overflow-hidden ring-1 ring-white/10">
+                <div className="h-2 rounded-full bg-gray-100 overflow-hidden ring-1 ring-gray-200">
                   <div
                     className="h-full rounded-full bg-gradient-to-r from-sky-500 via-sky-400 to-amber-400 transition-all duration-500 ease-out"
                     style={{ width: `${progress}%` }}
@@ -633,18 +633,18 @@ const ConflictManagementStyleAssessment: React.FC = () => {
                     }`}
                   >
                     <div className="flex flex-wrap items-center justify-between gap-2">
-                      <span className="inline-flex items-center gap-2 rounded-full border border-yellow-400/25 bg-yellow-400/10 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-yellow-200/95">
+                      <span className="inline-flex items-center gap-2 rounded-full border border-yellow-300 bg-yellow-50 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-yellow-900">
                         ข้อ {globalIdx + 1} / {totalQuestions}
                       </span>
                       {answered ? (
-                        <span className="text-[11px] font-medium text-sky-300/90 flex items-center gap-1">
+                        <span className="text-[11px] font-medium text-sky-700 flex items-center gap-1">
                           <span className="text-emerald-400" aria-hidden>
                             ✓
                           </span>
                           บันทึกแล้ว
                         </span>
                       ) : (
-                        <span className="text-[11px] text-amber-200/80">ยังไม่ได้เลือก</span>
+                        <span className="text-[11px] text-amber-800">ยังไม่ได้เลือก</span>
                       )}
                     </div>
                     <p className="text-gray-900 text-[15px] sm:text-base leading-relaxed font-medium">{q.text}</p>
@@ -663,7 +663,7 @@ const ConflictManagementStyleAssessment: React.FC = () => {
                               title={CMS_SCALE_LABELS[v]}
                               className={`relative flex flex-col items-center justify-center gap-1 rounded-2xl border-2 px-2 py-3.5 sm:py-4 min-h-[5.5rem] transition-all active:scale-[0.98] ${
                                 selected
-                                  ? 'border-sky-400 bg-sky-500/20 text-white shadow-lg shadow-sky-500/15 ring-2 ring-sky-400/40'
+                                  ? 'border-sky-500 bg-sky-100 text-sky-950 shadow-md shadow-sky-500/15 ring-2 ring-sky-400/50'
                                   : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-800'
                               }`}
                             >
@@ -689,7 +689,7 @@ const ConflictManagementStyleAssessment: React.FC = () => {
                 type="button"
                 onClick={handlePrevSection}
                 disabled={sectionIndex === 0}
-                className="flex-1 sm:flex-none px-4 sm:px-6 py-3 rounded-xl font-bold text-sm border border-gray-200 text-gray-300 hover:bg-white/8 disabled:opacity-35 disabled:cursor-not-allowed transition-all"
+                className="flex-1 sm:flex-none px-4 sm:px-6 py-3 rounded-xl font-bold text-sm border border-gray-200 text-gray-700 hover:bg-gray-50 disabled:opacity-35 disabled:cursor-not-allowed transition-all"
               >
                 ← ย้อนกลับ
               </button>
@@ -709,23 +709,23 @@ const ConflictManagementStyleAssessment: React.FC = () => {
           <div className="space-y-8 w-full max-w-5xl mx-auto">
             <div ref={resultExportRef} className="space-y-8">
               <div className="md-card p-4 sm:p-9 text-center ring-1 ring-sky-100">
-                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-sky-400/90 mb-2">{SUBTITLE}</p>
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-sky-700 mb-2">{SUBTITLE}</p>
                 <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-gray-900 leading-snug mb-4">{ASSESSMENT_TITLE}</h1>
                 <div className="inline-flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm">
                   <span className="font-semibold text-gray-900">{displayUser.name}</span>
                   <span className="hidden sm:inline text-gray-600">·</span>
-                  <span className="text-gray-400 text-xs sm:text-sm">
+                  <span className="text-gray-600 text-xs sm:text-sm">
                     {displayUser.company} · {displayUser.email}
                   </span>
                 </div>
               </div>
 
               <div className="md-card p-6 sm:p-8 space-y-6">
-                <h2 className="text-center text-xs sm:text-sm font-black uppercase tracking-[0.15em] text-gray-400">
+                <h2 className="text-center text-xs sm:text-sm font-black uppercase tracking-[0.15em] text-gray-700">
                   ผลคะแนน 5 รูปแบบ
                 </h2>
-                <div className="text-left text-sm text-gray-500 space-y-2 border-b border-gray-200 pb-6">
-                  <p className="font-semibold text-gray-200">การให้คะแนนการประเมิน</p>
+                <div className="text-left text-sm text-gray-700 space-y-2 border-b border-gray-200 pb-6">
+                  <p className="font-semibold text-gray-900">การให้คะแนนการประเมิน</p>
                   <p className="leading-relaxed">
                     คำถามแต่ละข้อสอดคล้องกับรูปแบบการจัดการความขัดแย้ง 5 แบบ เพื่อค้นหารูปแบบที่เหมาะสมที่สุดของคุณ
                     รวมคะแนนของแต่ละกลุ่มคำถามตามที่ระบุไว้ด้านล่าง:
@@ -748,7 +748,7 @@ const ConflictManagementStyleAssessment: React.FC = () => {
                             : ''
                         } rounded-t-[500px] rounded-b-[200px] min-w-0 border-2 border-2 p-5 sm:p-6 min-h-[300px] flex flex-col justify-start transition-colors ${
                           isTop
-                            ? 'border-amber-400/40 bg-gradient-to-b from-amber-400/10 via-black/20 to-transparent ring-1 ring-amber-400/20'
+                            ? 'border-amber-300 bg-gradient-to-b from-amber-50 via-white to-transparent ring-1 ring-amber-300'
                             : 'border-gray-200 bg-gray-50'
                         }`}
                       >
@@ -881,7 +881,7 @@ const ConflictManagementStyleAssessment: React.FC = () => {
                 type="button"
                 onClick={handleDownloadPng}
                 disabled={pngLoading}
-                className="min-h-[52px] rounded-2xl font-bold text-sm border border-sky-400/45 text-sky-100 bg-sky-500/10 hover:bg-sky-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+                className="min-h-[52px] rounded-2xl font-bold text-sm border border-sky-400 text-sky-900 bg-sky-50 hover:bg-sky-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
               >
                 <span
                   className={`w-4 h-4 border-2 border-sky-300 border-t-transparent rounded-full shrink-0 ${pngLoading ? 'animate-spin opacity-100' : 'opacity-0'}`}
@@ -906,7 +906,7 @@ const ConflictManagementStyleAssessment: React.FC = () => {
                 type="button"
                 onClick={handleDownloadPdf}
                 disabled={pdfLoading}
-                className="min-h-[52px] rounded-2xl font-bold text-sm border border-amber-400/45 text-amber-100 bg-amber-500/10 hover:bg-amber-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+                className="min-h-[52px] rounded-2xl font-bold text-sm border border-amber-400 text-amber-950 bg-amber-50 hover:bg-amber-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
               >
                 <span
                   className={`w-4 h-4 border-2 border-amber-300 border-t-transparent rounded-full shrink-0 ${pdfLoading ? 'animate-spin opacity-100' : 'opacity-0'}`}
@@ -935,7 +935,7 @@ const ConflictManagementStyleAssessment: React.FC = () => {
               <button
                 type="button"
                 onClick={restart}
-                className="min-h-[52px] rounded-2xl font-bold text-sm border border-gray-200 text-gray-300 hover:bg-white/6 transition-all col-span-2 flex items-center justify-center gap-2"
+                className="min-h-[52px] rounded-2xl font-bold text-sm border border-gray-200 text-gray-700 hover:bg-gray-50 transition-all col-span-2 flex items-center justify-center gap-2"
               >
                 <img
                   src="https://axaasphuaaadzjoffznj.supabase.co/storage/v1/object/public/images/restart.webp"

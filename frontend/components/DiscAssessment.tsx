@@ -1087,7 +1087,7 @@ const DiscAssessment: React.FC = () => {
                               isSelected
                                 ? 'border-black bg-[#FFCC00] text-black shadow-sm'
                                 : disabled
-                                  ? 'cursor-not-allowed border-[#E8E6DF] bg-[#F3F2ED] text-gray-400'
+                                  ? 'cursor-not-allowed border-[#E8E6DF] bg-[#F3F2ED] text-gray-600'
                                   : 'border-[#D6D4CC] bg-white text-gray-800 hover:border-gray-400 hover:bg-gray-50'
                             } ${isRatingPop ? 'disc-rating-pop' : ''}`}
                             aria-pressed={isSelected}
@@ -1242,7 +1242,7 @@ const DiscAssessment: React.FC = () => {
                 ) : aiFeedback ? (
                   <div className="whitespace-pre-wrap break-words text-sm leading-relaxed text-gray-700">
                     {aiDisplayText}
-                    {aiDisplayText.length < aiFeedback.length ? <span className="text-gray-400">▋</span> : null}
+                    {aiDisplayText.length < aiFeedback.length ? <span className="text-gray-600">▋</span> : null}
                   </div>
                 ) : null}
               </div>
@@ -1320,7 +1320,7 @@ const DiscAssessment: React.FC = () => {
             </div>
             <div className="p-3 border-t border-gray-200 space-y-2">
               {exportError ? (
-                <p className="text-xs text-amber-300/90 text-center">{exportError}</p>
+                <p className="text-xs text-amber-700 text-center">{exportError}</p>
               ) : null}
               <button
                 type="button"

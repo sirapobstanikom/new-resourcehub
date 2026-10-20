@@ -383,7 +383,7 @@ const MbtiAssessment: React.FC = () => {
           />
 
           {page === 0 && (
-            <section className="mt-4 rounded-2xl bg-white/50 p-4 text-sm leading-relaxed sm:p-5 sm:text-[15px]">
+            <section className="mt-4 rounded-2xl bg-white/90 border border-black/10 p-4 text-sm leading-relaxed sm:p-5 sm:text-[15px] shadow-sm">
               <p className="font-bold">MBTI</p>
               <p className={introOpen ? '' : 'line-clamp-2'}>{MBTI_INTRO}</p>
               {introOpen && <p className="mt-2 font-semibold">{MBTI_INTRO_TIP}</p>}
@@ -405,7 +405,7 @@ const MbtiAssessment: React.FC = () => {
                 <section
                   key={q.id}
                   id={`mbti-q-${q.id}`}
-                  className={`rounded-2xl bg-white/35 p-4 transition-shadow sm:p-6 ${missing ? 'ring-4 ring-red-500/70' : ''}`}
+                  className={`rounded-2xl bg-white/90 border border-black/10 p-4 shadow-sm transition-shadow sm:p-6 ${missing ? 'ring-4 ring-red-500/70' : ''}`}
                 >
                   <h2 className="text-2xl font-bold sm:text-[28px]">ข้อ {q.id}</h2>
                   <div className="mt-3 space-y-5">
@@ -536,7 +536,7 @@ const MbtiAssessment: React.FC = () => {
                   <div key={label}>
                     <p className="mb-2 text-center text-xs font-semibold text-gray-500">{label}</p>
                     <div className="flex items-center gap-3">
-                      <div className={`w-24 text-right sm:w-28 ${winner === left ? 'text-black' : 'text-gray-400'}`}>
+                      <div className={`w-24 text-right sm:w-28 ${winner === left ? 'text-black' : 'text-gray-600'}`}>
                         <span className="text-2xl font-extrabold">{left}</span>
                         <span className="ml-1.5 text-lg font-bold">{leftScore}</span>
                         <p className="text-[11px] font-medium leading-tight">{leftLabel}</p>
@@ -552,7 +552,7 @@ const MbtiAssessment: React.FC = () => {
                         />
                         <div className="absolute inset-y-0 left-1/2 w-0.5 -translate-x-1/2 bg-white" />
                       </div>
-                      <div className={`w-24 sm:w-28 ${winner === right ? 'text-black' : 'text-gray-400'}`}>
+                      <div className={`w-24 sm:w-28 ${winner === right ? 'text-black' : 'text-gray-600'}`}>
                         <span className="text-lg font-bold">{rightScore}</span>
                         <span className="ml-1.5 text-2xl font-extrabold">{right}</span>
                         <p className="text-[11px] font-medium leading-tight">{rightLabel}</p>

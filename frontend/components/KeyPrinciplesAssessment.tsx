@@ -73,11 +73,11 @@ function parseStoredAnswers(raw: Record<string, unknown> | undefined): Record<nu
 
 const INTRO_BODY = (
   <>
-    <p className="mb-4 text-gray-300 leading-relaxed">
+    <p className="mb-4 text-gray-800 leading-relaxed">
       แบบประเมิน Key Principles มี 25 ข้อ ให้คะแนน 1–5 ตามความเป็นจริงของตนเอง หลังทำครบระบบจะสรุปผลเป็น 5 ส่วน:
       Self Esteem, Empathy, Involvement, Support และ Share
     </p>
-    <p className="mb-4 text-gray-400 text-sm leading-relaxed">
+    <p className="mb-4 text-gray-700 text-sm leading-relaxed">
       แต่ละส่วนคำนวณจากข้อที่กำหนด รวมคะแนนได้ 5–25 คะแนน
     </p>
     <div className="rounded-xl border border-gray-200 overflow-hidden text-left text-xs mb-4">
@@ -87,7 +87,7 @@ const INTRO_BODY = (
       </div>
       {([1, 2, 3, 4, 5] as const).map((s) => (
         <div key={s} className="grid grid-cols-2 border-t border-yellow-100 px-3 py-2 text-gray-700">
-          <span className="tabular-nums text-yellow-400/90 font-bold">{s}</span>
+          <span className="tabular-nums text-yellow-800 font-bold">{s}</span>
           <span>{KP_SCALE_LABELS[s]}</span>
         </div>
       ))}
@@ -96,7 +96,7 @@ const INTRO_BODY = (
       <div className="bg-yellow-50 px-3 py-2 font-semibold text-gray-800">ช่วงคะแนนต่อส่วน (5–25)</div>
       {KP_SCORE_BANDS.map((b) => (
         <div key={b.id} className="border-t border-yellow-100 px-3 py-2 text-gray-700">
-          <span className="tabular-nums text-yellow-400/90 font-bold">
+          <span className="tabular-nums text-yellow-800 font-bold">
             {b.min}–{b.max}
           </span>
           <span className="mx-2 text-gray-600">·</span>
@@ -439,18 +439,18 @@ const KeyPrinciplesAssessment: React.FC = () => {
       {showIntroModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" aria-modal="true" role="dialog">
           <div
-            className="absolute inset-0 bg-white/95 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
             onClick={handleCloseIntroAndStart}
             aria-hidden="true"
           />
           <div className="relative w-full max-w-lg rounded-3xl border border-yellow-200 bg-white shadow-2xl shadow-yellow-900/10 overflow-hidden max-h-[90vh] overflow-y-auto kp-scale-in">
             <div className="relative p-8 md:p-10 text-center">
-              <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-yellow-400/20 border border-yellow-400/35 flex items-center justify-center">
+              <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-yellow-50 border border-yellow-300 flex items-center justify-center">
                 <span className="text-3xl" aria-hidden>
                   ◆
                 </span>
               </div>
-              <p className="text-[10px] uppercase tracking-widest text-yellow-400/90 mb-2">{SUBTITLE}</p>
+              <p className="text-[10px] uppercase tracking-widest text-yellow-800 mb-2">{SUBTITLE}</p>
               <h2 className="text-xl md:text-2xl font-black text-gray-900 tracking-tight mb-4">{ASSESSMENT_TITLE}</h2>
               <div className="text-sm md:text-base mb-8 text-left">{INTRO_BODY}</div>
               <button
@@ -494,14 +494,14 @@ const KeyPrinciplesAssessment: React.FC = () => {
         {step === 'assessment' && (
           <div key={`page-${pageIndex}`} className="space-y-8 kp-fade-up">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-sm text-gray-500">
-              <span className="font-semibold text-yellow-400/90">
+              <span className="font-semibold text-yellow-800">
                 {KP_PAGE_TITLES[pageIndex]} · ข้อ {currentNums[0]}–{currentNums[currentNums.length - 1]}
               </span>
               <span>
                 หน้า {pageIndex + 1} / {totalPages}
               </span>
             </div>
-            <div className="h-2 rounded-full bg-white/10 overflow-hidden ring-1 ring-white/5">
+            <div className="h-2 rounded-full bg-gray-200 overflow-hidden ring-1 ring-gray-200">
               <div
                 className="h-full bg-gradient-to-r from-yellow-600 via-yellow-400 to-yellow-300 rounded-full transition-all duration-500 ease-out shadow-[0_0_12px_rgba(250,204,21,0.35)]"
                 style={{ width: `${progress}%` }}
@@ -516,16 +516,16 @@ const KeyPrinciplesAssessment: React.FC = () => {
                   <div
                     key={num}
                     id={`kp-question-${num}`}
-                    className={`kp-fade-up rounded-2xl border border-gray-200 bg-gradient-to-br from-white/[0.06] to-transparent p-5 md:p-6 space-y-4 shadow-lg shadow-black/25 scroll-mt-28 transition-colors hover:border-gray-200 ${
+                    className={`kp-fade-up rounded-2xl border border-gray-200 bg-white p-5 md:p-6 space-y-4 shadow-sm scroll-mt-28 transition-colors hover:border-yellow-300 ${
                       qi === 0 ? '' : qi === 1 ? 'kp-delay-1' : qi === 2 ? 'kp-delay-2' : qi === 3 ? 'kp-delay-3' : 'kp-delay-4'
                     }`}
                   >
-                    <p className="text-xs font-bold text-yellow-400/90 uppercase tracking-widest">
+                    <p className="text-xs font-bold text-yellow-800 uppercase tracking-widest">
                       ข้อที่ {num} / {totalQuestions}
                     </p>
                     <p className="text-gray-900 text-sm md:text-base leading-relaxed font-medium">{q.text}</p>
                     <div className="flex flex-col gap-2">
-                      <p className="text-xs text-gray-500">ให้คะแนน 1–5</p>
+                      <p className="text-xs text-gray-600 font-medium">ให้คะแนน 1–5</p>
                       <div className="flex flex-wrap gap-2">
                         {([1, 2, 3, 4, 5] as const).map((v) => (
                           <button
@@ -535,8 +535,8 @@ const KeyPrinciplesAssessment: React.FC = () => {
                             title={KP_SCALE_LABELS[v]}
                             className={`min-w-[2.75rem] px-3 py-2 rounded-xl text-sm font-bold border-2 transition-all duration-200 hover:scale-105 active:scale-95 ${
                               answers[num] === v
-                                ? 'kp-rating-pop bg-yellow-50 border-yellow-400 text-gray-900 shadow-md shadow-yellow-400/20'
-                                : 'bg-white border-gray-200 text-gray-500 hover:border-yellow-400/40 hover:text-gray-800'
+                                ? 'kp-rating-pop bg-yellow-100 border-yellow-500 text-gray-900 shadow-md shadow-yellow-400/20'
+                                : 'bg-white border-gray-300 text-gray-700 hover:border-yellow-500 hover:text-gray-900'
                             }`}
                           >
                             {v}
@@ -544,7 +544,7 @@ const KeyPrinciplesAssessment: React.FC = () => {
                         ))}
                       </div>
                       {answers[num] != null && (
-                        <p className="text-xs text-gray-400 mt-1">{KP_SCALE_LABELS[answers[num] as 1 | 2 | 3 | 4 | 5]}</p>
+                        <p className="text-xs text-gray-600 mt-1">{KP_SCALE_LABELS[answers[num] as 1 | 2 | 3 | 4 | 5]}</p>
                       )}
                     </div>
                   </div>
@@ -576,7 +576,7 @@ const KeyPrinciplesAssessment: React.FC = () => {
         {step === 'result' && isKpComplete(displayAnswers) && (
           <>
             {exportError && (
-              <p className="max-w-2xl mx-auto mb-4 rounded-xl border border-rose-400/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-200 text-center">
+              <p className="max-w-2xl mx-auto mb-4 rounded-xl border border-rose-300 bg-rose-50 px-4 py-3 text-sm text-rose-800 text-center">
                 {exportError}
               </p>
             )}

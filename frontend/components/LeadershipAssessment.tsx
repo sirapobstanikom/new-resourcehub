@@ -63,17 +63,17 @@ const INTRO_BODY = (
     <p className="mb-4">
       แบบประเมินนี้ใช้กรอบ <strong className="text-gray-900">Dynamic Leadership Capability Wheel</strong> ในการประเมินสมรรถนะภาวะผู้นำของคุณ
     </p>
-    <p className="mb-4 text-gray-400">
+    <p className="mb-4 text-gray-600">
       ประกอบด้วย 3 หมวดหลัก คือ <strong className="text-[#FFCC00]">Be AWARE</strong> (การตระหนักรู้),{' '}
       <strong className="text-[#FFCC00]">ADAPT</strong> (การปรับตัวและเรียนรู้) และ{' '}
       <strong className="text-[#FFCC00]">ACT</strong> (การลงมือทำและผลักดันการเปลี่ยนแปลง) เพื่อให้คุณเห็นจุดแข็งและพื้นที่ที่ควรพัฒนา
     </p>
-    <p className="mb-5 text-gray-400">
+    <p className="mb-5 text-gray-600">
       แบบประเมินรวมทั้งหมด <strong className="text-[#FFCC00]">{getTotalQuestionCount()}</strong> ข้อ
     </p>
     <div className="rounded-xl border border-gray-200 bg-[#F3F2ED]/80 p-4 text-left">
       <p className="mb-2 text-sm font-semibold text-gray-900">วิธีการทำแบบประเมิน</p>
-      <ol className="list-inside list-decimal space-y-1.5 text-sm text-gray-400">
+      <ol className="list-inside list-decimal space-y-1.5 text-sm text-gray-600">
         <li>อ่านแต่ละข้อแล้วพิจารณาว่าตรงกับคุณมากที่สุด</li>
         <li>เลือกหนึ่งระดับจาก 4 ระดับ ได้แก่ ต้องพัฒนาอย่างจริงจัง / ควรพัฒนา / ดี / จุดแข็ง</li>
         <li>ทำครบทั้ง 3 หมวด แล้วกดดูผลลัพธ์</li>
@@ -412,7 +412,7 @@ const LeadershipAssessment: React.FC = () => {
               alt=""
               className="h-full w-full select-none object-cover object-[78%_center] opacity-30"
             />
-            <div className="absolute inset-0 bg-gradient-to-b from-[#F3F2ED]//50 via-[#F3F2ED]//85 to-[#F3F2ED]" />
+            <div className="absolute inset-0 bg-gradient-to-b from-[#F3F2ED]/50 via-[#F3F2ED]/85 to-[#F3F2ED]" />
           </div>
 
           <header className="relative z-10 mx-auto flex w-full max-w-5xl items-center justify-between gap-4 px-5 pt-5 sm:px-8 sm:pt-7">
@@ -420,7 +420,7 @@ const LeadershipAssessment: React.FC = () => {
               <Link to="/" className="flex items-center">
                 <BrandLogo className="text-[24px] sm:text-[26px]" tone="dark" />
               </Link>
-              <span className="hidden h-5 w-px bg-white/30 sm:block" />
+              <span className="hidden h-5 w-px bg-gray-300 sm:block" />
               <span
                 className="hidden text-[10px] font-medium uppercase tracking-[0.2em] text-gray-600 sm:block"
                 style={HEADLINE_FONT}
@@ -520,7 +520,7 @@ const LeadershipAssessment: React.FC = () => {
               <div>
                 <div className="exclude-from-pdf mb-4 empty:hidden">
                   {saveStatus === 'saving' && (
-                    <p className="text-center text-sm text-gray-400">กำลังบันทึกผลลงระบบ...</p>
+                    <p className="text-center text-sm text-gray-600">กำลังบันทึกผลลงระบบ...</p>
                   )}
                   {saveStatus === 'success' && (
                     <p className="text-center text-sm text-emerald-400">บันทึกผลลงระบบแล้ว</p>
@@ -560,7 +560,7 @@ const LeadershipAssessment: React.FC = () => {
                   <div className="relative">
                     <div className="flex items-center justify-between gap-4">
                       <BrandLogo className="text-[22px]" tone="dark" />
-                      <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-gray-400" style={HEADLINE_FONT}>
+                      <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-gray-600" style={HEADLINE_FONT}>
                         {new Date().toLocaleDateString('th-TH', { dateStyle: 'long' })}
                       </span>
                     </div>
@@ -589,7 +589,7 @@ const LeadershipAssessment: React.FC = () => {
                         <p className="mt-1 text-lg font-bold leading-tight">{user.name}</p>
                         <p className="text-sm text-gray-600">{user.company}</p>
                         <p className="mt-0.5 break-all text-xs text-gray-500">{user.email}</p>
-                        <div className="mt-4 flex items-end justify-between gap-3 border-t border-white/10 pt-4">
+                        <div className="mt-4 flex items-end justify-between gap-3 border-t border-gray-200 pt-4">
                           <div>
                             <p className="text-xs text-gray-500">คะแนนภาพรวม</p>
                             <p className="mt-1 text-sm font-semibold text-gray-900">
@@ -649,7 +649,7 @@ const LeadershipAssessment: React.FC = () => {
                               <span className="text-2xl text-gray-500">%</span>
                             </p>
 
-                            <div className="mt-6 space-y-3 border-t border-white/10 pt-5">
+                            <div className="mt-6 space-y-3 border-t border-gray-200 pt-5">
                               {dim.subItems.map((sub) => {
                                 const subPct = getSubItemPercent(dim.id, sub);
                                 return (
@@ -765,7 +765,7 @@ const LeadershipAssessment: React.FC = () => {
 
           {step === 'assessment' && currentDimension && (
             <div
-              className="fixed inset-x-0 bottom-0 z-30 border-t border-white/10 bg-[#F3F2ED]/90 backdrop-blur-md"
+              className="fixed inset-x-0 bottom-0 z-30 border-t border-gray-200 bg-[#F3F2ED]/90 backdrop-blur-md"
               style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
             >
               <div className="mx-auto flex max-w-4xl items-center gap-3 px-5 py-3 sm:gap-5 sm:px-8">
@@ -778,7 +778,7 @@ const LeadershipAssessment: React.FC = () => {
                   ← <span className="hidden sm:inline">ก่อนหน้า</span>
                 </button>
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-center justify-between gap-2 text-[11px] text-gray-400 sm:text-xs">
+                  <div className="flex items-center justify-between gap-2 text-[11px] text-gray-600 sm:text-xs">
                     <span className="truncate">
                       หมวด {dimensionIndex + 1}/{totalDimensions} · {currentDimension.name}
                     </span>
@@ -919,7 +919,7 @@ const SubItemSection: React.FC<SubItemSectionProps> = ({
   const answered = subItem.questions.filter((q) => getQuestionRating(dimensionId, q.id) != null).length;
   return (
     <section className="space-y-4">
-      <div className="flex items-end gap-3 border-b border-white/10 pb-3">
+      <div className="flex items-end gap-3 border-b border-gray-200 pb-3">
         <span className="pb-1 text-xs font-semibold tracking-[0.2em]" style={{ ...HEADLINE_FONT, color: LEADERSHIP_YELLOW }}>
           {label}
         </span>
@@ -994,7 +994,7 @@ const QuestionBlock: React.FC<QuestionBlockProps> = ({
     <div
       ref={blockRef}
       className={`rounded-2xl border p-5 backdrop-blur-md transition-colors sm:p-6 ${
-        selected ? 'border-[#FFCC00]/35 bg-white/80' : 'border-white/10 bg-white/60'
+        selected ? 'border-[#FFCC00] bg-yellow-50' : 'border-gray-200 bg-white'
       }`}
     >
       <div className="flex gap-4">
@@ -1008,7 +1008,7 @@ const QuestionBlock: React.FC<QuestionBlockProps> = ({
         </span>
         <div className="min-w-0">
           <h4 className="text-base font-bold text-gray-900 sm:text-lg">{question.title}</h4>
-          <p className="mt-1 text-sm leading-relaxed text-gray-400">{question.description}</p>
+          <p className="mt-1 text-sm leading-relaxed text-gray-600">{question.description}</p>
         </div>
       </div>
       <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4">

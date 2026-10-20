@@ -73,7 +73,7 @@ function parseStoredAnswers(raw: Record<string, unknown> | undefined): Record<nu
 const INTRO_BODY = (
   <>
     {GF_INTRO_DESCRIPTION.map((paragraph) => (
-      <p key={paragraph.slice(0, 24)} className="mb-4 text-gray-600 leading-relaxed text-sm">
+      <p key={paragraph.slice(0, 24)} className="mb-4 text-gray-800 leading-relaxed text-sm">
         {paragraph}
       </p>
     ))}
@@ -409,7 +409,7 @@ const GrowthFixedMindsetAssessment: React.FC = () => {
                   🌱
                 </span>
               </div>
-              <p className="text-[10px] uppercase tracking-widest text-yellow-700/80 mb-2 font-semibold">{SUBTITLE}</p>
+              <p className="text-[10px] uppercase tracking-widest text-yellow-800 mb-2 font-semibold">{SUBTITLE}</p>
               <h2 className="text-xl md:text-2xl font-black text-gray-900 tracking-tight mb-4">{ASSESSMENT_TITLE}</h2>
               <div className="text-sm md:text-base mb-8 text-left">{INTRO_BODY}</div>
               <button
@@ -709,7 +709,7 @@ const GrowthFixedMindsetAssessment: React.FC = () => {
                 </a>
               </div>
 
-              <p className="text-center text-xs text-gray-400 pb-2">
+              <p className="text-center text-xs text-gray-600 pb-2">
                 MindDoJo · Growth vs Fixed Mindset Assessment
               </p>
             </div>

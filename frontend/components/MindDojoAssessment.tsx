@@ -908,19 +908,18 @@ const MindDojoAssessment: React.FC = () => {
     return (
       <div className="md-page flex flex-col">
         <header className="px-4 py-3 border-b border-gray-200 bg-white/90 backdrop-blur-xl flex items-center justify-between max-w-md mx-auto w-full">
-          <Link to="/" className="text-gray-400 hover:text-gray-900 text-sm">
+          <Link to="/" className="text-gray-600 hover:text-gray-900 text-sm">
             ← กลับหน้าหลัก
           </Link>
-          <span className="text-yellow-400 text-sm font-semibold">MindDoJo AI Assessment</span>
+          <span className="text-yellow-800 text-sm font-semibold">MindDoJo AI Assessment</span>
         </header>
         <div className="flex-1 flex items-center justify-center p-6">
           <div className="w-full max-w-md md-card rounded-[28px] p-8 shadow-md">
             <div className="flex flex-col items-center mb-6">
               <BrandLogo className="mb-4 text-[30px]" tone="dark" />
               <h1 className="text-xl font-semibold text-center">MindDoJo AI Assessment</h1>
-              <p className="text-gray-500 text-sm mt-2 text-center">
+              <p className="text-gray-700 text-sm mt-2 text-center">
                 สมัครสมาชิกด้วย username / รหัสผ่าน
-
               </p>
             </div>
             <div className="flex rounded-xl bg-gray-100 p-1 mb-4">
@@ -931,7 +930,7 @@ const MindDojoAssessment: React.FC = () => {
                   setLoginMsg(null);
                 }}
                 className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-colors ${
-                  authMode === 'login' ? 'bg-yellow-400 text-black' : 'text-gray-400 hover:text-gray-900'
+                  authMode === 'login' ? 'bg-yellow-400 text-black' : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
                 เข้าสู่ระบบ
@@ -943,7 +942,7 @@ const MindDojoAssessment: React.FC = () => {
                   setLoginMsg(null);
                 }}
                 className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-colors ${
-                  authMode === 'register' ? 'bg-yellow-400 text-black' : 'text-gray-400 hover:text-gray-900'
+                  authMode === 'register' ? 'bg-yellow-400 text-black' : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
                 สมัครสมาชิก
@@ -951,7 +950,7 @@ const MindDojoAssessment: React.FC = () => {
             </div>
             <form onSubmit={(e) => void handleAuthSubmit(e)} className="space-y-4">
               <div>
-                <label className="block text-sm text-gray-400 mb-1">Username</label>
+                <label className="block text-sm font-medium text-gray-800 mb-1">Username</label>
                 <input
                   value={loginUser}
                   onChange={(e) => setLoginUser(e.target.value.replace(/[^a-zA-Z0-9_]/g, '').toLowerCase())}
@@ -964,7 +963,7 @@ const MindDojoAssessment: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm text-gray-400 mb-1">รหัสผ่าน</label>
+                <label className="block text-sm font-medium text-gray-800 mb-1">รหัสผ่าน</label>
                 <input
                   type="password"
                   value={loginPass}
@@ -977,7 +976,7 @@ const MindDojoAssessment: React.FC = () => {
               </div>
               {authMode === 'register' && (
                 <div>
-                  <label className="block text-sm text-gray-400 mb-1">ยืนยันรหัสผ่าน</label>
+                  <label className="block text-sm font-medium text-gray-800 mb-1">ยืนยันรหัสผ่าน</label>
                   <input
                     type="password"
                     value={regPass2}
@@ -992,17 +991,17 @@ const MindDojoAssessment: React.FC = () => {
               {loginMsg && (
                 <div
                   className={`text-sm p-3 rounded-xl ${
-                    loginMsg.type === 'ok' ? 'bg-green-500/15 text-green-400' : 'bg-red-500/15 text-red-400'
+                    loginMsg.type === 'ok' ? 'bg-green-500/15 text-green-700' : 'bg-red-500/15 text-red-400'
                   }`}
                 >
                   {loginMsg.text}
                 </div>
               )}
               {!isSupabaseConfigured && (
-                <p className="text-xs text-amber-400/90 bg-amber-500/10 rounded-xl p-3">
+                <p className="text-xs text-amber-900 bg-amber-50 rounded-xl p-3 border border-amber-200">
                   ยังไม่ได้ตั้ง VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY — สมัครและล็อกอิน Assessment ใช้ไม่ได้จนกว่าจะตั้งค่า รัน SQL และ deploy Edge Function{' '}
-                  <code className="text-amber-200/90">minddojo-assessment-auth</code> (แนะนำปิด JWT verify สำหรับฟังก์ชันนี้หรือใช้{' '}
-                  <code className="text-amber-200/90">--no-verify-jwt</code> ตอน deploy)
+                  <code className="text-amber-800">minddojo-assessment-auth</code> (แนะนำปิด JWT verify สำหรับฟังก์ชันนี้หรือใช้{' '}
+                  <code className="text-amber-800">--no-verify-jwt</code> ตอน deploy)
                 </p>
               )}
               <button
@@ -1039,12 +1038,12 @@ const MindDojoAssessment: React.FC = () => {
       <header className="shrink-0 px-3 sm:px-4 lg:px-8 xl:px-10 py-2 sm:py-2.5 border-b border-gray-200 bg-white/90 backdrop-blur-xl flex items-center gap-2 w-full max-w-full sm:max-w-2xl md:max-w-3xl lg:max-w-6xl xl:max-w-7xl 2xl:max-w-[min(90rem,calc(100vw-3rem))] mx-auto">
         <Link
           to="/"
-          className="text-gray-400 hover:text-gray-900 text-xs sm:text-sm shrink-0 touch-manipulation py-1"
+          className="text-gray-600 hover:text-gray-900 text-xs sm:text-sm shrink-0 touch-manipulation py-1"
         >
           ← กลับ
         </Link>
         <div className="flex-1 min-w-0 text-center px-1">
-          <h1 className="text-sm sm:text-base lg:text-lg font-bold text-yellow-400 truncate leading-tight">
+          <h1 className="text-sm sm:text-base lg:text-lg font-bold text-yellow-800 truncate leading-tight">
             MindDoJo AI Assessment
           </h1>
           <p className="text-[10px] sm:text-xs lg:text-sm text-gray-500 truncate leading-tight mt-0.5 hidden sm:block">
@@ -1088,7 +1087,7 @@ const MindDojoAssessment: React.FC = () => {
                           <img
                             src={MINDDOJO_CHATBOT_AVATAR_URL}
                             alt="MindDoJo"
-                            className="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover shrink-0 ring-2 ring-white/15 shadow-md shadow-black/20 mt-0.5"
+                            className="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover shrink-0 ring-2 ring-gray-200 shadow-md shadow-black/20 mt-0.5"
                             loading="lazy"
                             decoding="async"
                             referrerPolicy="no-referrer"
@@ -1106,7 +1105,7 @@ const MindDojoAssessment: React.FC = () => {
                         </div>
                       ) : (
                         <div key={m.id} className="flex w-full justify-end">
-                          <div className="max-w-[min(92%,36rem)] rounded-2xl px-3 py-2.5 sm:px-4 sm:py-3 lg:px-5 lg:py-3.5 text-sm lg:text-base leading-relaxed bg-yellow-400/15 text-left">
+                          <div className="max-w-[min(92%,36rem)] rounded-2xl px-3 py-2.5 sm:px-4 sm:py-3 lg:px-5 lg:py-3.5 text-sm lg:text-base leading-relaxed bg-yellow-50 text-left">
                             <span className="text-[10px] lg:text-xs font-semibold text-gray-500 block mb-1">คุณ</span>
                             <div className="whitespace-pre-wrap break-words">{m.content}</div>
                           </div>
@@ -1118,7 +1117,7 @@ const MindDojoAssessment: React.FC = () => {
 
                 {phase === 'scenario_choice' && (
                   <div className="space-y-2 pt-1">
-                    <p className="text-xs sm:text-sm text-gray-300">เลือกวิธีเริ่มสถานการณ์</p>
+                    <p className="text-xs sm:text-sm text-gray-700">เลือกวิธีเริ่มสถานการณ์</p>
                     <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                       <button
                         type="button"
@@ -1162,7 +1161,7 @@ const MindDojoAssessment: React.FC = () => {
                       <div
                         role="status"
                         aria-live="polite"
-                        className="mt-3 flex items-center gap-3 rounded-xl border border-yellow-400/20 bg-yellow-400/10 px-4 py-3 text-xs sm:text-sm text-yellow-100"
+                        className="mt-3 flex items-center gap-3 rounded-xl border border-yellow-300 bg-yellow-50 px-4 py-3 text-xs sm:text-sm text-yellow-900"
                       >
                         <span className="relative flex h-3 w-3 shrink-0">
                           <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-yellow-400 opacity-60" />
@@ -1201,17 +1200,17 @@ const MindDojoAssessment: React.FC = () => {
                             },
                           ]);
                         }}
-                        className="text-left rounded-xl border border-gray-200 bg-white hover:border-yellow-400/60 hover:bg-yellow-50/50 p-3 sm:p-4 transition-colors disabled:opacity-50 touch-manipulation"
+                        className="text-left rounded-xl border border-gray-200 bg-white hover:border-yellow-400 hover:bg-yellow-50/50 p-3 sm:p-4 transition-colors disabled:opacity-50 touch-manipulation"
                       >
                         <div className="flex items-start justify-between gap-2">
-                          <span className="text-yellow-400 font-bold text-xs sm:text-sm">
+                          <span className="text-yellow-800 font-bold text-xs sm:text-sm">
                             {i + 1}. {opt.shortTitle}
                           </span>
-                          <span className="shrink-0 rounded-full bg-white/10 px-2 py-0.5 text-[10px] uppercase tracking-wide text-gray-400">
+                          <span className="shrink-0 rounded-full bg-gray-200 px-2 py-0.5 text-[10px] uppercase tracking-wide text-gray-600">
                             {opt.context}
                           </span>
                         </div>
-                        <p className="text-gray-400 text-[11px] sm:text-xs mt-1.5 line-clamp-4">
+                        <p className="text-gray-600 text-[11px] sm:text-xs mt-1.5 line-clamp-4">
                           {opt.situationSummary}
                         </p>
                       </button>
@@ -1222,14 +1221,14 @@ const MindDojoAssessment: React.FC = () => {
                 {phase === 'confirm' && scenario && (
                   <div className="rounded-xl sm:rounded-2xl md-card border-yellow-100 bg-yellow-50/30 p-4 sm:p-5">
                     <h3 className="font-bold text-gray-900 text-sm sm:text-base mb-2 sm:mb-3">ยืนยันก่อนเริ่ม</h3>
-                    <ul className="text-xs sm:text-sm text-gray-300 space-y-1.5 list-disc list-inside mb-3 sm:mb-4">
+                    <ul className="text-xs sm:text-sm text-gray-700 space-y-1.5 list-disc list-inside mb-3 sm:mb-4">
                       <li>บทบาทคุณ: {scenario.userRole}</li>
                       <li>คู่สนทนา: {scenario.counterpart}</li>
                       <li>บริบท: {scenario.context}</li>
                       <li>{scenario.situationSummary}</li>
                     </ul>
                     {simPersona && (
-                      <div className="mb-3 sm:mb-4 flex items-center gap-3 rounded-xl border border-amber-400/20 bg-amber-400/10 p-3">
+                      <div className="mb-3 sm:mb-4 flex items-center gap-3 rounded-xl border border-amber-400/20 bg-amber-50 p-3">
                         <img
                           src={simPersona.avatarUrl}
                           alt={`${simPersona.mbti} avatar`}
@@ -1239,10 +1238,10 @@ const MindDojoAssessment: React.FC = () => {
                           referrerPolicy="no-referrer"
                         />
                         <div className="min-w-0">
-                          <p className="text-xs sm:text-sm font-bold text-amber-100">
+                          <p className="text-xs sm:text-sm font-bold text-amber-900">
                             {simPersona.name} • {simPersona.position} • {simPersona.mbti}
                           </p>
-                          <p className="text-[11px] sm:text-xs text-amber-100/75">
+                          <p className="text-[11px] sm:text-xs text-amber-800">
                             {simPersona.title} — {simPersona.style}
                           </p>
                         </div>
@@ -1262,23 +1261,23 @@ const MindDojoAssessment: React.FC = () => {
 
                 {showSimChat && (
                   <>
-                    <p className="text-[10px] sm:text-xs lg:text-sm text-amber-400/90 uppercase tracking-wider pt-1 border-t border-gray-200 mt-1">
+                    <p className="text-[10px] sm:text-xs lg:text-sm text-amber-800 font-semibold uppercase tracking-wider pt-1 border-t border-gray-200 mt-1">
                       จำลองสถานการณ์
                     </p>
                     {scenario && !showScenarioBriefing && (
                       <button
                         type="button"
                         onClick={() => setShowScenarioBriefing(true)}
-                        className="self-start rounded-xl border border-amber-400/25 bg-amber-400/10 px-3 py-2 text-xs sm:text-sm font-semibold text-amber-100 hover:bg-amber-400/15 touch-manipulation"
+                        className="self-start rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-xs sm:text-sm font-semibold text-amber-900 hover:bg-amber-100 touch-manipulation"
                       >
                         แสดงบริบทสถานการณ์
                       </button>
                     )}
                     {scenario && showScenarioBriefing && (
-                      <div className="rounded-xl sm:rounded-2xl border border-amber-400/25 bg-zinc-950/90 p-4 sm:p-5 shadow-xl shadow-black/25 ring-1 ring-amber-400/10">
+                      <div className="rounded-xl sm:rounded-2xl border border-amber-300 bg-white p-4 sm:p-5 shadow-xl shadow-black/25 ring-1 ring-amber-400/10">
                         <div className="flex items-start justify-between gap-3 mb-3">
                           <div>
-                            <p className="text-[10px] sm:text-xs uppercase tracking-wider text-amber-300 font-bold">
+                            <p className="text-[10px] sm:text-xs uppercase tracking-wider text-amber-800 font-bold">
                               บริบทสถานการณ์
                             </p>
                             <h3 className="text-sm sm:text-base font-bold text-gray-900 mt-1">
@@ -1294,7 +1293,7 @@ const MindDojoAssessment: React.FC = () => {
                           </button>
                         </div>
                         {simPersona && (
-                          <div className="mb-3 flex items-center gap-3 rounded-xl bg-amber-400/10 p-3">
+                          <div className="mb-3 flex items-center gap-3 rounded-xl bg-amber-50 p-3">
                             <img
                               src={simPersona.avatarUrl}
                               alt={`${simPersona.mbti} avatar`}
@@ -1304,16 +1303,16 @@ const MindDojoAssessment: React.FC = () => {
                               referrerPolicy="no-referrer"
                             />
                             <div className="min-w-0">
-                              <p className="text-xs sm:text-sm font-bold text-amber-100">
+                              <p className="text-xs sm:text-sm font-bold text-amber-900">
                                 {simPersona.name} • {simPersona.position} • {simPersona.mbti}
                               </p>
-                              <p className="text-[11px] sm:text-xs text-amber-100/75">
+                              <p className="text-[11px] sm:text-xs text-amber-800">
                                 {simPersona.title} — {simPersona.style}
                               </p>
                             </div>
                           </div>
                         )}
-                        <div className="grid gap-2 text-xs sm:text-sm text-gray-300">
+                        <div className="grid gap-2 text-xs sm:text-sm text-gray-700">
                           <p>
                             <span className="text-gray-500">บทบาทคุณ:</span> {scenario.userRole}
                           </p>
@@ -1333,9 +1332,9 @@ const MindDojoAssessment: React.FC = () => {
                       m.role === 'event' ? (
                         <div
                           key={m.id}
-                          className="mx-auto max-w-[min(100%,40rem)] rounded-2xl border border-amber-400/30 bg-amber-400/10 px-4 py-3 text-xs sm:text-sm text-amber-50 shadow-lg shadow-black/20"
+                          className="mx-auto max-w-[min(100%,40rem)] rounded-2xl border border-amber-400/30 bg-amber-50 px-4 py-3 text-xs sm:text-sm text-amber-900 shadow-lg shadow-black/20"
                         >
-                          <div className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-amber-300 mb-1">
+                          <div className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-amber-800 mb-1">
                             {simPersona ? `ท่าทางของ ${simPersona.name}` : 'ท่าทางของคู่สนทนา'}
                           </div>
                           <div className="leading-relaxed">{m.content}</div>
@@ -1366,7 +1365,7 @@ const MindDojoAssessment: React.FC = () => {
                         </div>
                       ) : (
                         <div key={m.id} className="flex w-full justify-end">
-                          <div className="max-w-[min(92%,36rem)] rounded-2xl px-3 py-2.5 sm:px-4 sm:py-3 lg:px-5 lg:py-3.5 text-sm lg:text-base leading-relaxed bg-amber-400/10 text-left">
+                          <div className="max-w-[min(92%,36rem)] rounded-2xl px-3 py-2.5 sm:px-4 sm:py-3 lg:px-5 lg:py-3.5 text-sm lg:text-base leading-relaxed bg-amber-50 text-left">
                             <span className="text-[10px] lg:text-xs font-semibold text-gray-500 block mb-1">คุณ</span>
                             <div className="whitespace-pre-wrap break-words">{m.content}</div>
                           </div>
@@ -1374,11 +1373,11 @@ const MindDojoAssessment: React.FC = () => {
                       ),
                     )}
                     {phase === 'awaiting_result' && (
-                      <div className="rounded-xl sm:rounded-2xl border border-yellow-400/25 bg-yellow-400/10 p-4 sm:p-5">
-                        <p className="text-sm sm:text-base font-semibold text-yellow-100 mb-2">
+                      <div className="rounded-xl sm:rounded-2xl border border-yellow-300 bg-yellow-50 p-4 sm:p-5">
+                        <p className="text-sm sm:text-base font-semibold text-yellow-900 mb-2">
                           การจำลองเสร็จแล้ว
                         </p>
-                        <p className="text-xs sm:text-sm text-yellow-100/80 mb-3 sm:mb-4">
+                        <p className="text-xs sm:text-sm text-yellow-900 mb-3 sm:mb-4">
                           กดปุ่มด้านล่างเพื่อสร้าง Dashboard ผลการประเมิน 6 ด้านการสื่อสาร
                         </p>
                         <button

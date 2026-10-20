@@ -35,7 +35,7 @@ const KeyPrinciplesLoginView: React.FC<KeyPrinciplesLoginViewProps> = ({
       <div className="lg:hidden relative -mx-4 sm:-mx-6 mb-0 overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_100%,rgba(250,204,21,0.18),transparent_65%)]" />
         <div className="relative pt-6 pb-2 px-4 text-center">
-          <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-50 border border-yellow-200 text-[10px] uppercase tracking-widest text-yellow-800 font-semibold">
+          <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-100 border border-yellow-400 text-[10px] uppercase tracking-widest text-yellow-900 font-semibold">
             MindDoJo Assessment
           </span>
           <h1 className="mt-4 text-2xl font-black text-gray-900 tracking-tight">Key Principles</h1>
@@ -53,7 +53,7 @@ const KeyPrinciplesLoginView: React.FC<KeyPrinciplesLoginViewProps> = ({
         <div className="hidden lg:flex relative flex-col justify-end min-h-[min(720px,85vh)] rounded-3xl overflow-hidden border border-yellow-200 bg-gradient-to-br from-yellow-50 via-white to-[#F3F2ED] shadow-md">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_80%,rgba(250,204,21,0.2),transparent_55%)]" />
           <div className="absolute top-8 left-8 right-8 z-10 text-left">
-            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-yellow-50 border border-yellow-200 text-[10px] uppercase tracking-[0.18em] text-yellow-800 font-semibold">
+            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-yellow-100 border border-yellow-400 text-[10px] uppercase tracking-[0.18em] text-yellow-900 font-semibold">
               <span className="w-1.5 h-1.5 rounded-full bg-[#FFCC00] animate-pulse" aria-hidden />
               แบบประเมินออนไลน์
             </span>
@@ -69,7 +69,7 @@ const KeyPrinciplesLoginView: React.FC<KeyPrinciplesLoginViewProps> = ({
               {PILLARS.map((p) => (
                 <span
                   key={p.label}
-                  className="text-[10px] font-bold px-2 py-1 rounded-md bg-yellow-50 border border-yellow-200 text-yellow-800"
+                  className="text-[10px] font-bold px-2 py-1 rounded-md bg-yellow-100 border border-yellow-300 text-yellow-900"
                   title={p.label}
                 >
                   {p.short}

@@ -8,8 +8,8 @@
     --md-bg: #f3f2ed;
     --md-surface: #ffffff;
     --md-ink: #0a0a0a;
-    --md-muted: #4b5563;
-    --md-border: #d6d4cc;
+    --md-muted: #374151;
+    --md-border: #c4c1b6;
     --md-yellow: #ffcc00;
     --md-yellow-hover: #f0b800;
   }
@@ -111,10 +111,10 @@
   .md-card {
     @apply rounded-2xl border bg-white;
     border-color: var(--md-border);
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 10px 28px rgba(0, 0, 0, 0.08);
   }
   .md-input {
-    @apply w-full rounded-xl border bg-white px-4 py-3 text-base text-gray-900 outline-none transition placeholder:text-gray-400 focus:ring-2;
+    @apply w-full rounded-xl border bg-white px-4 py-3 text-base text-gray-900 outline-none transition placeholder:text-gray-500 focus:ring-2;
     border-color: var(--md-border);
   }
   .md-input:focus {

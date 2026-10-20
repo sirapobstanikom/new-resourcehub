@@ -74,7 +74,7 @@ const INTRO_BODY = (
       แบบประเมินนี้มีวัตถุประสงค์เพื่อให้ท่านสำรวจแนวโน้มวิธีคิดและพฤติกรรมของตนเองเมื่อต้องเผชิญกับสถานการณ์ในการทำงาน ทั้งในด้านการรับมือกับปัญหา
       การสื่อสาร การตัดสินใจ และการรับผิดชอบต่อผลลัพธ์
     </p>
-    <p className="mb-4 text-gray-400 text-sm leading-relaxed">
+    <p className="mb-4 text-gray-600 text-sm leading-relaxed">
       โปรดอ่านข้อความแต่ละข้อ และให้คะแนนตามความเป็นจริงมากที่สุด โดยไม่มีคำตอบที่ถูกหรือผิด
     </p>
     <div className="rounded-xl border border-yellow-200 overflow-hidden text-left text-xs mb-4">
@@ -393,7 +393,7 @@ const ReactiveProactiveMindsetAssessment: React.FC = () => {
             <h1 className="text-2xl md:text-3xl font-black tracking-tight mb-2 text-center leading-snug">
               Reactive vs Proactive
             </h1>
-            <p className="text-gray-400 text-sm text-center mb-6 max-w-sm mx-auto leading-relaxed">
+            <p className="text-gray-600 text-sm text-center mb-6 max-w-sm mx-auto leading-relaxed">
               สำรวจแนวโน้มวิธีคิดและพฤติกรรมของตนเองเมื่อเผชิญสถานการณ์ในการทำงาน ทั้งการรับมือกับปัญหา การสื่อสาร การตัดสินใจ
               และการรับผิดชอบต่อผลลัพธ์ 
             </p>
@@ -481,7 +481,7 @@ const ReactiveProactiveMindsetAssessment: React.FC = () => {
                     id={`rp-question-${num}`}
                     className="md-card p-5 md:p-6 space-y-4 scroll-mt-28"
                   >
-                    <p className="text-xs font-bold text-yellow-400/90 uppercase tracking-widest">
+                    <p className="text-xs font-bold text-yellow-800 uppercase tracking-widest">
                       ข้อที่ {globalIdx + 1} / {totalQuestions}
                     </p>
                     <p className="text-gray-900 text-sm md:text-base leading-relaxed font-medium">{q.text}</p>
@@ -505,7 +505,7 @@ const ReactiveProactiveMindsetAssessment: React.FC = () => {
                         ))}
                       </div>
                       {answers[num] != null && (
-                        <p className="text-xs text-gray-400 mt-1">{RP_SCALE_LABELS[answers[num] as 1 | 2 | 3 | 4 | 5]}</p>
+                        <p className="text-xs text-gray-600 mt-1">{RP_SCALE_LABELS[answers[num] as 1 | 2 | 3 | 4 | 5]}</p>
                       )}
                     </div>
                   </div>
@@ -540,14 +540,14 @@ const ReactiveProactiveMindsetAssessment: React.FC = () => {
               <div className="md-card p-6 md:p-8 space-y-6 text-center">
                 <p className="text-[10px] uppercase tracking-widest text-emerald-400/90">Reactive vs Proactive</p>
                 <h1 className="text-2xl md:text-3xl font-black text-gray-900">ผลการประเมิน</h1>
-                <p className="text-gray-400 text-sm">{displayUser.name}</p>
+                <p className="text-gray-600 text-sm">{displayUser.name}</p>
                 <p className="text-xs text-gray-500 -mt-4">
                   {displayUser.company} · {displayUser.email}
                 </p>
 
                 <div className="rounded-2xl bg-emerald-50 border border-emerald-200 p-6 relative overflow-hidden">
                   <p className="text-sm text-gray-600 mb-1 relative">คะแนนรวม</p>
-                  <p className="text-4xl md:text-5xl font-black text-yellow-400 tabular-nums relative">{totalScore}</p>
+                  <p className="text-4xl md:text-5xl font-black text-yellow-800 tabular-nums relative">{totalScore}</p>
                   <p className="text-xs text-gray-500 mt-2 relative">ช่วงคะแนน 20–100 คะแนน</p>
                 </div>
 
@@ -580,7 +580,7 @@ const ReactiveProactiveMindsetAssessment: React.FC = () => {
                   const pct = getRpDimensionPercent(dim, displayAnswers);
                   return (
                     <div key={dim.id}>
-                      <div className="flex justify-between gap-2 text-xs text-gray-400 mb-1">
+                      <div className="flex justify-between gap-2 text-xs text-gray-600 mb-1">
                         <div>
                           <span className="text-gray-900 font-medium block">{dim.titleEn}</span>
                           <span className="text-[11px] text-gray-500">{dim.titleTh}</span>

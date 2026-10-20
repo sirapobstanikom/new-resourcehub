@@ -96,7 +96,7 @@ const MindDojoResultPage: React.FC = () => {
     return (
       <div className="md-page items-center justify-center px-6">
         <p className="text-gray-600 text-center mb-6 max-w-md">
-          ยังไม่มีผลการประเมิน หรือหมดอายุการแสดงในหน้านี้ — กรุณาทำแบบประเมินให้จบแล้วกดปุ่ม <strong className="text-yellow-400">ดูผลลัพธ์</strong>
+          ยังไม่มีผลการประเมิน หรือหมดอายุการแสดงในหน้านี้ — กรุณาทำแบบประเมินให้จบแล้วกดปุ่ม <strong className="text-yellow-800">ดูผลลัพธ์</strong>
         </p>
         <Link
           to="/assessment/minddojo"
@@ -150,10 +150,10 @@ const MindDojoResultPage: React.FC = () => {
         <section className={`${revealClass} md-card p-6 lg:p-8 flex flex-col sm:flex-row sm:items-center gap-6 border-yellow-200`}>
           <div className="flex flex-col items-center sm:items-start">
             <div
-              className="relative w-28 h-28 lg:w-32 lg:h-32 rounded-full border-4 border-yellow-400/40 flex items-center justify-center bg-yellow-400/10"
+              className="relative w-28 h-28 lg:w-32 lg:h-32 rounded-full border-4 border-yellow-400 flex items-center justify-center bg-yellow-50"
               aria-hidden
             >
-              <span className="text-3xl lg:text-4xl font-black text-yellow-400">{report.overall}</span>
+              <span className="text-3xl lg:text-4xl font-black text-yellow-800">{report.overall}</span>
             </div>
             <p className="text-xs text-gray-500 mt-2 text-center sm:text-left">คะแนนรวม 0–100</p>
           </div>
@@ -171,7 +171,7 @@ const MindDojoResultPage: React.FC = () => {
 
         {visibleStep >= 2 && (
         <section>
-          <h2 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">คะแนนแยกตามด้าน</h2>
+          <h2 className="text-sm font-bold text-gray-600 uppercase tracking-wider mb-4">คะแนนแยกตามด้าน</h2>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-5">
             {MINDDOJO_DIMENSIONS.map((dim) => {
               const d = report.dimensions[dim.key];
@@ -185,10 +185,10 @@ const MindDojoResultPage: React.FC = () => {
                   <div className="flex justify-between items-start gap-3 mb-2">
                     <div className="min-w-0">
                       <p className="font-bold text-gray-900 text-sm lg:text-base">{dim.labelTh}</p>
-                      <p className="text-xs text-yellow-400/90 font-medium">{dim.labelEn}</p>
+                      <p className="text-xs text-yellow-800 font-medium">{dim.labelEn}</p>
                       <p className="text-[11px] lg:text-xs text-gray-500 mt-1 leading-snug">{dim.descriptionTh}</p>
                     </div>
-                    <span className="shrink-0 text-xl font-black text-yellow-400 tabular-nums">{score}</span>
+                    <span className="shrink-0 text-xl font-black text-yellow-800 tabular-nums">{score}</span>
                   </div>
                   <div className="h-2 rounded-full bg-gray-200 overflow-hidden mb-3">
                     <div
@@ -209,7 +209,7 @@ const MindDojoResultPage: React.FC = () => {
         {visibleStep >= 3 && (
         <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="rounded-xl border border-green-500/20 bg-green-500/5 p-4 lg:p-5">
-            <h3 className="text-sm font-bold text-green-400 mb-3">จุดแข็ง</h3>
+            <h3 className="text-sm font-bold text-green-700 mb-3">จุดแข็ง</h3>
             <ul className="text-sm text-gray-700 space-y-2 list-disc list-inside">
               {(report.strengths?.length ? report.strengths : ['—']).map((s, i) => (
                 <li key={i}>{s}</li>
@@ -235,13 +235,13 @@ const MindDojoResultPage: React.FC = () => {
             <img
               src={MINDDOJO_CHATBOT_AVATAR_URL}
               alt="MindDoJo AI"
-              className="h-10 w-10 rounded-full object-cover ring-2 ring-yellow-400/30 shadow-md shadow-black/30"
+              className="h-10 w-10 rounded-full object-cover ring-2 ring-yellow-300 shadow-md shadow-black/30"
               loading="lazy"
               decoding="async"
               referrerPolicy="no-referrer"
             />
             <div>
-              <p className="text-[10px] uppercase tracking-wider text-yellow-400/80 font-bold">MindDoJo AI</p>
+              <p className="text-[10px] uppercase tracking-wider text-yellow-800 font-bold">MindDoJo AI</p>
               <h2 className="text-sm font-bold text-gray-700 uppercase tracking-wider">Feedback เชิงลึก</h2>
             </div>
           </div>
