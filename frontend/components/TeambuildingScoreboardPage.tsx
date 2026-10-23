@@ -91,11 +91,13 @@ const ScoreRow: React.FC<RowProps> = ({ team, index, maxScore, rowVh, cols, perC
       }}
     >
       <div
-        className={`tb-card relative flex h-full items-center gap-[1.4vw] overflow-hidden rounded-[10px] border px-[1.4vw] ${
-          isLeader ? 'tb-leader border-[#E60012]' : 'border-[#D9D9D9]'
+        className={`tb-card relative flex h-full items-center gap-[1.4vw] overflow-hidden px-[1.4vw] ${
+          isLeader ? 'tb-leader' : ''
         } ${climbed ? 'tb-climb' : ''}`}
         style={{ ['--team' as string]: team.color }}
       >
+        <span className="tb-corner tb-corner-tr" aria-hidden />
+        <span className="tb-corner tb-corner-bl" aria-hidden />
         <div
           className="tb-fill pointer-events-none absolute inset-y-0 left-0"
           style={{ width: `${pct}%` }}
@@ -103,43 +105,48 @@ const ScoreRow: React.FC<RowProps> = ({ team, index, maxScore, rowVh, cols, perC
         />
 
         <div
-          className="tb-badge relative z-10 flex shrink-0 items-center justify-center rounded-[8px] font-black"
+          className="tb-badge relative z-10 flex shrink-0 items-center justify-center font-black"
           style={{ width: badgeSize, height: badgeSize, fontSize: `calc(${badgeSize} * 0.42)` }}
         >
-          {isLeader ? <span className="tb-crown">👑</span> : team.rank}
+          {team.rank}
         </div>
 
         <div className="relative z-10 min-w-0 flex-1">
           <p
-            className="truncate font-black leading-tight text-[#1A1A1A]"
+            className="truncate font-black leading-tight text-white"
             style={{ fontSize: nameSize }}
           >
             {team.name}
           </p>
           {podium && (
-            <p className="tb-mono mt-[0.2vh] text-[min(1.1vw,1.6vh)] font-bold tracking-[0.22em] text-[#E60012]">
-              {team.rank === 1 ? 'LEADER' : team.rank === 2 ? '2ND PLACE' : '3RD PLACE'}
+            <p className="tb-mono mt-[0.2vh] text-[min(1.1vw,1.6vh)] font-bold tracking-[0.28em] text-[#ff4d5a]">
+              {team.rank === 1 ? 'P1  LEADER' : team.rank === 2 ? 'P2  PLACE' : 'P3  PLACE'}
             </p>
           )}
         </div>
 
-        <div className="relative z-10 flex shrink-0 items-center gap-[0.8vw]">
+        <div className="relative z-10 flex shrink-0 items-end gap-[0.8vw]">
           {delta && (
             <span
               key={delta.key}
-              className={`tb-delta tb-mono rounded-[10px] px-[0.8vw] py-[0.3vh] font-black ${
-                delta.value > 0 ? 'bg-[#E60012] text-white' : 'bg-[#1A1A1A] text-white'
+              className={`tb-delta tb-mono px-[0.8vw] py-[0.3vh] font-black ${
+                delta.value > 0 ? 'bg-[#E60012] text-white' : 'bg-white text-[#111]'
               }`}
-              style={{ fontSize: `calc(${scoreSize} * 0.45)` }}
+              style={{ fontSize: `calc(${scoreSize} * 0.42)` }}
             >
               {delta.value > 0 ? `+${formatScore(delta.value)}` : formatScore(delta.value)}
             </span>
           )}
-          <span
-            className="tb-mono tabular-nums font-black text-[#1A1A1A]"
-            style={{ fontSize: scoreSize }}
-          >
-            {formatScore(Math.round(shown * 10) / 10)}
+          <span className="flex flex-col items-end leading-none">
+            <span
+              className="tb-score tabular-nums font-bold text-white"
+              style={{ fontSize: scoreSize }}
+            >
+              {formatScore(Math.round(shown * 10) / 10)}
+            </span>
+            <span className="tb-mono mt-[0.4vh] text-[min(0.85vw,1.3vh)] font-bold tracking-[0.32em] text-white/55">
+              PTS
+            </span>
           </span>
         </div>
       </div>
@@ -218,35 +225,38 @@ const TeambuildingScoreboardPage: React.FC = () => {
   const rowVh = Math.min(16, 78 / perCol);
 
   return (
-    <div className="tb-stage relative flex h-[100dvh] max-h-[100dvh] flex-col overflow-hidden text-[#1A1A1A]">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-[6px] bg-[#E60012]" aria-hidden />
+    <div className="tb-stage relative flex h-[100dvh] max-h-[100dvh] flex-col overflow-hidden text-white">
+      <div className="tb-glow pointer-events-none absolute inset-0" aria-hidden />
+      <div className="tb-grid pointer-events-none absolute inset-0" aria-hidden />
+      <div className="tb-scan pointer-events-none absolute inset-x-0" aria-hidden />
 
-      <header className="relative z-20 flex shrink-0 items-center justify-between gap-4 border-b border-[#E6E6E6] bg-white px-[2.5vw] pt-[2.4vh] pb-[1.4vh]">
-        <div className="min-w-0">
-          <p className="tb-mono text-[min(1.1vw,1.8vh)] font-bold tracking-[0.38em] text-[#E60012]">
-            HONDA · TEAMBUILDING
-          </p>
-          <h1 className="tb-title truncate text-[min(3.4vw,5.6vh)] font-black leading-none text-[#1A1A1A]">
-            LIVE SCOREBOARD
-          </h1>
+      <header className="relative z-20 flex shrink-0 items-center justify-between gap-4 px-[2.5vw] pt-[2.2vh] pb-[1.6vh]">
+        <div className="flex min-w-0 items-center gap-[1.1vw]">
+          <div className="tb-mark" aria-hidden>H</div>
+          <div className="min-w-0">
+            <p className="tb-mono text-[min(1.05vw,1.7vh)] font-bold tracking-[0.42em] text-[#ff4d5a]">
+              HONDA // TEAMBUILDING
+            </p>
+            <h1 className="tb-title truncate text-[min(3.2vw,5.4vh)] font-black leading-none text-white">
+              LIVE SCOREBOARD
+            </h1>
+          </div>
         </div>
         <div className="flex shrink-0 items-center gap-[0.8vw]">
           <span
-            className={`tb-mono flex items-center gap-2 rounded-[10px] px-[1vw] py-[0.6vh] text-[min(0.95vw,1.6vh)] font-bold tracking-widest ${
-              liveConnected
-                ? 'bg-[#E60012] text-white'
-                : 'border border-[#D9D9D9] bg-[#F5F5F5] text-[#666]'
+            className={`tb-mono flex items-center gap-2 px-[1vw] py-[0.6vh] text-[min(0.95vw,1.6vh)] font-bold tracking-[0.28em] ${
+              liveConnected ? 'tb-live text-white' : 'border border-white/25 text-white/60'
             }`}
           >
-            <span className={`h-2 w-2 rounded-full ${liveConnected ? 'tb-live-dot bg-white' : 'bg-[#999]'}`} />
-            {liveConnected ? 'LIVE' : 'SYNC…'}
+            <span className={`h-2 w-2 rounded-full ${liveConnected ? 'tb-live-dot bg-[#E60012]' : 'bg-white/40'}`} />
+            {liveConnected ? 'LIVE' : 'SYNC'}
           </span>
           <button
             type="button"
             onClick={toggleFullscreen}
-            className="tb-mono rounded-[10px] border border-[#1A1A1A] bg-white px-[1vw] py-[0.6vh] text-[min(0.95vw,1.6vh)] font-bold tracking-widest text-[#1A1A1A] hover:bg-[#1A1A1A] hover:text-white"
+            className="tb-mono border border-white/30 bg-white/5 px-[1vw] py-[0.6vh] text-[min(0.95vw,1.6vh)] font-bold tracking-[0.22em] text-white hover:border-[#E60012] hover:bg-[#E60012]"
           >
-            {isFullscreen ? 'EXIT FULL' : 'FULLSCREEN'}
+            {isFullscreen ? 'EXIT' : 'FULLSCREEN'}
           </button>
         </div>
       </header>
@@ -258,15 +268,15 @@ const TeambuildingScoreboardPage: React.FC = () => {
           </div>
         ) : error ? (
           <div className="flex h-full items-center justify-center">
-            <p className="rounded-2xl border border-red-300 bg-red-50 px-8 py-6 text-[min(2vw,3vh)] text-red-700">
+            <p className="border border-[#E60012]/50 bg-[#E60012]/10 px-8 py-6 text-[min(2vw,3vh)] text-white">
               {error}
             </p>
           </div>
         ) : ranked.length === 0 ? (
           <div className="flex h-full flex-col items-center justify-center text-center">
-            <p className="text-[min(5vw,8vh)]">🎯</p>
+            <p className="tb-mono text-[min(1.2vw,2vh)] tracking-[0.4em] text-[#ff4d5a]">STANDBY</p>
             <p className="mt-[2vh] text-[min(2.6vw,4.5vh)] font-black">รอทีมเข้าสู่สนาม…</p>
-            <p className="mt-[1vh] text-[min(1.4vw,2.4vh)] text-[#666]">เพิ่มทีมได้ที่หน้า Admin → Dashboard Teambuilding</p>
+            <p className="mt-[1vh] text-[min(1.4vw,2.4vh)] text-white/60">เพิ่มทีมได้ที่หน้า Admin → Dashboard Teambuilding</p>
           </div>
         ) : (
           <div className="relative h-full w-full">
@@ -286,43 +296,101 @@ const TeambuildingScoreboardPage: React.FC = () => {
       </main>
 
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@500;700;800;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=Prompt:wght@600;700;800;900&display=swap');
 
         .tb-stage {
-          background: #f4f4f4;
+          background: #070709;
           font-family: "Prompt", "Anuphan", ui-sans-serif, system-ui, sans-serif;
         }
-        .tb-mono { font-family: "Prompt", "Anuphan", ui-sans-serif, system-ui, sans-serif; letter-spacing: 0.08em; }
+        .tb-mono, .tb-score, .tb-mark {
+          font-family: "Chakra Petch", "Prompt", sans-serif;
+        }
         .tb-title { letter-spacing: -0.03em; }
+        .tb-mark {
+          width: min(4.4vw, 7.2vh);
+          height: min(4.4vw, 7.2vh);
+          display: grid;
+          place-items: center;
+          flex-shrink: 0;
+          background: #E60012;
+          color: #fff;
+          font-weight: 700;
+          font-size: min(2vw, 3.2vh);
+          clip-path: polygon(16% 0, 100% 0, 100% 84%, 84% 100%, 0 100%, 0 16%);
+          box-shadow: 0 0 28px rgba(230,0,18,0.45);
+        }
+        .tb-glow {
+          background:
+            radial-gradient(ellipse 50vw 28vh at 8% -4%, rgba(230,0,18,0.38), transparent 70%),
+            radial-gradient(ellipse 40vw 30vh at 100% 110%, rgba(230,0,18,0.16), transparent 70%);
+        }
+        .tb-grid {
+          background-image:
+            linear-gradient(rgba(255,255,255,0.045) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.045) 1px, transparent 1px);
+          background-size: 64px 64px;
+          mask-image: linear-gradient(180deg, #000 0%, transparent 92%);
+        }
+        .tb-scan {
+          height: 22vh;
+          background: linear-gradient(180deg, transparent, rgba(230,0,18,0.07), transparent);
+          animation: tbScan 9s linear infinite;
+        }
+        .tb-live {
+          border: 1px solid rgba(230,0,18,0.85);
+          background: rgba(230,0,18,0.16);
+          box-shadow: 0 0 18px rgba(230,0,18,0.35);
+        }
 
         .tb-row {
           transition: top 0.9s cubic-bezier(0.22, 1, 0.36, 1), left 0.9s cubic-bezier(0.22, 1, 0.36, 1);
           animation: tbRowIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
         }
         .tb-card {
-          background: #fff;
-          box-shadow: inset 0.35vw 0 0 var(--team), 0 8px 22px rgba(0,0,0,0.06);
+          background:
+            linear-gradient(180deg, rgba(32,32,36,0.96), rgba(12,12,14,0.96));
+          border: 1px solid rgba(255,255,255,0.14);
+          box-shadow: inset 0.38vw 0 0 var(--team), 0 16px 40px rgba(0,0,0,0.35);
+          clip-path: polygon(16px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%, 0 16px);
         }
+        .tb-corner {
+          position: absolute;
+          z-index: 2;
+          width: 16px;
+          height: 16px;
+          pointer-events: none;
+        }
+        .tb-corner-tr { top: 8px; right: 8px; border-top: 2px solid rgba(255,255,255,0.7); border-right: 2px solid rgba(255,255,255,0.7); }
+        .tb-corner-bl { bottom: 8px; left: 10px; border-bottom: 2px solid #E60012; border-left: 2px solid #E60012; }
         .tb-fill {
-          background: linear-gradient(90deg, color-mix(in srgb, var(--team) 28%, white), color-mix(in srgb, var(--team) 8%, white));
+          background: linear-gradient(90deg, color-mix(in srgb, var(--team) 42%, transparent), transparent 92%);
           transition: width 0.9s cubic-bezier(0.22, 1, 0.36, 1);
         }
         .tb-badge {
           background: var(--team);
           color: #111;
-          box-shadow: none;
+          clip-path: polygon(14% 0, 100% 0, 100% 86%, 86% 100%, 0 100%, 0 14%);
+          box-shadow: 0 0 18px color-mix(in srgb, var(--team) 55%, transparent);
         }
+        .tb-score { text-shadow: 0 0 18px rgba(255,255,255,0.18); }
         .tb-leader {
-          box-shadow: inset 0.35vw 0 0 #E60012, 0 10px 24px rgba(230,0,18,0.12);
+          border-color: rgba(230,0,18,0.85);
+          box-shadow:
+            inset 0.38vw 0 0 #E60012,
+            0 0 0 1px rgba(230,0,18,0.35),
+            0 0 28px rgba(230,0,18,0.28);
         }
-        .tb-crown { display: inline-block; }
         .tb-climb { animation: tbClimb 1.3s ease-out; }
         .tb-delta { animation: tbPop 1.9s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
         .tb-live-dot { animation: tbPulse 1.4s ease-in-out infinite; }
-        .tb-spinner { animation: tbSpin 0.9s linear infinite; border-color: #e6e6e6; border-top-color: #E60012; }
+        .tb-spinner { animation: tbSpin 0.9s linear infinite; border-color: rgba(255,255,255,0.15); border-top-color: #E60012; }
 
+        @keyframes tbScan {
+          from { top: -24%; }
+          to { top: 110%; }
+        }
         @keyframes tbRowIn {
-          from { opacity: 0; transform: translateY(1vh); }
+          from { opacity: 0; transform: translateY(1.2vh); }
           to { opacity: 1; transform: translateY(0); }
         }
         @keyframes tbClimb {
@@ -338,13 +406,13 @@ const TeambuildingScoreboardPage: React.FC = () => {
           100% { opacity: 0; transform: translateY(-80%); }
         }
         @keyframes tbPulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.35; }
+          0%, 100% { box-shadow: 0 0 0 0 rgba(230,0,18,0.7); }
+          50% { box-shadow: 0 0 0 7px rgba(230,0,18,0); }
         }
         @keyframes tbSpin { to { transform: rotate(360deg); } }
 
         @media (prefers-reduced-motion: reduce) {
-          .tb-row, .tb-fill, .tb-climb, .tb-delta, .tb-live-dot {
+          .tb-row, .tb-fill, .tb-climb, .tb-delta, .tb-live-dot, .tb-scan {
             animation: none !important;
             transition: none !important;
           }
