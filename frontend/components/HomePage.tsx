@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import type { LucideIcon } from 'lucide-react';
 import {
@@ -344,6 +344,41 @@ const HomePage: React.FC = () => {
   const loggedIn = isAuthenticated() || !!user;
   const [query, setQuery] = useState('');
   const [solidNav, setSolidNav] = useState(false);
+  const bgVideoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const video = bgVideoRef.current;
+    if (!video) return;
+
+    const restart = () => {
+      try {
+        video.currentTime = 0;
+      } catch {
+        video.load();
+      }
+      const pending = video.play();
+      if (pending) pending.catch(() => {});
+    };
+
+    const onEnded = () => restart();
+    const onPause = () => {
+      if (document.hidden) return;
+      const duration = video.duration;
+      const nearEnd = Number.isFinite(duration) && duration > 0 && video.currentTime >= duration - 0.4;
+      if (video.ended || nearEnd) restart();
+    };
+
+    video.addEventListener('ended', onEnded);
+    video.addEventListener('pause', onPause);
+    if (video.paused) {
+      const pending = video.play();
+      if (pending) pending.catch(() => {});
+    }
+    return () => {
+      video.removeEventListener('ended', onEnded);
+      video.removeEventListener('pause', onPause);
+    };
+  }, []);
 
   useEffect(() => {
     const onScroll = () => setSolidNav(window.scrollY > Math.min(window.innerHeight * 0.55, 420));
@@ -412,13 +447,14 @@ const HomePage: React.FC = () => {
       <section className="relative flex min-h-[100svh] flex-col items-center justify-center overflow-hidden px-4 pb-20 pt-20 text-center sm:min-h-[100dvh] sm:px-5 sm:pb-16 sm:pt-24">
         <div className="pointer-events-none absolute inset-0" aria-hidden>
           <video
+            ref={bgVideoRef}
             className="h-full w-full scale-105 object-cover object-[center_30%] sm:object-center"
             src={HOME_BG_VIDEO}
             autoPlay
             muted
             loop
             playsInline
-            preload="metadata"
+            preload="auto"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-[#F3F2ED] sm:from-black/50 sm:via-black/30" />
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_55%_at_50%_40%,transparent_5%,rgba(0,0,0,0.35)_100%)] sm:bg-[radial-gradient(ellipse_65%_50%_at_50%_42%,transparent_10%,rgba(0,0,0,0.28)_100%)]" />
