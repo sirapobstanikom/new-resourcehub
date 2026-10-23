@@ -460,7 +460,7 @@ const EvaPublicFormPage: React.FC = () => {
     <div className="md-page" lang={isEnglish ? 'en' : 'th'}>
       <main className="max-w-4xl mx-auto px-6 py-10">
         <div className="rounded-2xl border border-[#D6D4CC] bg-white p-6 md:p-8">
-          <div className="mb-6 rounded-2xl border border-yellow-300 bg-gradient-to-br from-yellow-400/10 via-amber-300/5 to-transparent p-4 md:p-5">
+          <div className="mb-6 rounded-2xl border border-yellow-400 bg-yellow-50 p-4 md:p-5">
             {translatingContent ? (
               <p className="mb-3 text-xs text-yellow-800">{copy.translating}</p>
             ) : null}
@@ -492,7 +492,7 @@ const EvaPublicFormPage: React.FC = () => {
               </p>
             )}
             {activeTemplate.description?.trim() && (
-              <p className="text-gray-700/90 text-base md:text-lg mt-3 leading-relaxed whitespace-pre-line">
+              <p className="text-gray-800 text-base md:text-lg mt-3 leading-relaxed whitespace-pre-line">
                 {activeTemplate.description}
               </p>
             )}
@@ -507,7 +507,7 @@ const EvaPublicFormPage: React.FC = () => {
                   return (
                     <div
                       key={`${activeTemplate.id}-${prompt.id}`}
-                      className="rounded-xl border border-amber-300/25 bg-amber-500/[0.07] px-4 py-3 md:px-5 md:py-4"
+                      className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 md:px-5 md:py-4"
                     >
                       <div className={evaDescriptionBlockClassName(prompt)}>
                         {visibleLines.map((line, lineIdx) => (
@@ -542,7 +542,7 @@ const EvaPublicFormPage: React.FC = () => {
                     }}
                   >
                     {titleVisible && (
-                      <p className="text-base md:text-lg font-medium text-gray-900 leading-relaxed">
+                      <p className="text-base md:text-lg font-semibold text-gray-950 leading-relaxed">
                         {prefix}
                         {prompt.title}
                       </p>
@@ -552,7 +552,7 @@ const EvaPublicFormPage: React.FC = () => {
                     {(prompt.options || []).map((option) => (
                       <label
                         key={`${prompt.id}-${option}`}
-                        className="flex items-center gap-3 rounded-xl border border-[#D6D4CC] bg-white px-3 py-2.5 text-base text-gray-900 hover:bg-gray-100 transition-colors"
+                        className="flex items-center gap-3 rounded-xl border border-gray-300 bg-white px-3 py-2.5 text-base text-gray-950 hover:bg-gray-100 transition-colors"
                       >
                         <input
                           type="radio"
@@ -560,6 +560,7 @@ const EvaPublicFormPage: React.FC = () => {
                           value={option}
                           checked={(answers[prompt.id] || '') === option}
                           onChange={(e) => setAnswers((prev) => ({ ...prev, [prompt.id]: e.target.value }))}
+                          className="h-5 w-5 shrink-0 accent-yellow-500"
                         />
                         <span>{isOtherOption(option) ? getOtherOptionLabel(option) : option}</span>
                       </label>
@@ -571,7 +572,7 @@ const EvaPublicFormPage: React.FC = () => {
                           setAnswers((prev) => ({ ...prev, [`${prompt.id}${OTHER_TEXT_KEY_SUFFIX}`]: e.target.value }))
                         }
                         placeholder={copy.pleaseSpecify}
-                        className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-base"
+                        className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-base text-gray-950 placeholder:text-gray-600"
                       />
                     )}
                   </div>
@@ -582,12 +583,13 @@ const EvaPublicFormPage: React.FC = () => {
                       return (
                         <label
                           key={`${prompt.id}-${option}`}
-                          className="flex items-center gap-3 rounded-xl border border-[#D6D4CC] bg-white px-3 py-2.5 text-base text-gray-900 hover:bg-gray-100 transition-colors"
+                          className="flex items-center gap-3 rounded-xl border border-gray-300 bg-white px-3 py-2.5 text-base text-gray-950 hover:bg-gray-100 transition-colors"
                         >
                           <input
                             type="checkbox"
                             checked={checked}
                             onChange={() => toggleMultiSelected(prompt.id, option)}
+                            className="h-5 w-5 shrink-0 accent-yellow-500"
                           />
                           <span>{isOtherOption(option) ? getOtherOptionLabel(option) : option}</span>
                         </label>
@@ -600,7 +602,7 @@ const EvaPublicFormPage: React.FC = () => {
                           setAnswers((prev) => ({ ...prev, [`${prompt.id}${OTHER_TEXT_KEY_SUFFIX}`]: e.target.value }))
                         }
                         placeholder={copy.pleaseSpecify}
-                        className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-base"
+                        className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-base text-gray-950 placeholder:text-gray-600"
                       />
                     )}
                   </div>
@@ -609,7 +611,7 @@ const EvaPublicFormPage: React.FC = () => {
                     {getEvaRatingSubItems(prompt).length > 0 ? (
                       getEvaRatingSubItems(prompt).map((subItem, itemIdx) => (
                         <div key={`${prompt.id}-rating-${itemIdx}`} className="space-y-2.5">
-                          <p className="text-base text-gray-800">
+                          <p className="text-base font-medium text-gray-950">
                             {formatEvaRatingSubItemPrefix(subItem, itemIdx)}
                             {subItem.text}
                           </p>
@@ -623,10 +625,10 @@ const EvaPublicFormPage: React.FC = () => {
                                   onClick={() =>
                                     setAnswers((prev) => ({ ...prev, [`${prompt.id}::${itemIdx}`]: String(n) }))
                                   }
-                                  className={`w-11 h-11 md:w-12 md:h-12 rounded-xl border text-base font-semibold transition-colors ${
+                                  className={`w-11 h-11 md:w-12 md:h-12 rounded-xl border text-base font-bold transition-colors ${
                                     selected
-                                      ? 'border-yellow-300 bg-yellow-400/20 text-yellow-900'
-                                      : 'border-gray-200 bg-white text-gray-800 hover:bg-gray-100'
+                                      ? 'border-yellow-600 bg-yellow-300 text-gray-950'
+                                      : 'border-gray-300 bg-white text-gray-900 hover:bg-gray-100'
                                   }`}
                                 >
                                   {n}
@@ -647,10 +649,10 @@ const EvaPublicFormPage: React.FC = () => {
                               onClick={() =>
                                 setAnswers((prev) => ({ ...prev, [`${prompt.id}::0`]: String(n) }))
                               }
-                              className={`w-11 h-11 md:w-12 md:h-12 rounded-xl border text-base font-semibold transition-colors ${
+                              className={`w-11 h-11 md:w-12 md:h-12 rounded-xl border text-base font-bold transition-colors ${
                                 selected
-                                  ? 'border-yellow-300 bg-yellow-400/20 text-yellow-900'
-                                  : 'border-gray-200 bg-white text-gray-800 hover:bg-gray-100'
+                                  ? 'border-yellow-600 bg-yellow-300 text-gray-950'
+                                  : 'border-gray-300 bg-white text-gray-900 hover:bg-gray-100'
                               }`}
                             >
                               {n}
@@ -667,7 +669,7 @@ const EvaPublicFormPage: React.FC = () => {
                         <thead>
                           <tr className="border-b border-[#D6D4CC] bg-gray-50">
                             {(prompt.commitmentHeaders ?? EVA_DEFAULT_COMMITMENT_HEADERS).map((h) => (
-                              <th key={h} className="px-3 py-2.5 font-semibold text-yellow-800 whitespace-nowrap">
+                              <th key={h} className="px-3 py-2.5 font-bold text-gray-950 whitespace-nowrap">
                                 {h}
                               </th>
                             ))}
@@ -677,7 +679,7 @@ const EvaPublicFormPage: React.FC = () => {
                           {(prompt.commitmentRows?.length ? prompt.commitmentRows : defaultEvaCommitmentRows()).map(
                             (row, ri) => (
                               <tr key={`${prompt.id}-ct-${ri}`} className="border-b border-gray-200 last:border-0">
-                                <td className="px-3 py-3 text-gray-800 align-top max-w-[14rem] sm:max-w-xs leading-snug">
+                                <td className="px-3 py-3 text-gray-950 align-top max-w-[14rem] sm:max-w-xs leading-snug">
                                   {row.commitment}
                                 </td>
                                 <td className="px-3 py-2 align-top">
@@ -695,7 +697,7 @@ const EvaPublicFormPage: React.FC = () => {
                                         }))
                                       }
                                       placeholder={row.byWhenPlaceholder || copy.enterPlaceholder}
-                                      className="w-full min-w-[8rem] rounded-lg border border-gray-200 bg-gray-100 px-3 py-2 text-base"
+                                      className="w-full min-w-[8rem] rounded-lg border border-gray-300 bg-white px-3 py-2 text-base text-gray-950 placeholder:text-gray-600"
                                     />
                                   </EvaAnswerHoverPopover>
                                 </td>
@@ -714,7 +716,7 @@ const EvaPublicFormPage: React.FC = () => {
                                         }))
                                       }
                                       placeholder={row.howKnowPlaceholder || copy.enterPlaceholder}
-                                      className="w-full min-w-[10rem] rounded-lg border border-gray-200 bg-gray-100 px-3 py-2 text-base"
+                                      className="w-full min-w-[10rem] rounded-lg border border-gray-300 bg-white px-3 py-2 text-base text-gray-950 placeholder:text-gray-600"
                                     />
                                   </EvaAnswerHoverPopover>
                                 </td>
@@ -727,15 +729,15 @@ const EvaPublicFormPage: React.FC = () => {
                   </div>
                 ) : prompt.type === 'fill_sentence' ? (
                   <div className="space-y-4 rounded-xl border border-[#D6D4CC] bg-white p-4 md:p-5">
-                    <p className="text-sm md:text-base font-semibold text-sky-800/95 tracking-wide uppercase">
+                    <p className="text-sm md:text-base font-bold text-sky-900 tracking-wide uppercase">
                       {prompt.fillIntroEn ?? EVA_DEFAULT_FILL_INTRO_EN}
                     </p>
                     {!isEnglish && (
-                      <p className="text-base md:text-lg text-gray-800">{prompt.fillIntroTh ?? EVA_DEFAULT_FILL_INTRO_TH}</p>
+                      <p className="text-base md:text-lg font-medium text-gray-950">{prompt.fillIntroTh ?? EVA_DEFAULT_FILL_INTRO_TH}</p>
                     )}
                     <div className="max-w-full">
-                      <div className="flex max-w-full flex-wrap content-start items-baseline gap-x-1 gap-y-1.5 text-base md:text-lg leading-relaxed text-gray-900">
-                        <span className="shrink-0 translate-y-px text-gray-400 select-none" aria-hidden>
+                      <div className="flex max-w-full flex-wrap content-start items-baseline gap-x-1 gap-y-1.5 text-base md:text-lg leading-relaxed text-gray-950">
+                        <span className="shrink-0 translate-y-px text-gray-700 select-none" aria-hidden>
                           &ldquo;
                         </span>
                         <span className="min-w-0 max-w-full shrink translate-y-px break-words">
@@ -751,7 +753,7 @@ const EvaPublicFormPage: React.FC = () => {
                             width: `${Math.max(14, (answers[`${prompt.id}::fs::a`] || '').length + 2)}ch`,
                             maxWidth: '100%',
                           }}
-                          className="box-border min-h-[1.6em] min-w-[10ch] max-w-full shrink-0 resize-y self-baseline border-0 border-b-2 border-yellow-400/50 bg-transparent px-0.5 pb-0.5 pt-0 leading-relaxed text-gray-900 break-words [field-sizing:content] focus:border-yellow-300 focus:outline-none"
+                          className="box-border min-h-[1.6em] min-w-[10ch] max-w-full shrink-0 resize-y self-baseline border-0 border-b-2 border-yellow-600 bg-transparent px-0.5 pb-0.5 pt-0 leading-relaxed text-gray-950 break-words [field-sizing:content] focus:border-yellow-700 focus:outline-none"
                         />
                         <span className="min-w-0 max-w-full shrink translate-y-px break-words">
                           {prompt.fillBridge ?? EVA_DEFAULT_FILL_BRIDGE}
@@ -766,12 +768,12 @@ const EvaPublicFormPage: React.FC = () => {
                             width: `${Math.max(14, (answers[`${prompt.id}::fs::b`] || '').length + 2)}ch`,
                             maxWidth: '100%',
                           }}
-                          className="box-border min-h-[1.6em] min-w-[10ch] max-w-full shrink-0 resize-y self-baseline border-0 border-b-2 border-yellow-400/50 bg-transparent px-0.5 pb-0.5 pt-0 leading-relaxed text-gray-900 break-words [field-sizing:content] focus:border-yellow-300 focus:outline-none"
+                          className="box-border min-h-[1.6em] min-w-[10ch] max-w-full shrink-0 resize-y self-baseline border-0 border-b-2 border-yellow-600 bg-transparent px-0.5 pb-0.5 pt-0 leading-relaxed text-gray-950 break-words [field-sizing:content] focus:border-yellow-700 focus:outline-none"
                         />
                         <span className="min-w-0 max-w-full shrink translate-y-px break-words">
                           {prompt.fillClosing ?? EVA_DEFAULT_FILL_CLOSING}
                         </span>
-                        <span className="shrink-0 translate-y-px text-gray-400 select-none" aria-hidden>
+                        <span className="shrink-0 translate-y-px text-gray-700 select-none" aria-hidden>
                           &rdquo;
                         </span>
                       </div>
@@ -782,7 +784,7 @@ const EvaPublicFormPage: React.FC = () => {
                     rows={4}
                     value={answers[prompt.id] || ''}
                     onChange={(e) => setAnswers((prev) => ({ ...prev, [prompt.id]: e.target.value }))}
-                    className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-base leading-relaxed resize-y"
+                    className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-base leading-relaxed text-gray-950 placeholder:text-gray-600 resize-y"
                   />
                 )}
                 {missingPromptIds.includes(prompt.id) && (

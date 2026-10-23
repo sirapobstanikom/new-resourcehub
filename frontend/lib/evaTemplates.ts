@@ -311,9 +311,9 @@ export function getDescriptionAlign(prompt: EvaPrompt): EvaDescriptionAlign {
 }
 
 export function evaDescriptionLineClassName(style: EvaDescriptionLineStyle): string {
-  if (style === 'bold') return 'font-bold text-base md:text-lg text-gray-100';
-  if (style === 'small') return 'font-normal text-sm md:text-base text-gray-300/95';
-  return 'font-normal text-base md:text-lg text-gray-200';
+  if (style === 'bold') return 'font-bold text-base md:text-lg text-gray-950';
+  if (style === 'small') return 'font-normal text-sm md:text-base text-gray-800';
+  return 'font-normal text-base md:text-lg text-gray-900';
 }
 
 /** class คอนเทนเนอร์บล็อกคำอธิบายบนฟอร์มผู้ตอบ */
