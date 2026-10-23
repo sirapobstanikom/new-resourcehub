@@ -283,30 +283,32 @@ const GAMES: HubCard[] = [
 const CardLink: React.FC<{ item: HubCard; actionLabel: string }> = ({ item, actionLabel }) => {
   const Icon = item.icon;
   const className =
-    'group flex flex-col rounded-2xl border-2 border-[#B8B4A8] bg-white p-5 shadow-[0_4px_14px_rgba(0,0,0,0.08)] transition duration-300 hover:-translate-y-1 hover:border-[#FFCC00] hover:shadow-[0_14px_32px_rgba(0,0,0,0.14)]';
+    'group flex flex-col rounded-[14px] border border-[#C4C1B6] bg-white p-4 active:scale-[0.99] sm:rounded-2xl sm:border-2 sm:border-[#B8B4A8] sm:p-5 shadow-[0_4px_14px_rgba(0,0,0,0.08)] transition duration-300 sm:hover:-translate-y-1 hover:border-[#FFCC00] sm:hover:shadow-[0_14px_32px_rgba(0,0,0,0.14)]';
   const body = (
     <>
       <div className="flex items-start justify-between gap-3">
-        <span className={`flex h-12 w-12 items-center justify-center rounded-xl shadow-md ${item.tint}`}>
+        <span className={`flex h-11 w-11 items-center justify-center rounded-[10px] shadow-md sm:h-12 sm:w-12 sm:rounded-xl ${item.tint}`}>
           <Icon className="h-5 w-5" strokeWidth={2.25} aria-hidden />
         </span>
-        <span className="rounded-md border border-[#E0A800] bg-[#FFF4C2] px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-[0.12em] text-[#6B5200]">
+        <span className="max-w-[45%] truncate rounded-[8px] border border-[#E0A800] bg-[#FFF4C2] px-2 py-1 text-[9px] font-extrabold uppercase tracking-[0.1em] text-[#6B5200] sm:max-w-none sm:rounded-md sm:px-2.5 sm:text-[10px]">
           {item.category}
         </span>
       </div>
-      <h3 className="mt-4 text-base font-extrabold leading-snug text-gray-950">{item.title}</h3>
-      <p className="mt-2 flex-1 text-sm leading-relaxed text-gray-700">{item.description}</p>
-      <div className="mt-5 flex items-center justify-between border-t border-[#E8E6DF] pt-4">
+      <h3 className="mt-3 text-[15px] font-extrabold leading-snug text-gray-950 sm:mt-4 sm:text-base">{item.title}</h3>
+      <p className="mt-1.5 line-clamp-2 flex-1 text-sm leading-relaxed text-gray-700 sm:mt-2 sm:line-clamp-none">
+        {item.description}
+      </p>
+      <div className="mt-4 flex items-center justify-between border-t border-[#E8E6DF] pt-3 sm:mt-5 sm:pt-4">
         {item.comingSoon ? (
           <span className="rounded-[10px] bg-[#FFCC00] px-2.5 py-0.5 text-[10px] font-extrabold text-black">เร็วๆ นี้</span>
         ) : (
           <span />
         )}
-        <span className="inline-flex items-center gap-1.5 text-sm font-extrabold text-gray-950">
+        <span className="inline-flex min-h-10 items-center gap-1.5 text-sm font-extrabold text-gray-950">
           {item.comingSoon ? 'เร็วๆ นี้' : actionLabel}
           <span
             aria-hidden
-            className="inline-flex h-6 w-6 items-center justify-center rounded-[6px] bg-[#FFCC00] text-xs text-black transition group-hover:translate-x-0.5"
+            className="inline-flex h-7 w-7 items-center justify-center rounded-[8px] bg-[#FFCC00] text-xs text-black transition group-hover:translate-x-0.5 sm:h-6 sm:w-6 sm:rounded-[6px]"
           >
             →
           </span>
@@ -370,9 +372,9 @@ const HomePage: React.FC = () => {
             : 'border-b border-transparent bg-transparent'
         }`}
       >
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-4">
-          <Link to="/" className="flex items-center drop-shadow-sm">
-            <BrandLogo className="text-[26px]" tone={solidNav ? 'dark' : 'light'} />
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-4 py-3 sm:gap-4 sm:px-5 sm:py-4">
+          <Link to="/" className="flex min-w-0 items-center drop-shadow-sm">
+            <BrandLogo className="text-[22px] sm:text-[26px]" tone={solidNav ? 'dark' : 'light'} />
           </Link>
           <nav
             className={`hidden items-center gap-8 text-sm font-bold md:flex ${
@@ -390,22 +392,27 @@ const HomePage: React.FC = () => {
             <button
               type="button"
               onClick={() => navigate('/resourcehub')}
-              className="md-btn-primary !rounded-[10px] !py-2.5 !text-sm"
+              className="md-btn-primary !rounded-[10px] !px-3 !py-2 !text-xs sm:!px-6 sm:!py-2.5 sm:!text-sm"
             >
-              เข้าสู่ Resource Hub
+              <span className="sm:hidden">Resource Hub</span>
+              <span className="hidden sm:inline">เข้าสู่ Resource Hub</span>
             </button>
           ) : (
-            <Link to="/login" className="md-btn-primary !rounded-[10px] !py-2.5 !text-sm">
-              เข้าสู่ Resource Hub
+            <Link
+              to="/login"
+              className="md-btn-primary !rounded-[10px] !px-3 !py-2 !text-xs sm:!px-6 sm:!py-2.5 sm:!text-sm"
+            >
+              <span className="sm:hidden">Resource Hub</span>
+              <span className="hidden sm:inline">เข้าสู่ Resource Hub</span>
             </Link>
           )}
         </div>
       </header>
 
-      <section className="relative flex min-h-[100dvh] flex-col items-center justify-center overflow-hidden px-5 pb-16 pt-24 text-center">
+      <section className="relative flex min-h-[100svh] flex-col items-center justify-center overflow-hidden px-4 pb-20 pt-20 text-center sm:min-h-[100dvh] sm:px-5 sm:pb-16 sm:pt-24">
         <div className="pointer-events-none absolute inset-0" aria-hidden>
           <video
-            className="h-full w-full scale-105 object-cover"
+            className="h-full w-full scale-105 object-cover object-[center_30%] sm:object-center"
             src={HOME_BG_VIDEO}
             autoPlay
             muted
@@ -413,32 +420,30 @@ const HomePage: React.FC = () => {
             playsInline
             preload="metadata"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-[#F3F2ED]" />
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_65%_50%_at_50%_42%,transparent_10%,rgba(0,0,0,0.28)_100%)]" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-[#F3F2ED] sm:from-black/50 sm:via-black/30" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_55%_at_50%_40%,transparent_5%,rgba(0,0,0,0.35)_100%)] sm:bg-[radial-gradient(ellipse_65%_50%_at_50%_42%,transparent_10%,rgba(0,0,0,0.28)_100%)]" />
         </div>
 
-        <div className="relative z-10 mx-auto flex max-w-3xl flex-col items-center home-hero-in">
-          <BrandLogo className="mb-5 text-[40px] sm:text-[48px] md:text-[56px] home-hero-brand" tone="light" />
-          <h1 className="text-3xl font-black tracking-tight text-white drop-shadow-[0_2px_16px_rgba(0,0,0,0.45)] sm:text-4xl md:text-[2.75rem] md:leading-[1.15]">
-            แบบประเมินและเครื่องมือ
-            <br className="hidden sm:block" />
-            พัฒนาองค์กร
+        <div className="relative z-10 mx-auto flex w-full max-w-3xl flex-col items-center home-hero-in">
+          <BrandLogo className="mb-4 text-[36px] home-hero-brand sm:mb-5 sm:text-[48px] md:text-[56px]" tone="light" />
+          <h1 className="max-w-[18ch] text-[1.65rem] font-black leading-tight tracking-tight text-white drop-shadow-[0_2px_16px_rgba(0,0,0,0.45)] sm:max-w-none sm:text-4xl sm:leading-snug md:text-[2.75rem] md:leading-[1.15]">
+            แบบประเมินและเครื่องมือพัฒนาองค์กร
           </h1>
-          <p className="mt-3 max-w-xl text-base font-semibold leading-relaxed text-white drop-shadow-md sm:text-lg">
+          <p className="mt-3 max-w-md text-sm font-semibold leading-relaxed text-white/95 drop-shadow-md sm:max-w-xl sm:text-lg">
             สำรวจศักยภาพทีมด้วยแบบประเมินและเกมเรียนรู้จาก MindDoJo
           </p>
-          <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
+          <div className="mt-6 flex w-full max-w-sm flex-col gap-2.5 sm:mt-7 sm:max-w-none sm:flex-row sm:flex-wrap sm:items-center sm:justify-center sm:gap-3">
             <a
               href="#assessments"
               onClick={(e) => scrollToId('assessments', e)}
-              className="md-btn-primary !rounded-[10px] shadow-lg shadow-black/25"
+              className="md-btn-primary !w-full !rounded-[10px] !py-3.5 shadow-lg shadow-black/25 sm:!w-auto sm:!py-3"
             >
               เริ่มทำแบบประเมิน
             </a>
             <a
               href="#gamification"
               onClick={(e) => scrollToId('gamification', e)}
-              className="inline-flex items-center justify-center rounded-[10px] border-2 border-white bg-black/25 px-6 py-3 text-sm font-bold text-white backdrop-blur-sm transition hover:border-[#FFCC00] hover:bg-[#FFCC00] hover:text-black"
+              className="inline-flex w-full items-center justify-center rounded-[10px] border-2 border-white bg-black/30 px-6 py-3.5 text-sm font-bold text-white backdrop-blur-sm transition hover:border-[#FFCC00] hover:bg-[#FFCC00] hover:text-black sm:w-auto sm:bg-black/25 sm:py-3"
             >
               ดูเกมทั้งหมด
             </a>
@@ -446,20 +451,44 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
-      <main className="relative z-10 -mt-8 rounded-t-[2rem] bg-[#F3F2ED] shadow-[0_-12px_40px_rgba(0,0,0,0.12)]">
-        <div className="mx-auto w-full max-w-6xl px-5 pt-10">
-          <section className="mb-14">
-            <div className="flex flex-col items-stretch gap-5 rounded-2xl border border-[#C4C1B6] bg-white p-5 shadow-[0_4px_20px_rgba(0,0,0,0.06)] sm:flex-row sm:items-center sm:justify-between sm:p-7">
-              <div className="flex items-center gap-4 text-left">
-                <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#FFCC00] text-black shadow-md shadow-yellow-500/30">
-                  <BookOpen className="h-6 w-6" strokeWidth={2.25} aria-hidden />
+      <nav
+        className={`fixed inset-x-0 bottom-0 z-30 border-t border-[#C4C1B6] bg-white/95 px-3 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-6px_20px_rgba(0,0,0,0.08)] backdrop-blur-md transition md:hidden ${
+          solidNav ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-3 opacity-0'
+        }`}
+        aria-label="เมนูมือถือ"
+      >
+        <div className="mx-auto grid max-w-lg grid-cols-2 gap-2">
+          <a
+            href="#assessments"
+            onClick={(e) => scrollToId('assessments', e)}
+            className="inline-flex min-h-11 items-center justify-center rounded-[10px] bg-[#FFCC00] px-3 text-sm font-extrabold text-black"
+          >
+            แบบประเมิน
+          </a>
+          <a
+            href="#gamification"
+            onClick={(e) => scrollToId('gamification', e)}
+            className="inline-flex min-h-11 items-center justify-center rounded-[10px] border border-[#C4C1B6] bg-white px-3 text-sm font-extrabold text-gray-900"
+          >
+            เกม
+          </a>
+        </div>
+      </nav>
+
+      <main className="relative z-10 -mt-6 rounded-t-[1.5rem] bg-[#F3F2ED] pb-20 shadow-[0_-12px_40px_rgba(0,0,0,0.12)] sm:-mt-8 sm:rounded-t-[2rem] sm:pb-0">
+        <div className="mx-auto w-full max-w-6xl px-4 pt-7 sm:px-5 sm:pt-10">
+          <section className="mb-10 sm:mb-14">
+            <div className="flex flex-col items-stretch gap-4 rounded-[14px] border border-[#C4C1B6] bg-white p-4 shadow-[0_4px_20px_rgba(0,0,0,0.06)] sm:flex-row sm:items-center sm:justify-between sm:gap-5 sm:rounded-2xl sm:p-7">
+              <div className="flex items-start gap-3 text-left sm:items-center sm:gap-4">
+                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[12px] bg-[#FFCC00] text-black shadow-md shadow-yellow-500/30 sm:h-14 sm:w-14 sm:rounded-2xl">
+                  <BookOpen className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={2.25} aria-hidden />
                 </span>
-                <div>
-                  <h2 className="text-lg font-extrabold text-gray-950 sm:text-xl">
+                <div className="min-w-0">
+                  <h2 className="text-base font-extrabold text-gray-950 sm:text-xl">
                     MindDoJo <span className="text-[#8A6A00]">ResourceHub</span>
                   </h2>
-                  <p className="mt-1 max-w-xl text-sm font-medium leading-relaxed text-gray-700">
-                    คลังเครื่องมือเชิงกลยุทธ์ เช่น Business Model Canvas, Game Plan, Product Strategy และ Industry Updates
+                  <p className="mt-1 text-sm font-medium leading-relaxed text-gray-700 sm:max-w-xl">
+                    คลังเครื่องมือเชิงกลยุทธ์ เช่น Business Model Canvas, Game Plan และ Product Strategy
                   </p>
                 </div>
               </div>
@@ -467,26 +496,29 @@ const HomePage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => navigate('/resourcehub')}
-                  className="md-btn-primary !rounded-[10px] shrink-0"
+                  className="md-btn-primary !w-full !rounded-[10px] !py-3.5 shrink-0 sm:!w-auto sm:!py-3"
                 >
                   เข้า ResourceHub
                 </button>
               ) : (
-                <Link to="/login" className="md-btn-primary !rounded-[10px] shrink-0 text-center">
+                <Link
+                  to="/login"
+                  className="md-btn-primary !w-full !rounded-[10px] !py-3.5 shrink-0 text-center sm:!w-auto sm:!py-3"
+                >
                   เข้าสู่ระบบเพื่อเข้า ResourceHub
                 </Link>
               )}
             </div>
           </section>
 
-          <section id="assessments" className="scroll-mt-24 pb-16">
-            <div className="mb-7 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <section id="assessments" className="scroll-mt-20 pb-12 sm:scroll-mt-24 sm:pb-16">
+            <div className="mb-5 flex flex-col gap-3 sm:mb-7 sm:gap-4 sm:flex-row sm:items-end sm:justify-between">
               <div>
                 <p className="inline-flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-[0.22em] text-[#6B5200]">
                   <span className="h-2 w-2 rounded-full bg-[#FFCC00]" aria-hidden />
                   01 / Assessments
                 </p>
-                <h2 className="mt-1 text-2xl font-black text-gray-950 sm:text-3xl">แบบประเมินออนไลน์ของ MindDoJo</h2>
+                <h2 className="mt-1 text-xl font-black text-gray-950 sm:text-3xl">แบบประเมินออนไลน์ของ MindDoJo</h2>
               </div>
               <label className="relative block w-full sm:max-w-xs">
                 <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-600" aria-hidden>
@@ -497,11 +529,11 @@ const HomePage: React.FC = () => {
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="ค้นหาแบบประเมิน"
-                  className="md-input !rounded-[10px] !border-[#C4C1B6] !bg-white !py-2.5 pl-10 pr-4 text-sm font-medium"
+                  className="md-input !rounded-[10px] !border-[#C4C1B6] !bg-white !py-3 pl-10 pr-4 text-sm font-medium sm:!py-2.5"
                 />
               </label>
             </div>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
               {filteredAssessments.map((item) => (
                 <CardLink key={item.id} item={item} actionLabel="ดูรายละเอียด" />
               ))}
@@ -511,20 +543,20 @@ const HomePage: React.FC = () => {
             )}
           </section>
 
-          <section id="gamification" className="scroll-mt-24 pb-20">
-            <div className="mb-7 flex flex-wrap items-end justify-between gap-3">
+          <section id="gamification" className="scroll-mt-20 pb-10 sm:scroll-mt-24 sm:pb-20">
+            <div className="mb-5 flex flex-wrap items-end justify-between gap-3 sm:mb-7">
               <div>
                 <p className="inline-flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-[0.22em] text-[#6B5200]">
                   <span className="h-2 w-2 rounded-full bg-[#FFCC00]" aria-hidden />
                   02 / Learn through play
                 </p>
-                <h2 className="mt-1 text-2xl font-black text-gray-950 sm:text-3xl">Gamification ของ MindDoJo</h2>
+                <h2 className="mt-1 text-xl font-black text-gray-950 sm:text-3xl">Gamification ของ MindDoJo</h2>
               </div>
               <span className="rounded-[10px] border border-[#C4C1B6] bg-white px-3.5 py-1.5 text-xs font-extrabold text-gray-900 shadow-sm">
                 {GAMES.length} เกม
               </span>
             </div>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
               {GAMES.map((item) => (
                 <CardLink key={item.id} item={item} actionLabel="เข้าเล่น" />
               ))}
@@ -535,16 +567,16 @@ const HomePage: React.FC = () => {
 
       <Link
         to="/admin/login"
-        className="fixed bottom-4 right-4 z-10 rounded-[10px] border border-[#C4C1B6] bg-white px-3 py-1.5 text-xs font-bold text-gray-700 shadow-md transition hover:border-gray-500 hover:text-gray-950"
+        className="fixed bottom-[4.75rem] right-3 z-20 rounded-[10px] border border-[#C4C1B6] bg-white/95 px-2.5 py-1.5 text-[11px] font-bold text-gray-600 shadow-md backdrop-blur-sm transition hover:border-gray-500 hover:text-gray-950 sm:bottom-4 sm:right-4 sm:z-10 sm:px-3 sm:text-xs sm:text-gray-700 md:bottom-4"
         title="Login Admin MindDojo"
       >
         Admin
       </Link>
 
-      <footer className="border-t border-[#C4C1B6] bg-white">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-5 py-8 sm:flex-row">
+      <footer className="border-t border-[#C4C1B6] bg-white pb-[max(1rem,env(safe-area-inset-bottom))] md:pb-0">
+        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-4 py-7 text-center sm:gap-4 sm:px-5 sm:py-8 sm:flex-row sm:text-left">
           <BrandLogo className="text-[20px]" tone="dark" />
-          <span className="text-sm font-semibold text-gray-700">
+          <span className="text-xs font-semibold text-gray-700 sm:text-sm">
             © {new Date().getFullYear()} MindDoJo Co., Ltd. All rights reserved
           </span>
           <a
