@@ -18,10 +18,9 @@ const InnoClubEvaluationPage: React.FC = () => {
     atmosphere_score: 0 as number,
     sharing_score: 0 as number,
     overall_comment: '',
-    learn_apply: '',
-    ai_plan_6months: '',
-    activity_learning_satisfaction: '',
-    networking_collaboration: '',
+    simulation_score: 0 as number,
+    skill_score: 0 as number,
+    rejoin_interest: '',
     improvement_suggestions: '',
   });
 
@@ -38,9 +37,15 @@ const InnoClubEvaluationPage: React.FC = () => {
     form.overall_score,
     form.atmosphere_score,
     form.sharing_score,
+    form.simulation_score,
+    form.skill_score,
   ];
-  const allRequiredFilled = requiredScores.every((s) => s >= 1 && s <= 5);
-  const answeredRequiredCount = requiredScores.filter((s) => s >= 1 && s <= 5).length;
+  const allRequiredFilled =
+    requiredScores.every((s) => s >= 1 && s <= 5) &&
+    (form.rejoin_interest === 'สนใจ' || form.rejoin_interest === 'ไม่สนใจ');
+  const answeredRequiredCount =
+    requiredScores.filter((s) => s >= 1 && s <= 5).length +
+    (form.rejoin_interest === 'สนใจ' || form.rejoin_interest === 'ไม่สนใจ' ? 1 : 0);
 
   const renderScoreGroup = (field: keyof typeof form, name: string) => (
     <div className="grid grid-cols-5 gap-2 sm:flex sm:flex-wrap sm:gap-x-4 sm:gap-y-3 lg:gap-x-5 lg:gap-y-4">
@@ -91,10 +96,10 @@ const InnoClubEvaluationPage: React.FC = () => {
       atmosphere_score: form.atmosphere_score,
       sharing_score: form.sharing_score,
       overall_comment: form.overall_comment || null,
-      learn_apply: form.learn_apply || null,
-      ai_plan_6months: form.ai_plan_6months || null,
-      activity_learning_satisfaction: form.activity_learning_satisfaction || null,
-      networking_collaboration: form.networking_collaboration || null,
+      learn_apply: form.skill_score ? String(form.skill_score) : null,
+      ai_plan_6months: null,
+      activity_learning_satisfaction: form.simulation_score ? String(form.simulation_score) : null,
+      networking_collaboration: form.rejoin_interest || null,
       improvement_suggestions: form.improvement_suggestions || null,
     });
     setLoading(false);
@@ -150,7 +155,7 @@ const InnoClubEvaluationPage: React.FC = () => {
             แบบประเมินความพึงพอใจในการร่วมกิจกรรม
           </h1>
           <p className="text-center text-gray-900 text-sm sm:text-base lg:text-lg 2xl:text-xl mb-5 lg:mb-6 leading-relaxed">
-            PTT GROUP INNO Club #2 — วันที่ 30 มิถุนายน 2569 เวลา 09.00-12.00 น.
+            PTT GROUP INNO Club ครั้งที่ 3 — วันที่ 27 ตุลาคม 2569 เวลา 09.00-12.00 น.
             <br />
             ห้อง The Enterprise ชั้น 8 ตึก ENTER
           </p>
@@ -163,13 +168,13 @@ const InnoClubEvaluationPage: React.FC = () => {
           <div className="flex items-center justify-between gap-3 text-sm lg:text-base 2xl:text-lg">
             <p className="text-yellow-900 font-medium">ความคืบหน้าแบบประเมิน</p>
             <p className="text-gray-900 font-medium">
-              {answeredRequiredCount}/5 <span className="text-gray-600">ข้อบังคับ</span>
+              {answeredRequiredCount}/{requiredScores.length + 1} <span className="text-gray-600">ข้อบังคับ</span>
             </p>
           </div>
           <div className="mt-2 h-2 lg:h-2.5 2xl:h-3 rounded-full bg-gray-100 overflow-hidden">
             <div
               className="h-full bg-gradient-to-r from-yellow-500 via-amber-400 to-orange-400 transition-all"
-              style={{ width: `${(answeredRequiredCount / requiredScores.length) * 100}%` }}
+              style={{ width: `${(answeredRequiredCount / (requiredScores.length + 1)) * 100}%` }}
             />
           </div>
         </div>
@@ -249,32 +254,47 @@ const InnoClubEvaluationPage: React.FC = () => {
             <h2 className="text-lg lg:text-2xl 2xl:text-3xl font-bold text-yellow-800 mb-7">ข้อเสนอแนะและแนวทางการนำไปใช้</h2>
             <div className="space-y-7">
               <div>
-                <p className="text-gray-900 font-medium text-base lg:text-xl 2xl:text-2xl leading-relaxed mb-3">1. จากกิจกรรมในวันนี้ ท่านได้เรียนรู้อะไรเกี่ยวกับการสื่อสารสินค้า บริการ หรือไอเดียใหม่ให้ผู้ฟังเข้าใจและสนใจมากขึ้น?</p>
-                <textarea
-                  value={form.learn_apply}
-                  onChange={(e) => setText('learn_apply', e.target.value)}
-                  rows={4}
-                  placeholder="กรุณาตอบคำถาม..."
-                  className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 text-gray-900 placeholder-gray-500 text-base focus:outline-none focus:border-yellow-400 resize-none"
-                />
+                <p className="text-gray-900 font-medium text-base lg:text-xl 2xl:text-2xl leading-relaxed mb-3">1. ท่านมีความพึงพอใจต่อประสบการณ์การเรียนรู้ผ่าน Digital Simulation-Based Learning บนแพลตฟอร์ม Roblox ในระดับใด *</p>
+                {renderScoreGroup('simulation_score', 'simulation_score')}
               </div>
               <div>
-                <p className="text-gray-900 font-medium text-base lg:text-xl 2xl:text-2xl leading-relaxed mb-3">2. ท่านค้นพบโอกาสหรือแนวทางใหม่ในการใช้ AI เพื่อสนับสนุนงานด้านการสื่อสาร การนำเสนอ หรือการสร้างสรรค์ผลงานอย่างไรบ้าง?</p>
-                <textarea
-                  value={form.ai_plan_6months}
-                  onChange={(e) => setText('ai_plan_6months', e.target.value)}
-                  rows={4}
-                  placeholder="กรุณาตอบคำถาม..."
-                  className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 text-gray-900 placeholder-gray-500 text-base focus:outline-none focus:border-yellow-400 resize-none"
-                />
+                <p className="text-gray-900 font-medium text-base lg:text-xl 2xl:text-2xl leading-relaxed mb-3">2. กิจกรรมจำลองสถานการณ์นี้ช่วยให้ท่านได้ฝึกทักษะการคิด การตัดสินใจ และการปรับตัวภายใต้ข้อจำกัดและการเปลี่ยนแปลงมากน้อยเพียงใด *</p>
+                {renderScoreGroup('skill_score', 'skill_score')}
               </div>
               <div>
-                <p className="text-gray-900 font-medium text-base lg:text-xl 2xl:text-2xl leading-relaxed mb-3">3. หากมีโอกาสพัฒนาผลงานของทีมต่อไป ท่านคิดว่าจะปรับปรุงหรือเพิ่มเติมอะไร เพื่อให้การสื่อสารมีประสิทธิภาพและสร้างผลกระทบได้มากยิ่งขึ้น?</p>
+                <p className="text-gray-900 font-medium text-base lg:text-xl 2xl:text-2xl leading-relaxed mb-3">3. หากมีการจัดกิจกรรมลักษณะเดียวกันในอนาคต ท่านสนใจเข้าร่วมอีกครั้งหรือไม่ *</p>
+                <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:gap-3">
+                  {(['สนใจ', 'ไม่สนใจ'] as const).map((choice) => {
+                    const selected = form.rejoin_interest === choice;
+                    return (
+                      <label
+                        key={choice}
+                        className={`flex cursor-pointer items-center justify-center rounded-xl border px-4 py-3 min-h-[48px] text-base font-semibold transition-all lg:text-lg ${
+                          selected
+                            ? 'border-yellow-500 bg-yellow-50 text-yellow-900 shadow-[0_0_0_1px_rgba(252,211,77,0.4)]'
+                            : 'border-gray-200 bg-white text-gray-900 hover:border-yellow-400'
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="rejoin_interest"
+                          checked={selected}
+                          onChange={() => setText('rejoin_interest', choice)}
+                          className="sr-only"
+                        />
+                        {choice}
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+              <div>
+                <p className="text-gray-900 font-medium text-base lg:text-xl 2xl:text-2xl leading-relaxed mb-3">4. โปรดระบุข้อเสนอแนะเพิ่มเติมเพื่อปรับปรุงและพัฒนากิจกรรม</p>
                 <textarea
-                  value={form.networking_collaboration}
-                  onChange={(e) => setText('networking_collaboration', e.target.value)}
+                  value={form.improvement_suggestions}
+                  onChange={(e) => setText('improvement_suggestions', e.target.value)}
                   rows={4}
-                  placeholder="กรุณาตอบคำถาม..."
+                  placeholder="ระบุข้อเสนอแนะ (ถ้ามี)..."
                   className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 text-gray-900 placeholder-gray-500 text-base focus:outline-none focus:border-yellow-400 resize-none"
                 />
               </div>
