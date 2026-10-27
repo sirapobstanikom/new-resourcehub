@@ -57,6 +57,7 @@ const AdminInnoClubDashboardPage = lazy(() => import('./components/AdminInnoClub
 const AdminTeambuildingDashboardPage = lazy(() => import('./components/AdminTeambuildingDashboardPage'));
 const TeambuildingScoreboardPage = lazy(() => import('./components/TeambuildingScoreboardPage'));
 const InnoClubGameResultsPage = lazy(() => import('./components/InnoClubGameResultsPage'));
+const InnoClubSatisfactionScoreboardPage = lazy(() => import('./components/InnoClubSatisfactionScoreboardPage'));
 const HogwartsInnoclubPage = lazy(() => import('./components/HogwartsInnoclubPage'));
 const EvaEditorPage = lazy(() => import('./components/EvaEditorPage'));
 const EvaPublicFormPage = lazy(() => import('./components/EvaPublicFormPage'));
@@ -371,6 +372,7 @@ const App: React.FC = () => {
         <Routes>
           <Route path="/evaluation/innoclub" element={<InnoClubEvaluationPage />} />
           <Route path="/evaluation/innoclub-game" element={<InnoClubGameResultsPage />} />
+          <Route path="/evaluation/innoclub-satisfaction" element={<InnoClubSatisfactionScoreboardPage />} />
           <Route path="/evaluation/teambuilding" element={<TeambuildingScoreboardPage />} />
           <Route path="/evaluation/innoclub-2" element={<InnoClubSecondEvaluationPage key="innoclub-2-form" />} />
           <Route

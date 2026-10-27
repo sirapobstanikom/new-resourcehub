@@ -1,20 +1,29 @@
 export const INNOCLUB_GAME_TEAMS_TABLE = 'innoclub_game_teams';
+export const INNOCLUB_GAME_TEAM_SELECT =
+  'id, name, money, satisfaction, sort_order, is_active, created_at, updated_at';
 
-export const INNOCLUB_GAME_SQL = `-- InnoClub Game — ทีมแข่งพัฒนาธุรกิจ (คะแนน = เงินในเกม)
+export const INNOCLUB_GAME_SQL = `-- InnoClub Game — ทีมแข่งพัฒนาธุรกิจ (คะแนนเงิน + Satisfaction)
 -- รันใน Supabase → SQL Editor → Run
 
 create table if not exists public.innoclub_game_teams (
   id uuid primary key default gen_random_uuid(),
   name text not null,
   money numeric not null default 0,
+  satisfaction numeric not null default 0,
   sort_order integer not null default 0,
   is_active boolean not null default true,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
 
+alter table public.innoclub_game_teams
+  add column if not exists satisfaction numeric not null default 0;
+
 create index if not exists innoclub_game_teams_money_idx
   on public.innoclub_game_teams (money desc);
+
+create index if not exists innoclub_game_teams_satisfaction_idx
+  on public.innoclub_game_teams (satisfaction desc);
 
 alter table public.innoclub_game_teams enable row level security;
 
@@ -44,6 +53,7 @@ export type InnoClubGameTeam = {
   id: string;
   name: string;
   money: number;
+  satisfaction: number;
   sort_order: number;
   is_active: boolean;
   created_at?: string | null;
@@ -66,24 +76,47 @@ export function formatMoney(value: number): string {
   }).format(Math.round(value));
 }
 
+export function formatSatisfaction(value: number): string {
+  return new Intl.NumberFormat('th-TH', {
+    maximumFractionDigits: 1,
+  }).format(value);
+}
+
+function rankActiveTeams(
+  teams: InnoClubGameTeam[],
+  scoreOf: (team: InnoClubGameTeam) => number,
+  limit?: number
+): InnoClubRankedTeam[] {
+  const ranked = [...teams]
+    .filter((t) => t.is_active)
+    .sort((a, b) => {
+      const scoreDiff = scoreOf(b) - scoreOf(a);
+      if (scoreDiff !== 0) return scoreDiff;
+      return (a.sort_order || 0) - (b.sort_order || 0);
+    })
+    .map((team, index) => ({
+      ...team,
+      money: parseMoney(team.money),
+      satisfaction: parseMoney(team.satisfaction),
+      rank: index + 1,
+    }));
+  return typeof limit === 'number' ? ranked.slice(0, limit) : ranked;
+}
+
 /** เรียงเงินมาก → น้อย แล้วตัด top N */
 export function getTopTeamsByMoney(
   teams: InnoClubGameTeam[],
   limit = 4
 ): InnoClubRankedTeam[] {
-  return [...teams]
-    .filter((t) => t.is_active)
-    .sort((a, b) => {
-      const moneyDiff = parseMoney(b.money) - parseMoney(a.money);
-      if (moneyDiff !== 0) return moneyDiff;
-      return (a.sort_order || 0) - (b.sort_order || 0);
-    })
-    .slice(0, limit)
-    .map((team, index) => ({
-      ...team,
-      money: parseMoney(team.money),
-      rank: index + 1,
-    }));
+  return rankActiveTeams(teams, (t) => parseMoney(t.money), limit);
+}
+
+/** เรียง Satisfaction มาก → น้อย */
+export function getTeamsBySatisfaction(
+  teams: InnoClubGameTeam[],
+  limit?: number
+): InnoClubRankedTeam[] {
+  return rankActiveTeams(teams, (t) => parseMoney(t.satisfaction), limit);
 }
 
 export function mapInnoClubGameTeamRow(row: Record<string, unknown>): InnoClubGameTeam {
@@ -91,6 +124,7 @@ export function mapInnoClubGameTeamRow(row: Record<string, unknown>): InnoClubGa
     id: String(row.id),
     name: String(row.name || ''),
     money: parseMoney(row.money),
+    satisfaction: parseMoney(row.satisfaction),
     sort_order: Number(row.sort_order) || 0,
     is_active: row.is_active !== false,
     created_at: (row.created_at as string | null) || null,
@@ -108,3 +142,15 @@ export function isInnoClubGameTableMissingError(message?: string | null): boolea
     m.includes('schema cache')
   );
 }
+
+export function isInnoClubSatisfactionColumnMissingError(message?: string | null): boolean {
+  if (!message) return false;
+  const m = message.toLowerCase();
+  return m.includes('satisfaction') && (m.includes('column') || m.includes('schema cache') || m.includes('does not exist'));
+}
+
+export const INNOCLUB_SATISFACTION_COLUMN_SQL = `alter table public.innoclub_game_teams
+  add column if not exists satisfaction numeric not null default 0;
+
+create index if not exists innoclub_game_teams_satisfaction_idx
+  on public.innoclub_game_teams (satisfaction desc);`;
