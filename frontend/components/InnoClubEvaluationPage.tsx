@@ -114,22 +114,69 @@ const InnoClubEvaluationPage: React.FC = () => {
 
   const pageShell = (children: React.ReactNode) => (
     <div className="ibx-page relative min-h-dvh overflow-x-hidden text-[#0B1F3A]">
-      <div className="pointer-events-none fixed inset-0 -z-10" aria-hidden>
-        <img
-          src={BG_IMAGE}
-          alt=""
-          className="h-full w-full object-cover object-[center_20%] sm:object-center"
-        />
-        <div className="ibx-overlay absolute inset-0" />
+      <div className="ibx-bg pointer-events-none hidden sm:block" aria-hidden>
+        <div className="ibx-bg-photo" />
+        <div className="ibx-overlay" />
       </div>
       {children}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800;900&display=swap');
-        .ibx-page { font-family: "Nunito", "Prompt", "Anuphan", ui-sans-serif, system-ui, sans-serif; }
-        .ibx-display { font-family: "Fredoka", "Nunito", sans-serif; letter-spacing: 0.01em; }
-        .ibx-overlay {
+        .ibx-page {
+          font-family: "Nunito", "Prompt", "Anuphan", ui-sans-serif, system-ui, sans-serif;
           background:
-            linear-gradient(180deg, rgba(255,255,255,0.88) 0%, rgba(248,250,252,0.94) 35%, rgba(255,247,214,0.96) 100%);
+            linear-gradient(180deg, #D8ECFF 0%, #EAF4FF 28%, #FFF8E8 100%);
+        }
+        .ibx-display { font-family: "Fredoka", "Nunito", sans-serif; letter-spacing: 0.01em; }
+        .ibx-mobile-banner {
+          position: relative;
+          width: 100%;
+          height: min(52vw, 228px);
+          min-height: 176px;
+          overflow: hidden;
+          background: #5ec8f8;
+          box-shadow: inset 0 -1px 0 rgba(15, 61, 122, 0.08);
+        }
+        .ibx-mobile-banner img {
+          display: block;
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          object-position: center 40%;
+          -webkit-transform: translateZ(0);
+          transform: translateZ(0);
+        }
+        .ibx-mobile-banner-fade {
+          position: absolute;
+          inset: auto 0 0 0;
+          height: 42%;
+          background: linear-gradient(
+            180deg,
+            rgba(216, 236, 255, 0) 0%,
+            rgba(216, 236, 255, 0.55) 55%,
+            #D8ECFF 100%
+          );
+          pointer-events: none;
+        }
+        .ibx-bg {
+          position: fixed;
+          inset: 0;
+          z-index: -1;
+          overflow: hidden;
+        }
+        .ibx-bg-photo {
+          position: absolute;
+          inset: 0;
+          background-image: url('${BG_IMAGE}');
+          background-repeat: no-repeat;
+          background-size: cover;
+          background-position: center center;
+        }
+        .ibx-overlay {
+          position: absolute;
+          inset: 0;
+          background:
+            linear-gradient(180deg, rgba(125,211,252,0.35) 0%, rgba(240,249,255,0.72) 42%, rgba(255,247,214,0.88) 100%),
+            radial-gradient(ellipse 80% 50% at 50% 0%, rgba(255,204,0,0.14), transparent 60%);
         }
         .ibx-card {
           background: #fff;
@@ -158,18 +205,14 @@ const InnoClubEvaluationPage: React.FC = () => {
           line-height: 1.45;
         }
         @media (min-width: 640px) {
-          .ibx-overlay {
-            background:
-              linear-gradient(180deg, rgba(125,211,252,0.45) 0%, rgba(240,249,255,0.78) 40%, rgba(255,247,214,0.9) 100%),
-              radial-gradient(ellipse 80% 50% at 50% 0%, rgba(255,204,0,0.16), transparent 60%);
-          }
+          .ibx-page { background: transparent; }
           .ibx-card {
             background: rgba(255,255,255,0.96);
             border-width: 3px;
             box-shadow: 0 8px 0 rgba(15,61,122,0.18), 0 18px 36px rgba(15,61,122,0.12);
           }
           .ibx-hero {
-            background: linear-gradient(180deg, #fff, #FFF8D6);
+            background: linear-gradient(180deg, rgba(255,255,255,0.95), rgba(255,248,214,0.94));
             border-width: 4px;
             box-shadow: 0 10px 0 #E09B00, 0 22px 40px rgba(15,61,122,0.16);
           }
@@ -200,7 +243,7 @@ const InnoClubEvaluationPage: React.FC = () => {
 
   return pageShell(
     <>
-      <header className="sticky top-0 z-30 border-b border-[#93C5FD] bg-white px-3 py-2.5 sm:border-b-2 sm:border-[#1E90FF]/35 sm:bg-white/90 sm:px-6 sm:py-3 sm:backdrop-blur-md">
+      <header className="sticky top-0 z-30 border-b border-[#93C5FD] bg-white px-3 py-2.5 pt-[max(0.625rem,env(safe-area-inset-top))] sm:border-b-2 sm:border-[#1E90FF]/35 sm:bg-white/90 sm:px-6 sm:py-3 sm:backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-2">
           <Link
             to="/"
@@ -217,7 +260,12 @@ const InnoClubEvaluationPage: React.FC = () => {
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-6xl flex-1 px-3 pb-28 pt-5 sm:px-6 sm:pb-12 sm:py-12 xl:px-10">
+      <div className="ibx-mobile-banner sm:hidden" aria-hidden>
+        <img src={BG_IMAGE} alt="" decoding="async" />
+        <div className="ibx-mobile-banner-fade" />
+      </div>
+
+      <main className="mx-auto w-full max-w-6xl flex-1 px-3 pb-28 pt-4 sm:px-6 sm:pb-12 sm:py-12 xl:px-10">
         <section className="ibx-hero mx-auto mb-5 max-w-5xl rounded-[20px] p-4 text-center sm:mb-10 sm:rounded-[28px] sm:p-8">
           <p className="ibx-display text-[11px] font-bold uppercase tracking-[0.18em] text-[#1E90FF] sm:text-sm sm:tracking-[0.28em]">
             PTT GROUP INNO CLUB · INNOBLOX
