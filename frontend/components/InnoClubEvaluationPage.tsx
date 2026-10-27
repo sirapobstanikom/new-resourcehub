@@ -50,16 +50,16 @@ const InnoClubEvaluationPage: React.FC = () => {
   const requiredTotal = requiredScores.length + 1;
 
   const renderScoreGroup = (field: keyof typeof form, name: string) => (
-    <div className="grid grid-cols-5 gap-2 sm:flex sm:flex-wrap sm:gap-x-3 sm:gap-y-3">
+    <div className="grid grid-cols-5 gap-1.5 sm:flex sm:flex-wrap sm:gap-x-3 sm:gap-y-3">
       {SCORE_OPTIONS.map((n) => {
         const selected = form[field] === n;
         return (
           <label
             key={n}
-            className={`ibx-score flex cursor-pointer items-center justify-center rounded-[14px] border-2 px-2 py-2 min-h-[48px] sm:min-h-[52px] sm:min-w-[52px] transition-all ${
+            className={`ibx-score flex min-h-12 cursor-pointer items-center justify-center rounded-[12px] border-2 px-1 py-2.5 transition-all sm:min-h-[52px] sm:min-w-[52px] sm:rounded-[14px] sm:px-2 ${
               selected
-                ? 'border-[#FFB800] bg-[#FFCC00] text-[#1a1a1a] shadow-[0_4px_0_#E09B00]'
-                : 'border-[#2B6CB0] bg-white text-[#0F3D7A] hover:border-[#FFB800] hover:bg-[#FFF8D6]'
+                ? 'border-[#E09B00] bg-[#FFCC00] text-[#111] shadow-[0_3px_0_#E09B00]'
+                : 'border-[#1E5FA8] bg-[#F8FAFC] text-[#0B1F3A] hover:border-[#FFB800] hover:bg-[#FFF8D6]'
             }`}
           >
             <input
@@ -70,7 +70,7 @@ const InnoClubEvaluationPage: React.FC = () => {
               className="sr-only"
               aria-label={`${name}-${n}`}
             />
-            <span className="text-base font-black sm:text-lg lg:text-xl">{n}</span>
+            <span className="text-lg font-black sm:text-lg lg:text-xl">{n}</span>
           </label>
         );
       })}
@@ -113,30 +113,38 @@ const InnoClubEvaluationPage: React.FC = () => {
   };
 
   const pageShell = (children: React.ReactNode) => (
-    <div className="ibx-page relative min-h-dvh overflow-x-hidden text-[#102A56]">
+    <div className="ibx-page relative min-h-dvh overflow-x-hidden text-[#0B1F3A]">
       <div className="pointer-events-none fixed inset-0 -z-10" aria-hidden>
-        <img src={BG_IMAGE} alt="" className="h-full w-full object-cover object-center" />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#7DD3FC]/55 via-[#F0F9FF]/78 to-[#FFF7D6]/92" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_0%,rgba(255,204,0,0.18),transparent_60%)]" />
+        <img
+          src={BG_IMAGE}
+          alt=""
+          className="h-full w-full object-cover object-[center_20%] sm:object-center"
+        />
+        <div className="ibx-overlay absolute inset-0" />
       </div>
       {children}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800;900&display=swap');
         .ibx-page { font-family: "Nunito", "Prompt", "Anuphan", ui-sans-serif, system-ui, sans-serif; }
-        .ibx-display { font-family: "Fredoka", "Nunito", sans-serif; letter-spacing: 0.02em; }
+        .ibx-display { font-family: "Fredoka", "Nunito", sans-serif; letter-spacing: 0.01em; }
+        .ibx-overlay {
+          background:
+            linear-gradient(180deg, rgba(255,255,255,0.88) 0%, rgba(248,250,252,0.94) 35%, rgba(255,247,214,0.96) 100%);
+        }
         .ibx-card {
-          background: rgba(255,255,255,0.94);
-          border: 3px solid #1E90FF;
-          box-shadow: 0 8px 0 rgba(15,61,122,0.18), 0 18px 36px rgba(15,61,122,0.12);
+          background: #fff;
+          border: 2px solid #1E90FF;
+          box-shadow: 0 4px 0 rgba(15,61,122,0.12), 0 10px 24px rgba(15,61,122,0.08);
         }
         .ibx-hero {
-          background: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(255,248,214,0.95));
-          border: 4px solid #FFCC00;
-          box-shadow: 0 10px 0 #E09B00, 0 22px 40px rgba(15,61,122,0.16);
+          background: #fff;
+          border: 3px solid #FFCC00;
+          box-shadow: 0 5px 0 #E09B00, 0 12px 28px rgba(15,61,122,0.1);
         }
         .ibx-input {
           border: 2px solid #93C5FD;
           background: #fff;
+          font-size: 16px;
         }
         .ibx-input:focus {
           outline: none;
@@ -144,6 +152,28 @@ const InnoClubEvaluationPage: React.FC = () => {
           box-shadow: 0 0 0 3px rgba(255,204,0,0.35);
         }
         .ibx-score:active { transform: translateY(2px); }
+        .ibx-q {
+          color: #0B1F3A;
+          font-weight: 800;
+          line-height: 1.45;
+        }
+        @media (min-width: 640px) {
+          .ibx-overlay {
+            background:
+              linear-gradient(180deg, rgba(125,211,252,0.45) 0%, rgba(240,249,255,0.78) 40%, rgba(255,247,214,0.9) 100%),
+              radial-gradient(ellipse 80% 50% at 50% 0%, rgba(255,204,0,0.16), transparent 60%);
+          }
+          .ibx-card {
+            background: rgba(255,255,255,0.96);
+            border-width: 3px;
+            box-shadow: 0 8px 0 rgba(15,61,122,0.18), 0 18px 36px rgba(15,61,122,0.12);
+          }
+          .ibx-hero {
+            background: linear-gradient(180deg, #fff, #FFF8D6);
+            border-width: 4px;
+            box-shadow: 0 10px 0 #E09B00, 0 22px 40px rgba(15,61,122,0.16);
+          }
+        }
       `}</style>
     </div>
   );
@@ -170,47 +200,47 @@ const InnoClubEvaluationPage: React.FC = () => {
 
   return pageShell(
     <>
-      <header className="sticky top-0 z-30 border-b-2 border-[#1E90FF]/35 bg-white/80 px-4 py-3 backdrop-blur-md sm:px-6">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3">
+      <header className="sticky top-0 z-30 border-b border-[#93C5FD] bg-white px-3 py-2.5 sm:border-b-2 sm:border-[#1E90FF]/35 sm:bg-white/90 sm:px-6 sm:py-3 sm:backdrop-blur-md">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-2">
           <Link
             to="/"
-            className="flex items-center gap-2 rounded-[12px] border-2 border-[#93C5FD] bg-white px-3 py-2 text-sm font-extrabold text-[#0F3D7A] shadow-sm hover:border-[#FFB800]"
+            className="inline-flex min-h-11 items-center gap-1.5 rounded-[12px] border-2 border-[#93C5FD] bg-white px-3 py-2 text-sm font-extrabold text-[#0B1F3A] shadow-sm hover:border-[#FFB800]"
           >
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
             </svg>
             หน้าหลัก
           </Link>
-          <div className="flex items-center gap-2 rounded-[14px] border-2 border-[#E09B00] bg-[#FFCC00] px-2.5 py-1.5 text-black shadow-[0_4px_0_#E09B00]">
-            <BrandLogo className="text-[18px] sm:text-[22px]" tone="dark" />
+          <div className="flex items-center gap-2 rounded-[12px] border-2 border-[#E09B00] bg-[#FFCC00] px-2 py-1 text-black shadow-[0_3px_0_#E09B00] sm:rounded-[14px] sm:px-2.5 sm:py-1.5 sm:shadow-[0_4px_0_#E09B00]">
+            <BrandLogo className="text-[16px] sm:text-[22px]" tone="dark" />
           </div>
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 sm:py-12 xl:px-10">
-        <section className="ibx-hero mx-auto mb-8 max-w-5xl rounded-[28px] p-5 text-center sm:mb-10 sm:p-8">
-          <p className="ibx-display text-xs font-bold uppercase tracking-[0.28em] text-[#1E90FF] sm:text-sm">
+      <main className="mx-auto w-full max-w-6xl flex-1 px-3 pb-28 pt-5 sm:px-6 sm:pb-12 sm:py-12 xl:px-10">
+        <section className="ibx-hero mx-auto mb-5 max-w-5xl rounded-[20px] p-4 text-center sm:mb-10 sm:rounded-[28px] sm:p-8">
+          <p className="ibx-display text-[11px] font-bold uppercase tracking-[0.18em] text-[#1E90FF] sm:text-sm sm:tracking-[0.28em]">
             PTT GROUP INNO CLUB · INNOBLOX
           </p>
-          <h1 className="ibx-display mt-2 text-2xl font-bold leading-tight text-[#0F3D7A] sm:text-4xl lg:text-5xl">
+          <h1 className="ibx-display mt-1.5 text-[1.45rem] font-bold leading-snug text-[#0B1F3A] sm:mt-2 sm:text-4xl lg:text-5xl">
             แบบประเมินความพึงพอใจ
           </h1>
-          <p className="mx-auto mt-3 max-w-3xl text-sm font-extrabold leading-relaxed text-[#1E3A5F] sm:text-base lg:text-lg">
+          <p className="mx-auto mt-2.5 max-w-3xl text-[15px] font-extrabold leading-relaxed text-[#0B1F3A] sm:mt-3 sm:text-base lg:text-lg">
             ครั้งที่ 3 — วันที่ 27 ตุลาคม 2569
             <br />
             Synergy Hall EnCo C ชั้น 6
           </p>
-          <p className="mt-4 inline-flex rounded-full border-2 border-[#1E90FF] bg-[#E0F2FE] px-4 py-1.5 text-xs font-extrabold text-[#0F3D7A] sm:text-sm">
+          <p className="mt-3 inline-flex max-w-full rounded-full border-2 border-[#1E90FF] bg-[#E0F2FE] px-3 py-1.5 text-left text-[13px] font-extrabold leading-snug text-[#0B1F3A] sm:mt-4 sm:px-4 sm:text-sm">
             ระดับความพึงพอใจ: 5 = มากที่สุด · 1 = น้อยที่สุด
           </p>
         </section>
 
-        <div className="sticky top-[4.25rem] z-20 -mx-4 mb-8 border-y-2 border-[#1E90FF]/40 bg-white/90 px-4 py-3 backdrop-blur sm:static sm:mx-auto sm:mb-10 sm:max-w-5xl sm:rounded-[20px] sm:border-2 sm:border-[#1E90FF] sm:bg-white/95 lg:px-6">
-          <div className="flex items-center justify-between gap-3 text-sm lg:text-base">
-            <p className="font-extrabold text-[#0F3D7A]">ความคืบหน้าแบบประเมิน</p>
-            <p className="font-black text-[#0F3D7A]">
+        <div className="mb-5 rounded-[16px] border-2 border-[#1E90FF] bg-white px-3.5 py-3 sm:static sm:mx-auto sm:mb-10 sm:max-w-5xl sm:rounded-[20px] sm:bg-white/95 lg:px-6">
+          <div className="flex items-center justify-between gap-3 text-[15px] sm:text-base">
+            <p className="font-extrabold text-[#0B1F3A]">ความคืบหน้า</p>
+            <p className="font-black text-[#0B1F3A]">
               {answeredRequiredCount}/{requiredTotal}{' '}
-              <span className="font-bold text-[#64748B]">ข้อบังคับ</span>
+              <span className="font-bold text-[#475569]">ข้อบังคับ</span>
             </p>
           </div>
           <div className="mt-2 h-3 overflow-hidden rounded-full border-2 border-[#93C5FD] bg-[#E0F2FE]">
@@ -221,106 +251,102 @@ const InnoClubEvaluationPage: React.FC = () => {
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="mx-auto max-w-5xl space-y-7 sm:space-y-10">
+        <form onSubmit={handleSubmit} className="mx-auto max-w-5xl space-y-4 sm:space-y-10">
           {error && (
             <div className="rounded-[16px] border-2 border-red-400 bg-red-50 px-4 py-3 text-sm font-bold text-red-700">
               {error}
             </div>
           )}
 
-          <section className="ibx-card rounded-[24px] p-4 sm:p-8 lg:p-10">
-            <h2 className="ibx-display mb-6 text-xl font-bold text-[#1E90FF] lg:text-3xl">Facilitator</h2>
-            <div className="space-y-5">
-              <p className="text-base font-extrabold leading-relaxed text-[#0F172A] lg:text-xl">
-                1. ความพึงพอใจโดยรวมต่อ Facilitator *
-              </p>
+          <section className="ibx-card rounded-[18px] p-3.5 sm:rounded-[24px] sm:p-8 lg:p-10">
+            <h2 className="ibx-display mb-4 text-lg font-bold text-[#1E90FF] sm:mb-6 sm:text-xl lg:text-3xl">Facilitator</h2>
+            <div className="space-y-4 sm:space-y-5">
+              <p className="ibx-q text-[15px] sm:text-base lg:text-xl">1. ความพึงพอใจโดยรวมต่อ Facilitator *</p>
               {renderScoreGroup('facilitator_score', 'facilitator_score')}
-              <p className="mt-3 text-sm font-bold text-[#475569]">2. ข้อเสนอแนะ</p>
+              <p className="mt-2 text-[14px] font-bold text-[#334155] sm:text-sm">2. ข้อเสนอแนะ</p>
               <textarea
                 value={form.facilitator_comment}
                 onChange={(e) => setText('facilitator_comment', e.target.value)}
                 rows={3}
                 placeholder="ระบุข้อเสนอแนะ (ถ้ามี)..."
-                className="ibx-input w-full resize-none rounded-[14px] px-4 py-3 text-base font-semibold text-[#0F172A] placeholder:text-slate-400"
+                className="ibx-input w-full resize-none rounded-[14px] px-3.5 py-3 font-semibold text-[#0B1F3A] placeholder:text-slate-500"
               />
             </div>
           </section>
 
-          <section className="ibx-card rounded-[24px] p-4 sm:p-8 lg:p-10">
-            <h2 className="ibx-display mb-6 text-xl font-bold text-[#1E90FF] lg:text-3xl">
+          <section className="ibx-card rounded-[18px] p-3.5 sm:rounded-[24px] sm:p-8 lg:p-10">
+            <h2 className="ibx-display mb-4 text-lg font-bold text-[#1E90FF] sm:mb-6 sm:text-xl lg:text-3xl">
               เนื้อหาของ PTT GROUP INNO Club
             </h2>
-            <div className="space-y-5">
-              <p className="text-base font-extrabold leading-relaxed text-[#0F172A] lg:text-xl">
-                1. ความพึงพอใจโดยรวมต่อเนื้อหาของกิจกรรม *
-              </p>
+            <div className="space-y-4 sm:space-y-5">
+              <p className="ibx-q text-[15px] sm:text-base lg:text-xl">1. ความพึงพอใจโดยรวมต่อเนื้อหาของกิจกรรม *</p>
               {renderScoreGroup('content_score', 'content_score')}
-              <p className="mt-3 text-sm font-bold text-[#475569]">2. ข้อเสนอแนะ</p>
+              <p className="mt-2 text-[14px] font-bold text-[#334155] sm:text-sm">2. ข้อเสนอแนะ</p>
               <textarea
                 value={form.content_comment}
                 onChange={(e) => setText('content_comment', e.target.value)}
                 rows={3}
                 placeholder="ระบุข้อเสนอแนะ (ถ้ามี)..."
-                className="ibx-input w-full resize-none rounded-[14px] px-4 py-3 text-base font-semibold text-[#0F172A] placeholder:text-slate-400"
+                className="ibx-input w-full resize-none rounded-[14px] px-3.5 py-3 font-semibold text-[#0B1F3A] placeholder:text-slate-500"
               />
             </div>
           </section>
 
-          <section className="ibx-card rounded-[24px] p-4 sm:p-8 lg:p-10">
-            <h2 className="ibx-display mb-6 text-xl font-bold leading-relaxed text-[#1E90FF] lg:text-3xl">
+          <section className="ibx-card rounded-[18px] p-3.5 sm:rounded-[24px] sm:p-8 lg:p-10">
+            <h2 className="ibx-display mb-4 text-lg font-bold leading-snug text-[#1E90FF] sm:mb-6 sm:text-xl lg:text-3xl">
               ความพึงพอใจโดยรวมและความคิดเห็นต่อ PTT GROUP INNO Club
             </h2>
-            <div className="space-y-7">
+            <div className="space-y-5 sm:space-y-7">
               <div>
-                <p className="mb-3 text-base font-extrabold leading-relaxed text-[#0F172A] lg:text-xl">
+                <p className="ibx-q mb-2.5 text-[15px] sm:mb-3 sm:text-base lg:text-xl">
                   1. ความพึงพอใจโดยรวมต่อ PTT GROUP INNO Club *
                 </p>
                 {renderScoreGroup('overall_score', 'overall_score')}
               </div>
               <div>
-                <p className="mb-3 text-base font-extrabold leading-relaxed text-[#0F172A] lg:text-xl">
+                <p className="ibx-q mb-2.5 text-[15px] sm:mb-3 sm:text-base lg:text-xl">
                   2. ท่านเห็นบรรยากาศ PTT GROUP INNO Club ครั้งนี้ ส่งเสริมให้ทุกคนกล้าแสดงความคิดเห็น และสร้างการมีส่วนร่วมมากน้อยเพียงใด *
                 </p>
                 {renderScoreGroup('atmosphere_score', 'atmosphere_score')}
               </div>
               <div>
-                <p className="mb-3 text-base font-extrabold leading-relaxed text-[#0F172A] lg:text-xl">
+                <p className="ibx-q mb-2.5 text-[15px] sm:mb-3 sm:text-base lg:text-xl">
                   3. PTT GROUP INNO Club ครั้งนี้ มีการแบ่งปัน แลกเปลี่ยนข้อมูลระหว่างกันมากน้อยเพียงใด *
                 </p>
                 {renderScoreGroup('sharing_score', 'sharing_score')}
               </div>
               <div>
-                <p className="mb-3 text-sm font-bold text-[#475569]">4. ข้อเสนอแนะเพิ่มเติม</p>
+                <p className="mb-2 text-[14px] font-bold text-[#334155] sm:mb-3 sm:text-sm">4. ข้อเสนอแนะเพิ่มเติม</p>
                 <textarea
                   value={form.overall_comment}
                   onChange={(e) => setText('overall_comment', e.target.value)}
                   rows={3}
                   placeholder="ระบุข้อเสนอแนะ (ถ้ามี)..."
-                  className="ibx-input w-full resize-none rounded-[14px] px-4 py-3 text-base font-semibold text-[#0F172A] placeholder:text-slate-400"
+                  className="ibx-input w-full resize-none rounded-[14px] px-3.5 py-3 font-semibold text-[#0B1F3A] placeholder:text-slate-500"
                 />
               </div>
             </div>
           </section>
 
-          <section className="ibx-card rounded-[24px] p-4 sm:p-8 lg:p-10">
-            <h2 className="ibx-display mb-6 text-xl font-bold text-[#1E90FF] lg:text-3xl">
+          <section className="ibx-card rounded-[18px] p-3.5 sm:rounded-[24px] sm:p-8 lg:p-10">
+            <h2 className="ibx-display mb-4 text-lg font-bold text-[#1E90FF] sm:mb-6 sm:text-xl lg:text-3xl">
               ข้อเสนอแนะและแนวทางการนำไปใช้
             </h2>
-            <div className="space-y-7">
+            <div className="space-y-5 sm:space-y-7">
               <div>
-                <p className="mb-3 text-base font-extrabold leading-relaxed text-[#0F172A] lg:text-xl">
+                <p className="ibx-q mb-2.5 text-[15px] sm:mb-3 sm:text-base lg:text-xl">
                   1. ท่านมีความพึงพอใจต่อประสบการณ์การเรียนรู้ผ่าน Digital Simulation-Based Learning บนแพลตฟอร์ม Roblox ในระดับใด *
                 </p>
                 {renderScoreGroup('simulation_score', 'simulation_score')}
               </div>
               <div>
-                <p className="mb-3 text-base font-extrabold leading-relaxed text-[#0F172A] lg:text-xl">
+                <p className="ibx-q mb-2.5 text-[15px] sm:mb-3 sm:text-base lg:text-xl">
                   2. กิจกรรมจำลองสถานการณ์นี้ช่วยให้ท่านได้ฝึกทักษะการคิด การตัดสินใจ และการปรับตัวภายใต้ข้อจำกัดและการเปลี่ยนแปลงมากน้อยเพียงใด *
                 </p>
                 {renderScoreGroup('skill_score', 'skill_score')}
               </div>
               <div>
-                <p className="mb-3 text-base font-extrabold leading-relaxed text-[#0F172A] lg:text-xl">
+                <p className="ibx-q mb-2.5 text-[15px] sm:mb-3 sm:text-base lg:text-xl">
                   3. หากมีการจัดกิจกรรมลักษณะเดียวกันในอนาคต ท่านสนใจเข้าร่วมอีกครั้งหรือไม่ *
                 </p>
                 <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:gap-3">
@@ -329,10 +355,10 @@ const InnoClubEvaluationPage: React.FC = () => {
                     return (
                       <label
                         key={choice}
-                        className={`flex min-h-[52px] cursor-pointer items-center justify-center rounded-[14px] border-2 px-4 py-3 text-base font-black transition-all lg:text-lg ${
+                        className={`flex min-h-12 cursor-pointer items-center justify-center rounded-[12px] border-2 px-3 py-3 text-[15px] font-black transition-all sm:min-h-[52px] sm:rounded-[14px] sm:px-4 sm:text-base lg:text-lg ${
                           selected
-                            ? 'border-[#FFB800] bg-[#FFCC00] text-[#1a1a1a] shadow-[0_4px_0_#E09B00]'
-                            : 'border-[#2B6CB0] bg-white text-[#0F3D7A] hover:border-[#FFB800]'
+                            ? 'border-[#E09B00] bg-[#FFCC00] text-[#111] shadow-[0_3px_0_#E09B00]'
+                            : 'border-[#1E5FA8] bg-[#F8FAFC] text-[#0B1F3A] hover:border-[#FFB800]'
                         }`}
                       >
                         <input
@@ -349,7 +375,7 @@ const InnoClubEvaluationPage: React.FC = () => {
                 </div>
               </div>
               <div>
-                <p className="mb-3 text-base font-extrabold leading-relaxed text-[#0F172A] lg:text-xl">
+                <p className="ibx-q mb-2.5 text-[15px] sm:mb-3 sm:text-base lg:text-xl">
                   4. โปรดระบุข้อเสนอแนะเพิ่มเติมเพื่อปรับปรุงและพัฒนากิจกรรม
                 </p>
                 <textarea
@@ -357,24 +383,24 @@ const InnoClubEvaluationPage: React.FC = () => {
                   onChange={(e) => setText('improvement_suggestions', e.target.value)}
                   rows={4}
                   placeholder="ระบุข้อเสนอแนะ (ถ้ามี)..."
-                  className="ibx-input w-full resize-none rounded-[14px] px-4 py-3 text-base font-semibold text-[#0F172A] placeholder:text-slate-400"
+                  className="ibx-input w-full resize-none rounded-[14px] px-3.5 py-3 font-semibold text-[#0B1F3A] placeholder:text-slate-500"
                 />
               </div>
             </div>
           </section>
 
-          <div className="sticky bottom-0 z-20 -mx-4 border-t-2 border-[#1E90FF]/30 bg-white/90 px-4 pt-3 pb-4 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0">
-            <div className="flex flex-col justify-center gap-3 pt-0 sm:flex-row sm:gap-4 sm:pt-4">
+          <div className="fixed inset-x-0 bottom-0 z-20 border-t border-[#93C5FD] bg-white px-3 pt-2.5 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-8px_24px_rgba(15,61,122,0.12)] sm:static sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none">
+            <div className="mx-auto flex max-w-5xl flex-col justify-center gap-2 sm:flex-row sm:gap-4 sm:pt-4">
               <button
                 type="submit"
                 disabled={loading || !allRequiredFilled}
-                className="w-full rounded-[16px] border-2 border-[#E09B00] bg-[#FFCC00] px-8 py-4 text-base font-black text-[#1a1a1a] shadow-[0_6px_0_#E09B00] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto lg:px-10 lg:text-lg"
+                className="min-h-12 w-full rounded-[14px] border-2 border-[#E09B00] bg-[#FFCC00] px-6 py-3 text-[15px] font-black text-[#111] shadow-[0_4px_0_#E09B00] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-50 sm:min-h-0 sm:w-auto sm:rounded-[16px] sm:px-8 sm:py-4 sm:text-base sm:shadow-[0_6px_0_#E09B00] lg:px-10 lg:text-lg"
               >
                 {loading ? 'กำลังส่ง...' : 'ส่งแบบประเมิน'}
               </button>
               <Link
                 to="/"
-                className="w-full rounded-[16px] border-2 border-[#93C5FD] bg-white px-8 py-4 text-center text-base font-extrabold text-[#0F3D7A] shadow-[0_4px_0_rgba(30,144,255,0.25)] transition hover:border-[#1E90FF] sm:w-auto lg:px-10 lg:text-lg"
+                className="flex min-h-11 w-full items-center justify-center rounded-[14px] border-2 border-[#93C5FD] bg-white px-6 py-2.5 text-center text-[15px] font-extrabold text-[#0B1F3A] sm:min-h-0 sm:w-auto sm:rounded-[16px] sm:px-8 sm:py-4 sm:text-base lg:px-10 lg:text-lg"
               >
                 ยกเลิก
               </Link>
