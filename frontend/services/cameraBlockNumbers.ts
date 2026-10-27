@@ -1,6 +1,6 @@
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
-export const GROUP_COUNT = 9;
+export const GROUP_COUNT = 8;
 
 export type NumberPoolStatus = {
   assigned: number[];
