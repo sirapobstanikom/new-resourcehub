@@ -78,6 +78,7 @@ const ElevatePretestPosttestEditorPage = lazy(() => import('./components/Elevate
 const ElevatePretestPosttestFormPage = lazy(() => import('./components/ElevatePretestPosttestFormPage'));
 const ElevatePretestPosttestDashboardPage = lazy(() => import('./components/ElevatePretestPosttestDashboardPage'));
 const ActivityRegistrationPage = lazy(() => import('./components/ActivityRegistrationPage'));
+const LinkVaultPage = lazy(() => import('./components/LinkVaultPage'));
 
 function cleanupArOverlays(): void {
   document.querySelectorAll('video').forEach((v) => {
@@ -454,6 +455,18 @@ const App: React.FC = () => {
           <Route path="/event-registration" element={<ActivityRegistrationPage />} />
           <Route path="/register-activity" element={<ActivityRegistrationPage />} />
           <Route path="*" element={<Navigate to="/activity-registration" replace />} />
+        </Routes>
+      </Suspense>
+    );
+  }
+
+  if (pathname.startsWith('/links') || pathname.startsWith('/link-vault')) {
+    return (
+      <Suspense fallback={<RouteFallback />}>
+        <Routes>
+          <Route path="/links" element={<LinkVaultPage />} />
+          <Route path="/link-vault" element={<LinkVaultPage />} />
+          <Route path="*" element={<Navigate to="/links" replace />} />
         </Routes>
       </Suspense>
     );
