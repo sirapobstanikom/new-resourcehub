@@ -132,18 +132,6 @@ function isWeekend(isoDate: string): boolean {
   return day === 0 || day === 6;
 }
 
-/** ตรวจว่าช่วงวันที่มีวันเสาร์หรืออาทิตย์รวมอยู่หรือไม่ */
-function dateRangeIncludesWeekend(startIso: string, endIso: string): boolean {
-  const start = new Date(startIso + 'T12:00:00Z').getTime();
-  const end = new Date(endIso + 'T12:00:00Z').getTime();
-  const oneDay = 24 * 60 * 60 * 1000;
-  for (let t = start; t <= end; t += oneDay) {
-    const d = new Date(t);
-    if (d.getUTCDay() === 0 || d.getUTCDay() === 6) return true;
-  }
-  return false;
-}
-
 const MAX_LEAVE_ATTACHMENT_BYTES = 5 * 1024 * 1024;
 const LEAVE_ATTACHMENT_ACCEPT = 'image/jpeg,image/png,image/webp,image/gif,application/pdf';
 
@@ -330,7 +318,6 @@ const AdminLeavePage: React.FC = () => {
   const [reason, setReason] = useState('');
   const [otherLeavePurpose, setOtherLeavePurpose] = useState('');
   const [sickAttachment, setSickAttachment] = useState<File | null>(null);
-  const [weekendError, setWeekendError] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -714,8 +701,9 @@ const AdminLeavePage: React.FC = () => {
       setSubmitError('เฉพาะลาป่วยเท่านั้นที่ยื่นย้อนหลังได้');
       return;
     }
-    if (dateRangeIncludesWeekend(startDate, endDate)) {
-      setSubmitError('ห้ามลาวันเสาร์และอาทิตย์ (เวลาทำงาน จันทร์–ศุกร์)');
+    const weekdayCount = countWeekdaysInRange(startDate, endDate);
+    if (weekdayCount <= 0) {
+      setSubmitError('ช่วงวันที่ที่เลือกไม่มีวันทำงาน (จันทร์–ศุกร์) — เสาร์–อาทิตย์ไม่นับเป็นวันลา');
       return;
     }
 
@@ -1188,8 +1176,18 @@ const AdminLeavePage: React.FC = () => {
     );
   };
 
-  const sickWeekdayCountForForm =
-    leaveType === 'sick' && startDate && endDate ? countWeekdaysInRange(startDate, endDate) : 0;
+  const formWeekdayCount =
+    startDate && endDate ? countWeekdaysInRange(startDate, endDate) : 0;
+  const sickWeekdayCountForForm = leaveType === 'sick' ? formWeekdayCount : 0;
+  const formLeaveSlotLabel =
+    startDate && endDate
+      ? formatLeaveSlotLabel(
+          startDate,
+          endDate,
+          startDate === endDate ? startTime : null,
+          startDate === endDate ? endTime : null,
+        )
+      : '';
 
   const swapFridayOptions = (() => {
     if (!isForcedMonthlyWfhUser || !user?.email) return [];
@@ -1391,7 +1389,7 @@ const AdminLeavePage: React.FC = () => {
             <p className="text-xs text-gray-500 mt-1">เฉพาะลาป่วยเท่านั้นที่ยื่นย้อนหลังได้</p>
           </div>
           <p className="text-xs text-gray-500 break-words">
-            เวลาทำงาน จันทร์–ศุกร์ 9.00–17.00 น. หยุดเสาร์–อาทิตย์ (ห้ามเลือกวันเสาร์และอาทิตย์) — ลาได้เฉพาะเต็มวันหรือครึ่งวันเช้า/บ่าย (ไม่แบ่งเป็นชั่วโมง)
+            เวลาทำงาน จันทร์–ศุกร์ 9.00–17.00 น. — ลายาวข้ามเสาร์–อาทิตย์ได้ โดยเสาร์–อาทิตย์ไม่นับเป็นวันลา · ลาวันเดียวเลือกได้เต็มวันหรือครึ่งวันเช้า/บ่าย
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="min-w-0 overflow-hidden">
@@ -1402,12 +1400,6 @@ const AdminLeavePage: React.FC = () => {
                 min={leaveType === 'sick' ? undefined : today}
                 onChange={(e) => {
                   const v = e.target.value;
-                  if (v && isWeekend(v)) {
-                    setWeekendError('ห้ามเลือกวันเสาร์และอาทิตย์');
-                    setStartDate('');
-                    return;
-                  }
-                  setWeekendError(null);
                   setSubmitError(null);
                   setStartDate(v);
                   if (v && endDate && v > endDate) {
@@ -1426,12 +1418,6 @@ const AdminLeavePage: React.FC = () => {
                 min={startDate || undefined}
                 onChange={(e) => {
                   const v = e.target.value;
-                  if (v && isWeekend(v)) {
-                    setWeekendError('ห้ามเลือกวันเสาร์และอาทิตย์');
-                    setEndDate('');
-                    return;
-                  }
-                  setWeekendError(null);
                   setSubmitError(null);
                   setEndDate(v);
                 }}
@@ -1440,8 +1426,20 @@ const AdminLeavePage: React.FC = () => {
               />
             </div>
           </div>
-          {weekendError && <p className="text-sm text-amber-700">{weekendError}</p>}
-          {startDate && endDate && startDate === endDate && !dateRangeIncludesWeekend(startDate, endDate) && (
+          {startDate && endDate && formWeekdayCount > 0 && (
+            <p className="rounded-xl border border-[#D6D4CC] bg-[#F8F7F3] px-3 py-2 text-sm text-gray-700">
+              นับเป็นวันลา: <strong>{formLeaveSlotLabel}</strong>
+              {startDate !== endDate ? (
+                <span className="text-gray-500"> — รวม {formWeekdayCount} วันทำงาน (ไม่นับเสาร์–อาทิตย์)</span>
+              ) : null}
+            </p>
+          )}
+          {startDate && endDate && formWeekdayCount <= 0 && (
+            <p className="text-sm text-amber-700">
+              ช่วงนี้มีแต่เสาร์–อาทิตย์ จึงยังไม่นับเป็นวันลา — เลือกให้มีอย่างน้อย 1 วันทำงาน (จันทร์–ศุกร์)
+            </p>
+          )}
+          {startDate && endDate && startDate === endDate && !isWeekend(startDate) && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">ลา 1 วัน — เต็มวันหรือครึ่งวัน</label>
               {leaveType === 'wfh' ? (
