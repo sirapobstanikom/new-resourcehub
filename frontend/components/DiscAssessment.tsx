@@ -9,7 +9,6 @@ import {
   type DiscType,
 } from '../data/discData';
 import { isSupabaseConfigured, supabase } from '../lib/supabase';
-import { Chart } from 'react-google-charts';
 import { getDiscFeedback } from '../services/openai';
 
 type Step = 'login' | 'assessment' | 'result';
@@ -49,6 +48,11 @@ function readDiscJson<T>(key: string): T | null {
 
 const DISC_RESULT_KEY = 'disc_result';
 const DISC_DRAFT_KEY = 'disc_draft';
+
+const DISC_BG_URL =
+  'https://axaasphuaaadzjoffznj.supabase.co/storage/v1/object/public/Assessment%20Minddojo/DISC%20Assessment/Minimal%20white%20background%20with%20cyan-yellow%20waves.png';
+const DISC_HERO_URL =
+  'https://axaasphuaaadzjoffznj.supabase.co/storage/v1/object/public/Assessment%20Minddojo/DISC%20Assessment/Airy%20staggered%20DISC%20character%20portraits.png';
 
 type DiscResultPayload = {
   user: UserInfo;
@@ -184,6 +188,236 @@ const DISC_TYPE_BY_QUESTION_NUMBER: Record<DiscType, Set<number>> = {
   C: new Set<number>([1, 6, 10, 16, 17, 23, 28, 30, 35, 40]),
 };
 
+const DISC_FLOW_STAGES = [
+  { id: 1, label: 'ลงทะเบียน' },
+  { id: 2, label: 'อ่านวิธีทำ' },
+  { id: 3, label: 'เริ่มทำแบบทดสอบ' },
+] as const;
+
+function DiscStageBar({ current }: { current: 1 | 2 | 3 }) {
+  return (
+    <nav aria-label="ขั้นตอนแบบทดสอบ" className="w-full">
+      <ol className="flex items-stretch gap-1.5 sm:gap-2">
+        {DISC_FLOW_STAGES.map((stage) => {
+          const done = stage.id < current;
+          const active = stage.id === current;
+          return (
+            <li key={stage.id} className="min-w-0 flex-1">
+              <div
+                className={`flex h-full items-center gap-2 rounded-2xl border px-2.5 py-2.5 transition sm:px-3 sm:py-3 ${
+                  active
+                    ? 'border-[#FFCC00] bg-[#FFF8D6] shadow-[0_2px_0_rgba(224,168,0,0.35)]'
+                    : done
+                      ? 'border-[#E8E6DF] bg-white'
+                      : 'border-[#EEECE6] bg-[#F7F6F2]'
+                }`}
+              >
+                <span
+                  className={`inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-black sm:h-8 sm:w-8 sm:text-sm ${
+                    active
+                      ? 'bg-[#FFCC00] text-black'
+                      : done
+                        ? 'bg-emerald-500 text-white'
+                        : 'bg-white text-gray-400 border border-[#E2DFD6]'
+                  }`}
+                  aria-current={active ? 'step' : undefined}
+                >
+                  {done ? '✓' : stage.id}
+                </span>
+                <span
+                  className={`min-w-0 truncate text-[11px] font-bold leading-tight sm:text-sm ${
+                    active ? 'text-[#6B5200]' : done ? 'text-gray-800' : 'text-gray-400'
+                  }`}
+                >
+                  {stage.label}
+                </span>
+              </div>
+            </li>
+          );
+        })}
+      </ol>
+    </nav>
+  );
+}
+
+const DISC_TEST_PATH = [
+  { id: 1, label: 'ข้อมูลผู้ทำแบบทดสอบ' },
+  { id: 2, label: 'ทำแบบทดสอบ' },
+  { id: 3, label: 'ผลลัพธ์แบบทดสอบ' },
+] as const;
+
+const STATEMENT_BADGE_STYLES = [
+  'bg-rose-100 text-rose-700',
+  'bg-amber-100 text-amber-800',
+  'bg-emerald-100 text-emerald-700',
+  'bg-sky-100 text-sky-700',
+] as const;
+
+function DiscTestPathStepper({ current }: { current: 1 | 2 | 3 }) {
+  return (
+    <nav aria-label="ความคืบหน้าแบบทดสอบ" className="w-full">
+      <ol className="flex items-start justify-between gap-1">
+        {DISC_TEST_PATH.map((stage, index) => {
+          const done = stage.id < current;
+          const active = stage.id === current;
+          const isLast = index === DISC_TEST_PATH.length - 1;
+          return (
+            <li key={stage.id} className="relative flex min-w-0 flex-1 flex-col items-center text-center">
+              {!isLast && (
+                <span
+                  className={`absolute left-[calc(50%+18px)] right-[calc(-50%+18px)] top-4 h-0.5 sm:top-[18px] ${
+                    done || active ? 'bg-[#FFCC00]' : 'bg-[#E5E2DA]'
+                  }`}
+                  aria-hidden
+                />
+              )}
+              <span
+                className={`relative z-[1] inline-flex h-8 w-8 items-center justify-center rounded-full text-xs font-black sm:h-9 sm:w-9 sm:text-sm ${
+                  done
+                    ? 'bg-emerald-500 text-white'
+                    : active
+                      ? 'bg-[#FFCC00] text-black'
+                      : 'border-2 border-[#D6D4CC] bg-white text-gray-400'
+                }`}
+                aria-current={active ? 'step' : undefined}
+              >
+                {done ? '✓' : String(stage.id).padStart(2, '0')}
+              </span>
+              <span
+                className={`mt-2 max-w-[7.5rem] text-[10px] font-bold leading-snug sm:max-w-none sm:text-xs ${
+                  active ? 'text-gray-950' : done ? 'text-gray-700' : 'text-gray-400'
+                }`}
+              >
+                {stage.label}
+              </span>
+            </li>
+          );
+        })}
+      </ol>
+    </nav>
+  );
+}
+
+const DISC_PIE_ORDER: DiscType[] = ['D', 'I', 'S', 'C'];
+
+function polarToCartesian(cx: number, cy: number, r: number, angleDeg: number) {
+  const rad = ((angleDeg - 90) * Math.PI) / 180;
+  return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
+}
+
+function describeDonutSlice(
+  cx: number,
+  cy: number,
+  outerR: number,
+  innerR: number,
+  startAngle: number,
+  endAngle: number,
+) {
+  const sweep = Math.min(Math.max(endAngle - startAngle, 0), 359.99);
+  const end = startAngle + sweep;
+  const largeArc = sweep > 180 ? 1 : 0;
+  const os = polarToCartesian(cx, cy, outerR, startAngle);
+  const oe = polarToCartesian(cx, cy, outerR, end);
+  const is = polarToCartesian(cx, cy, innerR, end);
+  const ie = polarToCartesian(cx, cy, innerR, startAngle);
+  return [
+    `M ${os.x} ${os.y}`,
+    `A ${outerR} ${outerR} 0 ${largeArc} 1 ${oe.x} ${oe.y}`,
+    `L ${is.x} ${is.y}`,
+    `A ${innerR} ${innerR} 0 ${largeArc} 0 ${ie.x} ${ie.y}`,
+    'Z',
+  ].join(' ');
+}
+
+function DiscPieChart({
+  scores,
+  colors,
+  primaryType,
+  labels,
+}: {
+  scores: Record<DiscType, number>;
+  colors: Record<DiscType, string>;
+  primaryType: DiscType;
+  labels: Record<DiscType, string>;
+}) {
+  const [hoverType, setHoverType] = useState<DiscType | null>(null);
+  const total = DISC_PIE_ORDER.reduce((sum, t) => sum + (scores[t] ?? 0), 0);
+  const size = 220;
+  const cx = size / 2;
+  const cy = size / 2;
+  const outerR = 96;
+  const innerR = 52;
+
+  const slices = useMemo(() => {
+    if (total <= 0) return [];
+    let angle = 0;
+    return DISC_PIE_ORDER.map((type) => {
+      const value = scores[type] ?? 0;
+      const sweep = (value / total) * 360;
+      const start = angle;
+      const end = angle + Math.max(sweep, value > 0 ? 0.4 : 0);
+      angle = end;
+      const pct = Math.round((value / total) * 100);
+      return { type, value, pct, start, end };
+    }).filter((s) => s.value > 0);
+  }, [scores, total]);
+
+  const active = hoverType ?? primaryType;
+  const activePct = total > 0 ? Math.round(((scores[active] ?? 0) / total) * 100) : 0;
+
+  return (
+    <div className="relative mx-auto flex w-full max-w-[260px] flex-col items-center">
+      <svg
+        viewBox={`0 0 ${size} ${size}`}
+        className="h-[220px] w-[220px] overflow-visible"
+        role="img"
+        aria-label="สัดส่วนคะแนน DISC"
+      >
+        {slices.map((slice) => {
+          const isActive = slice.type === active;
+          const path = describeDonutSlice(cx, cy, outerR, innerR, slice.start, slice.end);
+          return (
+            <path
+              key={slice.type}
+              d={path}
+              fill={colors[slice.type]}
+              opacity={hoverType && !isActive ? 0.55 : 1}
+              className="cursor-pointer outline-none transition-opacity duration-150"
+              onMouseEnter={() => setHoverType(slice.type)}
+              onMouseLeave={() => setHoverType(null)}
+              onFocus={() => setHoverType(slice.type)}
+              onBlur={() => setHoverType(null)}
+              tabIndex={0}
+            />
+          );
+        })}
+        <circle cx={cx} cy={cy} r={innerR - 2} fill="white" />
+        <text
+          x={cx}
+          y={cy - 6}
+          textAnchor="middle"
+          className="fill-gray-950"
+          style={{ fontSize: 28, fontWeight: 800, fontFamily: '"Sukhumvit Set", sans-serif' }}
+        >
+          {active}
+        </text>
+        <text
+          x={cx}
+          y={cy + 18}
+          textAnchor="middle"
+          className="fill-gray-500"
+          style={{ fontSize: 13, fontWeight: 600, fontFamily: '"Sukhumvit Set", sans-serif' }}
+        >
+          {activePct}%
+        </text>
+      </svg>
+      <p className="pointer-events-none mt-1 min-h-[1.25rem] text-center text-xs font-semibold text-gray-500">
+        {labels[active]}
+      </p>
+    </div>
+  );
+}
+
 const DiscAssessment: React.FC = () => {
   const bootstrapRef = useRef(loadDiscBootstrap());
   const bootstrap = bootstrapRef.current;
@@ -235,8 +469,6 @@ const DiscAssessment: React.FC = () => {
     const end = start + (currentQuestion?.statements.length ?? 0) - 1;
     return { start, end };
   }, [currentIndex, currentQuestion]);
-
-  const progress = totalStatements > 0 ? (statementRange.end / totalStatements) * 100 : 0;
 
   // เก็บ state แบบร่างเพื่อให้รีเฟรชแล้วไม่หายระหว่างทำ
   useEffect(() => {
@@ -306,8 +538,23 @@ const DiscAssessment: React.FC = () => {
     return qAnswer[0] != null && qAnswer[1] != null && qAnswer[2] != null && qAnswer[3] != null;
   }, [step, currentQuestion, answers]);
 
+  const answeredStatementCount = useMemo(() => {
+    let count = 0;
+    for (const q of DISC_QUESTIONS) {
+      const qAnswer = answers[q.id];
+      if (!qAnswer) continue;
+      for (const v of Object.values(qAnswer)) {
+        if (v != null) count += 1;
+      }
+    }
+    return count;
+  }, [answers]);
+
   const handlePrev = () => {
-    if (currentIndex <= 0) return;
+    if (currentIndex <= 0) {
+      setStep('login');
+      return;
+    }
     setCurrentIndex((i) => i - 1);
   };
 
@@ -429,7 +676,6 @@ const DiscAssessment: React.FC = () => {
 
   const scores = useMemo(() => calculateScores(), [answers]);
   const primaryType = useMemo(() => getPrimaryType(scores), [scores]);
-  const maxScore = useMemo(() => Math.max(0, ...Object.values(scores)), [scores]);
   const ranking = useMemo(() => {
     const order: DiscType[] = ['D', 'I', 'S', 'C'];
     return [...order].sort((a, b) => (scores[b] ?? 0) - (scores[a] ?? 0));
@@ -480,83 +726,38 @@ const DiscAssessment: React.FC = () => {
     }
   }, [aiFeedback, aiLoading, primaryType, ranking, scores, user.company, user.email, user.name]);
 
-  const typeStyle: Record<DiscType, string> = {
-    D: 'bg-rose-100 border-rose-300 text-rose-700',
-    I: 'bg-amber-100 border-amber-300 text-amber-800',
-    S: 'bg-emerald-100 border-emerald-300 text-emerald-800',
-    C: 'bg-sky-100 border-sky-300 text-sky-800',
-  };
-
   const typeSolid: Record<DiscType, string> = {
-    D: 'bg-rose-500 border-rose-600 text-white shadow-rose-500/25',
-    I: 'bg-amber-500 border-amber-600 text-white shadow-amber-500/25',
-    S: 'bg-emerald-500 border-emerald-600 text-white shadow-emerald-500/25',
-    C: 'bg-sky-500 border-sky-600 text-white shadow-sky-500/25',
+    D: 'bg-[#E57373] text-white',
+    I: 'bg-[#FFB74D] text-white',
+    S: 'bg-[#4DB6AC] text-white',
+    C: 'bg-[#64B5F6] text-white',
   };
 
   const typeBar: Record<DiscType, string> = {
-    D: 'bg-rose-500',
-    I: 'bg-amber-500',
-    S: 'bg-emerald-500',
-    C: 'bg-sky-500',
+    D: 'bg-[#E57373]',
+    I: 'bg-[#FFB74D]',
+    S: 'bg-[#4DB6AC]',
+    C: 'bg-[#64B5F6]',
   };
 
   const dotColor: Record<DiscType, string> = {
-    D: 'bg-rose-500',
-    I: 'bg-amber-500',
-    S: 'bg-emerald-500',
-    C: 'bg-sky-500',
+    D: 'bg-[#E57373]',
+    I: 'bg-[#FFB74D]',
+    S: 'bg-[#4DB6AC]',
+    C: 'bg-[#64B5F6]',
   };
 
   const DISC_PIE_COLORS: Record<DiscType, string> = {
-    D: '#f43f5e', // rose-500
-    I: '#f59e0b', // amber-500
-    S: '#10b981', // emerald-500
-    C: '#0ea5e9', // sky-500
+    D: '#E57373',
+    I: '#FFB74D',
+    S: '#4DB6AC',
+    C: '#64B5F6',
   };
 
-  const pieTypes = ['D', 'I', 'S', 'C'] as DiscType[];
-  const pieTotal = useMemo(() => pieTypes.reduce((sum, t) => sum + (scores[t] ?? 0), 0), [scores]);
-  const pieChartData = useMemo(() => {
-    return [
-      ['Type', 'Score', { role: 'tooltip', type: 'string' }],
-      ...pieTypes.map((t) => {
-        const score = scores[t] ?? 0;
-        const pct = pieTotal > 0 ? Math.round((score / pieTotal) * 100) : 0;
-        const label = `${t}\n${pct}%`;
-        const tooltip = `${DISC_LABELS[t]} (${t})\nScore: ${score}\nPercent: ${pct}%`;
-        return [label, score, tooltip];
-      }),
-    ];
-  }, [pieTotal, scores]);
-
-  const pieChartOptions = useMemo(() => {
-    const maxScoreVal = Math.max(0, ...pieTypes.map((t) => scores[t] ?? 0));
-    const highlightTypes = maxScoreVal > 0 ? pieTypes.filter((t) => (scores[t] ?? 0) === maxScoreVal) : [];
-    const slices = Object.fromEntries(
-      pieTypes.map((t, idx) => {
-        const isHighlight = highlightTypes.includes(t);
-        return [
-          idx,
-          {
-            color: isHighlight ? DISC_PIE_COLORS[t] : '#9ca3af', // เทาจาง
-            ...(isHighlight ? { offset: 0.1 } : {}),
-          },
-        ];
-      }),
-    );
-
-    return {
-      pieHole: 0.45,
-      is3D: true,
-      pieSliceText: 'label',
-      pieSliceTextStyle: { color: '#ffffff', fontSize: 12, bold: true },
-      legend: 'none',
-      slices,
-      backgroundColor: 'transparent',
-      tooltip: { trigger: 'selection' },
-    };
-  }, [DISC_PIE_COLORS, pieTypes, primaryType]);
+  const pieTotal = useMemo(
+    () => DISC_PIE_ORDER.reduce((sum, t) => sum + (scores[t] ?? 0), 0),
+    [scores],
+  );
 
   // เอฟเฟกต์พิมพ์ข้อความ AI แบบเร็ว (เมื่อผู้ใช้กดเปิดดูครั้งแรกเท่านั้น)
   useEffect(() => {
@@ -862,49 +1063,160 @@ const DiscAssessment: React.FC = () => {
   };
 
   return (
-    <div className="md-page">
+    <div className="font-sukhumvit relative flex min-h-dvh flex-col overflow-x-hidden text-gray-900 [font-family:'Sukhumvit_Set',Sarabun,Anuphan,ui-sans-serif,system-ui,sans-serif]">
+      <div
+        className="pointer-events-none fixed inset-0 -z-10 bg-white bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: `url('${DISC_BG_URL}')` }}
+        aria-hidden
+      />
+
       {showIntroModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" aria-modal="true" role="dialog">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6" aria-modal="true" role="dialog">
           <div
-            className="absolute inset-0 bg-black/30 backdrop-blur-sm"
-            onClick={handleCloseIntroAndStartAssessment}
+            className="absolute inset-0 bg-black/40 backdrop-blur-[2px]"
+            onClick={() => setShowIntroModal(false)}
             aria-hidden="true"
           />
-          <div className="relative w-full max-w-lg overflow-hidden rounded-3xl border border-[#D6D4CC] bg-white shadow-2xl">
-            <div className="relative p-8 text-center md:p-10">
-              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#FFCC00] text-3xl shadow-md shadow-yellow-400/40">
-                <span aria-hidden>🧠</span>
+          <div className="relative max-h-[min(920px,94dvh)] w-full max-w-3xl overflow-y-auto rounded-[28px] border border-[#E8E6DF] bg-white shadow-[0_24px_80px_rgba(15,23,42,0.22)]">
+            <button
+              type="button"
+              onClick={() => setShowIntroModal(false)}
+              className="absolute right-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-lg font-bold text-gray-600 transition hover:bg-gray-200 sm:right-4 sm:top-4"
+              aria-label="ปิด"
+            >
+              ×
+            </button>
+
+            <div className="p-5 sm:p-7 md:p-8">
+              <div className="mb-5 pr-8">
+                <DiscStageBar current={2} />
               </div>
-              <h2 className="mb-4 text-2xl font-black tracking-tight text-gray-950 md:text-3xl">แบบทดสอบ DISC</h2>
-              <div className="mb-8 text-sm leading-relaxed text-gray-600 md:text-base">
-                แบบทดสอบนี้มี <span className="font-bold text-gray-900">40 ข้อ</span> (หมายเลข 1–40) ให้คุณ{' '}
-                <span className="font-bold text-gray-900">จัดอันดับคะแนน 1–4</span> โดย
-                <span className="font-bold text-gray-900"> ห้ามใช้เลขซ้ำกันในแต่ละหน้าจอ</span> (1 = ทำน้อยที่สุด, 4 =
-                ทำบ่อยครั้งที่สุด)
-                <div className="mt-3 text-gray-500">เมื่อทำครบ ระบบจะสรุปบุคลิกภาพหลักของคุณเป็น D / I / S / C</div>
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
+                <div className="min-w-0 flex-1 pr-8 sm:pr-0">
+                  <span className="inline-flex items-center rounded-full bg-[#FFCC00] px-3 py-1 text-[11px] font-bold text-black sm:text-xs">
+                    ขั้นที่ 2 · อ่านวิธีทำ
+                  </span>
+                  <h2 className="mt-3 text-2xl font-bold leading-tight text-gray-950 sm:text-3xl md:text-[2.1rem]">
+                    แบบทดสอบ <span className="text-[#FFCC00]">DISC</span>
+                  </h2>
+                  <p className="mt-2 max-w-md text-sm leading-relaxed text-gray-600 sm:text-base">
+                    รู้จักตัวเองมากขึ้น ผ่านพฤติกรรมที่เป็นคุณ
+                  </p>
+                </div>
+                <div className="mx-auto w-full max-w-[220px] shrink-0 sm:mx-0 sm:max-w-[240px] md:max-w-[280px]">
+                  <img
+                    src={DISC_HERO_URL}
+                    alt=""
+                    className="h-auto w-full object-contain drop-shadow-md"
+                    decoding="async"
+                  />
+                </div>
               </div>
-              <button type="button" onClick={handleCloseIntroAndStartAssessment} className="md-btn-primary w-full !rounded-xl !py-3.5">
+
+              <div className="mt-5 border-t border-[#EEECE6] pt-5 sm:mt-6 sm:pt-6">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <h3 className="text-base font-bold text-gray-950 sm:text-lg">จัดอันดับให้ตรงกับตัวคุณ</h3>
+                  <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-500 sm:text-sm">
+                    <svg className="h-4 w-4 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden>
+                      <circle cx="12" cy="12" r="9" strokeWidth="2" />
+                      <path strokeWidth="2" strokeLinecap="round" d="M12 7v5l3 2" />
+                    </svg>
+                    ประมาณ 5–8 นาที
+                  </span>
+                </div>
+                <p className="mt-2 text-sm leading-relaxed text-gray-600 sm:text-[15px]">
+                  ทั้งหมด 40 ข้อ (หมายเลข 1–40) แต่ละหน้ามี 4 ข้อความ ให้คะแนน 1–4 ตามความถี่ของพฤติกรรมที่ตรงกับคุณ
+                </p>
+
+                <div className="mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-4 sm:gap-3">
+                  {(
+                    [
+                      { n: 1, label: 'ทำน้อยที่สุด' },
+                      { n: 2, label: 'ทำน้อย' },
+                      { n: 3, label: 'ทำบ่อย' },
+                      { n: 4, label: 'ทำบ่อยครั้งที่สุด' },
+                    ] as const
+                  ).map((item) => (
+                    <div
+                      key={item.n}
+                      className="flex flex-col items-center justify-center rounded-2xl border border-[#E5E2DA] bg-[#F7F6F2] px-2 py-4 text-center sm:py-5"
+                    >
+                      <span className="text-2xl font-bold text-gray-950 sm:text-3xl">{item.n}</span>
+                      <span className="mt-1 text-[11px] font-semibold leading-snug text-gray-600 sm:text-xs">
+                        {item.label}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-4 flex items-start gap-2.5 rounded-2xl border border-[#F0D56A]/80 bg-[#FFF8D6] px-3.5 py-3 sm:items-center sm:px-4">
+                  <span
+                    className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#FFCC00] text-[11px] font-black text-black sm:mt-0"
+                    aria-hidden
+                  >
+                    !
+                  </span>
+                  <p className="text-sm font-semibold leading-snug text-[#6B5200]">
+                    ห้ามให้คะแนนซ้ำกัน ในแต่ละหน้า ใช้คะแนน 1, 2, 3 และ 4 ให้ครบ
+                  </p>
+                </div>
+
+                <div className="mt-3 flex flex-col gap-3 rounded-2xl bg-[#F3F2ED] px-3.5 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-4">
+                  <p className="text-sm leading-snug text-gray-600">
+                    เมื่อทำครบ 40 ข้อ ระบบจะสรุปลักษณะบุคลิกภาพของคุณเป็น D / I / S / C
+                  </p>
+                  <div className="flex shrink-0 items-center gap-1.5">
+                    {(
+                      [
+                        { ch: 'D', cls: 'bg-rose-500 text-white' },
+                        { ch: 'I', cls: 'bg-amber-400 text-black' },
+                        { ch: 'S', cls: 'bg-emerald-500 text-white' },
+                        { ch: 'C', cls: 'bg-sky-500 text-white' },
+                      ] as const
+                    ).map((item) => (
+                      <span
+                        key={item.ch}
+                        className={`inline-flex h-8 w-8 items-center justify-center rounded-lg text-xs font-black ${item.cls}`}
+                      >
+                        {item.ch}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleCloseIntroAndStartAssessment}
+                className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-[#FFCC00] px-5 py-4 text-base font-bold text-black shadow-[0_4px_0_#E0A800] transition hover:bg-[#FFD633] active:translate-y-0.5 active:shadow-[0_2px_0_#E0A800] sm:text-lg"
+              >
                 เริ่มทำแบบทดสอบ
+                <span aria-hidden>→</span>
               </button>
             </div>
           </div>
         </div>
       )}
 
-      <header className="sticky top-0 z-30 border-b border-[#D6D4CC] bg-[#F3F2ED]/95 backdrop-blur-md">
-        <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-4 px-5 py-4">
-          <Link to="/" className="flex items-center gap-3">
-            <BrandLogo className="text-[26px]" tone="dark" />
+      <header className="sticky top-0 z-30 shrink-0 border-b border-black/[0.04] bg-white/75 backdrop-blur-xl">
+        <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-5 py-3 sm:px-8 sm:py-3.5">
+          <Link
+            to="/"
+            className="flex items-center gap-2.5 rounded-xl px-1 py-1 transition hover:opacity-80"
+            aria-label="กลับหน้าหลัก"
+          >
+            <BrandLogo className="text-[26px] sm:text-[30px]" tone="dark" />
           </Link>
-          <div className="flex items-center gap-3">
-            {step === 'assessment' && (
-              <span className="rounded-full border border-[#D6D4CC] bg-white px-3 py-1 text-xs font-bold text-gray-800">
-                ข้อ {statementRange.start}–{statementRange.end} / {totalStatements}
+          <div className="flex items-center gap-2.5">
+            {step === 'login' && !showIntroModal && (
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-[#FFCC00]/60 bg-[#FFF8D6] px-3 py-1.5 text-[11px] font-bold text-[#7A5C00] sm:text-xs">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#FFCC00]" aria-hidden />
+                ขั้นที่ 1 · ลงทะเบียน
               </span>
             )}
-            {step === 'login' && (
-              <span className="hidden text-xs font-bold uppercase tracking-[0.14em] text-[#9A7200] sm:inline">
-                Personality · DISC
+            {step === 'result' && (
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-[11px] font-bold text-emerald-800 sm:text-xs">
+                เสร็จแล้ว
               </span>
             )}
           </div>
@@ -912,379 +1224,521 @@ const DiscAssessment: React.FC = () => {
       </header>
 
       <main
-        className={`mx-auto w-full flex-1 px-4 py-8 sm:px-6 sm:py-12 ${
-          step === 'login' ? 'max-w-5xl' : step === 'result' ? 'max-w-4xl' : 'max-w-2xl'
+        className={`mx-auto flex w-full flex-1 flex-col px-4 sm:px-8 ${
+          step === 'login'
+            ? 'max-w-7xl justify-center py-5 sm:py-7 lg:py-6'
+            : step === 'result'
+              ? 'max-w-4xl py-8 sm:py-12'
+              : 'max-w-4xl py-6 sm:py-10'
         }`}
       >
         {step === 'login' && (
-          <div className="w-full">
-            <div className="mb-10 text-center">
-              <p className="text-[11px] font-extrabold uppercase tracking-[0.22em] text-[#9A7200]">01 / Register</p>
-              <h1 className="mt-2 text-3xl font-black tracking-tight text-gray-950 sm:text-4xl">
-                ลงทะเบียนแบบทดสอบ{' '}
-                <span className="relative inline-block">
-                  DISC
-                  <span className="absolute inset-x-0 bottom-1 -z-10 h-3 rounded-sm bg-[#FFCC00]" aria-hidden />
+          <div className="disc-login-enter grid w-full items-center gap-7 lg:grid-cols-[1.12fr_0.88fr] lg:gap-12 xl:gap-16">
+            <div className="order-2 flex min-h-0 flex-col text-center lg:order-1 lg:text-left">
+              <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.2em] text-[#9A7200] sm:mb-4 sm:text-xs">
+                MindDoJo Assessment
+              </p>
+              <h1 className="disc-hero-title overflow-visible text-[1.9rem] font-bold leading-[1.38] tracking-normal text-gray-950 sm:text-[2.75rem] xl:text-[3.15rem]">
+                <span className="block overflow-visible">รู้จักสไตล์พฤติกรรมของคุณ</span>
+                <span className="mt-1 block overflow-visible sm:mt-1.5">
+                  <span className="disc-thai-tone inline-block align-baseline">ด้วย</span>
+                  แบบทดสอบ <span className="text-[#FFCC00]">DISC</span>
                 </span>
               </h1>
-              <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-gray-600 sm:text-base">
-                40 ข้อ · จัดอันดับ 1–4 ในแต่ละชุด · ใช้เวลาประมาณ 5–8 นาที
+              <p className="mx-auto mt-3 max-w-lg text-[15px] leading-relaxed text-gray-600 sm:mt-4 sm:text-base lg:mx-0">
+                ค้นหาสไตล์การทำงานของคุณใน 4 มิติ ใช้เวลาประมาณ 5–8 นาที
               </p>
-              <div className="mt-6 flex flex-wrap items-center justify-center gap-2.5">
+
+              <div className="mx-auto mt-4 flex flex-wrap items-center justify-center gap-2 lg:mx-0 lg:justify-start">
                 {(
                   [
-                    { ch: 'D', label: 'มุ่งมั่น', cls: 'bg-rose-600 text-white shadow-lg shadow-rose-600/35' },
-                    { ch: 'I', label: 'มีอิทธิพล', cls: 'bg-amber-500 text-white shadow-lg shadow-amber-500/35' },
-                    { ch: 'S', label: 'มั่นคง', cls: 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/35' },
-                    { ch: 'C', label: 'รอบคอบ', cls: 'bg-sky-600 text-white shadow-lg shadow-sky-600/35' },
+                    { ch: 'D', tip: 'Dominance', cls: 'bg-rose-500 text-white' },
+                    { ch: 'I', tip: 'Influence', cls: 'bg-amber-400 text-black' },
+                    { ch: 'S', tip: 'Steadiness', cls: 'bg-emerald-500 text-white' },
+                    { ch: 'C', tip: 'Compliance', cls: 'bg-sky-500 text-white' },
                   ] as const
-                ).map(({ ch, label, cls }) => (
-                  <div
-                    key={ch}
-                    className={`flex min-w-[4.5rem] flex-col items-center rounded-2xl px-3 py-2.5 shadow-md ${cls}`}
+                ).map((item) => (
+                  <span
+                    key={item.ch}
+                    title={item.tip}
+                    className={`inline-flex h-9 w-9 items-center justify-center rounded-xl text-sm font-black shadow-sm ${item.cls}`}
                   >
-                    <span className="text-2xl font-black leading-none">{ch}</span>
-                    <span className="mt-1 text-[10px] font-bold opacity-90">{label}</span>
-                  </div>
+                    {item.ch}
+                  </span>
                 ))}
+                <span className="ml-1 text-xs font-semibold text-gray-500 sm:text-sm">40 ข้อ · ผลทันที</span>
+              </div>
+
+              <div className="relative mx-auto mt-5 w-full lg:mx-0 lg:mt-6">
+                <img
+                  src={DISC_HERO_URL}
+                  alt="DISC character portraits — Dominance, Influence, Steadiness, Compliance"
+                  className="disc-hero-art mx-auto h-auto w-full max-h-[min(56vh,640px)] object-contain sm:max-h-[min(62vh,760px)] lg:max-h-[min(66vh,820px)]"
+                  decoding="async"
+                />
               </div>
             </div>
 
-            <div className="mx-auto grid max-w-4xl gap-6 lg:grid-cols-[0.9fr_1.1fr] lg:items-stretch">
-              <ol className="md-card flex flex-col justify-center gap-3 p-5 sm:p-6">
-                {[
-                  { n: '01', t: 'กรอกข้อมูล', d: 'ชื่อ อีเมล และองค์กร' },
-                  { n: '02', t: 'อ่านวิธีทำ', d: 'ป๊อปอัพสั้น ๆ ก่อนเริ่ม' },
-                  { n: '03', t: 'ทำแบบทดสอบ', d: '10 ชุด · ชุดละ 4 ข้อความ' },
-                  { n: '04', t: 'ดูผล + AI', d: 'สรุปบุคลิกภาพหลักทันที' },
-                ].map((row) => (
-                  <li key={row.n} className="flex items-start gap-3 rounded-xl bg-[#F3F2ED] px-3.5 py-3">
-                    <span className="inline-flex h-8 w-9 shrink-0 items-center justify-center rounded-lg bg-[#FFCC00] text-xs font-black text-black">
-                      {row.n}
-                    </span>
-                    <span>
-                      <span className="block text-sm font-bold text-gray-950">{row.t}</span>
-                      <span className="mt-0.5 block text-xs text-gray-600">{row.d}</span>
-                    </span>
-                  </li>
-                ))}
-              </ol>
+            <div className="order-1 w-full lg:order-2 lg:max-w-[28rem] lg:justify-self-end xl:max-w-[30rem]">
+              <div className="disc-login-card overflow-hidden rounded-[28px] border border-[#E2DFD6] bg-white/95 shadow-[0_20px_50px_rgba(15,23,42,0.1)] backdrop-blur-sm sm:rounded-[32px]">
+                <div className="h-1.5 w-full bg-gradient-to-r from-[#FFCC00] via-[#FFE566] to-[#FFCC00]" aria-hidden />
+                <div className="p-6 sm:p-8 lg:p-9">
+                  <div className="mb-5">
+                    <DiscStageBar current={1} />
+                  </div>
+                  <div className="mb-6">
+                    <h2 className="text-xl font-bold text-gray-950 sm:text-2xl">ลงทะเบียน</h2>
+                    <p className="mt-1.5 text-sm leading-relaxed text-gray-600">
+                      กรอกข้อมูลให้ครบเพื่อไปขั้นอ่านวิธีทำ
+                    </p>
+                  </div>
 
-              <div className="md-card p-6 sm:p-8">
-                <div className="mb-6 flex items-start justify-between gap-4">
-                  <div>
-                    <h2 className="text-xl font-black text-gray-950">ข้อมูลผู้ทำแบบทดสอบ</h2>
-                    <p className="mt-1 text-sm text-gray-600">กรอกให้ครบเพื่อไปขั้นตอนถัดไป</p>
-                  </div>
-                  <div className="hidden shrink-0 flex-col items-end sm:flex">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">ขั้นตอนที่ 1 / 3</span>
-                    <span className="mt-0.5 text-xs font-bold text-[#9A7200]">ลงทะเบียน</span>
-                  </div>
+                  <form onSubmit={handleStartFromLogin} className="space-y-4">
+                    {(
+                      [
+                        { id: 'disc-name', label: 'ชื่อ–นามสกุล', type: 'text', autoComplete: 'name', key: 'name' as const, ph: 'เช่น สมชาย ใจดี' },
+                        { id: 'disc-email', label: 'อีเมล', type: 'email', autoComplete: 'email', key: 'email' as const, ph: 'your@email.com' },
+                        { id: 'disc-company', label: 'บริษัท / องค์กร', type: 'text', autoComplete: 'organization', key: 'company' as const, ph: 'ชื่อบริษัทหรือหน่วยงาน' },
+                      ] as const
+                    ).map((f) => (
+                      <label key={f.id} htmlFor={f.id} className="block">
+                        <span className="mb-1.5 block text-sm font-bold text-gray-800">{f.label}</span>
+                        <input
+                          id={f.id}
+                          type={f.type}
+                          autoComplete={f.autoComplete}
+                          value={user[f.key]}
+                          onChange={(e) => setUser((u) => ({ ...u, [f.key]: e.target.value }))}
+                          placeholder={f.ph}
+                          required
+                          className="disc-login-input w-full rounded-2xl border border-[#D6D4CC] bg-[#FAFAF8] px-4 py-3.5 text-base text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-[#FFCC00] focus:bg-white focus:ring-4 focus:ring-[#FFCC00]/25"
+                        />
+                      </label>
+                    ))}
+
+                    <button
+                      type="submit"
+                      className="group mt-2 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-[#FFCC00] px-5 py-4 text-base font-bold text-black shadow-[0_4px_0_#E0A800] transition hover:bg-[#FFD633] active:translate-y-0.5 active:shadow-[0_2px_0_#E0A800] sm:text-lg"
+                    >
+                      เริ่มทำแบบทดสอบ
+                      <span className="transition-transform group-hover:translate-x-0.5" aria-hidden>
+                        →
+                      </span>
+                    </button>
+                    <p className="text-center text-xs leading-relaxed text-gray-500">
+                      ข้อมูลใช้แสดงในหน้าผลลัพธ์เท่านั้น · ไม่แชร์ต่อโดยไม่ได้รับอนุญาต
+                    </p>
+                  </form>
                 </div>
-
-                <form onSubmit={handleStartFromLogin} className="space-y-4">
-                  {(
-                    [
-                      { id: 'disc-name', label: 'ชื่อ–นามสกุล', type: 'text', autoComplete: 'name', key: 'name' as const, ph: 'เช่น สมชาย ใจดี' },
-                      { id: 'disc-email', label: 'อีเมล', type: 'email', autoComplete: 'email', key: 'email' as const, ph: 'your@email.com' },
-                      { id: 'disc-company', label: 'บริษัท / องค์กร', type: 'text', autoComplete: 'organization', key: 'company' as const, ph: 'ชื่อบริษัทหรือหน่วยงาน' },
-                    ] as const
-                  ).map((f) => (
-                    <label key={f.id} htmlFor={f.id} className="block">
-                      <span className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-gray-700">{f.label}</span>
-                      <input
-                        id={f.id}
-                        type={f.type}
-                        autoComplete={f.autoComplete}
-                        value={user[f.key]}
-                        onChange={(e) => setUser((u) => ({ ...u, [f.key]: e.target.value }))}
-                        placeholder={f.ph}
-                        required
-                        className="md-input"
-                      />
-                    </label>
-                  ))}
-
-                  <p className="rounded-xl border border-[#D6D4CC] bg-[#F3F2ED] px-4 py-3 text-xs leading-relaxed text-gray-600">
-                    หลังกดปุ่ม ระบบจะเปิดหน้าต่างอธิบายวิธีทำแบบทดสอบสั้น ๆ ก่อนเริ่มตอบจริง
-                  </p>
-
-                  <button type="submit" className="md-btn-primary group w-full !rounded-xl !py-3.5">
-                    ดำเนินการต่อ →
-                  </button>
-                  <p className="text-center text-[11px] text-gray-500">
-                    ข้อมูลใช้เพื่อแสดงในหน้าสรุปผลเท่านั้น — ไม่แชร์ต่อโดยไม่ได้รับอนุญาต
-                  </p>
-                </form>
               </div>
             </div>
           </div>
         )}
 
         {step === 'assessment' && currentQuestion && (
-          <div key={currentQuestion.id} className="w-full space-y-6 disc-animate-enter">
-            <div>
-              <div className="mb-2 flex items-center justify-between text-xs font-bold text-gray-700">
-                <span>
-                  ชุดที่ {currentIndex + 1} / {totalBigQuestions}
-                </span>
-                <span>{Math.round(progress)}%</span>
+          <div key={currentQuestion.id} className="disc-animate-enter w-full">
+            <div className="overflow-hidden rounded-[28px] border border-[#E8E6DF] bg-white shadow-[0_16px_48px_rgba(15,23,42,0.08)] sm:rounded-[32px]">
+              <div className="border-b border-[#EEECE6] px-5 py-5 sm:px-8 sm:py-6">
+                <DiscTestPathStepper current={2} />
               </div>
-              <div className="h-2.5 overflow-hidden rounded-full bg-[#E8E6DF]">
-                <div
-                  className="h-full rounded-full bg-[#FFCC00] transition-all duration-300"
-                  style={{ width: `${progress}%` }}
-                />
-              </div>
-            </div>
 
-            <div className="md-card space-y-2 p-5">
-              <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-[#9A7200]">
-                ข้อ {statementRange.start}–{statementRange.end}
-              </p>
-              <p className="text-sm leading-relaxed text-gray-700">
-                จัดอันดับคะแนน <span className="font-bold text-gray-950">1–4</span> ให้แต่ละข้อความ โดย{' '}
-                <span className="font-bold text-gray-950">ห้ามซ้ำเลขกัน</span>
-                <span className="mt-1 block text-xs text-gray-500">1 = ทำน้อยที่สุด · 4 = ทำบ่อยครั้งที่สุด</span>
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              {currentQuestion.statements.map((st, statementIdx) => {
-                const statementIndex = statementIdx as 0 | 1 | 2 | 3;
-                const qAnswer = getQuestionAnswer(currentQuestion.id);
-                const selectedForThisStatement = qAnswer[statementIndex];
-                const isRatingPopStatement =
-                  lastRatingPop?.questionId === currentQuestion.id && lastRatingPop?.statementIndex === statementIndex;
-
-                return (
-                  <div key={`${currentQuestion.id}-${statementIdx}`} className="md-card space-y-4 p-5">
-                    <div className="flex items-start gap-2.5">
-                      <span
-                        className={`mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-[11px] font-black ${typeStyle[st.type]}`}
-                      >
-                        {st.type}
-                      </span>
-                      <p className="text-sm font-bold leading-relaxed text-gray-950">{st.text}</p>
-                    </div>
-                    <div className="grid grid-cols-4 gap-2">
-                      {RATING_VALUES.map((rating) => {
-                        const isSelected = selectedForThisStatement === rating;
-                        const isUsedElsewhere = !isSelected && usedRatingsInCurrentQuestion.has(rating);
-                        const disabled = isUsedElsewhere;
-                        const isRatingPop = isRatingPopStatement && lastRatingPop?.rating === rating;
-
-                        return (
-                          <button
-                            key={`${rating}-${isRatingPop ? ratingPopNonce : 'stable'}`}
-                            type="button"
-                            onClick={() => {
-                              if (disabled) return;
-                              handleSelectRating(statementIndex, rating);
-                            }}
-                            disabled={disabled}
-                            className={`rounded-xl border py-2.5 text-sm font-black transition-all touch-manipulation ${
-                              isSelected
-                                ? 'border-black bg-[#FFCC00] text-black shadow-sm'
-                                : disabled
-                                  ? 'cursor-not-allowed border-[#E8E6DF] bg-[#F3F2ED] text-gray-600'
-                                  : 'border-[#D6D4CC] bg-white text-gray-800 hover:border-gray-400 hover:bg-gray-50'
-                            } ${isRatingPop ? 'disc-rating-pop' : ''}`}
-                            aria-pressed={isSelected}
-                          >
-                            {rating}
-                          </button>
-                        );
-                      })}
-                    </div>
+              <div className="px-5 py-5 sm:px-8 sm:py-6">
+                <div className="space-y-2.5">
+                  <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
+                    <p className="font-bold text-[#C9A000]">
+                      ข้อที่ {statementRange.start} – {statementRange.end} จาก {totalStatements}
+                    </p>
+                    <p className="font-semibold text-gray-600">
+                      ตอบแล้ว{' '}
+                      <span className="font-black text-gray-950">{answeredStatementCount}</span>
+                      {' / '}
+                      {totalStatements} ข้อ
+                    </p>
                   </div>
-                );
-              })}
+                  <div
+                    className="relative h-3 w-full overflow-hidden rounded-full bg-[#F0EEE8]"
+                    role="progressbar"
+                    aria-valuemin={0}
+                    aria-valuemax={totalStatements}
+                    aria-valuenow={answeredStatementCount}
+                    aria-label={`ความคืบหน้าแบบทดสอบ ${answeredStatementCount} จาก ${totalStatements} ข้อ`}
+                  >
+                    <div
+                      className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-[#FFCC00] to-[#FFE566] transition-[width] duration-300 ease-out"
+                      style={{
+                        width: `${totalStatements > 0 ? (answeredStatementCount / totalStatements) * 100 : 0}%`,
+                      }}
+                    />
+                    {answeredStatementCount > 0 && answeredStatementCount < totalStatements ? (
+                      <span
+                        className="pointer-events-none absolute top-1/2 z-[1] h-4 w-4 -translate-y-1/2 rounded-full border-2 border-white bg-[#FFCC00] shadow-sm transition-[left] duration-300 ease-out"
+                        style={{
+                          left: `calc(${(answeredStatementCount / totalStatements) * 100}% - 8px)`,
+                        }}
+                        aria-hidden
+                      />
+                    ) : null}
+                  </div>
+                  <p className="text-right text-[11px] font-semibold text-gray-400">
+                    {totalStatements > 0
+                      ? Math.round((answeredStatementCount / totalStatements) * 100)
+                      : 0}
+                    % เสร็จแล้ว
+                  </p>
+                </div>
+
+                <h2 className="mt-4 text-lg font-bold leading-snug text-gray-950 sm:text-xl">
+                  จัดลำดับพฤติกรรมต่อไปนี้ตามความถี่ในชีวิตประจำวันของคุณ
+                </h2>
+                <p className="mt-2 text-sm text-gray-500">
+                  1 = ทำน้อยที่สุด | 4 = ทำบ่อยครั้งที่สุด (แต่ละระดับใช้ได้ครั้งเดียว)
+                </p>
+
+                <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
+                  {currentQuestion.statements.map((st, statementIdx) => {
+                    const statementIndex = statementIdx as 0 | 1 | 2 | 3;
+                    const qAnswer = getQuestionAnswer(currentQuestion.id);
+                    const selectedForThisStatement = qAnswer[statementIndex];
+                    const isRatingPopStatement =
+                      lastRatingPop?.questionId === currentQuestion.id &&
+                      lastRatingPop?.statementIndex === statementIndex;
+
+                    return (
+                      <div
+                        key={`${currentQuestion.id}-${statementIdx}`}
+                        className="rounded-2xl border border-[#E8E6DF] bg-[#FCFCFB] p-4 sm:p-5"
+                      >
+                        <div className="flex items-start gap-3">
+                          <span
+                            className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-sm font-black ${STATEMENT_BADGE_STYLES[statementIdx]}`}
+                          >
+                            {statementIdx + 1}
+                          </span>
+                          <p className="disc-statement-text min-h-[2rem] pt-0.5 text-[15px] font-medium leading-[1.75] text-gray-800 sm:text-base sm:leading-[1.8]">
+                            {st.text}
+                          </p>
+                        </div>
+                        <div className="mt-4 grid grid-cols-4 gap-2">
+                          {RATING_VALUES.map((rating) => {
+                            const isSelected = selectedForThisStatement === rating;
+                            const isUsedElsewhere = !isSelected && usedRatingsInCurrentQuestion.has(rating);
+                            const disabled = isUsedElsewhere;
+                            const isRatingPop = isRatingPopStatement && lastRatingPop?.rating === rating;
+
+                            return (
+                              <button
+                                key={`${rating}-${isRatingPop ? ratingPopNonce : 'stable'}`}
+                                type="button"
+                                onClick={() => {
+                                  if (disabled) return;
+                                  handleSelectRating(statementIndex, rating);
+                                }}
+                                disabled={disabled}
+                                className={`rounded-xl border py-2.5 text-sm font-black transition-all touch-manipulation ${
+                                  isSelected
+                                    ? 'border-[#FFCC00] bg-[#FFCC00] text-black shadow-sm'
+                                    : disabled
+                                      ? 'cursor-not-allowed border-[#EEECE6] bg-[#F3F2ED] text-gray-400'
+                                      : 'border-[#D6D4CC] bg-white text-gray-700 hover:border-gray-400 hover:bg-white'
+                                } ${isRatingPop ? 'disc-rating-pop' : ''}`}
+                                aria-pressed={isSelected}
+                              >
+                                {rating}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div className="mt-6 flex flex-col-reverse items-stretch justify-between gap-3 border-t border-[#EEECE6] pt-5 sm:flex-row sm:items-center">
+                  <button
+                    type="button"
+                    onClick={handlePrev}
+                    className="inline-flex items-center justify-center gap-1.5 rounded-xl px-3 py-2.5 text-sm font-semibold text-gray-500 transition hover:bg-gray-50 hover:text-gray-800"
+                  >
+                    <span aria-hidden>←</span>
+                    {currentIndex === 0 ? 'กลับไปข้อมูลผู้ทำแบบทดสอบ' : 'ข้อก่อนหน้า'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleNext}
+                    disabled={!canNext}
+                    className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#FFCC00] px-6 py-3.5 text-base font-bold text-black shadow-[0_3px_0_#E0A800] transition hover:bg-[#FFD633] disabled:cursor-not-allowed disabled:opacity-45 disabled:shadow-none"
+                  >
+                    {currentIndex < totalBigQuestions - 1 ? 'ข้อถัดไป' : 'ดูผลลัพธ์'}
+                    <span aria-hidden>→</span>
+                  </button>
+                </div>
+              </div>
             </div>
 
-            <div className="flex justify-between gap-3 pt-1">
-              <button
-                type="button"
-                onClick={handlePrev}
-                disabled={currentIndex === 0}
-                className="md-btn-ghost !rounded-xl disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                ← ก่อนหน้า
-              </button>
-              <button
-                type="button"
-                onClick={handleNext}
-                disabled={!canNext}
-                className="md-btn-primary !rounded-xl disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {currentIndex < totalBigQuestions - 1 ? 'ถัดไป →' : 'ดูผลลัพธ์'}
-              </button>
-            </div>
+            <p className="mt-4 text-center text-xs font-medium text-gray-500 sm:text-sm">
+              <span className="mr-1 text-[#FFCC00]" aria-hidden>
+                ✦
+              </span>
+              ไม่มีคำตอบที่ถูกหรือผิด มีแค่คำตอบที่เป็นคุณ
+            </p>
           </div>
         )}
 
         {step === 'result' && (
           <div ref={resultCardRef} className="w-full space-y-5">
-            <section className="md-card p-5 sm:p-8">
-              <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-[#9A7200]">DISC Assessment Result</p>
-              <div className="mt-3 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-                <div className="min-w-0">
-                  <h1 className="text-2xl font-black leading-tight tracking-tight text-gray-950 sm:text-4xl">
-                    ผลลัพธ์แบบทดสอบ DISC
-                  </h1>
-                  <p className="mt-2 text-sm text-gray-600">
-                    บุคลิกภาพหลักของคุณคือ <span className="font-bold text-gray-950">{DISC_LABELS[primaryType]}</span>
-                  </p>
-                  <p className="mt-2 text-sm leading-relaxed text-gray-600">{DISC_DESCRIPTIONS[primaryType]}</p>
-                </div>
-                <div className={`shrink-0 rounded-2xl border px-5 py-3 shadow-md ${typeSolid[primaryType]}`}>
-                  <div className="text-[11px] font-bold uppercase tracking-widest opacity-90">Primary · {primaryType}</div>
-                  <div className="mt-0.5 text-3xl font-black">{scores[primaryType]}</div>
-                </div>
-              </div>
+            {(() => {
+              const thaiShort: Record<DiscType, string> = {
+                D: 'มุ่งมั่น',
+                I: 'มีอิทธิพล',
+                S: 'มั่นคง',
+                C: 'รอบคอบ',
+              };
+              const enShort: Record<DiscType, string> = {
+                D: 'Dominance',
+                I: 'Influence',
+                S: 'Steadiness',
+                C: 'Conscientiousness',
+              };
+              const traitTips: Record<DiscType, string[]> = {
+                D: ['มุ่งผลลัพธ์', 'กล้าตัดสินใจ', 'ชอบความท้าทาย'],
+                I: ['สร้างแรงบันดาลใจ', 'สื่อสารเก่ง', 'สร้างความสัมพันธ์'],
+                S: ['ใจเย็น น่าเชื่อถือ', 'ทำงานเป็นทีม', 'สร้างความต่อเนื่อง'],
+                C: ['รอบคอบ แม่นยำ', 'เน้นมาตรฐาน', 'วิเคราะห์ข้อมูลดี'],
+              };
+              const primaryPct = pieTotal > 0 ? Math.round(((scores[primaryType] ?? 0) / pieTotal) * 100) : 0;
 
-              <div className="mt-5 flex flex-wrap items-center gap-2.5">
-                {(['D', 'I', 'S', 'C'] as DiscType[]).map((t) => {
-                  const isPrimary = t === primaryType;
-                  return (
-                    <div
-                      key={t}
-                      className={`flex h-12 w-12 items-center justify-center rounded-2xl border text-xl font-black sm:h-14 sm:w-14 sm:text-2xl ${
-                        isPrimary ? `${typeSolid[t]} shadow-lg` : typeStyle[t]
-                      }`}
-                      title={DISC_LABELS[t]}
-                    >
-                      {t}
-                    </div>
-                  );
-                })}
-              </div>
-            </section>
+              return (
+                <>
+                  <div className="rounded-[28px] border border-[#E8E6DF] bg-white px-5 py-4 shadow-sm sm:px-7">
+                    <DiscTestPathStepper current={3} />
+                  </div>
 
-            <section className="grid gap-4 lg:grid-cols-3 sm:gap-5">
-              <div className="md-card space-y-4 p-5 sm:p-7 lg:col-span-2">
-                <div className="flex items-center justify-between gap-3">
-                  <p className="text-sm font-bold text-gray-950">สัดส่วน 4 มิติ</p>
-                  <p className="text-xs text-gray-500">คะแนนรวมทั้งชุด</p>
-                </div>
+                  <header className="px-1">
+                    <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-gray-400">Your DISC Profile</p>
+                    <h1 className="mt-1.5 text-2xl font-bold text-gray-950 sm:text-3xl">ผลลัพธ์แบบทดสอบ DISC</h1>
+                    <p className="mt-2 max-w-2xl text-sm leading-relaxed text-gray-500 sm:text-base">
+                      สรุปสไตล์พฤติกรรมของคุณจากคะแนนทั้ง 4 มิติ เพื่อนำไปใช้พัฒนาการทำงานและการสื่อสาร
+                    </p>
+                  </header>
 
-                <Chart
-                  key={`disc-pie-${primaryType}`}
-                  chartType="PieChart"
-                  data={pieChartData}
-                  options={pieChartOptions}
-                  width="100%"
-                  height={220}
-                  loader={<div className="py-10 text-center text-sm text-gray-500">กำลังโหลดกราฟ...</div>}
-                />
-
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                  {pieTypes.map((t) => {
-                    const pct = pieTotal > 0 ? Math.round(((scores[t] ?? 0) / pieTotal) * 100) : 0;
-                    return (
-                      <div key={t} className={`rounded-xl border px-3 py-2 ${typeStyle[t]}`}>
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="text-xs font-bold">{t}</span>
-                          <span className="text-xs font-black">{pct}%</span>
-                        </div>
-                        <div className="mt-1 truncate text-[11px] opacity-80">{DISC_LABELS[t].split(' ')[0]}</div>
+                  <section className="overflow-hidden rounded-[24px] border border-[#E8E6DF] bg-white p-5 shadow-[0_12px_36px_rgba(15,23,42,0.06)] sm:p-7">
+                    <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:gap-6">
+                      <div
+                        className={`flex h-28 w-28 shrink-0 flex-col items-center justify-center rounded-[22px] shadow-md sm:h-[7.5rem] sm:w-[7.5rem] ${typeSolid[primaryType]}`}
+                      >
+                        <span className="text-4xl font-black leading-none sm:text-5xl">{primaryType}</span>
+                        <span className="mt-1.5 text-sm font-bold">{thaiShort[primaryType]}</span>
                       </div>
-                    );
-                  })}
-                </div>
-              </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-bold text-[#C9A000]">สไตล์ที่โดดเด่นของคุณ</p>
+                        <h2 className="mt-1 text-2xl font-bold text-gray-950 sm:text-3xl">{enShort[primaryType]}</h2>
+                        <p className="mt-2 text-sm leading-relaxed text-gray-600 sm:text-[15px]">
+                          {DISC_DESCRIPTIONS[primaryType]}
+                        </p>
+                      </div>
+                      <div className="shrink-0 border-t border-[#EEECE6] pt-4 text-left lg:border-l lg:border-t-0 lg:pl-7 lg:pt-0 lg:text-right">
+                        <p className="text-xs font-semibold text-gray-500">สัดส่วนคะแนน {primaryType}</p>
+                        <p className="mt-1 text-4xl font-black tracking-tight text-[#C9A000] sm:text-5xl">{primaryPct}%</p>
+                        <p className="mt-1 text-xs font-medium text-gray-400">สูงสุดในทั้ง 4 มิติ</p>
+                      </div>
+                    </div>
+                  </section>
 
-              <div className="md-card space-y-4 p-5 sm:p-7">
-                <p className="text-sm font-bold text-gray-950">คะแนนรายมิติ</p>
-                {(['D', 'I', 'S', 'C'] as DiscType[]).map((type) => {
-                  const pct = maxScore > 0 ? (scores[type] / maxScore) * 100 : 0;
-                  const thaiLabel =
-                    type === 'D' ? 'มุ่งมั่น' : type === 'I' ? 'มีอิทธิพล' : type === 'S' ? 'มั่นคง' : 'รอบคอบ';
-                  return (
-                    <div key={type} className="space-y-1.5">
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-xs font-bold text-gray-800">
-                          {type} · {thaiLabel}
+                  <section className="overflow-hidden rounded-[24px] border border-[#E8E6DF] bg-white p-5 shadow-sm sm:p-7">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <h3 className="text-base font-bold text-gray-950 sm:text-lg">สัดส่วนคะแนนทั้ง 4 มิติ</h3>
+                      <span className="rounded-full bg-[#FFF4C2] px-3 py-1 text-[11px] font-bold text-[#8A6A00]">
+                        รวมทั้งหมด 100%
+                      </span>
+                    </div>
+                    <div className="mt-5 grid gap-6 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
+                      <DiscPieChart
+                        scores={scores}
+                        colors={DISC_PIE_COLORS}
+                        primaryType={primaryType}
+                        labels={DISC_LABELS}
+                      />
+                      <div className="space-y-4">
+                        {(['D', 'I', 'S', 'C'] as DiscType[]).map((type) => {
+                          const pct = pieTotal > 0 ? Math.round(((scores[type] ?? 0) / pieTotal) * 100) : 0;
+                          return (
+                            <div key={type} className="space-y-1.5">
+                              <div className="flex items-center justify-between gap-3">
+                                <div className="flex items-center gap-2.5">
+                                  <span
+                                    className={`inline-flex h-8 w-8 items-center justify-center rounded-lg text-xs font-black text-white ${dotColor[type]}`}
+                                  >
+                                    {type}
+                                  </span>
+                                  <span className="text-sm font-bold text-gray-800">{thaiShort[type]}</span>
+                                </div>
+                                <span className="text-sm font-black text-gray-950">{pct}%</span>
+                              </div>
+                              <div className="h-2.5 overflow-hidden rounded-full bg-[#F0EEE8]">
+                                <div
+                                  className={`h-full rounded-full transition-all duration-500 ${typeBar[type]}`}
+                                  style={{ width: `${pct}%` }}
+                                />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </section>
+
+                  <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                    {(['D', 'I', 'S', 'C'] as DiscType[]).map((type) => (
+                      <div key={type} className="rounded-2xl border border-[#E8E6DF] bg-white p-4 shadow-sm sm:p-5">
+                        <span
+                          className={`inline-flex h-10 w-10 items-center justify-center rounded-xl text-sm font-black text-white ${dotColor[type]}`}
+                        >
+                          {type}
                         </span>
-                        <span className="text-xs font-black text-gray-950">{scores[type]}</span>
+                        <p className="mt-3 text-base font-bold text-gray-950">{thaiShort[type]}</p>
+                        <p className="text-xs font-semibold text-gray-400">{enShort[type]}</p>
+                        <ul className="mt-3 space-y-1">
+                          {traitTips[type].map((tip) => (
+                            <li key={tip} className="flex items-start gap-1.5 text-xs leading-snug text-gray-600">
+                              <span className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${dotColor[type]}`} aria-hidden />
+                              {tip}
+                            </li>
+                          ))}
+                        </ul>
                       </div>
-                      <div className="h-2.5 overflow-hidden rounded-full bg-[#E8E6DF]">
-                        <div
-                          className={`h-full rounded-full transition-all duration-500 ${typeBar[type]}`}
-                          style={{ width: `${pct}%` }}
-                        />
+                    ))}
+                  </section>
+
+                  <section className="overflow-hidden rounded-[24px] border border-[#F0D56A]/80 bg-gradient-to-br from-[#FFFCEB] via-white to-white p-5 shadow-sm sm:p-6">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-[#FFCC00] text-sm text-black" aria-hidden>
+                            ✦
+                          </span>
+                          <h3 className="text-base font-bold text-gray-950">AI Feedback</h3>
+                          {!aiFeedbackVisible ? (
+                            <span className="rounded-full bg-gray-100 px-2.5 py-0.5 text-[11px] font-semibold text-gray-500">
+                              ยังไม่ได้เปิดดู
+                            </span>
+                          ) : null}
+                        </div>
+                        <p className="mt-2 text-sm text-gray-600">
+                          สรุปภาพรวม DISC: {primaryType} ({thaiShort[primaryType]}) · คะแนนสูงสุด {primaryPct}%
+                        </p>
+                        {!aiFeedbackVisible ? (
+                          <p className="mt-1 text-sm text-gray-500">กดเพื่อรับคำแนะนำส่วนบุคคลจาก AI ตามโปรไฟล์ของคุณ</p>
+                        ) : null}
+                        {aiFeedbackVisible ? (
+                          <div className="mt-3">
+                            {aiLoading ? (
+                              <p className="text-sm text-gray-500">กำลังสร้าง feedback...</p>
+                            ) : aiError ? (
+                              <div className="space-y-2">
+                                <p className="text-sm font-medium text-red-600">{aiError}</p>
+                                <button
+                                  type="button"
+                                  onClick={() => void handleRequestAiFeedback()}
+                                  className="text-sm font-bold text-[#8A6A00] underline"
+                                >
+                                  ลองอีกครั้ง
+                                </button>
+                              </div>
+                            ) : aiFeedback ? (
+                              <div className="whitespace-pre-wrap break-words rounded-2xl border border-[#F0E6B8] bg-white/90 p-4 text-sm leading-relaxed text-gray-700">
+                                {aiDisplayText}
+                                {aiDisplayText.length < aiFeedback.length ? (
+                                  <span className="text-gray-500">▋</span>
+                                ) : null}
+                              </div>
+                            ) : null}
+                          </div>
+                        ) : null}
                       </div>
+                      {!aiFeedbackVisible ? (
+                        <button
+                          type="button"
+                          onClick={() => void handleRequestAiFeedback()}
+                          className="inline-flex shrink-0 items-center justify-center gap-2 rounded-2xl bg-[#FFCC00] px-5 py-3.5 text-sm font-bold text-black shadow-[0_3px_0_#E0A800] transition hover:bg-[#FFD633]"
+                        >
+                          ดู AI Feedback
+                          <span aria-hidden>→</span>
+                        </button>
+                      ) : null}
                     </div>
-                  );
-                })}
-              </div>
-            </section>
+                  </section>
 
-            <section className="md-card p-5 sm:p-7">
-              <p className="text-sm font-bold text-gray-950">AI Feedback</p>
-              <p className="mt-1 text-xs text-gray-500">
-                สรุปจากผล DISC: {primaryType} (คะแนนสูงสุด {scores[primaryType]})
-              </p>
-              <div className="mt-4">
-                {!aiFeedbackVisible ? (
-                  <button type="button" onClick={() => void handleRequestAiFeedback()} className="md-btn-primary !rounded-xl text-sm">
-                    ดู AI Feedback
-                  </button>
-                ) : aiLoading ? (
-                  <div className="text-sm text-gray-500">กำลังสร้าง feedback...</div>
-                ) : aiError ? (
-                  <div className="space-y-3">
-                    <div className="text-sm font-medium text-red-600">{aiError}</div>
-                    <button type="button" onClick={() => void handleRequestAiFeedback()} className="md-btn-ghost !rounded-xl text-sm">
-                      ลองอีกครั้ง
-                    </button>
+                  <p className="px-1 text-center text-[11px] leading-relaxed text-gray-400 sm:text-left">
+                    ผลลัพธ์นี้เป็นเครื่องมือประเมินสไตล์พฤติกรรมเพื่อการพัฒนา ไม่ใช่การวินิจฉัยทางจิตวิทยา
+                  </p>
+
+                  <div className="space-y-3 pt-1" data-no-capture="true">
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                      <button
+                        type="button"
+                        onClick={handleDownloadPdf}
+                        disabled={!exportActionsEnabled || pdfLoading || pngLoading}
+                        className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-[#FFCC00] px-5 py-3.5 text-sm font-bold text-black shadow-[0_3px_0_#E0A800] transition hover:bg-[#FFD633] disabled:opacity-50"
+                      >
+                        <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+                          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                          <path d="M14 2v6h6M12 18v-6M9 15l3 3 3-3" />
+                        </svg>
+                        {pdfLoading ? 'กำลังสร้าง PDF...' : 'ดาวน์โหลด PDF'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleDownloadPng}
+                        disabled={!exportActionsEnabled || pdfLoading || pngLoading}
+                        className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-[#FFCC00] px-5 py-3.5 text-sm font-bold text-black shadow-[0_3px_0_#E0A800] transition hover:bg-[#FFD633] disabled:opacity-50"
+                      >
+                        <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+                          <rect x="3" y="3" width="18" height="18" rx="2" />
+                          <circle cx="8.5" cy="8.5" r="1.5" />
+                          <path d="M21 15l-5-5L5 21" />
+                        </svg>
+                        {pngLoading
+                          ? 'กำลังสร้าง PNG...'
+                          : isMobileExportDevice()
+                            ? 'บันทึกเป็นรูปภาพ'
+                            : 'ดาวน์โหลด PNG'}
+                      </button>
+                    </div>
+                    {exportError ? <p className="text-center text-xs font-medium text-amber-700">{exportError}</p> : null}
+                    {isMobileExportDevice() && !exportActionsEnabled ? (
+                      <p className="text-center text-[11px] text-gray-500">กำลังเตรียมปุ่มบันทึกผลลัพธ์...</p>
+                    ) : isMobileExportDevice() ? (
+                      <p className="text-center text-[11px] text-gray-500">
+                        บนมือถือ: กดบันทึกเป็นรูปภาพ → เลือก «บันทึกรูปภาพ» หรือกดค้างที่ภาพเพื่อบันทึก
+                      </p>
+                    ) : null}
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                      <button
+                        type="button"
+                        onClick={handleRestart}
+                        className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-[#D6D4CC] bg-white px-5 py-3.5 text-sm font-bold text-gray-700 transition hover:bg-gray-50"
+                      >
+                        <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+                          <path d="M23 4v6h-6M1 20v-6h6" />
+                          <path d="M3.5 9a9 9 0 0 1 14.8-3.2L23 10M1 14l4.7 4.2A9 9 0 0 0 20.5 15" />
+                        </svg>
+                        ทำแบบทดสอบใหม่
+                      </button>
+                      <Link
+                        to="/"
+                        className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-[#D6D4CC] bg-white px-5 py-3.5 text-sm font-bold text-gray-700 transition hover:bg-gray-50"
+                      >
+                        <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+                          <path d="M3 10.5L12 3l9 7.5" />
+                          <path d="M5 10v10h14V10" />
+                        </svg>
+                        กลับหน้าแรก
+                      </Link>
+                    </div>
                   </div>
-                ) : aiFeedback ? (
-                  <div className="whitespace-pre-wrap break-words text-sm leading-relaxed text-gray-700">
-                    {aiDisplayText}
-                    {aiDisplayText.length < aiFeedback.length ? <span className="text-gray-600">▋</span> : null}
-                  </div>
-                ) : null}
-              </div>
-            </section>
-
-            <div className="space-y-3 pt-1" data-no-capture="true">
-              <div className="flex flex-col justify-center gap-2 border-t border-[#D6D4CC] pt-4 sm:flex-row sm:gap-3">
-                <button
-                  type="button"
-                  onClick={handleDownloadPdf}
-                  disabled={!exportActionsEnabled || pdfLoading || pngLoading}
-                  className="md-btn-ghost w-full !rounded-xl text-sm disabled:opacity-50 sm:w-auto"
-                >
-                  {pdfLoading ? 'กำลังสร้าง PDF...' : 'ดาวน์โหลด PDF'}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleDownloadPng}
-                  disabled={!exportActionsEnabled || pdfLoading || pngLoading}
-                  className="md-btn-primary w-full !rounded-xl text-sm disabled:opacity-50 sm:w-auto"
-                >
-                  {pngLoading ? 'กำลังสร้าง PNG...' : isMobileExportDevice() ? 'บันทึกเป็นรูปภาพ' : 'ดาวน์โหลด PNG'}
-                </button>
-              </div>
-              {exportError ? <p className="text-center text-xs font-medium text-amber-700">{exportError}</p> : null}
-              {isMobileExportDevice() && !exportActionsEnabled ? (
-                <p className="text-center text-[11px] text-gray-500">กำลังเตรียมปุ่มบันทึกผลลัพธ์...</p>
-              ) : isMobileExportDevice() ? (
-                <p className="text-center text-[11px] text-gray-500">
-                  บนมือถือ: กดบันทึกเป็นรูปภาพ → เลือก «บันทึกรูปภาพ» หรือกดค้างที่ภาพเพื่อบันทึก
-                </p>
-              ) : null}
-
-              <div className="flex flex-col justify-center gap-3 sm:flex-row">
-                <button type="button" onClick={handleRestart} className="md-btn-ghost w-full !rounded-xl sm:w-auto">
-                  ทำแบบทดสอบใหม่
-                </button>
-                <Link to="/" className="md-btn-primary w-full !rounded-xl text-center sm:w-auto">
-                  กลับหน้าแรก
-                </Link>
-              </div>
-            </div>
+                </>
+              );
+            })()}
           </div>
         )}
       </main>

@@ -103,6 +103,162 @@
   text-shadow: 0 0 10px rgba(254, 210, 1, 0.35);
 }
 
+/* Sukhumvit Set — self-host จาก /fonts/sukhumvit-set */
+@font-face {
+  font-family: "Sukhumvit Set";
+  src:
+    local("Sukhumvit Set Thin"),
+    url("/fonts/sukhumvit-set/SukhumvitSet-Thin.ttf") format("truetype");
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Sukhumvit Set";
+  src:
+    local("Sukhumvit Set Light"),
+    url("/fonts/sukhumvit-set/SukhumvitSet-Light.ttf") format("truetype");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Sukhumvit Set";
+  src:
+    local("Sukhumvit Set Text"),
+    local("Sukhumvit Set"),
+    url("/fonts/sukhumvit-set/SukhumvitSet-Text.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Sukhumvit Set";
+  src:
+    local("Sukhumvit Set Medium"),
+    url("/fonts/sukhumvit-set/SukhumvitSet-Medium.ttf") format("truetype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Sukhumvit Set";
+  src:
+    local("Sukhumvit Set SemiBold"),
+    url("/fonts/sukhumvit-set/SukhumvitSet-SemiBold.ttf") format("truetype");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Sukhumvit Set";
+  src:
+    local("Sukhumvit Set Bold"),
+    url("/fonts/sukhumvit-set/SukhumvitSet-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+/* Tailwind font-extrabold / font-black → ใช้ Bold */
+@font-face {
+  font-family: "Sukhumvit Set";
+  src:
+    local("Sukhumvit Set Bold"),
+    url("/fonts/sukhumvit-set/SukhumvitSet-Bold.ttf") format("truetype");
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Sukhumvit Set";
+  src:
+    local("Sukhumvit Set Bold"),
+    url("/fonts/sukhumvit-set/SukhumvitSet-Bold.ttf") format("truetype");
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+.font-sukhumvit,
+.font-sukhumvit *:not(svg):not(path):not(circle):not(text):not(line):not(rect) {
+  font-family: "Sukhumvit Set", "Sarabun", "Anuphan", ui-sans-serif, system-ui, sans-serif !important;
+}
+.font-sukhumvit h1,
+.font-sukhumvit h2,
+.font-sukhumvit h3,
+.font-sukhumvit button,
+.font-sukhumvit input,
+.font-sukhumvit textarea,
+.font-sukhumvit select,
+.font-sukhumvit label,
+.font-sukhumvit a,
+.font-sukhumvit p,
+.font-sukhumvit span,
+.font-sukhumvit li,
+.font-sukhumvit .font-black,
+.font-sukhumvit .font-extrabold,
+.font-sukhumvit .font-bold,
+.font-sukhumvit .font-semibold,
+.font-sukhumvit .font-medium {
+  font-family: "Sukhumvit Set", "Sarabun", "Anuphan", ui-sans-serif, system-ui, sans-serif !important;
+}
+/* Google Charts tooltip (ถ้ายังมีที่อื่น) — กันกระพริบตอน hover */
+.google-visualization-tooltip {
+  pointer-events: none !important;
+  font-family: "Sukhumvit Set", "Sarabun", sans-serif !important;
+}
+
+/* หัวข้อใหญ่ — กันไม้โทลอยสูงเกิน / โดนตัด */
+.disc-hero-title {
+  font-feature-settings: "kern" 1;
+  text-rendering: optimizeLegibility;
+}
+/* โจทย์ DISC — อ่านง่าย (Medium + ระยะบรรทัดกว้าง) */
+.disc-statement-text {
+  font-family: "Sukhumvit Set", "Sarabun", "Anuphan", ui-sans-serif, system-ui, sans-serif !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.01em;
+  word-break: break-word;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+.disc-thai-tone {
+  transform: translateY(0.06em);
+  padding-top: 0.12em;
+  line-height: 1.5;
+}
+
+@keyframes discLoginIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.disc-login-enter {
+  animation: discLoginIn 0.55s ease-out both;
+}
+.disc-hero-art {
+  filter: drop-shadow(0 18px 28px rgba(15, 23, 42, 0.12));
+  transition: transform 0.5s ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .disc-hero-art:hover {
+    transform: translateY(-4px) scale(1.01);
+  }
+}
+.disc-login-card {
+  transition: box-shadow 0.25s ease, transform 0.25s ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .disc-login-card:hover {
+    box-shadow: 0 24px 56px rgba(15, 23, 42, 0.12);
+  }
+}
+
 @layer components {
   .md-page {
     @apply min-h-dvh flex flex-col text-gray-900 selection:bg-yellow-400 selection:text-black;
