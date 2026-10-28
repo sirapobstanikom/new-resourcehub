@@ -505,9 +505,9 @@ const App: React.FC = () => {
             </div>
 
             <h1 className="mb-6 text-5xl font-semibold tracking-tight leading-tight text-gray-900 md:text-7xl">
-              MindDoJo <span className="text-yellow-500">Resourcehub</span>
+              MindDoJo <span className="text-[#FFCC00]">Resourcehub</span>
             </h1>
-            <p className="mx-auto mb-12 max-w-2xl text-lg text-gray-500">
+            <p className="mx-auto mb-12 max-w-2xl text-lg font-medium text-gray-700">
               Explore our curated library of strategic frameworks and operational tools designed for modern organizational growth.
             </p>
 
@@ -517,7 +517,7 @@ const App: React.FC = () => {
                 className={`rounded-full px-8 py-3 font-bold transition-all ${
                   isTools
                     ? 'bg-[#FFCC00] text-black shadow-sm'
-                    : 'border border-[#D6D4CC] bg-white text-gray-600 hover:border-gray-300'
+                    : 'border border-[#C8C5BA] bg-white text-gray-800 hover:border-gray-400'
                 }`}
               >
                 Operational Tools
@@ -527,7 +527,7 @@ const App: React.FC = () => {
                 className={`rounded-full px-8 py-3 font-bold transition-all ${
                   isUpdates
                     ? 'bg-[#FFCC00] text-black shadow-sm'
-                    : 'border border-[#D6D4CC] bg-white text-gray-600 hover:border-gray-300'
+                    : 'border border-[#C8C5BA] bg-white text-gray-800 hover:border-gray-400'
                 }`}
               >
                 Industry Updates
@@ -540,7 +540,7 @@ const App: React.FC = () => {
                     await signOut();
                     navigate('/');
                   }}
-                  className="rounded-full border border-[#D6D4CC] bg-white px-5 py-3 font-medium text-gray-600 transition-all hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+                  className="rounded-full border border-[#C8C5BA] bg-white px-5 py-3 font-semibold text-gray-800 transition-all hover:border-red-300 hover:bg-red-50 hover:text-red-700"
                 >
                   ออกจากระบบ
                 </button>
@@ -563,7 +563,7 @@ const App: React.FC = () => {
       <footer className="border-t border-[#D6D4CC] bg-white/70 py-12 backdrop-blur-md">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-6 px-6 md:flex-row">
           <BrandLogo className="text-[24px]" tone="dark" />
-          <div className="text-sm text-gray-500">© 2008 MindDoJo CO., LTD. All rights reserved.</div>
+          <div className="text-sm font-medium text-gray-700">© 2008 MindDoJo CO., LTD. All rights reserved.</div>
         </div>
       </footer>
     </div>

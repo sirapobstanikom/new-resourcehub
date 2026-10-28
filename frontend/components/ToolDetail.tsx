@@ -19,7 +19,7 @@ const ToolDetail: React.FC<ToolDetailProps> = ({ tool, onBack, onAskAI }) => {
       <div className="flex justify-between items-center mb-12 py-4">
         <button 
           onClick={onBack}
-          className="text-gray-500 hover:text-yellow-600 flex items-center gap-2 font-medium transition-colors"
+          className="flex items-center gap-2 font-semibold text-gray-700 transition-colors hover:text-yellow-700"
         >
           <span className="text-xl">←</span> Back to Hub
         </button>
@@ -31,7 +31,7 @@ const ToolDetail: React.FC<ToolDetailProps> = ({ tool, onBack, onAskAI }) => {
         <div className="lg:col-span-2 space-y-16">
           <header>
             <h1 className="text-5xl md:text-6xl font-extrabold mb-6 tracking-tight leading-tight text-gray-900">{tool.name}</h1>
-            <p className="text-xl text-gray-600 leading-relaxed max-w-3xl">
+            <p className="max-w-3xl text-xl font-medium leading-relaxed text-gray-800">
               {tool.longDescription || tool.description}
             </p>
           </header>

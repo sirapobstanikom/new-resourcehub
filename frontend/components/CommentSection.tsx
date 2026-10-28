@@ -406,15 +406,15 @@ const StickerBar: React.FC<{
   onSelect: (sticker: string) => void;
   className?: string;
 }> = ({ onSelect, className = '' }) => (
-  <div className={`flex items-center gap-1 flex-wrap ${className}`}>
-    <span className="text-xs text-gray-400 mr-1">สติกเกอร์:</span>
+  <div className={`flex flex-wrap items-center gap-1 ${className}`}>
+    <span className="mr-1 text-xs font-semibold text-gray-700">สติกเกอร์:</span>
     <div className="flex flex-wrap gap-1">
       {COMMENT_STICKERS.map((sticker) => (
         <button
           key={sticker}
           type="button"
           onClick={() => onSelect(sticker)}
-          className="w-8 h-8 flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 border border-white/10 text-lg transition-colors"
+          className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#D6D4CC] bg-white text-lg transition-colors hover:border-yellow-400 hover:bg-yellow-50"
           title="เพิ่มสติกเกอร์"
           aria-label={`เพิ่มสติกเกอร์ ${sticker}`}
         >
@@ -679,9 +679,9 @@ const PostItem: React.FC<PostItemProps> = ({
   };
 
   return (
-    <div className="bg-white/5 border border-white/10 rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 space-y-5 sm:space-y-6 animate-in fade-in slide-in-from-bottom-4">
+    <div className="rounded-2xl border border-[#D6D4CC] bg-white p-4 shadow-sm sm:rounded-3xl sm:p-6 md:p-8 space-y-5 sm:space-y-6 animate-in fade-in slide-in-from-bottom-4">
       <div className="flex gap-3 sm:gap-4">
-        <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl flex-shrink-0 overflow-hidden bg-yellow-400 border-2 border-yellow-400/20">
+        <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl flex-shrink-0 overflow-hidden bg-yellow-400 border-2 border-[#E09B00]/40">
           {post.authorAvatar ? (
             <img src={post.authorAvatar} alt="Avatar" className="w-full h-full object-cover" />
           ) : (
@@ -690,8 +690,8 @@ const PostItem: React.FC<PostItemProps> = ({
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2 mb-2">
-            <h4 className="font-bold text-white break-words">{post.authorName || 'Anonymous'}</h4>
-            <span className="text-[11px] sm:text-xs text-gray-500 whitespace-nowrap">
+            <h4 className="font-bold text-gray-900 break-words">{post.authorName || 'Anonymous'}</h4>
+            <span className="text-[11px] sm:text-xs font-medium text-gray-600 whitespace-nowrap">
               {new Date(post.createdAt).toLocaleDateString()}
             </span>
           </div>
@@ -777,11 +777,11 @@ const PostItem: React.FC<PostItemProps> = ({
                 <textarea
                   value={editContent}
                   onChange={(e) => setEditContent(e.target.value)}
-                  className="w-full bg-neutral-800 border border-white/10 rounded-2xl p-4 text-white focus:outline-none focus:ring-2 focus:ring-yellow-400 text-sm min-h-[140px] resize-y"
+                  className="w-full rounded-2xl border border-[#D6D4CC] bg-white p-4 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-yellow-400 min-h-[140px] resize-y"
                   aria-label="แก้ไขเนื้อหาโพสต์"
                 />
                 <div className="flex flex-wrap items-center gap-2">
-                  <label className="cursor-pointer bg-white/10 hover:bg-white/15 border border-white/10 rounded-xl px-4 py-2 text-xs font-bold text-gray-300 uppercase tracking-wider transition-colors">
+                  <label className="cursor-pointer rounded-xl border border-[#D6D4CC] bg-gray-50 px-4 py-2 text-xs font-bold uppercase tracking-wider text-gray-800 transition-colors hover:bg-gray-100">
                     <input type="file" accept="image/*" className="hidden" onChange={handleEditImageChange} />
                     เพิ่มรูป
                   </label>
@@ -794,19 +794,19 @@ const PostItem: React.FC<PostItemProps> = ({
                       setEditImagePreview('');
                     }}
                     placeholder="หรือวางลิงก์รูป"
-                    className="flex-1 min-w-[160px] bg-neutral-800 border border-white/10 rounded-xl px-4 py-2 text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                    className="flex-1 min-w-[160px] rounded-xl border border-[#D6D4CC] bg-white px-4 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-400"
                   />
                 </div>
                 {editImagePreview && (
-                  <div className="relative rounded-xl overflow-hidden border border-white/10 max-w-[220px] w-full">
-                    <img src={editImagePreview} alt="ตัวอย่างรูป" className="w-full h-auto max-h-36 object-contain bg-white/5" />
+                  <div className="relative max-w-[220px] w-full overflow-hidden rounded-xl border border-[#D6D4CC]">
+                    <img src={editImagePreview} alt="ตัวอย่างรูป" className="h-auto max-h-36 w-full object-contain bg-gray-50" />
                     <button
                       type="button"
                       onClick={() => {
                         setEditImageFile(null);
                         setEditImagePreview('');
                       }}
-                      className="absolute top-1 right-1 w-7 h-7 rounded-full bg-black/70 text-white text-sm font-bold hover:bg-black"
+                      className="absolute top-1 right-1 flex h-7 w-7 items-center justify-center rounded-full bg-black/70 text-sm font-bold text-white hover:bg-black"
                     >
                       ×
                     </button>
@@ -817,7 +817,7 @@ const PostItem: React.FC<PostItemProps> = ({
                     type="button"
                     onClick={handleCancelEdit}
                     disabled={savingEdit}
-                    className="px-5 py-2 rounded-xl border border-white/15 bg-white/5 text-sm font-bold text-gray-300 hover:bg-white/10 disabled:opacity-50"
+                    className="rounded-xl border border-[#D6D4CC] bg-white px-5 py-2 text-sm font-bold text-gray-700 hover:bg-gray-50 disabled:opacity-50"
                   >
                     ยกเลิก
                   </button>
@@ -839,39 +839,39 @@ const PostItem: React.FC<PostItemProps> = ({
                   <SITPostTemplate blocks={sitParsed} />
                 </div>
               ) : (
-                <p className="text-gray-300 leading-relaxed mb-2 whitespace-pre-wrap break-words">{post.content}</p>
+                <p className="mb-2 whitespace-pre-wrap break-words leading-relaxed text-gray-800">{post.content}</p>
               )}
               {post.imageUrl && (
                 <div
-                  className="rounded-2xl overflow-hidden border border-white/10 mb-3 max-w-full w-full sm:max-w-md cursor-pointer hover:opacity-90 transition-opacity"
+                  className="mb-3 max-w-full w-full cursor-pointer overflow-hidden rounded-2xl border border-[#D6D4CC] transition-opacity hover:opacity-90 sm:max-w-md"
                   onClick={() => onImageClick?.(post.imageUrl!)}
                   role="button"
                   tabIndex={0}
                   onKeyDown={(e) => e.key === 'Enter' && onImageClick?.(post.imageUrl!)}
                 >
-                  <img src={post.imageUrl} alt="Post attachment คลิกดูเต็ม" className="w-full h-auto max-h-64 sm:max-h-72 object-contain bg-white/5" />
+                  <img src={post.imageUrl} alt="Post attachment คลิกดูเต็ม" className="h-auto max-h-64 w-full object-contain bg-gray-50 sm:max-h-72" />
                 </div>
               )}
             </>
           )}
           {!editing && (
-            <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-4">
               {onLike && (
                 <button
                   type="button"
                   onClick={() => onLike(post.id)}
-                  className="flex items-center gap-1.5 text-gray-400 hover:text-yellow-400 transition-colors min-h-[36px] px-1"
+                  className="flex min-h-[36px] items-center gap-1.5 px-1 text-gray-700 transition-colors hover:text-yellow-700"
                   title="ไลค์"
                 >
                   <span className="text-lg" aria-hidden>♥</span>
-                  <span className="text-sm font-medium">{post.likeCount ?? 0}</span>
+                  <span className="text-sm font-semibold">{post.likeCount ?? 0}</span>
                 </button>
               )}
               {canEditPost && (
                 <button
                   type="button"
                   onClick={beginEdit}
-                  className="inline-flex items-center gap-1.5 text-[11px] sm:text-xs font-bold text-white/80 hover:text-yellow-400 transition-colors uppercase tracking-widest min-h-[36px] px-1"
+                  className="inline-flex min-h-[36px] items-center gap-1.5 px-1 text-[11px] font-bold uppercase tracking-widest text-gray-700 transition-colors hover:text-yellow-700 sm:text-xs"
                 >
                   <Pencil className="h-3.5 w-3.5" strokeWidth={2.5} />
                   แก้ไข
@@ -881,7 +881,7 @@ const PostItem: React.FC<PostItemProps> = ({
                 <button
                   type="button"
                   onClick={handleDeletePost}
-                  className="inline-flex items-center gap-1.5 text-[11px] sm:text-xs font-bold text-red-300 hover:text-red-200 transition-colors uppercase tracking-widest min-h-[36px] px-1"
+                  className="inline-flex min-h-[36px] items-center gap-1.5 px-1 text-[11px] font-bold uppercase tracking-widest text-red-600 transition-colors hover:text-red-700 sm:text-xs"
                 >
                   <Trash2 className="h-3.5 w-3.5" strokeWidth={2.5} />
                   ลบโพสต์
@@ -890,7 +890,7 @@ const PostItem: React.FC<PostItemProps> = ({
               <button
                 type="button"
                 onClick={() => setIsReplying(!isReplying)}
-                className="text-[11px] sm:text-xs font-bold text-yellow-400 hover:text-yellow-300 transition-colors uppercase tracking-widest min-h-[36px] px-1"
+                className="min-h-[36px] px-1 text-[11px] font-bold uppercase tracking-widest text-yellow-800 transition-colors hover:text-yellow-950 sm:text-xs"
               >
                 {isReplying ? 'Cancel' : 'Reply'}
               </button>
@@ -900,38 +900,38 @@ const PostItem: React.FC<PostItemProps> = ({
       </div>
 
       {post.comments && post.comments.length > 0 && (
-        <div className="ml-0 sm:ml-12 space-y-3 sm:space-y-4 border-l border-white/10 pl-3 sm:pl-6">
+        <div className="ml-0 space-y-3 border-l-2 border-[#D6D4CC] pl-3 sm:ml-12 sm:space-y-4 sm:pl-6">
           {post.comments.map(comment => (
             <div key={comment.id} className="flex gap-2 sm:gap-4 animate-in fade-in slide-in-from-left-2">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex-shrink-0 overflow-hidden bg-white/10 border border-white/10">
+              <div className="h-8 w-8 flex-shrink-0 overflow-hidden rounded-lg border border-[#D6D4CC] bg-yellow-100 sm:h-10 sm:w-10">
                 {comment.authorAvatar ? (
-                  <img src={comment.authorAvatar} alt="Commenter" className="w-full h-full object-cover" />
+                  <img src={comment.authorAvatar} alt="Commenter" className="h-full w-full object-cover" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-sm font-bold text-white/50" aria-hidden>?</div>
+                  <div className="flex h-full w-full items-center justify-center text-sm font-bold text-gray-600" aria-hidden>?</div>
                 )}
               </div>
-              <div className="flex-1 min-w-0 bg-white/5 rounded-xl sm:rounded-2xl p-3 sm:p-4">
-                <span className="text-xs font-bold text-white block mb-1">{comment.authorName}</span>
+              <div className="min-w-0 flex-1 rounded-xl border border-[#E8E6DF] bg-gray-50 p-3 sm:rounded-2xl sm:p-4">
+                <span className="mb-1 block text-xs font-bold text-gray-900">{comment.authorName}</span>
                 {editingCommentId === comment.id ? (
                   <div className="space-y-2">
                     <textarea
                       value={editCommentText}
                       onChange={(e) => setEditCommentText(e.target.value)}
-                      className="w-full bg-neutral-800 border border-white/10 rounded-xl p-3 text-white text-sm min-h-[90px] resize-y"
+                      className="min-h-[90px] w-full resize-y rounded-xl border border-[#D6D4CC] bg-white p-3 text-sm text-gray-900"
                     />
                     <input
                       type="url"
                       value={editCommentImageUrl}
                       onChange={(e) => setEditCommentImageUrl(e.target.value)}
                       placeholder="หรือวางลิงก์รูป"
-                      className="w-full bg-neutral-800 border border-white/10 rounded-xl px-3 py-2 text-white text-sm"
+                      className="w-full rounded-xl border border-[#D6D4CC] bg-white px-3 py-2 text-sm text-gray-900"
                     />
                     <div className="flex flex-wrap justify-end gap-2">
                       <button
                         type="button"
                         onClick={cancelEditComment}
                         disabled={savingComment}
-                        className="px-4 py-1.5 rounded-lg border border-white/15 text-xs font-bold text-gray-300"
+                        className="rounded-lg border border-[#D6D4CC] px-4 py-1.5 text-xs font-bold text-gray-700"
                       >
                         ยกเลิก
                       </button>
@@ -939,7 +939,7 @@ const PostItem: React.FC<PostItemProps> = ({
                         type="button"
                         onClick={saveEditComment}
                         disabled={savingComment || !editCommentText.trim()}
-                        className="px-4 py-1.5 rounded-lg bg-yellow-400 text-black text-xs font-bold disabled:opacity-50"
+                        className="rounded-lg bg-yellow-400 px-4 py-1.5 text-xs font-bold text-black disabled:opacity-50"
                       >
                         {savingComment ? 'กำลังบันทึก...' : 'บันทึก'}
                       </button>
@@ -947,13 +947,13 @@ const PostItem: React.FC<PostItemProps> = ({
                   </div>
                 ) : (
                   <>
-                    <p className="text-gray-400 text-sm">{comment.commentText}</p>
+                    <p className="text-sm text-gray-800">{comment.commentText}</p>
                     {namesMatch(userName, comment.authorName) && (
-                      <div className="mt-2 flex items-center gap-2 sm:gap-3 flex-wrap">
+                      <div className="mt-2 flex flex-wrap items-center gap-2 sm:gap-3">
                         <button
                           type="button"
                           onClick={() => beginEditComment(comment)}
-                          className="inline-flex items-center gap-1 text-[11px] font-bold text-yellow-300 hover:text-yellow-200 uppercase tracking-widest"
+                          className="inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-widest text-yellow-800 hover:text-yellow-950"
                         >
                           <Pencil className="h-3 w-3" />
                           แก้ไข
@@ -961,7 +961,7 @@ const PostItem: React.FC<PostItemProps> = ({
                         <button
                           type="button"
                           onClick={() => handleDeleteComment(comment)}
-                          className="inline-flex items-center gap-1 text-[11px] font-bold text-red-300 hover:text-red-200 uppercase tracking-widest"
+                          className="inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-widest text-red-600 hover:text-red-700"
                         >
                           <Trash2 className="h-3 w-3" />
                           ลบ
@@ -972,13 +972,13 @@ const PostItem: React.FC<PostItemProps> = ({
                 )}
                 {editingCommentId !== comment.id && comment.imageUrl && (
                   <div
-                    className={`mt-2 rounded-xl overflow-hidden border border-white/10 max-w-full w-full sm:max-w-[280px] ${onImageClick ? 'cursor-pointer hover:opacity-90 transition-opacity' : ''}`}
+                    className={`mt-2 max-w-full w-full overflow-hidden rounded-xl border border-[#D6D4CC] sm:max-w-[280px] ${onImageClick ? 'cursor-pointer transition-opacity hover:opacity-90' : ''}`}
                     onClick={onImageClick ? () => onImageClick(comment.imageUrl!) : undefined}
                     role={onImageClick ? 'button' : undefined}
                     tabIndex={onImageClick ? 0 : undefined}
                     onKeyDown={onImageClick ? (e) => e.key === 'Enter' && onImageClick(comment.imageUrl!) : undefined}
                   >
-                    <img src={comment.imageUrl} alt="Comment attachment คลิกดูเต็ม" className="w-full h-auto max-h-44 sm:max-h-52 object-contain bg-white/5" />
+                    <img src={comment.imageUrl} alt="Comment attachment คลิกดูเต็ม" className="h-auto max-h-44 w-full object-contain bg-white sm:max-h-52" />
                   </div>
                 )}
               </div>
@@ -988,16 +988,16 @@ const PostItem: React.FC<PostItemProps> = ({
       )}
 
       {isReplying && (
-        <div className="ml-0 sm:ml-12 space-y-3 animate-in fade-in slide-in-from-top-2">
-          <textarea 
+        <div className="ml-0 space-y-3 animate-in fade-in slide-in-from-top-2 sm:ml-12">
+          <textarea
             value={replyText}
             onChange={(e) => setReplyText(e.target.value)}
-            placeholder="Type your reply..."
-            className="w-full bg-neutral-800 border border-white/10 rounded-2xl p-4 text-white focus:outline-none focus:ring-2 focus:ring-yellow-400 text-sm min-h-[100px] resize-none"
+            placeholder="พิมพ์ข้อความตอบกลับ..."
+            className="min-h-[100px] w-full resize-none rounded-2xl border border-[#D6D4CC] bg-white p-4 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-yellow-400"
           />
           <StickerBar onSelect={(sticker) => setReplyText((prev) => prev + sticker)} />
           <div className="flex flex-wrap items-center gap-2">
-            <label className="cursor-pointer bg-white/10 hover:bg-white/15 border border-white/10 rounded-xl px-4 py-2 text-xs font-bold text-gray-300 uppercase tracking-wider transition-colors">
+            <label className="cursor-pointer rounded-xl border border-[#D6D4CC] bg-gray-50 px-4 py-2 text-xs font-bold uppercase tracking-wider text-gray-800 transition-colors hover:bg-gray-100">
               <input type="file" accept="image/*" className="hidden" onChange={handleReplyImageChange} />
               เพิ่มรูป
             </label>
@@ -1006,26 +1006,26 @@ const PostItem: React.FC<PostItemProps> = ({
               value={replyImageUrl}
               onChange={(e) => { setReplyImageUrl(e.target.value); setReplyImageFile(null); setReplyImagePreview(''); }}
               placeholder="หรือวางลิงก์รูป"
-              className="flex-1 min-w-[160px] bg-neutral-800 border border-white/10 rounded-xl px-4 py-2 text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+              className="min-w-[160px] flex-1 rounded-xl border border-[#D6D4CC] bg-white px-4 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-400"
             />
           </div>
           {replyImagePreview && (
-            <div className="relative rounded-xl overflow-hidden border border-white/10 max-w-[200px] w-full">
-              <img src={replyImagePreview} alt="Preview" className="w-full h-auto max-h-28 object-contain bg-white/5" />
+            <div className="relative max-w-[200px] w-full overflow-hidden rounded-xl border border-[#D6D4CC]">
+              <img src={replyImagePreview} alt="Preview" className="h-auto max-h-28 w-full object-contain bg-gray-50" />
               <button
                 type="button"
                 onClick={() => { setReplyImageFile(null); setReplyImagePreview(''); }}
-                className="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/70 text-white text-xs font-bold hover:bg-black"
+                className="absolute top-1 right-1 flex h-6 w-6 items-center justify-center rounded-full bg-black/70 text-xs font-bold text-white hover:bg-black"
               >
                 ×
               </button>
             </div>
           )}
           <div className="flex justify-end">
-            <button 
+            <button
               onClick={handleReply}
               disabled={!replyText.trim()}
-              className="bg-yellow-400 text-black px-6 py-2 rounded-xl font-bold text-xs uppercase tracking-widest disabled:opacity-50"
+              className="rounded-xl bg-yellow-400 px-6 py-2 text-xs font-bold uppercase tracking-widest text-black disabled:opacity-50"
             >
               Post Reply
             </button>
@@ -1339,42 +1339,42 @@ const CommentSection: React.FC<{ toolId?: string }> = ({ toolId = "bmc" }) => {
   }, []);
 
   return (
-    <section className="mt-24 border-t border-white/10 pt-16">
-      <div className="mb-12">
-        <h2 className="text-3xl font-bold mb-2">Strategy Exchange</h2>
-        <p className="text-gray-500">Collaborate and share insights with other practitioners.</p>
+    <section className="mt-24 border-t border-[#D6D4CC] pt-16">
+      <div className="mb-10">
+        <h2 className="mb-2 text-3xl font-bold text-gray-900">Strategy Exchange</h2>
+        <p className="text-base font-medium leading-relaxed text-gray-700 sm:text-lg">
+          แลกเปลี่ยนมุมมองกับผู้ปฏิบัติงานคนอื่น — โพสต์คำถามหรือ insight ได้ที่นี่
+        </p>
       </div>
 
-      <div className="bg-white/5 border border-white/10 rounded-3xl p-6 md:p-8 mb-12">
-        <div className="flex flex-col md:flex-row gap-8 items-start mb-8">
+      <div className="mb-12 rounded-3xl border border-[#D6D4CC] bg-white p-6 shadow-sm md:p-8">
+        <div className="mb-8 flex flex-col items-start gap-8 md:flex-row">
           <div className="flex flex-col items-center gap-4">
-            <div
-              className="w-24 h-24 rounded-3xl overflow-hidden bg-yellow-400 border-4 border-yellow-400/20 shadow-xl group relative"
-            >
+            <div className="relative h-24 w-24 overflow-hidden rounded-3xl border-4 border-[#FFCC00]/50 bg-yellow-400 shadow-xl">
               {userAvatar ? (
-                <img src={userAvatar} alt="My Avatar" className="w-full h-full object-cover" />
+                <img src={userAvatar} alt="My Avatar" className="h-full w-full object-cover" />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-2xl font-bold text-black/50" aria-hidden>?</div>
+                <div className="flex h-full w-full items-center justify-center text-2xl font-bold text-black/50" aria-hidden>?</div>
               )}
             </div>
             <button
               type="button"
               onClick={handleSwapGenderAndRandomizeAvatar}
-              className="w-full md:w-auto px-5 py-2.5 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-colors text-[11px] font-bold uppercase tracking-widest text-white touch-manipulation"
+              className="w-full touch-manipulation rounded-xl border border-[#D6D4CC] bg-gray-50 px-5 py-2.5 text-[11px] font-bold uppercase tracking-widest text-gray-900 transition-colors hover:bg-yellow-50 hover:border-yellow-400 md:w-auto"
             >
               สุ่ม avatar
             </button>
           </div>
 
-          <div className="flex-1 w-full space-y-4">
+          <div className="w-full flex-1 space-y-4">
             <div>
-              <label className="text-xs text-gray-500 font-bold uppercase tracking-widest mb-2 block">ระบุชื่อของคุณ</label>
+              <label className="mb-2 block text-xs font-bold uppercase tracking-widest text-gray-700">ระบุชื่อของคุณ</label>
               <input
                 type="text"
                 value={userName}
                 onChange={(e) => setUserName(e.target.value)}
                 placeholder="ชื่อของคุณ..."
-                className="w-full bg-neutral-800 border border-white/10 rounded-2xl px-6 py-4 text-white focus:outline-none focus:ring-2 focus:ring-yellow-400 font-bold"
+                className="w-full rounded-2xl border border-[#D6D4CC] bg-white px-6 py-4 font-bold text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-400"
               />
             </div>
 
@@ -1435,16 +1435,16 @@ const CommentSection: React.FC<{ toolId?: string }> = ({ toolId = "bmc" }) => {
               </div>
             ) : (
               <div className="relative">
-                <label className="text-xs text-gray-500 font-bold uppercase tracking-widest mb-2 block">แชร์ความคิดเห็น</label>
+                <label className="mb-2 block text-xs font-bold uppercase tracking-widest text-gray-700">แชร์ความคิดเห็น</label>
                 <textarea
                   value={mainInput}
                   onChange={(e) => setMainInput(e.target.value)}
-                  placeholder="Share a strategic insight or ask a question..."
+                  placeholder="แชร์ insight หรือถามคำถาม..."
                   disabled={!userName.trim()}
-                  className="w-full bg-neutral-800 border border-white/10 rounded-2xl px-6 py-6 text-white focus:outline-none focus:ring-2 focus:ring-yellow-400 min-h-[120px] resize-none disabled:opacity-20 transition-all mb-3"
+                  className="mb-3 min-h-[120px] w-full resize-none rounded-2xl border border-[#D6D4CC] bg-white px-6 py-6 text-gray-900 placeholder:text-gray-500 transition-all focus:outline-none focus:ring-2 focus:ring-yellow-400 disabled:opacity-40"
                 />
-                <div className="flex flex-wrap items-center gap-2 mb-3">
-                  <label className="cursor-pointer bg-white/10 hover:bg-white/15 border border-white/10 rounded-xl px-4 py-2 text-xs font-bold text-gray-300 uppercase tracking-wider transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                <div className="mb-3 flex flex-wrap items-center gap-2">
+                  <label className="cursor-pointer rounded-xl border border-[#D6D4CC] bg-gray-50 px-4 py-2 text-xs font-bold uppercase tracking-wider text-gray-800 transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50">
                     <input type="file" accept="image/*" className="hidden" onChange={handleMainImageChange} disabled={!userName.trim()} />
                     เพิ่มรูป
                   </label>
@@ -1454,16 +1454,16 @@ const CommentSection: React.FC<{ toolId?: string }> = ({ toolId = "bmc" }) => {
                     onChange={(e) => { setMainImageUrl(e.target.value); setMainImageFile(null); setMainImagePreview(''); }}
                     placeholder="หรือวางลิงก์รูป"
                     disabled={!userName.trim()}
-                    className="flex-1 min-w-[180px] bg-neutral-800 border border-white/10 rounded-xl px-4 py-2 text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-400 disabled:opacity-50"
+                    className="min-w-[180px] flex-1 rounded-xl border border-[#D6D4CC] bg-white px-4 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-400 disabled:opacity-50"
                   />
                 </div>
                 {mainImagePreview && (
-                  <div className="relative rounded-xl overflow-hidden border border-white/10 max-w-[220px] w-full mb-3">
-                    <img src={mainImagePreview} alt="Preview" className="w-full h-auto max-h-36 object-contain bg-white/5" />
+                  <div className="relative mb-3 max-w-[220px] w-full overflow-hidden rounded-xl border border-[#D6D4CC]">
+                    <img src={mainImagePreview} alt="Preview" className="h-auto max-h-36 w-full object-contain bg-gray-50" />
                     <button
                       type="button"
                       onClick={() => { setMainImageFile(null); setMainImagePreview(''); setMainImageUrl(''); }}
-                      className="absolute top-1 right-1 w-7 h-7 rounded-full bg-black/70 text-white text-sm font-bold hover:bg-black"
+                      className="absolute top-1 right-1 flex h-7 w-7 items-center justify-center rounded-full bg-black/70 text-sm font-bold text-white hover:bg-black"
                     >
                       ×
                     </button>
@@ -1472,7 +1472,7 @@ const CommentSection: React.FC<{ toolId?: string }> = ({ toolId = "bmc" }) => {
                 <button
                   onClick={handleCreatePost}
                   disabled={!mainInput.trim() || posting}
-                  className="w-full md:w-auto bg-yellow-400 text-black px-12 py-4 rounded-2xl font-black uppercase tracking-widest hover:bg-yellow-300 transition-all disabled:opacity-50 shadow-lg shadow-yellow-400/10"
+                  className="w-full rounded-2xl bg-yellow-400 px-12 py-4 font-black uppercase tracking-widest text-black shadow-md transition-all hover:bg-yellow-300 disabled:opacity-50 md:w-auto"
                 >
                   {posting ? 'Posting...' : 'Post Insight'}
                 </button>
@@ -1484,12 +1484,12 @@ const CommentSection: React.FC<{ toolId?: string }> = ({ toolId = "bmc" }) => {
 
       <div className="space-y-8">
         {loading ? (
-          <div className="py-20 text-center border-2 border-dashed border-white/5 rounded-3xl text-gray-500 font-medium">
+          <div className="rounded-3xl border-2 border-dashed border-[#D6D4CC] py-20 text-center font-semibold text-gray-700">
             กำลังโหลด...
           </div>
         ) : posts.length > 0 ? (
           posts.map((post) => (
-<PostItem
+            <PostItem
               key={post.id}
               post={post}
               toolId={toolId}
@@ -1505,7 +1505,7 @@ const CommentSection: React.FC<{ toolId?: string }> = ({ toolId = "bmc" }) => {
             />
           ))
         ) : (
-          <div className="py-20 text-center border-2 border-dashed border-white/5 rounded-3xl text-gray-600 font-medium">
+          <div className="rounded-3xl border-2 border-dashed border-[#D6D4CC] bg-white/60 py-20 text-center font-semibold text-gray-700">
             ยังไม่มีการแลกเปลี่ยนข้อมูล เริ่มต้นโพสต์คนแรกได้เลย!
           </div>
         )}

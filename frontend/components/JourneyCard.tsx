@@ -9,32 +9,36 @@ interface JourneyCardProps {
 
 const JourneyCard: React.FC<JourneyCardProps> = ({ category, onToolClick }) => {
   return (
-    <div className="group relative flex flex-col min-h-[420px] sm:min-h-[480px] lg:h-[560px] w-full md-card overflow-hidden transition-all duration-500 hover:border-yellow-300/80 hover:shadow-md">
-      {/* Background Image with Gradient Overlay */}
+    <div className="group relative flex w-full flex-col overflow-hidden rounded-2xl border-2 border-[#B8B4A8] bg-white shadow-[0_4px_0_rgba(0,0,0,0.06),0_12px_28px_rgba(0,0,0,0.08)] transition-all duration-500 hover:border-[#FFCC00] hover:shadow-[0_6px_0_rgba(224,155,0,0.35),0_16px_32px_rgba(0,0,0,0.1)] min-h-[420px] sm:min-h-[480px] lg:h-[560px]">
+      {/* Background Image — เต็มการ์ด */}
       <div
-        className="absolute inset-0 z-0 bg-cover bg-center grayscale group-hover:grayscale-0 transition-all duration-1000 opacity-30 group-hover:opacity-50 scale-110 group-hover:scale-100"
+        className="absolute inset-0 z-0 scale-105 bg-cover bg-center transition-all duration-700 group-hover:scale-100"
         style={{ backgroundImage: `url(${category.image})` }}
       />
-      <div className="absolute inset-0 z-10 bg-gradient-to-t from-white via-white/85 to-white/40" />
+      <div className="absolute inset-0 z-10 bg-gradient-to-t from-white via-white/75 to-white/25" />
 
-      <div className="relative z-20 flex flex-col h-full p-5 sm:p-6 lg:p-8">
+      <div className="relative z-20 flex h-full flex-col p-5 sm:p-6 lg:p-8">
         <div className="mb-auto shrink-0">
-          <span className="text-[#FFCC00] text-[10px] sm:text-xs font-bold uppercase tracking-widest mb-2 sm:mb-4 block">Section</span>
-          <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 leading-tight mb-3 sm:mb-4 group-hover:text-yellow-700 transition-colors line-clamp-2">
+          <span className="mb-3 inline-flex items-center rounded-full border-2 border-black/10 bg-[#FFCC00] px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-black shadow-sm sm:mb-4 sm:text-xs">
+            Section
+          </span>
+          <h3 className="mb-3 text-xl font-black leading-tight text-gray-950 transition-colors group-hover:text-yellow-950 sm:mb-4 sm:text-2xl lg:text-3xl line-clamp-2">
             {category.title}
           </h3>
-          <div className="w-10 sm:w-12 h-0.5 sm:h-1 bg-[#FFCC00]/50 rounded-full group-hover:w-20 sm:group-hover:w-24 transition-all duration-500" />
+          <div className="h-1.5 w-12 rounded-full bg-[#FFCC00] transition-all duration-500 group-hover:w-24 sm:w-14" />
         </div>
 
-        <div className="space-y-2 sm:space-y-3 mt-4 sm:mt-6 lg:mt-8 min-h-0">
-          <p className="text-[10px] sm:text-xs text-gray-500 uppercase font-bold tracking-widest mb-1 sm:mb-2">Available Frameworks</p>
-          <div className="flex flex-col gap-2 sm:gap-3 overflow-y-auto max-h-[200px] sm:max-h-[240px] lg:max-h-none pr-1">
+        <div className="mt-4 min-h-0 space-y-2 sm:mt-6 sm:space-y-3 lg:mt-8">
+          <p className="mb-1 text-[10px] font-black uppercase tracking-[0.14em] text-[#5C4A00] sm:mb-2 sm:text-xs">
+            Available Frameworks
+          </p>
+          <div className="flex max-h-[200px] flex-col gap-2 overflow-y-auto pr-1 sm:max-h-[240px] sm:gap-3 lg:max-h-none">
             {category.tools.map((tool) => (
               <button
                 key={tool.id}
                 type="button"
                 onClick={() => onToolClick(tool)}
-                className="w-full text-left py-3 sm:py-4 px-3 sm:px-4 rounded-xl sm:rounded-2xl bg-white/90 border border-[#D6D4CC] text-xs sm:text-sm font-medium text-gray-800 hover:bg-[#FFCC00] hover:text-black hover:border-[#FFCC00] transition-all transform hover:-translate-y-0.5 sm:hover:-translate-y-1 active:scale-[0.98] min-h-[44px] sm:min-h-[48px] shadow-sm"
+                className="min-h-[44px] w-full rounded-xl border-2 border-[#C8C5BA] bg-white/95 px-3 py-3 text-left text-xs font-bold text-gray-950 shadow-sm transition-all hover:-translate-y-0.5 hover:border-black hover:bg-[#FFCC00] active:scale-[0.98] sm:min-h-[48px] sm:rounded-2xl sm:px-4 sm:py-4 sm:text-sm sm:hover:-translate-y-1"
               >
                 {tool.name}
               </button>
