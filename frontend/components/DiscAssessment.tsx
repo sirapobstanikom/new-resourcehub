@@ -1234,7 +1234,7 @@ const DiscAssessment: React.FC = () => {
       >
         {step === 'login' && (
           <div className="disc-login-enter grid w-full items-center gap-7 lg:grid-cols-[1.12fr_0.88fr] lg:gap-12 xl:gap-16">
-            <div className="order-2 flex min-h-0 flex-col text-center lg:order-1 lg:text-left">
+            <div className="flex min-h-0 flex-col text-center lg:text-left">
               <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.2em] text-[#9A7200] sm:mb-4 sm:text-xs">
                 MindDoJo Assessment
               </p>
@@ -1279,7 +1279,7 @@ const DiscAssessment: React.FC = () => {
               </div>
             </div>
 
-            <div className="order-1 w-full lg:order-2 lg:max-w-[28rem] lg:justify-self-end xl:max-w-[30rem]">
+            <div className="w-full lg:max-w-[28rem] lg:justify-self-end xl:max-w-[30rem]">
               <div className="disc-login-card overflow-hidden rounded-[28px] border border-[#E2DFD6] bg-white/95 shadow-[0_20px_50px_rgba(15,23,42,0.1)] backdrop-blur-sm sm:rounded-[32px]">
                 <div className="h-1.5 w-full bg-gradient-to-r from-[#FFCC00] via-[#FFE566] to-[#FFCC00]" aria-hidden />
                 <div className="p-6 sm:p-8 lg:p-9">
