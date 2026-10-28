@@ -1342,9 +1342,9 @@ const DiscAssessment: React.FC = () => {
                 <DiscTestPathStepper current={2} />
               </div>
 
-              <div className="px-5 py-5 sm:px-8 sm:py-6">
+              <div className="px-4 py-4 sm:px-8 sm:py-6">
                 <div className="space-y-2.5">
-                  <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
+                  <div className="flex flex-col gap-1 text-sm sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-2">
                     <p className="font-bold text-[#C9A000]">
                       ข้อที่ {statementRange.start} – {statementRange.end} จาก {totalStatements}
                     </p>
@@ -1353,10 +1353,17 @@ const DiscAssessment: React.FC = () => {
                       <span className="font-black text-gray-950">{answeredStatementCount}</span>
                       {' / '}
                       {totalStatements} ข้อ
+                      <span className="ml-1.5 text-gray-400">
+                        (
+                        {totalStatements > 0
+                          ? Math.round((answeredStatementCount / totalStatements) * 100)
+                          : 0}
+                        %)
+                      </span>
                     </p>
                   </div>
                   <div
-                    className="relative h-3 w-full overflow-hidden rounded-full bg-[#F0EEE8]"
+                    className="relative h-3.5 w-full overflow-hidden rounded-full bg-[#F0EEE8] sm:h-3"
                     role="progressbar"
                     aria-valuemin={0}
                     aria-valuemax={totalStatements}
@@ -1379,22 +1386,16 @@ const DiscAssessment: React.FC = () => {
                       />
                     ) : null}
                   </div>
-                  <p className="text-right text-[11px] font-semibold text-gray-400">
-                    {totalStatements > 0
-                      ? Math.round((answeredStatementCount / totalStatements) * 100)
-                      : 0}
-                    % เสร็จแล้ว
-                  </p>
                 </div>
 
-                <h2 className="mt-4 text-lg font-bold leading-snug text-gray-950 sm:text-xl">
+                <h2 className="mt-4 text-base font-bold leading-snug text-gray-950 sm:text-xl">
                   จัดลำดับพฤติกรรมต่อไปนี้ตามความถี่ในชีวิตประจำวันของคุณ
                 </h2>
-                <p className="mt-2 text-sm text-gray-500">
+                <p className="mt-2 text-[13px] leading-relaxed text-gray-500 sm:text-sm">
                   1 = ทำน้อยที่สุด | 4 = ทำบ่อยครั้งที่สุด (แต่ละระดับใช้ได้ครั้งเดียว)
                 </p>
 
-                <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
+                <div className="mt-4 grid grid-cols-1 gap-3 sm:mt-5 sm:grid-cols-2 sm:gap-4">
                   {currentQuestion.statements.map((st, statementIdx) => {
                     const statementIndex = statementIdx as 0 | 1 | 2 | 3;
                     const qAnswer = getQuestionAnswer(currentQuestion.id);
@@ -1406,19 +1407,19 @@ const DiscAssessment: React.FC = () => {
                     return (
                       <div
                         key={`${currentQuestion.id}-${statementIdx}`}
-                        className="rounded-2xl border border-[#E8E6DF] bg-[#FCFCFB] p-4 sm:p-5"
+                        className="rounded-2xl border border-[#E8E6DF] bg-[#FCFCFB] p-3.5 sm:p-5"
                       >
-                        <div className="flex items-start gap-3">
+                        <div className="flex items-start gap-2.5 sm:gap-3">
                           <span
-                            className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-sm font-black ${STATEMENT_BADGE_STYLES[statementIdx]}`}
+                            className={`mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-sm font-black ${STATEMENT_BADGE_STYLES[statementIdx]}`}
                           >
                             {statementIdx + 1}
                           </span>
-                          <p className="disc-statement-text min-h-[2rem] pt-0.5 text-[15px] font-medium leading-[1.75] text-gray-800 sm:text-base sm:leading-[1.8]">
+                          <p className="disc-statement-text min-w-0 flex-1 text-gray-800">
                             {st.text}
                           </p>
                         </div>
-                        <div className="mt-4 grid grid-cols-4 gap-2">
+                        <div className="mt-3.5 grid grid-cols-4 gap-2 sm:mt-4">
                           {RATING_VALUES.map((rating) => {
                             const isSelected = selectedForThisStatement === rating;
                             const isUsedElsewhere = !isSelected && usedRatingsInCurrentQuestion.has(rating);
@@ -1434,12 +1435,12 @@ const DiscAssessment: React.FC = () => {
                                   handleSelectRating(statementIndex, rating);
                                 }}
                                 disabled={disabled}
-                                className={`rounded-xl border py-2.5 text-sm font-black transition-all touch-manipulation ${
+                                className={`min-h-[44px] rounded-xl border py-2.5 text-base font-bold transition-all touch-manipulation sm:min-h-0 sm:py-2.5 sm:text-sm sm:font-black ${
                                   isSelected
                                     ? 'border-[#FFCC00] bg-[#FFCC00] text-black shadow-sm'
                                     : disabled
                                       ? 'cursor-not-allowed border-[#EEECE6] bg-[#F3F2ED] text-gray-400'
-                                      : 'border-[#D6D4CC] bg-white text-gray-700 hover:border-gray-400 hover:bg-white'
+                                      : 'border-[#D6D4CC] bg-white text-gray-700 active:bg-gray-50 hover:border-gray-400 hover:bg-white'
                                 } ${isRatingPop ? 'disc-rating-pop' : ''}`}
                                 aria-pressed={isSelected}
                               >
@@ -1457,7 +1458,7 @@ const DiscAssessment: React.FC = () => {
                   <button
                     type="button"
                     onClick={handlePrev}
-                    className="inline-flex items-center justify-center gap-1.5 rounded-xl px-3 py-2.5 text-sm font-semibold text-gray-500 transition hover:bg-gray-50 hover:text-gray-800"
+                    className="inline-flex min-h-[44px] items-center justify-center gap-1.5 rounded-xl px-3 py-3 text-sm font-semibold text-gray-500 transition hover:bg-gray-50 hover:text-gray-800 touch-manipulation sm:min-h-0 sm:py-2.5"
                   >
                     <span aria-hidden>←</span>
                     {currentIndex === 0 ? 'กลับไปข้อมูลผู้ทำแบบทดสอบ' : 'ข้อก่อนหน้า'}
@@ -1466,7 +1467,7 @@ const DiscAssessment: React.FC = () => {
                     type="button"
                     onClick={handleNext}
                     disabled={!canNext}
-                    className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#FFCC00] px-6 py-3.5 text-base font-bold text-black shadow-[0_3px_0_#E0A800] transition hover:bg-[#FFD633] disabled:cursor-not-allowed disabled:opacity-45 disabled:shadow-none"
+                    className="inline-flex min-h-[48px] items-center justify-center gap-2 rounded-2xl bg-[#FFCC00] px-6 py-3.5 text-base font-bold text-black shadow-[0_3px_0_#E0A800] transition hover:bg-[#FFD633] disabled:cursor-not-allowed disabled:opacity-45 disabled:shadow-none touch-manipulation active:translate-y-0.5 active:shadow-[0_2px_0_#E0A800]"
                   >
                     {currentIndex < totalBigQuestions - 1 ? 'ข้อถัดไป' : 'ดูผลลัพธ์'}
                     <span aria-hidden>→</span>

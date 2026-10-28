@@ -213,14 +213,27 @@
   font-feature-settings: "kern" 1;
   text-rendering: optimizeLegibility;
 }
-/* โจทย์ DISC — อ่านง่าย (Medium + ระยะบรรทัดกว้าง) */
+/* โจทย์ DISC — อ่านง่าย โดยเฉพาะมือถือ */
 .disc-statement-text {
   font-family: "Sukhumvit Set", "Sarabun", "Anuphan", ui-sans-serif, system-ui, sans-serif !important;
-  font-weight: 500 !important;
-  letter-spacing: 0.01em;
+  font-weight: 400 !important;
+  font-size: 1.0625rem !important; /* 17px — อ่านง่ายบนจอเล็ก + กัน iOS zoom */
+  line-height: 1.85 !important;
+  letter-spacing: 0.015em;
   word-break: break-word;
+  overflow-wrap: anywhere;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+@media (min-width: 640px) {
+  .disc-statement-text {
+    font-weight: 500 !important;
+    font-size: 1.0625rem !important;
+    line-height: 1.8 !important;
+  }
 }
 .disc-thai-tone {
   transform: translateY(0.06em);
