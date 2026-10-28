@@ -189,22 +189,22 @@ const DISC_TYPE_BY_QUESTION_NUMBER: Record<DiscType, Set<number>> = {
 };
 
 const DISC_FLOW_STAGES = [
-  { id: 1, label: 'ลงทะเบียน' },
-  { id: 2, label: 'อ่านวิธีทำ' },
-  { id: 3, label: 'เริ่มทำแบบทดสอบ' },
+  { id: 1, label: 'ลงทะเบียน', shortLabel: 'ลงทะเบียน' },
+  { id: 2, label: 'อ่านวิธีทำ', shortLabel: 'อ่านวิธีทำ' },
+  { id: 3, label: 'เริ่มทำแบบทดสอบ', shortLabel: 'เริ่มทำ' },
 ] as const;
 
 function DiscStageBar({ current }: { current: 1 | 2 | 3 }) {
   return (
     <nav aria-label="ขั้นตอนแบบทดสอบ" className="w-full">
-      <ol className="flex items-stretch gap-1.5 sm:gap-2">
+      <ol className="grid grid-cols-3 gap-1.5 sm:gap-2">
         {DISC_FLOW_STAGES.map((stage) => {
           const done = stage.id < current;
           const active = stage.id === current;
           return (
-            <li key={stage.id} className="min-w-0 flex-1">
+            <li key={stage.id} className="min-w-0">
               <div
-                className={`flex h-full items-center gap-2 rounded-2xl border px-2.5 py-2.5 transition sm:px-3 sm:py-3 ${
+                className={`flex h-full min-h-[4.75rem] flex-col items-center justify-center gap-1 rounded-2xl border px-1 py-2 text-center transition sm:min-h-0 sm:flex-row sm:items-center sm:justify-start sm:gap-2 sm:px-3 sm:py-3 sm:text-left ${
                   active
                     ? 'border-[#FFCC00] bg-[#FFF8D6] shadow-[0_2px_0_rgba(224,168,0,0.35)]'
                     : done
@@ -218,14 +218,21 @@ function DiscStageBar({ current }: { current: 1 | 2 | 3 }) {
                       ? 'bg-[#FFCC00] text-black'
                       : done
                         ? 'bg-emerald-500 text-white'
-                        : 'bg-white text-gray-400 border border-[#E2DFD6]'
+                        : 'border border-[#E2DFD6] bg-white text-gray-400'
                   }`}
                   aria-current={active ? 'step' : undefined}
                 >
                   {done ? '✓' : stage.id}
                 </span>
                 <span
-                  className={`min-w-0 truncate text-[11px] font-bold leading-tight sm:text-sm ${
+                  className={`w-full px-0.5 text-[10px] font-bold leading-tight sm:hidden ${
+                    active ? 'text-[#6B5200]' : done ? 'text-gray-800' : 'text-gray-400'
+                  }`}
+                >
+                  {stage.shortLabel}
+                </span>
+                <span
+                  className={`hidden min-w-0 flex-1 truncate text-sm font-bold leading-tight sm:block ${
                     active ? 'text-[#6B5200]' : done ? 'text-gray-800' : 'text-gray-400'
                   }`}
                 >
@@ -1233,8 +1240,8 @@ const DiscAssessment: React.FC = () => {
         }`}
       >
         {step === 'login' && (
-          <div className="disc-login-enter grid w-full items-center gap-7 lg:grid-cols-[1.12fr_0.88fr] lg:gap-12 xl:gap-16">
-            <div className="flex min-h-0 flex-col text-center lg:text-left">
+          <div className="disc-login-enter grid w-full items-start gap-6 sm:gap-7 lg:grid-cols-[1.12fr_0.88fr] lg:items-center lg:gap-12 xl:gap-16">
+            <div className="flex min-h-0 w-full flex-col text-center lg:text-left">
               <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.2em] text-[#9A7200] sm:mb-4 sm:text-xs">
                 MindDoJo Assessment
               </p>
@@ -1279,10 +1286,10 @@ const DiscAssessment: React.FC = () => {
               </div>
             </div>
 
-            <div className="w-full lg:max-w-[28rem] lg:justify-self-end xl:max-w-[30rem]">
+            <div className="mx-auto w-full max-w-md lg:mx-0 lg:max-w-[28rem] lg:justify-self-end xl:max-w-[30rem]">
               <div className="disc-login-card overflow-hidden rounded-[28px] border border-[#E2DFD6] bg-white/95 shadow-[0_20px_50px_rgba(15,23,42,0.1)] backdrop-blur-sm sm:rounded-[32px]">
                 <div className="h-1.5 w-full bg-gradient-to-r from-[#FFCC00] via-[#FFE566] to-[#FFCC00]" aria-hidden />
-                <div className="p-6 sm:p-8 lg:p-9">
+                <div className="p-4 sm:p-8 lg:p-9">
                   <div className="mb-5">
                     <DiscStageBar current={1} />
                   </div>
