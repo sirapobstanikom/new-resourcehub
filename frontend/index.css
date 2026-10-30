@@ -915,3 +915,94 @@
     transition: none;
   }
 }
+
+/* TBA EVA public form — same temple theme as Amazing Race videos */
+.tba-eva-form .tba-eva-hero {
+  position: relative;
+  isolation: isolate;
+  min-height: min(42vh, 340px);
+  overflow: hidden;
+}
+@media (min-width: 640px) {
+  .tba-eva-form .tba-eva-hero {
+    min-height: min(48vh, 420px);
+  }
+}
+.tba-eva-form .tba-eva-hero-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 32%;
+  animation: tba-hero-ken 20s ease-out both;
+}
+.tba-eva-form .tba-eva-panel {
+  border: 1px solid rgba(212, 175, 55, 0.28);
+  background: linear-gradient(165deg, rgba(61, 24, 24, 0.94), rgba(28, 10, 10, 0.97));
+  box-shadow:
+    0 0 0 1px rgba(232, 213, 163, 0.06) inset,
+    0 24px 56px rgba(0, 0, 0, 0.35);
+}
+.tba-eva-form .tba-eva-banner {
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.14), rgba(61, 24, 24, 0.55));
+}
+.tba-eva-form .tba-eva-desc {
+  border: 1px solid rgba(212, 175, 55, 0.28);
+  background: rgba(14, 6, 6, 0.45);
+  color: rgba(247, 239, 224, 0.88);
+}
+.tba-eva-form .tba-eva-desc p {
+  color: inherit;
+}
+.tba-eva-form .tba-eva-option {
+  border: 1px solid rgba(212, 175, 55, 0.28);
+  background: rgba(14, 6, 6, 0.45);
+  color: #f7efe0;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+.tba-eva-form .tba-eva-option:hover {
+  background: rgba(212, 175, 55, 0.1);
+  border-color: rgba(232, 213, 163, 0.45);
+}
+.tba-eva-form .tba-eva-option input {
+  accent-color: #d4af37;
+}
+.tba-eva-form .tba-eva-rating {
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  background: rgba(14, 6, 6, 0.55);
+  color: #e8d5a3;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.15s ease;
+}
+.tba-eva-form .tba-eva-rating:hover {
+  background: rgba(212, 175, 55, 0.12);
+}
+.tba-eva-form .tba-eva-rating:active {
+  transform: scale(0.96);
+}
+.tba-eva-form .tba-eva-rating.is-selected {
+  border-color: rgba(232, 213, 163, 0.85);
+  background: linear-gradient(180deg, #e8d5a3, #d4af37);
+  color: #1c0a0a;
+  box-shadow: 0 6px 16px rgba(212, 175, 55, 0.28);
+}
+.tba-eva-form .tba-eva-field {
+  border: 1px solid rgba(212, 175, 55, 0.28);
+  background: rgba(14, 6, 6, 0.55);
+  color: #f7efe0;
+}
+.tba-eva-form .tba-eva-field::placeholder {
+  color: rgba(247, 239, 224, 0.38);
+}
+.tba-eva-form .tba-eva-field:focus {
+  border-color: rgba(232, 213, 163, 0.7);
+  background: rgba(20, 8, 8, 0.75);
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.16);
+  outline: none;
+}
+.tba-eva-form .tba-eva-submitted {
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  background: linear-gradient(165deg, rgba(61, 24, 24, 0.94), rgba(28, 10, 10, 0.97));
+  color: #f7efe0;
+}
