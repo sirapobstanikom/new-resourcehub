@@ -592,6 +592,40 @@ const AdminLayoutWithSidebar: React.FC = () => {
         </details>
         <details className="group rounded-lg">
           <summary className="list-none cursor-pointer py-2.5 px-3 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors flex items-center justify-between">
+            <span>Thai Beverage · Amazing Race</span>
+            <svg className="w-4 h-4 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </summary>
+          <div className="mt-1 ml-2 space-y-1 border-l border-[#D6D4CC] pl-2">
+            <a
+              href="/evaluation/form/eva-THAI-BEVERAGE-CAN-LIMITED-EVA"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block py-2 px-3 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors"
+            >
+              แบบประเมินทีม (EVA)
+            </a>
+            <a
+              href="/evaluation/tba-amazing-race/videos"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block py-2 px-3 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors"
+            >
+              อัปโหลดวิดีโอ
+            </a>
+            <a
+              href="/evaluation/tba-amazing-race/videos/dashboard"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block py-2 px-3 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors"
+            >
+              Dashboard วิดีโอ
+            </a>
+          </div>
+        </details>
+        <details className="group rounded-lg">
+          <summary className="list-none cursor-pointer py-2.5 px-3 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors flex items-center justify-between">
             <span>Hogwarts Game</span>
             <svg className="w-4 h-4 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />

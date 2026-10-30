@@ -363,7 +363,11 @@ const LeadershipAssessment: React.FC = () => {
   };
 
   return (
-    <div className="md-page relative flex min-h-[100dvh] flex-col">
+    <div
+      className={`relative flex min-h-[100dvh] flex-col ${
+        step === 'login' ? 'bg-transparent text-gray-900' : 'md-page'
+      }`}
+    >
       {/* ป๊อปอัพแนะนำก่อนเริ่มแบบประเมิน */}
       {showIntroModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" aria-modal="true" role="dialog">
@@ -410,9 +414,8 @@ const LeadershipAssessment: React.FC = () => {
             <img
               src={LEADERSHIP_RIBBON_BG}
               alt=""
-              className="h-full w-full select-none object-cover object-[78%_center] opacity-30"
+              className="h-full w-full select-none object-cover object-[78%_center]"
             />
-            <div className="absolute inset-0 bg-gradient-to-b from-[#F3F2ED]/50 via-[#F3F2ED]/85 to-[#F3F2ED]" />
           </div>
 
           <header className="relative z-10 mx-auto flex w-full max-w-5xl items-center justify-between gap-4 px-5 pt-5 sm:px-8 sm:pt-7">

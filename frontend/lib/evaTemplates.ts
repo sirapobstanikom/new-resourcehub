@@ -785,3 +785,186 @@ export function findEvaTemplateByRouteId(
   }
   return null;
 }
+
+export const THAI_BEVERAGE_CAN_LIMITED_EVA_NAME = 'THAI BEVERAGE CAN LIMITED EVA';
+export const THAI_BEVERAGE_CAN_LIMITED_EVA_ID = evaBaseIdFromName(THAI_BEVERAGE_CAN_LIMITED_EVA_NAME);
+
+function tbaRatingItems(texts: string[]): EvaRatingSubItem[] {
+  return texts.map((text) => ({ text, numberStyle: 'auto' as const }));
+}
+
+function tbaDesc(
+  id: string,
+  lines: EvaDescriptionLine[],
+  align: EvaDescriptionAlign = 'left'
+): EvaPrompt {
+  return {
+    id,
+    title: descriptionLinesToTitle(lines),
+    type: 'description',
+    promptNumberStyle: 'none',
+    descriptionAlign: align,
+    descriptionLines: lines,
+  };
+}
+
+function tbaRating(id: string, title: string, items: string[]): EvaPrompt {
+  const ratingSubItems = tbaRatingItems(items);
+  return {
+    id,
+    title,
+    type: 'rating_1_5',
+    promptNumberStyle: 'none',
+    ratingSubItems,
+    ratingItems: ratingSubItems.map((item) => item.text),
+  };
+}
+
+/** แบบประเมินทีม Amazing Race — Thai Beverage Can Limited */
+export function createThaiBeverageCanLimitedEvaTemplate(
+  existingIds: ReadonlySet<string> = new Set()
+): EvaEvaluationTemplate {
+  const id = existingIds.has(THAI_BEVERAGE_CAN_LIMITED_EVA_ID)
+    ? evaUniqueIdFromName(THAI_BEVERAGE_CAN_LIMITED_EVA_NAME, existingIds)
+    : THAI_BEVERAGE_CAN_LIMITED_EVA_ID;
+
+  return {
+    id,
+    name: THAI_BEVERAGE_CAN_LIMITED_EVA_NAME,
+    heading: 'Amazing Race · Team Behavior',
+    description:
+      'สำรวจพฤติกรรมการทำงานร่วมกันของทีมระหว่างกิจกรรม Amazing Race — สื่อสาร สนับสนุนช่วยเหลือ และประสานงานแก้ปัญหาร่วมกัน',
+    language: 'th',
+    prompts: [
+      {
+        id: 'tba-name',
+        title: 'ชื่อ - นามสกุล',
+        type: 'text',
+        promptNumberStyle: 'none',
+      },
+      {
+        id: 'tba-team',
+        title: 'ทีม / กลุ่ม',
+        type: 'text',
+        promptNumberStyle: 'none',
+      },
+      tbaDesc('tba-purpose', [
+        { text: 'จุดประสงค์ของแบบประเมิน', style: 'bold' },
+        {
+          text: 'แบบประเมินนี้จัดทำขึ้นเพื่อสำรวจพฤติกรรมการทำงานร่วมกันของทีมที่เกิดขึ้นระหว่างกิจกรรม Amazing Race ครอบคลุมด้านการสื่อสาร การสนับสนุนช่วยเหลือกัน และการประสานงานเพื่อแก้ไขปัญหาร่วมกัน',
+          style: 'normal',
+        },
+        {
+          text: 'ผลการประเมินจะนำไปใช้เพื่อสะท้อนจุดแข็งและค้นหาโอกาสในการพัฒนาการทำงานเป็นทีมให้มีประสิทธิภาพยิ่งขึ้น แบบประเมินนี้ไม่มีคำตอบที่ถูกหรือผิด จึงขอให้ประเมินจากพฤติกรรมที่เกิดขึ้นจริงระหว่างกิจกรรม',
+          style: 'normal',
+        },
+      ]),
+      tbaDesc('tba-guide', [
+        { text: 'คำแนะนำในการทำแบบประเมิน', style: 'bold' },
+        { text: '- อ่านข้อความแต่ละข้อและประเมินจากพฤติกรรมที่เกิดขึ้นจริงภายในทีม', style: 'normal' },
+        {
+          text: '- ตอบอย่างตรงไปตรงมาและเป็นกลาง โดยใช้ความรู้สึกและสิ่งที่สังเกตเห็นเป็นหลัก',
+          style: 'normal',
+        },
+        {
+          text: '- ไม่ควรใช้เวลาคิดกับแต่ละข้อมากเกินไป คำตอบแรกมักสะท้อนประสบการณ์ได้ดีที่สุด',
+          style: 'normal',
+        },
+        {
+          text: '- ใช้มาตราส่วน 1–5 และเลือกคะแนนที่ใกล้เคียงกับพฤติกรรมของทีมมากที่สุด',
+          style: 'normal',
+        },
+        {
+          text: '- ควรตอบให้ครบทุกข้อ โดยใช้เวลาทำแบบประเมินไม่เกิน 15 นาที',
+          style: 'normal',
+        },
+      ]),
+      tbaDesc('tba-scale', [
+        { text: 'เกณฑ์การให้คะแนน', style: 'bold' },
+        { text: '1 = ไม่ทำเลย', style: 'normal' },
+        { text: '2 = ทำน้อย', style: 'normal' },
+        { text: '3 = ทำบ้าง', style: 'normal' },
+        { text: '4 = ทำบ่อย', style: 'normal' },
+        { text: '5 = ทำตลอด', style: 'normal' },
+      ]),
+      tbaRating('tba-dim-1', 'มิติที่ 1: การสื่อสาร', [
+        'กล้าแสดงความคิดเห็นหรือเสนอไอเดียของตนเองต่อทีม',
+        'กล้าถามเมื่อไม่เข้าใจโจทย์หรือความคิดเห็นของสมาชิก',
+        'รับฟังความคิดเห็นของสมาชิกต่างรุ่นโดยไม่ขัดจังหวะ',
+        'อธิบายความคิดของตนเองให้สมาชิกเข้าใจอย่างชัดเจน',
+        'ชวนสมาชิกที่ยังไม่ได้พูดให้มีส่วนร่วมในการสนทนา',
+      ]),
+      tbaRating('tba-dim-2', 'มิติที่ 2: การขอและให้ความช่วยเหลือ', [
+        'กล้าบอกทีมเมื่อตนเองพบปัญหาหรือต้องการความช่วยเหลือ',
+        'ขอคำแนะนำจากสมาชิกที่มีความรู้หรือประสบการณ์มากกว่า',
+        'สังเกตและเสนอตัวช่วยสมาชิกโดยไม่ต้องรอให้ร้องขอ',
+        'ถ่ายทอดความรู้หรือแนะนำวิธีทำงานให้สมาชิกที่มีประสบการณ์น้อยกว่า',
+        'ร่วมแก้ไขปัญหากับสมาชิกจนสามารถทำภารกิจต่อได้',
+      ]),
+      tbaRating('tba-dim-3', 'มิติที่ 3: ความร่วมมือและความไว้วางใจ', [
+        'เชื่อมั่นและเปิดโอกาสให้สมาชิกแต่ละคนรับผิดชอบหน้าที่ของตนเอง',
+        'ยอมรับและนำความคิดเห็นที่แตกต่างมาประกอบการตัดสินใจ',
+        'ปฏิบัติตามข้อตกลงและรับผิดชอบงานที่ได้รับมอบหมาย',
+        'ร่วมมือกับสมาชิกต่างรุ่นเพื่อให้ทีมบรรลุเป้าหมาย',
+        'สนับสนุนการตัดสินใจของทีม แม้ข้อสรุปจะแตกต่างจากความคิดเห็นของตนเอง',
+      ]),
+      tbaRating('tba-dim-4', 'มิติที่ 4: การประสานงานและแก้ปัญหาร่วมกัน', [
+        'ทีมร่วมกันวางแผนก่อนเริ่มลงมือทำภารกิจ',
+        'ทีมแบ่งหน้าที่ตามความถนัดของสมาชิกแต่ละคน',
+        'สมาชิกแลกเปลี่ยนข้อมูลก่อนตัดสินใจเรื่องสำคัญ',
+        'ทีมสามารถปรับแผนเมื่อพบปัญหาหรือสถานการณ์เปลี่ยนแปลง',
+        'สมาชิกไว้วางใจและสนับสนุนให้แต่ละคนทำหน้าที่ของตนเอง',
+      ]),
+    ],
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+export function isThaiBeverageCanLimitedEvaTemplate(
+  template: Pick<EvaEvaluationTemplate, 'id' | 'name'> | null | undefined
+): boolean {
+  if (!template) return false;
+  return (
+    template.id === THAI_BEVERAGE_CAN_LIMITED_EVA_ID ||
+    template.name.trim().toUpperCase() === THAI_BEVERAGE_CAN_LIMITED_EVA_NAME
+  );
+}
+
+/** เติมช่องชื่อ/ทีมถ้ายังไม่มี — ไม่ทับโจทย์ที่แก้แล้ว */
+export function upgradeThaiBeverageCanLimitedEvaTemplate(
+  template: EvaEvaluationTemplate
+): EvaEvaluationTemplate {
+  if (!isThaiBeverageCanLimitedEvaTemplate(template)) return template;
+  const hasName = template.prompts.some(
+    (p) => p.type === 'text' && /ชื่อ/.test(p.title || '')
+  );
+  if (hasName) return template;
+  const namePrompt: EvaPrompt = {
+    id: 'tba-name',
+    title: 'ชื่อ - นามสกุล',
+    type: 'text',
+    promptNumberStyle: 'none',
+  };
+  const teamPrompt: EvaPrompt = {
+    id: 'tba-team',
+    title: 'ทีม / กลุ่ม',
+    type: 'text',
+    promptNumberStyle: 'none',
+  };
+  return {
+    ...template,
+    prompts: [namePrompt, teamPrompt, ...template.prompts],
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+/** เติมแบบประเมิน Thai Beverage Can ถ้ายังไม่มีในรายการ */
+export function ensureThaiBeverageCanLimitedEvaTemplate(
+  templates: EvaEvaluationTemplate[]
+): { templates: EvaEvaluationTemplate[]; added: EvaEvaluationTemplate | null } {
+  const upgraded = templates.map(upgradeThaiBeverageCanLimitedEvaTemplate);
+  const exists = upgraded.some((t) => isThaiBeverageCanLimitedEvaTemplate(t));
+  if (exists) return { templates: upgraded, added: null };
+  const created = createThaiBeverageCanLimitedEvaTemplate(new Set(upgraded.map((t) => t.id)));
+  return { templates: [created, ...upgraded], added: created };
+}

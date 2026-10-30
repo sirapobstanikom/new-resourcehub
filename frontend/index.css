@@ -576,3 +576,342 @@
     background-clip: padding-box;
   }
 }
+
+/* Thai Beverage · Amazing Race — ธีมโถงวัด (แดงชาด · ทองคำ · แสงเทียน) */
+.tba-temple-theme {
+  --tba-lacquer: #1c0a0a;
+  --tba-hall: #2a1012;
+  --tba-pillar: #3d1818;
+  --tba-gold: #d4af37;
+  --tba-gold-soft: #e8d5a3;
+  --tba-gold-deep: #9a7b2c;
+  --tba-candle: #ffe8b0;
+  --tba-ink: #f7efe0;
+  --tba-muted: rgba(247, 239, 224, 0.62);
+  font-family: "Sukhumvit Set", "Sarabun", "Anuphan", ui-sans-serif, system-ui, sans-serif;
+  color: var(--tba-ink);
+  background-color: var(--tba-lacquer);
+}
+.tba-temple-theme *,
+.tba-temple-theme button,
+.tba-temple-theme input,
+.tba-temple-theme textarea,
+.tba-temple-theme a {
+  font-family: inherit;
+}
+.tba-temple-bg {
+  background-color: var(--tba-lacquer);
+  background-image:
+    radial-gradient(ellipse 90% 55% at 50% -5%, rgba(212, 175, 55, 0.22), transparent 58%),
+    radial-gradient(ellipse 50% 40% at 15% 100%, rgba(90, 20, 20, 0.55), transparent 55%),
+    radial-gradient(ellipse 45% 35% at 88% 75%, rgba(212, 175, 55, 0.08), transparent 50%),
+    linear-gradient(180deg, #2a1012 0%, #1c0a0a 48%, #140808 100%);
+}
+.tba-temple-pattern {
+  opacity: 0.35;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 72 72'%3E%3Cpath fill='none' stroke='%23d4af37' stroke-opacity='0.14' stroke-width='0.8' d='M36 8c4 8 12 12 20 12-8 0-16 4-20 12-4-8-12-12-20-12 8 0 16-4 20-12z'/%3E%3C/svg%3E");
+  background-size: 72px 72px;
+  mask-image: linear-gradient(180deg, transparent 0%, #000 18%, #000 72%, transparent 100%);
+}
+.tba-temple-rule {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(212, 175, 55, 0.15) 12%,
+    rgba(232, 213, 163, 0.85) 50%,
+    rgba(212, 175, 55, 0.15) 88%,
+    transparent 100%
+  );
+  position: relative;
+}
+.tba-temple-rule::before,
+.tba-temple-rule::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  border: 1px solid rgba(232, 213, 163, 0.75);
+  transform: translateY(-50%) rotate(45deg);
+  background: rgba(212, 175, 55, 0.35);
+}
+.tba-temple-rule::before {
+  left: calc(50% - 48px);
+}
+.tba-temple-rule::after {
+  right: calc(50% - 48px);
+}
+@keyframes tba-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes tba-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes tba-hero-ken {
+  from {
+    transform: scale(1.08);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+@keyframes tba-shimmer {
+  0% {
+    background-position: 120% 0;
+  }
+  100% {
+    background-position: -120% 0;
+  }
+}
+@keyframes tba-progress-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.15);
+  }
+  50% {
+    box-shadow: 0 0 16px 2px rgba(212, 175, 55, 0.35);
+  }
+}
+@keyframes tba-soft-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+.tba-temple-rise {
+  animation: tba-fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.tba-temple-rise-delay {
+  animation: tba-fade-up 0.75s cubic-bezier(0.22, 1, 0.36, 1) 0.14s both;
+}
+.tba-temple-rise-2 {
+  animation: tba-fade-up 0.75s cubic-bezier(0.22, 1, 0.36, 1) 0.24s both;
+}
+.tba-temple-stagger > * {
+  animation: tba-fade-up 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.tba-temple-stagger > *:nth-child(1) {
+  animation-delay: 0.05s;
+}
+.tba-temple-stagger > *:nth-child(2) {
+  animation-delay: 0.1s;
+}
+.tba-temple-stagger > *:nth-child(3) {
+  animation-delay: 0.15s;
+}
+.tba-temple-stagger > *:nth-child(4) {
+  animation-delay: 0.2s;
+}
+.tba-temple-stagger > *:nth-child(5) {
+  animation-delay: 0.25s;
+}
+.tba-temple-stagger > *:nth-child(6) {
+  animation-delay: 0.3s;
+}
+.tba-temple-hero-img {
+  animation: tba-hero-ken 20s ease-out both;
+}
+.tba-temple-alert {
+  animation: tba-fade-up 0.4s ease-out both;
+}
+.tba-temple-card {
+  border: 1px solid rgba(212, 175, 55, 0.28);
+  background: linear-gradient(165deg, rgba(61, 24, 24, 0.92), rgba(28, 10, 10, 0.96));
+  box-shadow:
+    0 0 0 1px rgba(232, 213, 163, 0.06) inset,
+    0 24px 56px rgba(0, 0, 0, 0.35);
+  transition:
+    transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.35s ease,
+    box-shadow 0.35s ease;
+}
+.tba-temple-card-hover:hover {
+  transform: translateY(-3px);
+  border-color: rgba(232, 213, 163, 0.45);
+  box-shadow:
+    0 0 0 1px rgba(232, 213, 163, 0.1) inset,
+    0 28px 60px rgba(0, 0, 0, 0.42);
+}
+.tba-temple-input {
+  border: 1px solid rgba(212, 175, 55, 0.28);
+  background: rgba(14, 6, 6, 0.55);
+  color: var(--tba-ink);
+  font-size: 16px;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+.tba-temple-input::placeholder {
+  color: rgba(247, 239, 224, 0.38);
+}
+.tba-temple-input:focus {
+  border-color: rgba(232, 213, 163, 0.7);
+  background: rgba(20, 8, 8, 0.75);
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.16);
+  outline: none;
+}
+.tba-temple-btn-gold {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(180deg, #e8d5a3 0%, #d4af37 48%, #b8942e 100%);
+  color: #1c0a0a;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.25) inset, 0 10px 28px rgba(212, 175, 55, 0.22);
+  transition:
+    filter 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+.tba-temple-btn-gold::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 35%,
+    rgba(255, 255, 255, 0.28) 50%,
+    transparent 65%
+  );
+  background-size: 220% 100%;
+  animation: tba-shimmer 3.2s ease-in-out infinite;
+  pointer-events: none;
+}
+.tba-temple-btn-gold:hover {
+  filter: brightness(1.06);
+}
+.tba-temple-btn-gold:active {
+  transform: scale(0.98);
+}
+.tba-temple-btn-gold:disabled {
+  opacity: 0.45;
+  box-shadow: none;
+  filter: none;
+}
+.tba-temple-btn-gold:disabled::after {
+  animation: none;
+  opacity: 0;
+}
+.tba-temple-btn-outline {
+  border: 1px solid rgba(212, 175, 55, 0.45);
+  background: transparent;
+  color: var(--tba-gold-soft);
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+.tba-temple-btn-outline:hover {
+  background: rgba(212, 175, 55, 0.12);
+  border-color: rgba(232, 213, 163, 0.65);
+}
+.tba-temple-btn-outline:active {
+  transform: scale(0.98);
+}
+.tba-temple-progress-bar {
+  animation: tba-progress-glow 2s ease-in-out infinite;
+}
+.tba-temple-dropzone {
+  border: 1.5px dashed rgba(212, 175, 55, 0.45);
+  background: rgba(14, 6, 6, 0.4);
+  transition:
+    border-color 0.25s ease,
+    background 0.25s ease,
+    transform 0.25s ease;
+}
+.tba-temple-dropzone:active,
+.tba-temple-dropzone:focus-within {
+  border-color: rgba(232, 213, 163, 0.85);
+  background: rgba(212, 175, 55, 0.08);
+}
+.tba-temple-dropzone.has-file {
+  border-style: solid;
+  border-color: rgba(212, 175, 55, 0.55);
+  background: rgba(212, 175, 55, 0.1);
+}
+.tba-temple-sticky-cta {
+  position: sticky;
+  bottom: 0;
+  z-index: 20;
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+  background: linear-gradient(180deg, transparent, rgba(14, 6, 6, 0.92) 28%, rgba(14, 6, 6, 0.98));
+}
+.tba-temple-nav-pill {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.35rem;
+  padding: 0.35rem;
+  border-radius: 999px;
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  background: rgba(14, 6, 6, 0.55);
+  backdrop-filter: blur(8px);
+}
+.tba-temple-nav-pill a {
+  text-align: center;
+  border-radius: 999px;
+  padding: 0.65rem 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  transition:
+    background 0.25s ease,
+    color 0.25s ease,
+    transform 0.2s ease;
+}
+.tba-temple-nav-pill a.is-active {
+  background: linear-gradient(180deg, #e8d5a3, #d4af37);
+  color: #1c0a0a;
+  box-shadow: 0 6px 16px rgba(212, 175, 55, 0.25);
+}
+.tba-temple-nav-pill a:not(.is-active) {
+  color: rgba(232, 213, 163, 0.85);
+}
+.tba-temple-nav-pill a:not(.is-active):active {
+  background: rgba(212, 175, 55, 0.12);
+}
+.tba-temple-pulse {
+  animation: tba-soft-pulse 1.6s ease-in-out infinite;
+}
+@media (max-width: 640px) {
+  .tba-temple-rule::before {
+    left: calc(50% - 36px);
+  }
+  .tba-temple-rule::after {
+    right: calc(50% - 36px);
+  }
+  .tba-temple-card-hover:hover {
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tba-temple-rise,
+  .tba-temple-rise-delay,
+  .tba-temple-rise-2,
+  .tba-temple-stagger > *,
+  .tba-temple-hero-img,
+  .tba-temple-alert,
+  .tba-temple-btn-gold::after,
+  .tba-temple-progress-bar,
+  .tba-temple-pulse {
+    animation: none !important;
+  }
+  .tba-temple-card,
+  .tba-temple-btn-gold,
+  .tba-temple-btn-outline {
+    transition: none;
+  }
+}

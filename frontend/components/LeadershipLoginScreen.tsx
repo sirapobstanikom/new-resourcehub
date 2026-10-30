@@ -46,11 +46,11 @@ interface FieldProps {
 
 const Field: React.FC<FieldProps> = ({ id, label, type = 'text', value, placeholder, icon, autoComplete, onChange }) => (
   <div>
-    <label htmlFor={id} className="mb-1.5 block text-xs font-semibold text-gray-700 sm:text-sm">
+    <label htmlFor={id} className="mb-1.5 block text-sm font-semibold text-gray-800">
       {label}
     </label>
     <div className="group relative">
-      <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[#828282] transition-colors group-focus-within:text-[#FFCC00]">
+      <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 transition-colors group-focus-within:text-[#C9A000]">
         {icon}
       </span>
       <input
@@ -61,127 +61,143 @@ const Field: React.FC<FieldProps> = ({ id, label, type = 'text', value, placehol
         placeholder={placeholder}
         autoComplete={autoComplete}
         required
-        className="md-input py-2.5 pl-10 pr-3 text-sm sm:py-3"
+        className="w-full rounded-xl border border-[#E5E2DA] bg-[#F7F6F2] py-3 pl-10 pr-3 text-[15px] text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-[#FFCC00] focus:bg-white focus:ring-4 focus:ring-[#FFCC00]/20"
       />
     </div>
   </div>
 );
 
 const LeadershipLoginScreen: React.FC<LeadershipLoginScreenProps> = ({ user, onChange, onSubmit }) => (
-  <div className="md-page relative flex min-h-[100dvh] w-full flex-col overflow-hidden">
+  <div className="relative flex min-h-[100dvh] w-full flex-col overflow-x-hidden bg-transparent text-gray-900">
     <img
       src={RIBBON_BG}
       alt=""
       aria-hidden="true"
-      className="pointer-events-none absolute inset-0 h-full w-full select-none object-cover object-[78%_center] lg:object-center"
+      className="pointer-events-none absolute inset-0 h-full w-full select-none object-cover object-[70%_center] lg:object-[60%_center]"
     />
-    <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#F3F2ED]/40 via-transparent to-[#F3F2ED]/90 lg:bg-gradient-to-r lg:from-[#F3F2ED]/80 lg:via-[#F3F2ED]/30 lg:to-[#F3F2ED]/70" />
 
-    <header className="relative z-10 mx-auto flex w-full max-w-7xl items-center gap-3 px-5 pt-5 sm:px-8 sm:pt-7 lg:px-12">
+    <header className="relative z-10 mx-auto flex w-full max-w-7xl items-center gap-3 px-4 pt-4 sm:px-6 sm:pt-5 lg:px-8">
       <Link to="/" className="flex items-center">
         <BrandLogo className="text-[24px] sm:text-[26px]" tone="dark" />
       </Link>
-      <span className="hidden h-5 w-px bg-gray-300 sm:block" />
-      <span className="hidden text-[10px] font-medium uppercase tracking-[0.2em] text-gray-600 sm:block">
-        World-Class Knowledge for Future Leaders
+      <span className="hidden h-5 w-px bg-black/15 sm:block" />
+      <span
+        className="hidden text-[10px] font-medium uppercase tracking-[0.18em] text-gray-600 sm:block"
+        style={HEADLINE_FONT}
+      >
+        World Class Knowledge in Fun Workshop
       </span>
     </header>
 
-    <main className="relative z-10 mx-auto flex w-full max-w-7xl flex-1 flex-col justify-between gap-8 px-5 pb-6 pt-8 sm:px-8 sm:pt-12 lg:flex-row lg:items-center lg:gap-12 lg:px-12 lg:py-10">
-      <section className="lg:flex-1">
-        <h1
-          className="text-[clamp(3rem,13vw,4.5rem)] font-extrabold uppercase leading-[0.95] tracking-tight sm:text-[clamp(4.5rem,13vw,7rem)] lg:text-[clamp(5rem,8vw,8.5rem)]"
+    <main className="relative z-10 mx-auto flex w-full max-w-7xl flex-1 flex-col gap-8 px-4 pb-8 pt-10 sm:px-6 sm:pt-12 lg:flex-row lg:items-start lg:justify-between lg:gap-12 lg:px-8 lg:pb-12 lg:pt-16">
+      <section className="max-w-xl lg:flex-1">
+        <p
+          className="mb-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-gray-500 sm:mb-4 sm:text-xs"
           style={HEADLINE_FONT}
         >
-          <span className="block text-gray-900">Lead</span>
-          <span className="block text-gray-500">The</span>
-          <span className="block" style={{ color: BRAND_YELLOW }}>
+          Leadership Self-Assessment
+        </p>
+        <h1
+          className="text-[clamp(3.4rem,12vw,6.5rem)] font-extrabold uppercase leading-[0.9] tracking-tight sm:text-[clamp(4.8rem,9vw,7.5rem)]"
+          style={HEADLINE_FONT}
+        >
+          <span
+            className="block text-gray-950"
+            style={{
+              textShadow:
+                '0 1px 0 #fff, 0 0 2px rgba(255,255,255,0.95), 0 2px 4px rgba(255,255,255,0.9), 0 6px 18px rgba(255,255,255,0.75), 0 10px 28px rgba(15,23,42,0.22)',
+            }}
+          >
+            Lead The
+          </span>
+          <span
+            className="block"
+            style={{
+              color: BRAND_YELLOW,
+              WebkitTextStroke: '1px rgba(120,90,0,0.28)',
+              textShadow:
+                '0 1px 0 rgba(255,255,255,0.95), 0 0 3px rgba(255,255,255,0.85), 0 4px 14px rgba(255,255,255,0.7), 0 8px 22px rgba(15,23,42,0.25), 0 2px 0 rgba(180,130,0,0.35)',
+            }}
+          >
             Change
           </span>
         </h1>
-        <div className="mt-5 h-0.5 w-12 sm:mt-7" style={{ backgroundColor: BRAND_YELLOW }} />
-        <p
-          className="mt-4 text-[10px] font-medium uppercase leading-relaxed tracking-[0.35em] text-gray-600 sm:text-xs"
-          style={HEADLINE_FONT}
-        >
-          <span className="lg:hidden">
-            Better · Leaders
-            <br />
-            Build · Brighter · Teams
-          </span>
-          <span className="hidden lg:inline">
-            Better
-            <br />
-            Leaders
-            <br />
-            Build
-            <br />
-            Brighter
-            <br />
-            Teams
-          </span>
-        </p>
+        <div className="mt-6 max-w-lg space-y-1.5 rounded-2xl bg-white/55 px-3 py-2.5 backdrop-blur-[2px] sm:mt-8 sm:px-4 sm:py-3">
+          <p className="text-xl font-bold leading-snug text-gray-950 sm:text-2xl md:text-[1.75rem]">
+            รู้จักศักยภาพผู้นำของคุณ
+          </p>
+          <p className="text-[15px] leading-relaxed text-gray-800 sm:text-base">
+            เพื่อพัฒนาตัวเองและสร้างทีมที่เติบโตด้วยกัน
+          </p>
+        </div>
       </section>
 
-      <section className="w-full lg:w-[400px] lg:shrink-0 xl:w-[420px]">
+      <section className="mx-auto w-full max-w-md lg:mx-0 lg:w-[400px] lg:shrink-0 xl:w-[420px]">
         <form
           onSubmit={onSubmit}
-          className="md-card p-5 shadow-md sm:p-8"
+          className="rounded-[28px] border border-white/70 bg-white/95 p-6 shadow-[0_20px_50px_rgba(15,23,42,0.12)] backdrop-blur-sm sm:p-8"
         >
-          <div className="mb-5 text-center sm:mb-6">
-            <h2 className="text-2xl font-bold leading-tight text-gray-900 sm:text-3xl">
+          <div className="mb-6 text-center">
+            <h2 className="text-2xl font-bold leading-tight text-gray-950 sm:text-[1.75rem]">
               แบบประเมิน
               <span className="block" style={{ color: BRAND_YELLOW }}>
                 สมรรถนะภาวะผู้นำ
               </span>
             </h2>
-            <p className="mt-2 text-xs text-gray-500 sm:text-sm">Dynamic Leadership Capability Wheel Self Assessment</p>
+            <p className="mt-2 text-xs leading-relaxed text-gray-500 sm:text-sm">
+              Dynamic Leadership Capability Wheel Self Assessment
+            </p>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
+          <div className="grid gap-4">
             <Field
               id="lead-name"
               label="ชื่อ - นามสกุล"
               value={user.name}
-              placeholder="กรอกชื่อ - นามสกุล"
+              placeholder="กรอกชื่อ-นามสกุล"
               icon={<UserIcon />}
               autoComplete="name"
               onChange={(v) => onChange('name', v)}
             />
             <Field
               id="lead-email"
-              label="Email"
+              label="อีเมล"
               type="email"
               value={user.email}
-              placeholder="name@company.com"
+              placeholder="กรอกอีเมล"
               icon={<MailIcon />}
               autoComplete="email"
               onChange={(v) => onChange('email', v)}
             />
-            <div className="sm:col-span-2 lg:col-span-1">
-              <Field
-                id="lead-company"
-                label="บริษัท"
-                value={user.company}
-                placeholder="กรอกชื่อบริษัท"
-                icon={<BuildingIcon />}
-                autoComplete="organization"
-                onChange={(v) => onChange('company', v)}
-              />
-            </div>
+            <Field
+              id="lead-company"
+              label="บริษัท / องค์กร"
+              value={user.company}
+              placeholder="กรอกชื่อบริษัทหรือองค์กร"
+              icon={<BuildingIcon />}
+              autoComplete="organization"
+              onChange={(v) => onChange('company', v)}
+            />
           </div>
 
           <button
             type="submit"
-            className="mt-6 w-full rounded-lg py-3 text-sm font-bold text-black shadow-lg shadow-[#FFCC00]/20 transition-all hover:brightness-105 active:scale-[0.99] sm:text-base"
+            className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl py-3.5 text-base font-bold text-black shadow-[0_4px_0_#E0A800] transition hover:brightness-105 active:translate-y-0.5 active:shadow-[0_2px_0_#E0A800]"
             style={{ backgroundColor: BRAND_YELLOW }}
           >
-            เข้าสู่แบบทดสอบ
+            เริ่มทำแบบประเมิน
+            <span aria-hidden>→</span>
           </button>
+          <p className="mt-3 text-center text-[11px] leading-relaxed text-gray-400">
+            ข้อมูลใช้แสดงในหน้าผลลัพธ์เท่านั้น · ไม่แชร์ต่อโดยไม่ได้รับอนุญาต
+          </p>
         </form>
-        <p className="mt-4 text-center text-[11px] text-gray-500">© {new Date().getFullYear()} MindDojo Co., Ltd.</p>
       </section>
     </main>
+
+    <p className="relative z-10 px-5 pb-5 text-center text-[11px] text-gray-500 sm:px-8 lg:absolute lg:bottom-5 lg:right-8 lg:px-0 lg:pb-0 lg:text-right">
+      © {new Date().getFullYear()} MindDojo Co., Ltd.
+    </p>
   </div>
 );
 

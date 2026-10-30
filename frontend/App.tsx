@@ -380,8 +380,16 @@ const App: React.FC = () => {
             path="/evaluation/innoclub-2/results"
             element={<InnoClubSecondEvaluationPage key="innoclub-2-results" resultsOnly />}
           />
-          <Route path="/evaluation/innoclub-2/videos" element={<InnoClubSecondVideoPage />} />
-          <Route path="/evaluation/innoclub-2/videos/dashboard" element={<InnoClubSecondVideoPage />} />
+          <Route path="/evaluation/tba-amazing-race/videos" element={<InnoClubSecondVideoPage />} />
+          <Route path="/evaluation/tba-amazing-race/videos/dashboard" element={<InnoClubSecondVideoPage />} />
+          <Route
+            path="/evaluation/innoclub-2/videos"
+            element={<Navigate to="/evaluation/tba-amazing-race/videos" replace />}
+          />
+          <Route
+            path="/evaluation/innoclub-2/videos/dashboard"
+            element={<Navigate to="/evaluation/tba-amazing-race/videos/dashboard" replace />}
+          />
           <Route path="/evaluation/eva-editor" element={<EvaEditorPage />} />
           <Route path="/evaluation/eva-one-page" element={<EvaOnePageSummaryPage />} />
           <Route path="/evaluation/dashboard/login" element={<EvaDashboardLoginPage />} />

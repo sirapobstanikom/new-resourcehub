@@ -40,13 +40,17 @@ import {
   EVA_DEFAULT_FILL_LEAD_IN,
   buildEvaExportSheetRows,
   defaultEvaCommitmentRows,
+  ensureThaiBeverageCanLimitedEvaTemplate,
   evaBaseIdFromName,
   evaUniqueIdFromName,
   getEvaFormLanguage,
   getPromptNumberStyle,
+  isThaiBeverageCanLimitedEvaTemplate,
   loadStoredEvaTemplates,
+  THAI_BEVERAGE_CAN_LIMITED_EVA_ID,
   type EvaExportAnswer,
 } from '../lib/evaTemplates';
+import { downloadThaiBeverageCanEvaStyledExcel } from '../lib/evaThaiBeverageExcel';
 import {
   buildEvaEnglishSnapshotForTemplate,
   isEvaEnglishSnapshotCurrent,
@@ -181,10 +185,18 @@ function makeNewDescriptionPrompt(): EvaPrompt {
 
 
 function readTemplates(): EvaEvaluationTemplate[] {
-  if (typeof window === 'undefined') return DEFAULT_TEMPLATES;
-  const stored = loadStoredEvaTemplates();
-  if (stored.length === 0) return DEFAULT_TEMPLATES;
-  return stored;
+  const base =
+    typeof window === 'undefined'
+      ? DEFAULT_TEMPLATES
+      : (() => {
+          const stored = loadStoredEvaTemplates();
+          return stored.length === 0 ? DEFAULT_TEMPLATES : stored;
+        })();
+  const { templates, added } = ensureThaiBeverageCanLimitedEvaTemplate(base);
+  if (added && typeof window !== 'undefined') {
+    localStorage.setItem(EVA_TEMPLATE_STORAGE_KEY, JSON.stringify(templates));
+  }
+  return templates;
 }
 
 type SaveOptions = { upsertTemplateId?: string; deleteTemplateId?: string };
@@ -433,7 +445,11 @@ const EvaEditorPage: React.FC = () => {
   ]);
 
   useEffect(() => {
-    if (!isSupabaseConfigured) return;
+    if (!isSupabaseConfigured) {
+      const seeded = templates.find((t) => t.id === THAI_BEVERAGE_CAN_LIMITED_EVA_ID);
+      if (seeded) setSelectedId(seeded.id);
+      return;
+    }
     const loadTemplatesFromSupabase = async () => {
       const { templates: mapped, error, headingColumnAvailable } =
         await fetchEvaEditorTemplatesFromSupabase();
@@ -445,12 +461,29 @@ const EvaEditorPage: React.FC = () => {
         );
         return;
       }
-      if (mapped.length > 0) {
-        setTemplates(mapped);
-        if (typeof window !== 'undefined') {
-          localStorage.setItem(EVA_TEMPLATE_STORAGE_KEY, JSON.stringify(mapped));
+      const source = mapped.length > 0 ? mapped : readTemplates();
+      const beforeTba = source.find((t) => isThaiBeverageCanLimitedEvaTemplate(t));
+      const { templates: next, added } = ensureThaiBeverageCanLimitedEvaTemplate(source);
+      setTemplates(next);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(EVA_TEMPLATE_STORAGE_KEY, JSON.stringify(next));
+      }
+      if (added) {
+        void syncTemplateToSupabase(added);
+        setSelectedId(added.id);
+        setMessage('สร้างแบบประเมิน THAI BEVERAGE CAN LIMITED EVA แล้ว');
+      } else {
+        const tba = next.find((t) => isThaiBeverageCanLimitedEvaTemplate(t)) || next[0];
+        if (tba) {
+          setSelectedId(tba.id);
+          const upgraded =
+            beforeTba &&
+            (beforeTba.prompts.length !== tba.prompts.length ||
+              beforeTba.updatedAt !== tba.updatedAt);
+          if (upgraded || !mapped.some((t) => t.id === tba.id)) {
+            void syncTemplateToSupabase(tba);
+          }
         }
-        setSelectedId(mapped[0].id);
       }
       setSyncError(
         headingColumnAvailable
@@ -458,7 +491,9 @@ const EvaEditorPage: React.FC = () => {
           : 'Supabase ยังไม่มีคอลัมน์ heading — รัน migration แล้ว Heading จะ sync ได้ (ตอนนี้ใช้จากเครื่อง/localStorage)'
       );
     };
-    loadTemplatesFromSupabase();
+    void loadTemplatesFromSupabase();
+    // seed TBA EVA once on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -1174,18 +1209,28 @@ const EvaEditorPage: React.FC = () => {
       return;
     }
 
-    const sheetRows = buildEvaExportSheetRows(deduped, (createdAt) => createdAt || '-');
-
-    const ws = XLSX.utils.json_to_sheet(sheetRows);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'ผลคำตอบ');
     const dateSuffix =
       exportDateFrom || exportDateTo
         ? `_${exportDateFrom || 'ต้นช่วง'}-${exportDateTo || 'ปลายช่วง'}`
         : '';
     const fileName = `ผลประเมิน_${sanitizeFileName(template.name)}${dateSuffix}.xlsx`;
-    XLSX.writeFile(wb, fileName);
-    setExportingTemplateId(null);
+
+    try {
+      if (isThaiBeverageCanLimitedEvaTemplate(template)) {
+        await downloadThaiBeverageCanEvaStyledExcel(template, deduped, fileName);
+        setMessage(`ดาวน์โหลด Excel เรทติ้งรายคนแล้ว (${deduped.length} คน)`);
+      } else {
+        const sheetRows = buildEvaExportSheetRows(deduped, (createdAt) => createdAt || '-');
+        const ws = XLSX.utils.json_to_sheet(sheetRows);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'ผลคำตอบ');
+        XLSX.writeFile(wb, fileName);
+      }
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : 'ดาวน์โหลด Excel ไม่สำเร็จ');
+    } finally {
+      setExportingTemplateId(null);
+    }
   };
 
   if (!isAdmin) {

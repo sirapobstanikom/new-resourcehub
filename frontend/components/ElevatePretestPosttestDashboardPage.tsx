@@ -2,9 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
-import * as XLSX from 'xlsx';
 import {
-  buildElevateResponsesExcelSheets,
   computeElevateDashboard,
   deleteElevateResponsesLocal,
   findElevateBankById,
@@ -16,6 +14,7 @@ import {
   type ElevateTestBank,
   type ElevateTestResponse,
 } from '../lib/elevatePretestPosttest';
+import { downloadElevateResponsesStyledExcel } from '../lib/elevatePretestPosttestExcel';
 import {
   deleteElevateResponsesFromSupabase,
   fetchElevateBanksFromSupabase,
@@ -150,7 +149,7 @@ const ElevatePretestPosttestDashboardPage: React.FC = () => {
     }
   };
 
-  const downloadExcel = () => {
+  const downloadExcel = async () => {
     if (!bank) return;
     setExportingExcel(true);
     setError('');
@@ -159,13 +158,7 @@ const ElevatePretestPosttestDashboardPage: React.FC = () => {
         setError('ยังไม่มีคำตอบสำหรับชุดนี้');
         return;
       }
-      const { rawRows, pairedRows, fileBaseName } = buildElevateResponsesExcelSheets(bank, responses);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rawRows), 'คำตอบทั้งหมด');
-      if (pairedRows.length > 0) {
-        XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(pairedRows), 'สรุปรายคน');
-      }
-      XLSX.writeFile(wb, `${fileBaseName}_pretest-posttest.xlsx`);
+      await downloadElevateResponsesStyledExcel(bank, responses);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'ดาวน์โหลด Excel ไม่สำเร็จ');
     } finally {
@@ -227,7 +220,7 @@ const ElevatePretestPosttestDashboardPage: React.FC = () => {
             </button>
             <button
               type="button"
-              onClick={downloadExcel}
+              onClick={() => void downloadExcel()}
               disabled={exportingExcel}
               className="rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-2 text-sm font-bold text-emerald-800 hover:bg-emerald-100 disabled:opacity-60"
             >

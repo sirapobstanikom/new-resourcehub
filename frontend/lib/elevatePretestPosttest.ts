@@ -479,13 +479,26 @@ function questionColumnKey(question: ElevateQuestion, index: number): string {
   return `${index + 1}. ${title}`;
 }
 
-/** สร้างแถว Excel: คำตอบทั้งหมด + สรุปรายคน (จับคู่ Pre/Post) */
+export type ElevateExcelComparisonRow = {
+  ลำดับ: number;
+  ชื่อ: string;
+  'Pretest คะแนน': string;
+  'Pretest %': number | string;
+  'Posttest คะแนน': string;
+  'Posttest %': number | string;
+  'พัฒนา (จุด %)': number | string;
+  'พัฒนา (%)': number | string;
+  สถานะ: string;
+};
+
+/** สร้างแถว Excel: เปรียบเทียบ Pre/Post รายคน + คำตอบทั้งหมด */
 export function buildElevateResponsesExcelSheets(
   bank: ElevateTestBank,
   allResponses: ElevateTestResponse[]
 ): {
   rawRows: Record<string, string | number>[];
-  pairedRows: Record<string, string | number>[];
+  comparisonRows: ElevateExcelComparisonRow[];
+  pairedRows: ElevateExcelComparisonRow[];
   fileBaseName: string;
 } {
   const bankResponses = allResponses
@@ -529,21 +542,61 @@ export function buildElevateResponsesExcelSheets(
   });
 
   const stats = computeElevateDashboard(bank.id, allResponses);
-  const pairedRows = stats.paired.map((row, idx) => ({
+
+  const pairedRows: ElevateExcelComparisonRow[] = stats.paired.map((row, idx) => ({
     ลำดับ: idx + 1,
     ชื่อ: row.name,
-    'Pretest %': Number(row.pretestPercent.toFixed(1)),
     'Pretest คะแนน': `${row.pretestScore}/${row.pretestTotal}`,
-    'Posttest %': Number(row.posttestPercent.toFixed(1)),
+    'Pretest %': Number(row.pretestPercent.toFixed(1)),
     'Posttest คะแนน': `${row.posttestScore}/${row.posttestTotal}`,
-    'เพิ่มขึ้น (pt)': Number(row.gainPoints.toFixed(1)),
-    'จากเดิม (%)':
-      row.gainFromBaselinePercent == null ? '' : Number(row.gainFromBaselinePercent.toFixed(1)),
+    'Posttest %': Number(row.posttestPercent.toFixed(1)),
+    'พัฒนา (จุด %)': Number(row.gainPoints.toFixed(1)),
+    'พัฒนา (%)':
+      row.gainFromBaselinePercent == null ? '—' : Number(row.gainFromBaselinePercent.toFixed(1)),
+    สถานะ: 'ทำครบ Pre + Post',
   }));
+
+  const unpairedPreRows: ElevateExcelComparisonRow[] = stats.unpairedPretest.map((row) => {
+    const pct = scorePercent(row.score, row.total);
+    return {
+      ลำดับ: 0,
+      ชื่อ: row.respondentName.trim() || 'ไม่ระบุชื่อ',
+      'Pretest คะแนน': `${row.score}/${row.total}`,
+      'Pretest %': Number(pct.toFixed(1)),
+      'Posttest คะแนน': '—',
+      'Posttest %': '—',
+      'พัฒนา (จุด %)': '—',
+      'พัฒนา (%)': '—',
+      สถานะ: 'ทำแค่ Pretest',
+    };
+  });
+
+  const unpairedPostRows: ElevateExcelComparisonRow[] = stats.unpairedPosttest.map((row) => {
+    const pct = scorePercent(row.score, row.total);
+    return {
+      ลำดับ: 0,
+      ชื่อ: row.respondentName.trim() || 'ไม่ระบุชื่อ',
+      'Pretest คะแนน': '—',
+      'Pretest %': '—',
+      'Posttest คะแนน': `${row.score}/${row.total}`,
+      'Posttest %': Number(pct.toFixed(1)),
+      'พัฒนา (จุด %)': '—',
+      'พัฒนา (%)': '—',
+      สถานะ: 'ทำแค่ Posttest',
+    };
+  });
+
+  const comparisonRows = [...pairedRows, ...unpairedPreRows, ...unpairedPostRows].map(
+    (row, idx) => ({
+      ...row,
+      ลำดับ: idx + 1,
+    })
+  );
 
   return {
     rawRows,
-    pairedRows,
+    comparisonRows,
+    pairedRows: comparisonRows,
     fileBaseName: sanitizeElevateFileName(bank.name),
   };
 }

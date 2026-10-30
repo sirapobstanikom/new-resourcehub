@@ -1,10 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { BarChart3, ChevronDown, ChevronUp, Copy, Download, ExternalLink, Plus, Trash2 } from 'lucide-react';
-import * as XLSX from 'xlsx';
 import BrandLogo from './BrandLogo';
 import {
-  buildElevateResponsesExcelSheets,
   countScored,
   createEmptyBank,
   createEmptyQuestion,
@@ -23,6 +21,7 @@ import {
   type ElevateTestBank,
   type ElevateTestPhase,
 } from '../lib/elevatePretestPosttest';
+import { downloadElevateResponsesStyledExcel } from '../lib/elevatePretestPosttestExcel';
 import {
   deleteElevateBankFromSupabase,
   ELEVATE_PPT_TABLE_SQL,
@@ -458,14 +457,10 @@ const ElevatePretestPosttestEditorPage: React.FC = () => {
         return;
       }
 
-      const { rawRows, pairedRows, fileBaseName } = buildElevateResponsesExcelSheets(selected, responses);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rawRows), 'คำตอบทั้งหมด');
-      if (pairedRows.length > 0) {
-        XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(pairedRows), 'สรุปรายคน');
-      }
-      XLSX.writeFile(wb, `${fileBaseName}_pretest-posttest.xlsx`);
-      setMessage(`ดาวน์โหลด Excel แล้ว (${responses.length} รายการ)`);
+      const result = await downloadElevateResponsesStyledExcel(selected, responses);
+      setMessage(
+        `ดาวน์โหลด Excel แล้ว — เปรียบเทียบ ${result.comparisonCount} คน (จับคู่ครบ ${result.pairedCount} คน)`
+      );
     } catch (err) {
       setMessage(err instanceof Error ? err.message : 'ดาวน์โหลด Excel ไม่สำเร็จ');
     } finally {
