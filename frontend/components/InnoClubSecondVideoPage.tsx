@@ -3,9 +3,13 @@ import { Link, useLocation } from 'react-router-dom';
 import BrandLogo from './BrandLogo';
 import {
   formatBytes,
-  isAllowedVideoFile,
-  MAX_VIDEO_BYTES,
+  isAllowedImageFile,
+  isAllowedMediaFile,
+  isImageMedia,
+  MAX_IMAGE_LABEL,
   MAX_VIDEO_LABEL,
+  maxBytesForMediaFile,
+  maxLabelForMediaFile,
   sanitizeVideoStorageName,
   uploadVideoToBucket,
 } from '../lib/largeVideoUpload';
@@ -22,6 +26,9 @@ const AYUTTHAYA_ATMOSPHERE = '/images/ayutthaya/chaiwatthanaram-wide.jpg';
 const UPLOAD_PATH = '/evaluation/tba-amazing-race/videos';
 const DASHBOARD_PATH = '/evaluation/tba-amazing-race/videos/dashboard';
 
+const MEDIA_ACCEPT =
+  'video/*,image/*,.mp4,.m4v,.mov,.webm,.mkv,.avi,.mpeg,.mpg,.wmv,.hevc,.m2ts,.mts,.jpg,.jpeg,.png,.gif,.webp,.heic,.heif,.bmp,.tif,.tiff';
+
 type VideoRow = {
   id: number;
   team_name: string;
@@ -31,6 +38,7 @@ type VideoRow = {
   storage_path: string | null;
   file_name: string | null;
   file_size: number | null;
+  mime_type: string | null;
   created_at: string;
 };
 
@@ -60,12 +68,12 @@ function PageShell({ children, hero }: { children: React.ReactNode; hero: React.
 
 function SegmentNav({ dashboard }: { dashboard?: boolean }) {
   return (
-    <nav className="tba-temple-nav-pill tba-temple-rise-2 mt-5 w-full max-w-sm sm:mt-7" aria-label="สลับหน้าวิดีโอ">
+    <nav className="tba-temple-nav-pill tba-temple-rise-2 mt-5 w-full max-w-sm sm:mt-7" aria-label="สลับหน้าสื่อผลงาน">
       <Link to={UPLOAD_PATH} className={!dashboard ? 'is-active' : ''}>
         อัปโหลด
       </Link>
       <Link to={DASHBOARD_PATH} className={dashboard ? 'is-active' : ''}>
-        คลังวิดีโอ
+        คลังผลงาน
       </Link>
     </nav>
   );
@@ -116,13 +124,13 @@ function Hero({ dashboard }: { dashboard?: boolean }) {
             {BRAND}
           </p>
           <h1 className="mt-2.5 max-w-3xl text-[1.85rem] font-black leading-[1.12] tracking-tight text-[#F7EFE0] drop-shadow-[0_2px_24px_rgba(0,0,0,0.45)] sm:mt-3 sm:text-5xl lg:text-6xl">
-            {dashboard ? 'คลังวิดีโอผลงาน' : 'อัปโหลดวิดีโอผลงาน'}
+            {dashboard ? 'คลังผลงาน' : 'อัปโหลดผลงาน'}
           </h1>
           <p className="mt-2 text-base font-semibold text-[#D4AF37] sm:mt-3 sm:text-xl">{EVENT}</p>
           <p className="mt-3 max-w-lg text-sm leading-relaxed text-[rgba(247,239,224,0.78)] sm:mt-4 sm:text-base">
             {dashboard
-              ? 'รวมวิดีโอจากทีมในกิจกรรม — ชมผลงานและรายละเอียดทั้งหมด'
-              : 'อัปโหลดวิดีโอคุณภาพสูงพร้อมรายละเอียด เพื่อรวบรวมไว้ในคลังผลงาน'}
+              ? 'รวมวิดีโอและรูปภาพแยกตามทีม — ผลงานทีมเดียวกันจะอยู่ด้วยกัน'
+              : 'อัปโหลดวิดีโอหรือรูปภาพ — ใช้ชื่อทีมเดิมเพื่อให้ผลงานไปอยู่กลุ่มเดียวกัน'}
           </p>
         </div>
         <SegmentNav dashboard={dashboard} />
@@ -147,8 +155,20 @@ function VideoUploadPage() {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const canSubmit = teamName.trim() && title.trim() && file;
+  const selectedIsImage = Boolean(file && isAllowedImageFile(file) && !file.type.startsWith('video/'));
+
+  useEffect(() => {
+    if (!file || !selectedIsImage) {
+      setPreviewUrl(null);
+      return;
+    }
+    const url = URL.createObjectURL(file);
+    setPreviewUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [file, selectedIsImage]);
 
   const pickFile = (next: File | null) => {
     setFile(next);
@@ -161,15 +181,15 @@ function VideoUploadPage() {
     setMessage('');
 
     if (!canSubmit || !file) {
-      setError('กรุณากรอกชื่อทีม ชื่อวิดีโอ และเลือกไฟล์วิดีโอ');
+      setError('กรุณากรอกชื่อทีม ชื่อผลงาน และเลือกไฟล์วิดีโอหรือรูปภาพ');
       return;
     }
-    if (!isAllowedVideoFile(file)) {
-      setError('กรุณาเลือกไฟล์วิดีโอเท่านั้น (เช่น MP4, MOV, WEBM, MKV)');
+    if (!isAllowedMediaFile(file)) {
+      setError('กรุณาเลือกไฟล์วิดีโอหรือรูปภาพ (เช่น MP4, MOV, JPG, PNG, WEBP)');
       return;
     }
-    if (file.size > MAX_VIDEO_BYTES) {
-      setError(`วิดีโอใหญ่เกินไป กรุณาใช้ไฟล์ไม่เกิน ${MAX_VIDEO_LABEL}`);
+    if (file.size > maxBytesForMediaFile(file)) {
+      setError(`ไฟล์ใหญ่เกินไป กรุณาใช้ไฟล์ไม่เกิน ${maxLabelForMediaFile(file)}`);
       return;
     }
     if (!isSupabaseConfigured) {
@@ -177,8 +197,11 @@ function VideoUploadPage() {
       return;
     }
 
+    const isImage = isAllowedImageFile(file) && !file.type.startsWith('video/');
+    const mediaLabel = isImage ? 'รูปภาพ' : 'วิดีโอ';
+
     setUploading(true);
-    setUploadStatus('กำลังเตรียมไฟล์วิดีโอ...');
+    setUploadStatus(`กำลังเตรียม${mediaLabel}...`);
     setUploadProgress(5);
     const safeName = sanitizeVideoStorageName(file.name);
     const path = `${Date.now()}-${Math.random().toString(16).slice(2)}-${safeName}`;
@@ -190,15 +213,16 @@ function VideoUploadPage() {
       });
 
       const { data: publicUrlData } = supabase.storage.from(VIDEO_BUCKET).getPublicUrl(path);
+      // trim ชื่อทีมให้ตรงกัน — คลังจะจัดกลุ่มผลงานทีมเดียวกันไว้ที่เดียว
       const { error: insertError } = await supabase.from('innoclub_second_videos').insert({
-        team_name: teamName.trim(),
+        team_name: teamName.trim().replace(/\s+/g, ' '),
         title: title.trim(),
         description: description.trim() || null,
         video_url: publicUrlData.publicUrl,
         storage_path: path,
         file_name: file.name,
         file_size: file.size,
-        mime_type: file.type || 'video/mp4',
+        mime_type: file.type || (isImage ? 'image/jpeg' : 'video/mp4'),
       });
 
       if (insertError) {
@@ -213,7 +237,7 @@ function VideoUploadPage() {
       setDescription('');
       setFile(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
-      setMessage('อัปโหลดวิดีโอเรียบร้อยแล้ว');
+      setMessage(`อัปโหลด${mediaLabel}เรียบร้อยแล้ว`);
       window.setTimeout(() => {
         setUploadStatus('');
         setUploadProgress(0);
@@ -223,7 +247,7 @@ function VideoUploadPage() {
       setUploading(false);
       setUploadStatus('');
       setUploadProgress(0);
-      setError(err instanceof Error ? err.message : 'อัปโหลดวิดีโอไม่สำเร็จ');
+      setError(err instanceof Error ? err.message : 'อัปโหลดไม่สำเร็จ');
     }
   };
 
@@ -256,19 +280,19 @@ function VideoUploadPage() {
           </div>
           <div>
             <label htmlFor="title" className="mb-2 block text-sm font-bold text-[#E8D5A3]">
-              ชื่อวิดีโอ *
+              ชื่อผลงาน *
             </label>
             <input
               id="title"
               value={title}
               onChange={(event) => setTitle(event.target.value)}
-              placeholder="กรอกชื่อวิดีโอ"
+              placeholder="กรอกชื่อวิดีโอหรือรูปภาพ"
               className={fieldClass()}
             />
           </div>
           <div>
             <label htmlFor="description" className="mb-2 block text-sm font-bold text-[#E8D5A3]">
-              รายละเอียดวิดีโอ
+              รายละเอียด
             </label>
             <textarea
               id="description"
@@ -280,18 +304,25 @@ function VideoUploadPage() {
             />
           </div>
           <div>
-            <p className="mb-2 text-sm font-bold text-[#E8D5A3]">ไฟล์วิดีโอ *</p>
+            <p className="mb-2 text-sm font-bold text-[#E8D5A3]">ไฟล์วิดีโอหรือรูปภาพ *</p>
             <label
-              htmlFor="video"
+              htmlFor="media"
               className={`tba-temple-dropzone flex min-h-[7.5rem] cursor-pointer flex-col items-center justify-center gap-1.5 rounded-xl px-4 py-5 text-center touch-manipulation ${
                 file ? 'has-file' : ''
               }`}
             >
+              {previewUrl ? (
+                <img
+                  src={previewUrl}
+                  alt="ตัวอย่างรูปที่เลือก"
+                  className="mb-1 max-h-28 w-auto rounded-lg object-contain"
+                />
+              ) : null}
               <span className="text-sm font-bold text-[#E8D5A3]">
-                {file ? 'เปลี่ยนไฟล์วิดีโอ' : 'แตะเพื่อเลือกไฟล์วิดีโอ'}
+                {file ? 'เปลี่ยนไฟล์' : 'แตะเพื่อเลือกวิดีโอหรือรูปภาพ'}
               </span>
-              <span className="max-w-[20rem] text-xs leading-relaxed text-[rgba(247,239,224,0.5)]">
-                MP4 / MOV / WEBM / MKV · สูงสุด {MAX_VIDEO_LABEL}
+              <span className="max-w-[22rem] text-xs leading-relaxed text-[rgba(247,239,224,0.5)]">
+                วิดีโอ MP4 / MOV สูงสุด {MAX_VIDEO_LABEL} · รูป JPG / PNG / WEBP สูงสุด {MAX_IMAGE_LABEL}
               </span>
               {file && (
                 <span className="mt-1 line-clamp-2 max-w-full break-all text-xs font-semibold text-[#F7EFE0]">
@@ -300,9 +331,9 @@ function VideoUploadPage() {
               )}
               <input
                 ref={fileInputRef}
-                id="video"
+                id="media"
                 type="file"
-                accept="video/*,.mp4,.m4v,.mov,.webm,.mkv,.avi,.mpeg,.mpg,.wmv,.hevc,.m2ts,.mts"
+                accept={MEDIA_ACCEPT}
                 onChange={(event) => pickFile(event.target.files?.[0] || null)}
                 className="sr-only"
               />
@@ -323,7 +354,7 @@ function VideoUploadPage() {
               />
             </div>
             <p className="tba-temple-pulse mt-2 text-xs text-[rgba(247,239,224,0.45)]">
-              กรุณาอย่าปิดหน้านี้ระหว่างอัปโหลดวิดีโอ
+              กรุณาอย่าปิดหน้านี้ระหว่างอัปโหลด
             </p>
           </div>
         )}
@@ -334,7 +365,7 @@ function VideoUploadPage() {
             disabled={uploading || !canSubmit}
             className="tba-temple-btn-gold min-h-[3.25rem] w-full rounded-xl px-8 py-3.5 text-base font-bold transition disabled:cursor-not-allowed touch-manipulation"
           >
-            {uploading ? 'กำลังอัปโหลด...' : 'อัปโหลดวิดีโอ'}
+            {uploading ? 'กำลังอัปโหลด...' : 'อัปโหลดผลงาน'}
           </button>
         </div>
       </form>
@@ -355,7 +386,7 @@ function VideoDashboardPage() {
     setError('');
     const { data, error: loadError } = await supabase
       .from('innoclub_second_videos')
-      .select('id, team_name, title, description, video_url, storage_path, file_name, file_size, created_at')
+      .select('id, team_name, title, description, video_url, storage_path, file_name, file_size, mime_type, created_at')
       .order('created_at', { ascending: false });
     setLoading(false);
     if (loadError) {
@@ -388,8 +419,38 @@ function VideoDashboardPage() {
     );
   }, [search, videos]);
 
+  /** รวมผลงานทีมเดียวกันไว้ในบล็อกเดียว (ชื่อทีมเทียบแบบไม่สนตัวพิมพ์) */
+  const teamGroups = useMemo(() => {
+    const map = new Map<string, { key: string; teamName: string; items: VideoRow[]; latestAt: number }>();
+    for (const item of filteredVideos) {
+      const key = item.team_name.trim().toLowerCase().replace(/\s+/g, ' ');
+      const existing = map.get(key);
+      const createdMs = new Date(item.created_at).getTime();
+      if (existing) {
+        existing.items.push(item);
+        if (createdMs > existing.latestAt) existing.latestAt = createdMs;
+      } else {
+        map.set(key, {
+          key,
+          teamName: item.team_name.trim(),
+          items: [item],
+          latestAt: createdMs,
+        });
+      }
+    }
+    return Array.from(map.values())
+      .map((group) => ({
+        ...group,
+        items: [...group.items].sort(
+          (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        ),
+      }))
+      .sort((a, b) => b.latestAt - a.latestAt);
+  }, [filteredVideos]);
+
   const deleteVideo = async (video: VideoRow) => {
-    if (!window.confirm(`ลบวิดีโอ "${video.title}" ทั้งชุด?`)) return;
+    const kind = isImageMedia(video.mime_type, video.file_name) ? 'รูปภาพ' : 'วิดีโอ';
+    if (!window.confirm(`ลบ${kind} "${video.title}" ทั้งชุด?`)) return;
     setError('');
     setDeletingId(video.id);
 
@@ -425,7 +486,7 @@ function VideoDashboardPage() {
           <input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="ค้นหาชื่อทีม / ชื่อวิดีโอ"
+            placeholder="ค้นหาชื่อทีม / ชื่อผลงาน"
             inputMode="search"
             className={fieldClass()}
           />
@@ -438,66 +499,103 @@ function VideoDashboardPage() {
           </button>
         </div>
         <p className="text-sm text-[rgba(247,239,224,0.55)]">
-          ทั้งหมด <span className="font-bold text-[#E8D5A3]">{videos.length}</span>
-          {search.trim() ? (
-            <>
-              {' '}
-              · แสดง <span className="font-bold text-[#D4AF37]">{filteredVideos.length}</span>
-            </>
-          ) : null}
+          {teamGroups.length} ทีม · ผลงาน <span className="font-bold text-[#E8D5A3]">{filteredVideos.length}</span>
+          {search.trim() ? ' (จากที่ค้นหา)' : null}
         </p>
       </section>
 
       {loading ? (
         <div className="tba-temple-card rounded-2xl p-8 text-center text-[#E8D5A3]">
-          <span className="tba-temple-pulse inline-block">กำลังโหลดวิดีโอ...</span>
+          <span className="tba-temple-pulse inline-block">กำลังโหลดผลงาน...</span>
         </div>
-      ) : filteredVideos.length === 0 ? (
-        <div className="tba-temple-card rounded-2xl p-8 text-center text-[rgba(247,239,224,0.55)]">ยังไม่มีวิดีโอ</div>
+      ) : teamGroups.length === 0 ? (
+        <div className="tba-temple-card rounded-2xl p-8 text-center text-[rgba(247,239,224,0.55)]">ยังไม่มีผลงาน</div>
       ) : (
-        <div className="tba-temple-stagger grid gap-4 sm:gap-5 lg:grid-cols-2">
-          {filteredVideos.map((video) => (
-            <article key={video.id} className="tba-temple-card tba-temple-card-hover overflow-hidden rounded-2xl">
-              <video
-                src={video.video_url}
-                controls
-                playsInline
-                preload="metadata"
-                className="aspect-video w-full bg-black object-contain"
-              />
-              <div className="space-y-3 p-4 sm:p-5">
-                <div>
-                  <p className="text-sm font-bold text-[#D4AF37]">{video.team_name}</p>
-                  <h2 className="mt-0.5 text-lg font-black leading-snug text-[#F7EFE0] sm:text-2xl">{video.title}</h2>
+        <div className="tba-temple-stagger space-y-5 sm:space-y-6">
+          {teamGroups.map((group) => {
+            const videoCount = group.items.filter((item) => !isImageMedia(item.mime_type, item.file_name)).length;
+            const imageCount = group.items.length - videoCount;
+            return (
+              <section key={group.key} className="tba-temple-card overflow-hidden rounded-2xl">
+                <header className="flex flex-wrap items-end justify-between gap-3 border-b border-[#D4AF37]/20 px-4 py-4 sm:px-5">
+                  <div>
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#D4AF37]/80">ทีม</p>
+                    <h2 className="text-xl font-black text-[#F7EFE0] sm:text-2xl">{group.teamName}</h2>
+                  </div>
+                  <p className="text-xs font-semibold text-[rgba(247,239,224,0.55)]">
+                    {videoCount > 0 ? `${videoCount} วิดีโอ` : null}
+                    {videoCount > 0 && imageCount > 0 ? ' · ' : null}
+                    {imageCount > 0 ? `${imageCount} รูป` : null}
+                    {videoCount === 0 && imageCount === 0 ? `${group.items.length} รายการ` : null}
+                  </p>
+                </header>
+
+                <div className="grid gap-4 p-4 sm:grid-cols-2 sm:gap-5 sm:p-5">
+                  {group.items.map((video) => {
+                    const image = isImageMedia(video.mime_type, video.file_name);
+                    return (
+                      <article
+                        key={video.id}
+                        className="overflow-hidden rounded-xl border border-[#D4AF37]/20 bg-[#140808]/55"
+                      >
+                        {image ? (
+                          <a href={video.video_url} target="_blank" rel="noopener noreferrer" className="block bg-black">
+                            <img
+                              src={video.video_url}
+                              alt={video.title}
+                              className="aspect-video w-full object-contain"
+                              loading="lazy"
+                            />
+                          </a>
+                        ) : (
+                          <video
+                            src={video.video_url}
+                            controls
+                            playsInline
+                            preload="metadata"
+                            className="aspect-video w-full bg-black object-contain"
+                          />
+                        )}
+                        <div className="space-y-2.5 p-3.5 sm:p-4">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="rounded-md border border-[#D4AF37]/35 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#E8D5A3]">
+                              {image ? 'รูปภาพ' : 'วิดีโอ'}
+                            </span>
+                            <h3 className="text-base font-bold leading-snug text-[#F7EFE0] sm:text-lg">{video.title}</h3>
+                          </div>
+                          {video.description && (
+                            <p className="text-sm leading-relaxed text-[rgba(247,239,224,0.62)]">{video.description}</p>
+                          )}
+                          <div className="flex flex-wrap gap-2 text-[11px] text-[rgba(247,239,224,0.4)]">
+                            <span>{new Date(video.created_at).toLocaleString('th-TH')}</span>
+                            {video.file_size != null && <span>{formatBytes(video.file_size)}</span>}
+                          </div>
+                          <div className="grid grid-cols-2 gap-2 pt-0.5">
+                            <a
+                              href={video.video_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="tba-temple-btn-outline flex min-h-[2.5rem] items-center justify-center rounded-xl px-3 py-2 text-sm font-bold touch-manipulation"
+                            >
+                              {image ? 'เปิดรูป' : 'เปิดวิดีโอ'}
+                            </a>
+                            <button
+                              type="button"
+                              onClick={() => deleteVideo(video)}
+                              disabled={deletingId === video.id}
+                              className="flex min-h-[2.5rem] items-center justify-center rounded-xl border border-red-400/40 bg-red-950/40 px-3 py-2 text-sm font-bold text-red-200 transition hover:bg-red-900/50 disabled:cursor-not-allowed disabled:opacity-60 touch-manipulation"
+                            >
+                              {deletingId === video.id ? 'กำลังลบ...' : 'ลบ'}
+                            </button>
+                          </div>
+                        </div>
+                      </article>
+                    );
+                  })}
                 </div>
-                {video.description && (
-                  <p className="text-sm leading-relaxed text-[rgba(247,239,224,0.62)]">{video.description}</p>
-                )}
-                <div className="flex flex-wrap gap-2 text-[11px] text-[rgba(247,239,224,0.4)] sm:text-xs">
-                  <span>{new Date(video.created_at).toLocaleString('th-TH')}</span>
-                  {video.file_size != null && <span>{(video.file_size / 1024 / 1024).toFixed(1)} MB</span>}
-                </div>
-                <div className="grid grid-cols-2 gap-2 pt-1">
-                  <a
-                    href={video.video_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="tba-temple-btn-outline flex min-h-[2.75rem] items-center justify-center rounded-xl px-3 py-2 text-sm font-bold touch-manipulation"
-                  >
-                    เปิดวิดีโอ
-                  </a>
-                  <button
-                    type="button"
-                    onClick={() => deleteVideo(video)}
-                    disabled={deletingId === video.id}
-                    className="flex min-h-[2.75rem] items-center justify-center rounded-xl border border-red-400/40 bg-red-950/40 px-3 py-2 text-sm font-bold text-red-200 transition hover:bg-red-900/50 disabled:cursor-not-allowed disabled:opacity-60 touch-manipulation"
-                  >
-                    {deletingId === video.id ? 'กำลังลบ...' : 'ลบวิดีโอ'}
-                  </button>
-                </div>
-              </div>
-            </article>
-          ))}
+              </section>
+            );
+          })}
         </div>
       )}
     </PageShell>
