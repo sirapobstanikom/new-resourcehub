@@ -10,6 +10,7 @@ import {
   elevateUniqueIdFromName,
   elevateUserFormPath,
   elevateUserFormUrl,
+  filterElevateResponsesByCreatedAt,
   loadElevateResponsesLocal,
   loadStoredElevateBanks,
   newElevateId,
@@ -70,6 +71,8 @@ const ElevatePretestPosttestEditorPage: React.FC = () => {
   const [tableMissing, setTableMissing] = useState(false);
   const [sqlCopied, setSqlCopied] = useState(false);
   const [exportingExcel, setExportingExcel] = useState(false);
+  const [excelFromDate, setExcelFromDate] = useState('');
+  const [excelToDate, setExcelToDate] = useState('');
 
   const banksRef = useRef(banks);
   const syncTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -441,6 +444,10 @@ const ElevatePretestPosttestEditorPage: React.FC = () => {
 
   const downloadBankExcel = async () => {
     if (!selected) return;
+    if (excelFromDate && excelToDate && excelFromDate > excelToDate) {
+      setMessage('วันที่เริ่มต้องไม่เกินวันที่สิ้นสุด');
+      return;
+    }
     setExportingExcel(true);
     setMessage('');
     try {
@@ -452,14 +459,24 @@ const ElevatePretestPosttestEditorPage: React.FC = () => {
         }
       }
 
-      if (responses.length === 0) {
-        setMessage('ยังไม่มีคำตอบสำหรับชุดนี้');
+      const filtered = filterElevateResponsesByCreatedAt(responses, excelFromDate, excelToDate);
+
+      if (filtered.length === 0) {
+        setMessage(
+          excelFromDate || excelToDate
+            ? 'ไม่พบคำตอบในช่วงวันที่ที่เลือก'
+            : 'ยังไม่มีคำตอบสำหรับชุดนี้'
+        );
         return;
       }
 
-      const result = await downloadElevateResponsesStyledExcel(selected, responses);
+      const result = await downloadElevateResponsesStyledExcel(selected, filtered);
+      const rangeHint =
+        excelFromDate || excelToDate
+          ? ` · ช่วง ${excelFromDate || '…'} ถึง ${excelToDate || '…'}`
+          : '';
       setMessage(
-        `ดาวน์โหลด Excel แล้ว — เปรียบเทียบ ${result.comparisonCount} คน (จับคู่ครบ ${result.pairedCount} คน)`
+        `ดาวน์โหลด Excel แล้ว — ${filtered.length} คำตอบ · เปรียบเทียบ ${result.comparisonCount} คน (จับคู่ครบ ${result.pairedCount} คน)${rangeHint}`
       );
     } catch (err) {
       setMessage(err instanceof Error ? err.message : 'ดาวน์โหลด Excel ไม่สำเร็จ');
@@ -633,20 +650,65 @@ const ElevatePretestPosttestEditorPage: React.FC = () => {
                     </a>
                     <button
                       type="button"
-                      onClick={() => void downloadBankExcel()}
-                      disabled={exportingExcel}
-                      className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-emerald-600/30 bg-emerald-50 px-3 py-2.5 text-sm font-semibold text-emerald-800 hover:bg-emerald-100 disabled:opacity-60 sm:flex-none"
-                    >
-                      <Download className="h-4 w-4" />
-                      {exportingExcel ? 'กำลังโหลด...' : 'Excel'}
-                    </button>
-                    <button
-                      type="button"
                       onClick={deleteBank}
                       className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-red-300 bg-red-50 px-3 py-2.5 text-sm font-semibold text-red-700 hover:bg-red-100 sm:flex-none"
                     >
                       <Trash2 className="h-4 w-4" />
                       ลบชุด
+                    </button>
+                  </div>
+                </div>
+
+                <div className="mt-4 rounded-2xl border border-emerald-200/80 bg-emerald-50/50 p-3 sm:p-4">
+                  <p className="text-xs font-bold uppercase tracking-wide text-emerald-900/80">
+                    ดึงผล Excel · คัดกรองวันที่
+                  </p>
+                  <p className="mt-1 text-xs text-emerald-900/65">
+                    เลือกช่วงวันที่ส่งคำตอบก่อนดาวน์โหลด — ว่างไว้ทั้งคู่ = ดึงทั้งหมด
+                  </p>
+                  <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-end">
+                    <div className="min-w-0 flex-1 sm:max-w-[11rem]">
+                      <label htmlFor="excelFromDate" className="mb-1 block text-xs font-semibold text-emerald-900">
+                        จากวันที่
+                      </label>
+                      <input
+                        id="excelFromDate"
+                        type="date"
+                        value={excelFromDate}
+                        onChange={(e) => setExcelFromDate(e.target.value)}
+                        className="w-full rounded-xl border border-emerald-300/70 bg-white px-3 py-2 text-sm text-gray-900 focus:border-emerald-500 focus:outline-none"
+                      />
+                    </div>
+                    <div className="min-w-0 flex-1 sm:max-w-[11rem]">
+                      <label htmlFor="excelToDate" className="mb-1 block text-xs font-semibold text-emerald-900">
+                        ถึงวันที่
+                      </label>
+                      <input
+                        id="excelToDate"
+                        type="date"
+                        value={excelToDate}
+                        onChange={(e) => setExcelToDate(e.target.value)}
+                        className="w-full rounded-xl border border-emerald-300/70 bg-white px-3 py-2 text-sm text-gray-900 focus:border-emerald-500 focus:outline-none"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setExcelFromDate('');
+                        setExcelToDate('');
+                      }}
+                      className="rounded-xl border border-emerald-300/70 bg-white px-3 py-2 text-xs font-semibold text-emerald-900 hover:bg-emerald-100/80"
+                    >
+                      ล้างวันที่
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void downloadBankExcel()}
+                      disabled={exportingExcel}
+                      className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-emerald-600/30 bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-emerald-500 disabled:opacity-60"
+                    >
+                      <Download className="h-4 w-4" />
+                      {exportingExcel ? 'กำลังโหลด...' : 'ดาวน์โหลด Excel'}
                     </button>
                   </div>
                 </div>

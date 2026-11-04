@@ -310,6 +310,31 @@ export function loadElevateResponsesLocal(): ElevateTestResponse[] {
   }
 }
 
+/** คัดกรองคำตอบตามวันที่ส่ง (YYYY-MM-DD) — ว่าง = ไม่จำกัดด้านนั้น */
+export function filterElevateResponsesByCreatedAt(
+  responses: ElevateTestResponse[],
+  fromDate: string,
+  toDate: string
+): ElevateTestResponse[] {
+  const from = fromDate.trim();
+  const to = toDate.trim();
+  if (!from && !to) return responses;
+
+  const fromMs = from ? new Date(`${from}T00:00:00`).getTime() : null;
+  const toMs = to ? new Date(`${to}T23:59:59.999`).getTime() : null;
+  if ((fromMs != null && Number.isNaN(fromMs)) || (toMs != null && Number.isNaN(toMs))) {
+    return responses;
+  }
+
+  return responses.filter((row) => {
+    const t = new Date(row.createdAt).getTime();
+    if (Number.isNaN(t)) return false;
+    if (fromMs != null && t < fromMs) return false;
+    if (toMs != null && t > toMs) return false;
+    return true;
+  });
+}
+
 export function deleteElevateResponsesLocal(ids: string[]): void {
   if (ids.length === 0) return;
   try {

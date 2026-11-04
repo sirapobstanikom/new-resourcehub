@@ -5,6 +5,7 @@ import { jsPDF } from 'jspdf';
 import {
   computeElevateDashboard,
   deleteElevateResponsesLocal,
+  filterElevateResponsesByCreatedAt,
   findElevateBankById,
   formatElevatePercent,
   loadElevateResponsesLocal,
@@ -43,6 +44,8 @@ const ElevatePretestPosttestDashboardPage: React.FC = () => {
   const [tick, setTick] = useState(0);
   const [exporting, setExporting] = useState(false);
   const [exportingExcel, setExportingExcel] = useState(false);
+  const [excelFromDate, setExcelFromDate] = useState('');
+  const [excelToDate, setExcelToDate] = useState('');
   const [error, setError] = useState('');
   const [deletingIds, setDeletingIds] = useState<string[]>([]);
   const dashboardRef = useRef<HTMLDivElement>(null);
@@ -151,14 +154,23 @@ const ElevatePretestPosttestDashboardPage: React.FC = () => {
 
   const downloadExcel = async () => {
     if (!bank) return;
+    if (excelFromDate && excelToDate && excelFromDate > excelToDate) {
+      setError('วันที่เริ่มต้องไม่เกินวันที่สิ้นสุด');
+      return;
+    }
     setExportingExcel(true);
     setError('');
     try {
-      if (bankResponses.length === 0) {
-        setError('ยังไม่มีคำตอบสำหรับชุดนี้');
+      const filtered = filterElevateResponsesByCreatedAt(bankResponses, excelFromDate, excelToDate);
+      if (filtered.length === 0) {
+        setError(
+          excelFromDate || excelToDate
+            ? 'ไม่พบคำตอบในช่วงวันที่ที่เลือก'
+            : 'ยังไม่มีคำตอบสำหรับชุดนี้'
+        );
         return;
       }
-      await downloadElevateResponsesStyledExcel(bank, responses);
+      await downloadElevateResponsesStyledExcel(bank, filtered);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'ดาวน์โหลด Excel ไม่สำเร็จ');
     } finally {
@@ -218,14 +230,6 @@ const ElevatePretestPosttestDashboardPage: React.FC = () => {
             >
               {exporting ? 'กำลังสร้าง PDF...' : 'ดาวน์โหลด PDF'}
             </button>
-            <button
-              type="button"
-              onClick={() => void downloadExcel()}
-              disabled={exportingExcel}
-              className="rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-2 text-sm font-bold text-emerald-800 hover:bg-emerald-100 disabled:opacity-60"
-            >
-              {exportingExcel ? 'กำลังสร้าง Excel...' : 'Download Excel'}
-            </button>
             <Link
               to="/elevate-pretest-posttest-editor"
               className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:border-yellow-400"
@@ -237,6 +241,58 @@ const ElevatePretestPosttestDashboardPage: React.FC = () => {
       </header>
 
       <div className="mx-auto max-w-6xl space-y-4 px-4 py-6 sm:px-6">
+        <section className="rounded-2xl border border-emerald-200/80 bg-emerald-50/60 p-4">
+          <p className="text-xs font-bold uppercase tracking-wide text-emerald-900/80">
+            ดึงผล Excel · คัดกรองวันที่
+          </p>
+          <p className="mt-1 text-xs text-emerald-900/65">
+            เลือกช่วงวันที่ส่งคำตอบก่อนดาวน์โหลด — ว่างไว้ทั้งคู่ = ดึงทั้งหมด
+          </p>
+          <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-end">
+            <div className="min-w-0 flex-1 sm:max-w-[11rem]">
+              <label htmlFor="dashExcelFrom" className="mb-1 block text-xs font-semibold text-emerald-900">
+                จากวันที่
+              </label>
+              <input
+                id="dashExcelFrom"
+                type="date"
+                value={excelFromDate}
+                onChange={(e) => setExcelFromDate(e.target.value)}
+                className="w-full rounded-xl border border-emerald-300/70 bg-white px-3 py-2 text-sm text-gray-900 focus:border-emerald-500 focus:outline-none"
+              />
+            </div>
+            <div className="min-w-0 flex-1 sm:max-w-[11rem]">
+              <label htmlFor="dashExcelTo" className="mb-1 block text-xs font-semibold text-emerald-900">
+                ถึงวันที่
+              </label>
+              <input
+                id="dashExcelTo"
+                type="date"
+                value={excelToDate}
+                onChange={(e) => setExcelToDate(e.target.value)}
+                className="w-full rounded-xl border border-emerald-300/70 bg-white px-3 py-2 text-sm text-gray-900 focus:border-emerald-500 focus:outline-none"
+              />
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setExcelFromDate('');
+                setExcelToDate('');
+              }}
+              className="rounded-xl border border-emerald-300/70 bg-white px-3 py-2 text-xs font-semibold text-emerald-900 hover:bg-emerald-100/80"
+            >
+              ล้างวันที่
+            </button>
+            <button
+              type="button"
+              onClick={() => void downloadExcel()}
+              disabled={exportingExcel}
+              className="rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-emerald-500 disabled:opacity-60"
+            >
+              {exportingExcel ? 'กำลังสร้าง Excel...' : 'ดาวน์โหลด Excel'}
+            </button>
+          </div>
+        </section>
         {error && (
           <p className="rounded-xl border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
         )}
