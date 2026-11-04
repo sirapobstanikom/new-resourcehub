@@ -109,9 +109,9 @@ function addComparisonSheet(
     views: [{ state: 'frozen', ySplit: 2 }],
   });
 
-  ws.mergeCells('A1:I1');
+  ws.mergeCells('A1:K1');
   const title = ws.getCell('A1');
-  title.value = `เปรียบเทียบ Pretest / Posttest — ${bankName}`;
+  title.value = `เปรียบเทียบ Pretest / Posttest — ${bankName} (วันเวลาไทย)`;
   title.fill = fillSolid(COLORS.titleFill);
   title.font = { bold: true, color: { argb: COLORS.titleFont }, size: 14, name: 'Calibri' };
   title.alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
@@ -120,8 +120,10 @@ function addComparisonSheet(
   const headers = [
     'ลำดับ',
     'ชื่อ',
+    'วันเวลา Pretest',
     'Pretest คะแนน',
     'Pretest %',
+    'วันเวลา Posttest',
     'Posttest คะแนน',
     'Posttest %',
     'พัฒนา (จุด %)',
@@ -134,6 +136,8 @@ function addComparisonSheet(
     COLORS.headerFill,
     COLORS.pretestHeader,
     COLORS.pretestHeader,
+    COLORS.pretestHeader,
+    COLORS.posttestHeader,
     COLORS.posttestHeader,
     COLORS.posttestHeader,
     COLORS.headerFill,
@@ -155,8 +159,10 @@ function addComparisonSheet(
     const values: (string | number)[] = [
       row.ลำดับ,
       row.ชื่อ,
+      row['วันเวลา Pretest'],
       row['Pretest คะแนน'],
       row['Pretest %'],
+      row['วันเวลา Posttest'],
       row['Posttest คะแนน'],
       row['Posttest %'],
       row['พัฒนา (จุด %)'],
@@ -169,15 +175,15 @@ function addComparisonSheet(
       cell.value = value;
 
       let bg = zebra;
-      if (colIdx === 2 || colIdx === 3) bg = COLORS.pretestFill;
-      else if (colIdx === 4 || colIdx === 5) bg = COLORS.posttestFill;
-      else if (colIdx === 6 || colIdx === 7) bg = gainFill(value);
-      else if (colIdx === 8) bg = statusFill(String(value));
+      if (colIdx >= 2 && colIdx <= 4) bg = COLORS.pretestFill;
+      else if (colIdx >= 5 && colIdx <= 7) bg = COLORS.posttestFill;
+      else if (colIdx === 8 || colIdx === 9) bg = gainFill(value);
+      else if (colIdx === 10) bg = statusFill(String(value));
 
       applyBodyCell(cell, {
         bg,
-        bold: colIdx === 1 || colIdx === 6 || colIdx === 7,
-        align: colIdx === 1 || colIdx === 8 ? 'left' : 'center',
+        bold: colIdx === 1 || colIdx === 8 || colIdx === 9,
+        align: colIdx === 1 || colIdx === 2 || colIdx === 5 || colIdx === 10 ? 'left' : 'center',
       });
     });
     excelRow.height = 20;
@@ -185,7 +191,9 @@ function addComparisonSheet(
 
   autoWidth(ws, 12, 28);
   ws.getColumn(2).width = 28;
-  ws.getColumn(9).width = 18;
+  ws.getColumn(3).width = 22;
+  ws.getColumn(6).width = 22;
+  ws.getColumn(11).width = 18;
 }
 
 function addRawSheet(
@@ -222,7 +230,7 @@ function addRawSheet(
       cell.value = row[h] ?? '';
       applyBodyCell(cell, {
         bg: colIdx <= 6 ? rowTint : idx % 2 === 1 ? COLORS.zebra : COLORS.white,
-        align: colIdx === 1 || colIdx === 2 || colIdx >= 7 ? 'left' : 'center',
+        align: colIdx === 1 || colIdx === 2 || colIdx === 6 || colIdx >= 7 ? 'left' : 'center',
       });
     });
   });

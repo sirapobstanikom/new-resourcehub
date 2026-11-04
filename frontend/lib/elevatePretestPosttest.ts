@@ -362,9 +362,11 @@ export type ElevatePairedResult = {
   pretestScore: number;
   pretestTotal: number;
   pretestPercent: number;
+  pretestCreatedAt: string;
   posttestScore: number;
   posttestTotal: number;
   posttestPercent: number;
+  posttestCreatedAt: string;
   /** เพิ่มขึ้นเป็น % จากคะแนนเดิม ((post-pre)/pre*100) */
   gainFromBaselinePercent: number | null;
   /** เพิ่มขึ้นเป็น จุดเปอร์เซ็นต์ (post% - pre%) */
@@ -441,9 +443,11 @@ export function computeElevateDashboard(
       pretestScore: pre.score,
       pretestTotal: pre.total,
       pretestPercent,
+      pretestCreatedAt: pre.createdAt,
       posttestScore: post.score,
       posttestTotal: post.total,
       posttestPercent,
+      posttestCreatedAt: post.createdAt,
       gainFromBaselinePercent:
         pretestPercent > 0 ? ((posttestPercent - pretestPercent) / pretestPercent) * 100 : null,
       gainPoints: posttestPercent - pretestPercent,
@@ -483,8 +487,9 @@ function sanitizeElevateFileName(name: string): string {
   return name.replace(/[<>:"/\\|?*\u0000-\u001F]/g, '').trim().slice(0, 80) || 'elevate';
 }
 
-function formatElevateExportDateTime(iso: string): string {
-  if (!iso) return '-';
+/** วันเวลาไทย (Asia/Bangkok) สำหรับ Excel เช่น 04/11/2569 10:35:12 */
+export function formatElevateExportDateTime(iso: string): string {
+  if (!iso) return '—';
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return iso;
   return date.toLocaleString('th-TH', {
@@ -507,8 +512,10 @@ function questionColumnKey(question: ElevateQuestion, index: number): string {
 export type ElevateExcelComparisonRow = {
   ลำดับ: number;
   ชื่อ: string;
+  'วันเวลา Pretest': string;
   'Pretest คะแนน': string;
   'Pretest %': number | string;
+  'วันเวลา Posttest': string;
   'Posttest คะแนน': string;
   'Posttest %': number | string;
   'พัฒนา (จุด %)': number | string;
@@ -553,7 +560,7 @@ export function buildElevateResponsesExcelSheets(
       คะแนน: row.score,
       คะแนนเต็ม: row.total,
       เปอร์เซ็นต์: Number(scorePercent(row.score, row.total).toFixed(1)),
-      เวลาส่ง: formatElevateExportDateTime(row.createdAt),
+      'วันเวลาที่ทำ (ไทย)': formatElevateExportDateTime(row.createdAt),
     };
     allQuestionKeys.forEach((key) => {
       record[key] = '';
@@ -571,8 +578,10 @@ export function buildElevateResponsesExcelSheets(
   const pairedRows: ElevateExcelComparisonRow[] = stats.paired.map((row, idx) => ({
     ลำดับ: idx + 1,
     ชื่อ: row.name,
+    'วันเวลา Pretest': formatElevateExportDateTime(row.pretestCreatedAt),
     'Pretest คะแนน': `${row.pretestScore}/${row.pretestTotal}`,
     'Pretest %': Number(row.pretestPercent.toFixed(1)),
+    'วันเวลา Posttest': formatElevateExportDateTime(row.posttestCreatedAt),
     'Posttest คะแนน': `${row.posttestScore}/${row.posttestTotal}`,
     'Posttest %': Number(row.posttestPercent.toFixed(1)),
     'พัฒนา (จุด %)': Number(row.gainPoints.toFixed(1)),
@@ -586,8 +595,10 @@ export function buildElevateResponsesExcelSheets(
     return {
       ลำดับ: 0,
       ชื่อ: row.respondentName.trim() || 'ไม่ระบุชื่อ',
+      'วันเวลา Pretest': formatElevateExportDateTime(row.createdAt),
       'Pretest คะแนน': `${row.score}/${row.total}`,
       'Pretest %': Number(pct.toFixed(1)),
+      'วันเวลา Posttest': '—',
       'Posttest คะแนน': '—',
       'Posttest %': '—',
       'พัฒนา (จุด %)': '—',
@@ -601,8 +612,10 @@ export function buildElevateResponsesExcelSheets(
     return {
       ลำดับ: 0,
       ชื่อ: row.respondentName.trim() || 'ไม่ระบุชื่อ',
+      'วันเวลา Pretest': '—',
       'Pretest คะแนน': '—',
       'Pretest %': '—',
+      'วันเวลา Posttest': formatElevateExportDateTime(row.createdAt),
       'Posttest คะแนน': `${row.score}/${row.total}`,
       'Posttest %': Number(pct.toFixed(1)),
       'พัฒนา (จุด %)': '—',
