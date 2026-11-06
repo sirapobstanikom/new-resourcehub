@@ -2151,7 +2151,7 @@ alter table public.leave_requests add column if not exists approved_at timestamp
           aria-labelledby="leave-day-detail-title"
         >
           <div
-            className="rounded-t-2xl sm:rounded-2xl border border-gray-200 bg-neutral-900 shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 space-y-4"
+            className="rounded-t-2xl sm:rounded-2xl border border-gray-200 bg-white shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 space-y-4"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-start justify-between gap-3">
@@ -2219,7 +2219,7 @@ alter table public.leave_requests add column if not exists approved_at timestamp
           aria-labelledby="leave-detail-title"
         >
           <div
-            className="rounded-t-2xl sm:rounded-2xl border border-gray-200 bg-neutral-900 shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto p-6 space-y-4"
+            className="rounded-t-2xl sm:rounded-2xl border border-gray-200 bg-white shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto p-6 space-y-4"
             onClick={(e) => e.stopPropagation()}
           >
             <h3 id="leave-detail-title" className="text-lg font-bold text-yellow-700">
