@@ -5,10 +5,104 @@ import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
 const SCORE_OPTIONS = [1, 2, 3, 4, 5] as const;
 const BG_IMAGE = '/images/innoclub/innoblox-bg.jpg';
+const EVALUATION_TABLE = 'innoclub_evaluation_responses';
+
+const EVALUATION_SETUP_SQL = `create table if not exists public.innoclub_evaluation_responses (
+  id uuid primary key default gen_random_uuid(),
+  created_at timestamptz not null default now()
+);
+
+alter table public.innoclub_evaluation_responses
+  add column if not exists facilitator_score smallint,
+  add column if not exists facilitator_comment text,
+  add column if not exists content_score smallint,
+  add column if not exists content_comment text,
+  add column if not exists overall_score smallint,
+  add column if not exists atmosphere_score smallint,
+  add column if not exists sharing_score smallint,
+  add column if not exists overall_comment text,
+  add column if not exists innovation_insight text,
+  add column if not exists innovation_value text,
+  add column if not exists innovation_application text,
+  add column if not exists improvement_suggestions text,
+  add column if not exists activity_learning_satisfaction text,
+  add column if not exists learn_apply text,
+  add column if not exists ai_plan_6months text;
+
+alter table public.innoclub_evaluation_responses enable row level security;
+
+grant select, insert on public.innoclub_evaluation_responses to anon, authenticated;
+
+drop policy if exists "Allow insert innoclub_evaluation" on public.innoclub_evaluation_responses;
+create policy "Allow insert innoclub_evaluation"
+  on public.innoclub_evaluation_responses
+  for insert
+  to anon, authenticated
+  with check (true);
+
+drop policy if exists "Allow read innoclub_evaluation" on public.innoclub_evaluation_responses;
+create policy "Allow read innoclub_evaluation"
+  on public.innoclub_evaluation_responses
+  for select
+  to anon, authenticated
+  using (true);`;
+
+type EvaluationInsert = Record<string, string | number | null>;
+
+const OPEN_ANSWER_GROUPS = [
+  ['innovation_insight', 'activity_learning_satisfaction'],
+  ['innovation_value', 'learn_apply'],
+  ['innovation_application', 'ai_plan_6months'],
+] as const;
+
+function missingColumnFromError(message: string): string | null {
+  const fromCache = message.match(/Could not find the '([^']+)' column/i);
+  if (fromCache) return fromCache[1];
+  const fromPostgres = message.match(/column "([^"]+)" of relation/i);
+  return fromPostgres?.[1] ?? null;
+}
+
+function needsDatabaseSetup(message: string): boolean {
+  const normalized = message.toLowerCase();
+  return (
+    normalized.includes('row-level security') ||
+    normalized.includes('permission denied') ||
+    normalized.includes('schema cache') ||
+    normalized.includes('could not find the table')
+  );
+}
+
+function keepsOpenAnswers(payload: EvaluationInsert): boolean {
+  return OPEN_ANSWER_GROUPS.every((group) => group.some((column) => column in payload));
+}
+
+async function insertEvaluation(payload: EvaluationInsert): Promise<{ error: string | null; needsSetup: boolean }> {
+  let current = { ...payload };
+  for (let attempt = 0; attempt < 12; attempt += 1) {
+    if (!keepsOpenAnswers(current)) {
+      return {
+        error: 'ตารางยังไม่มีคอลัมน์เก็บคำตอบปลายเปิด จึงยังบันทึกไม่ได้',
+        needsSetup: true,
+      };
+    }
+    const { error } = await supabase.from(EVALUATION_TABLE).insert(current);
+    if (!error) return { error: null, needsSetup: false };
+    const missingColumn = missingColumnFromError(error.message);
+    if (missingColumn && missingColumn in current) {
+      const next = { ...current };
+      delete next[missingColumn];
+      current = next;
+      continue;
+    }
+    return { error: error.message, needsSetup: needsDatabaseSetup(error.message) };
+  }
+  return { error: 'บันทึกคำตอบไม่สำเร็จ', needsSetup: true };
+}
 
 const InnoClubEvaluationPage: React.FC = () => {
 const [submitted, setSubmitted] = useState(false);
 const [error, setError] = useState<string | null>(null);
+const [setupSql, setSetupSql] = useState<string | null>(null);
 const [loading, setLoading] = useState(false);
 const [form, setForm] = useState({
 facilitator_score: 0 as number,
@@ -57,7 +151,7 @@ return (
 <label
 key={n}
 className={[
-'ibx-score flex min-h-12 cursor-pointer items-center justify-center rounded-[12px] border-2 px-1 py-2.5 transition-all sm:min-h-[52px] sm:min-w-[52px] sm:rounded-[14px] sm',
+'ibx-score flex min-h-12 cursor-pointer items-center justify-center rounded-[12px] border-2 px-1 py-2.5 transition-all sm:min-h-[52px] sm:min-w-[52px] sm:rounded-[14px]',
 selected
 ? 'border-[#E09B00] bg-[#FFCC00] text-[#111] shadow-[0_3px_0_#E09B00]'
 : 'border-[#1E5FA8] bg-[#F8FAFC] text-[#0B1F3A] hover:border-[#FFB800] hover:bg-[#FFF8D6]',
@@ -69,7 +163,7 @@ name={name}
 checked={form[field] === n}
 onChange={() => setScore(field, n)}
 className="sr-only"
-aria-label={${name}-${n}}
+aria-label={`${name}-${n}`}
 />
 <span className="text-lg font-black sm:text-lg lg:text-xl">{n}</span>
 </label>
@@ -79,37 +173,44 @@ aria-label={${name}-${n}}
 );
 
 const handleSubmit = async (e: React.FormEvent) => {
-e.preventDefault();
-setError(null);
-if (!allRequiredFilled) {
-setError('กรุณาตอบคำถามที่จำเป็นให้ครบทุกข้อ');
-return;
-}
-if (!isSupabaseConfigured) {
-setError('ยังไม่ได้ตั้งค่า Supabase กรุณาติดต่อผู้ดูแล');
-return;
-}
-setLoading(true);
-const { error: err } = await supabase.from('innoclub_evaluation_responses').insert({
-facilitator_score: form.facilitator_score,
-facilitator_comment: form.facilitator_comment || null,
-content_score: form.content_score,
-content_comment: form.content_comment || null,
-overall_score: form.overall_score,
-atmosphere_score: form.atmosphere_score,
-sharing_score: form.sharing_score,
-overall_comment: form.overall_comment || null,
-learn_apply: form.innovation_value || null,
-ai_plan_6months: form.innovation_application || null,
-activity_learning_satisfaction: form.innovation_insight || null,
-improvement_suggestions: form.improvement_suggestions || null,
-});
-setLoading(false);
-if (err) {
-setError(err.message);
-return;
-}
-setSubmitted(true);
+  e.preventDefault();
+  setError(null);
+  setSetupSql(null);
+  if (!allRequiredFilled) {
+    setError('กรุณาตอบคำถามที่มี * ให้ครบ ทั้งคะแนน 5 ข้อและคำตอบปลายเปิด 3 ข้อ');
+    window.setTimeout(() => document.getElementById('ibx-form-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 0);
+    return;
+  }
+  if (!isSupabaseConfigured) {
+    setError('ยังไม่ได้ตั้งค่า Supabase กรุณาติดต่อผู้ดูแล');
+    return;
+  }
+  setLoading(true);
+  const { error: err, needsSetup } = await insertEvaluation({
+    facilitator_score: form.facilitator_score,
+    facilitator_comment: form.facilitator_comment.trim() || null,
+    content_score: form.content_score,
+    content_comment: form.content_comment.trim() || null,
+    overall_score: form.overall_score,
+    atmosphere_score: form.atmosphere_score,
+    sharing_score: form.sharing_score,
+    overall_comment: form.overall_comment.trim() || null,
+    innovation_insight: form.innovation_insight.trim(),
+    innovation_value: form.innovation_value.trim(),
+    innovation_application: form.innovation_application.trim(),
+    activity_learning_satisfaction: form.innovation_insight.trim(),
+    learn_apply: form.innovation_value.trim(),
+    ai_plan_6months: form.innovation_application.trim(),
+    improvement_suggestions: form.improvement_suggestions.trim() || null,
+  });
+  setLoading(false);
+  if (err) {
+    setError(err);
+    setSetupSql(needsSetup ? EVALUATION_SETUP_SQL : null);
+    window.setTimeout(() => document.getElementById('ibx-form-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 0);
+    return;
+  }
+  setSubmitted(true);
 };
 
 const pageShell = (children: React.ReactNode) => (
@@ -119,7 +220,8 @@ const pageShell = (children: React.ReactNode) => (
 <div className="ibx-overlay" />
 </div>
 {children}
-<style>{        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800;900&display=swap');
+<style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800;900&display=swap');
         .ibx-page {
           font-family: "Nunito", "Prompt", "Anuphan", ui-sans-serif, system-ui, sans-serif;
           background:
@@ -216,7 +318,7 @@ const pageShell = (children: React.ReactNode) => (
             box-shadow: 0 10px 0 #E09B00, 0 22px 40px rgba(15,61,122,0.16);
           }
         }
-     }</style>
+     `}</style>
 </div>
 );
 
@@ -300,8 +402,18 @@ return pageShell(
 
     <form onSubmit={handleSubmit} className="mx-auto max-w-5xl space-y-4 sm:space-y-10">
       {error && (
-        <div className="rounded-[16px] border-2 border-red-400 bg-red-50 px-4 py-3 text-sm font-bold text-red-700">
-          {error}
+        <div id="ibx-form-error" className="rounded-[16px] border-2 border-red-400 bg-red-50 px-4 py-3 text-sm font-bold text-red-700">
+          <p>{error}</p>
+          {setupSql && (
+            <>
+              <p className="mt-2 font-extrabold text-[#0B1F3A]">
+                เปิด Supabase → SQL Editor แล้วรันคำสั่งนี้หนึ่งครั้ง จากนั้นส่งแบบประเมินอีกครั้ง
+              </p>
+              <pre className="mt-2 overflow-x-auto whitespace-pre-wrap rounded-lg bg-white p-3 text-xs font-medium text-[#0B1F3A]">
+                {setupSql}
+              </pre>
+            </>
+          )}
         </div>
       )}
 
@@ -382,7 +494,7 @@ return pageShell(
         <div className="space-y-5 sm:space-y-7">
           <div>
             <p className="ibx-q mb-2.5 text-[15px] sm:mb-3 sm:text-base lg:text-xl">
-              1. Innovation Insight (Discover): จากการเยี่ยมชม BIOTEC ท่านได้เห็นแนวคิด เทคโนโลยี หรือนวัตกรรมใดที่น่าสนใจในความคิดเห็นของท่าน?
+              1. Innovation Insight (Discover): จากการเยี่ยมชม BIOTEC ท่านได้เห็นแนวคิด เทคโนโลยี หรือนวัตกรรมใดที่น่าสนใจในความคิดเห็นของท่าน? *
             </p>
             <textarea
               value={form.innovation_insight}
@@ -394,7 +506,7 @@ return pageShell(
           </div>
           <div>
             <p className="ibx-q mb-2.5 text-[15px] sm:mb-3 sm:text-base lg:text-xl">
-              2. Innovation Value (Understand): จากนวัตกรรมที่ได้เรียนรู้จากข้อที่ 1 ท่านคิดว่านวัตกรรมนั้นกำลังแก้ปัญหาอะไร สร้างคุณค่าให้กับใคร และมีปัจจัยสำคัญอะไรที่ทำให้นวัตกรรมสามารถนำไปใช้ประโยชน์ได้จริง?
+              2. Innovation Value (Understand): จากนวัตกรรมที่ได้เรียนรู้จากข้อที่ 1 ท่านคิดว่านวัตกรรมนั้นกำลังแก้ปัญหาอะไร สร้างคุณค่าให้กับใคร และมีปัจจัยสำคัญอะไรที่ทำให้นวัตกรรมสามารถนำไปใช้ประโยชน์ได้จริง? *
             </p>
             <textarea
               value={form.innovation_value}
@@ -406,7 +518,7 @@ return pageShell(
           </div>
           <div>
             <p className="ibx-q mb-2.5 text-[15px] sm:mb-3 sm:text-base lg:text-xl">
-              3. Innovation Application (Apply): หากท่านต้องนำแนวคิดหรือองค์ความรู้ที่ได้รับจาก BIOTEC มาประยุกต์ใช้ในการทำงานหรือพัฒนานวัตกรรมใหม่ใน PTT Group ท่านจะนำไปใช้กับเรื่องใด อย่างไร?
+              3. Innovation Application (Apply): หากท่านต้องนำแนวคิดหรือองค์ความรู้ที่ได้รับจาก BIOTEC มาประยุกต์ใช้ในการทำงานหรือพัฒนานวัตกรรมใหม่ใน PTT Group ท่านจะนำไปใช้กับเรื่องใด อย่างไร? *
             </p>
             <textarea
               value={form.innovation_application}
@@ -432,10 +544,16 @@ return pageShell(
       </section>
 
       <div className="fixed inset-x-0 bottom-0 z-20 border-t border-[#93C5FD] bg-white px-3 pt-2.5 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-8px_24px_rgba(15,61,122,0.12)] sm:static sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none">
-        <div className="mx-auto flex max-w-5xl flex-col justify-center gap-2 sm:flex-row sm:gap-4 sm:pt-4">
+        <div className="mx-auto max-w-5xl sm:pt-4">
+          {!allRequiredFilled && (
+            <p className="mb-2 text-center text-[13px] font-extrabold text-[#0B1F3A]">
+              ตอบข้อที่มี * ให้ครบ {answeredRequiredCount}/{requiredTotal} ข้อก่อนส่ง
+            </p>
+          )}
+          <div className="flex flex-col justify-center gap-2 sm:flex-row sm:gap-4">
           <button
             type="submit"
-            disabled={loading || !allRequiredFilled}
+            disabled={loading}
             className="min-h-12 w-full rounded-[14px] border-2 border-[#E09B00] bg-[#FFCC00] px-6 py-3 text-[15px] font-black text-[#111] shadow-[0_4px_0_#E09B00] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-50 sm:min-h-0 sm:w-auto sm:rounded-[16px] sm:px-8 sm:py-4 sm:text-base sm:shadow-[0_6px_0_#E09B00] lg:px-10 lg:text-lg"
           >
             {loading ? 'กำลังส่ง...' : 'ส่งแบบประเมิน'}
@@ -446,6 +564,7 @@ return pageShell(
           >
             ยกเลิก
           </Link>
+          </div>
         </div>
       </div>
     </form>
