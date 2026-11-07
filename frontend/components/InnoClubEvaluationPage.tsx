@@ -344,22 +344,6 @@ return pageShell(
 
 return pageShell(
 <>
-<header className="sticky top-0 z-30 border-b border-[#93C5FD] bg-white px-3 py-2.5 pt-[max(0.625rem,env(safe-area-inset-top))] sm:border-b-2 sm:border-[#1E90FF]/35 sm:bg-white/90 sm:px-6 sm:py-3 sm:backdrop-blur-md">
-<div className="mx-auto flex max-w-6xl items-center justify-between gap-2">
-<Link
-         to="/"
-         className="inline-flex min-h-11 items-center gap-1.5 rounded-[12px] border-2 border-[#93C5FD] bg-white px-3 py-2 text-sm font-extrabold text-[#0B1F3A] shadow-sm hover:border-[#FFB800]"
-       >
-<svg className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
-</svg>
-หน้าหลัก
-</Link>
-<div className="flex items-center gap-2 rounded-[12px] border-2 border-[#E09B00] bg-[#FFCC00] px-2 py-1 text-black shadow-[0_3px_0_#E09B00] sm:rounded-[14px] sm:px-2.5 sm:py-1.5 sm:shadow-[0_4px_0_#E09B00]">
-<BrandLogo className="text-[16px] sm:text-[22px]" tone="dark" />
-</div>
-</div>
-</header>
 
   <div className="ibx-mobile-banner sm:hidden" aria-hidden>
     <img src={BG_IMAGE} alt="" decoding="async" />
