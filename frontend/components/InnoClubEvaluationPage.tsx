@@ -4,7 +4,7 @@ import BrandLogo from './BrandLogo';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
 const SCORE_OPTIONS = [1, 2, 3, 4, 5] as const;
-const BG_IMAGE = 'https://supabase.com/dashboard/project/axaasphuaaadzjoffznj/storage/files/buckets/images?preview=inno+on+tour.png';
+const BG_IMAGE = '/images/innoclub/inno on tour.png';
 const EVALUATION_TABLE = 'innoclub_evaluation_responses';
 
 const EVALUATION_SETUP_SQL = `create table if not exists public.innoclub_evaluation_responses (
@@ -326,7 +326,7 @@ if (submitted) {
 return pageShell(
 <div className="flex min-h-dvh flex-col items-center justify-center px-6 py-16">
 <div className="ibx-hero w-full max-w-md rounded-[28px] p-8 text-center">
-<p className="ibx-display text-sm font-bold uppercase tracking-[0.2em] text-[#1E90FF]">INNOBLOX</p>
+<p className="ibx-display text-sm font-bold uppercase tracking-[0.2em] text-[#1E90FF]">INNO ON TOUR</p>
 <h2 className="ibx-display mt-2 text-2xl font-bold text-[#0F3D7A]">ส่งแบบประเมินแล้ว!</h2>
 <p className="mt-3 text-base font-semibold text-[#334155]">
 ขอบคุณที่ให้ความเห็น เราจะนำไปปรับปรุงกิจกรรมครั้งถัดไป
