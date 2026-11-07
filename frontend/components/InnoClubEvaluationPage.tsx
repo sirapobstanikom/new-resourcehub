@@ -56,11 +56,12 @@ const selected = form[field] === n;
 return (
 <label
 key={n}
-className={ibx-score flex min-h-12 cursor-pointer items-center justify-center rounded-[12px] border-2 px-1 py-2.5 transition-all sm:min-h-[52px] sm:min-w-[52px] sm:rounded-[14px] sm:px-2 ${
-              selected
-                ? 'border-[#E09B00] bg-[#FFCC00] text-[#111] shadow-[0_3px_0_#E09B00]'
-                : 'border-[#1E5FA8] bg-[#F8FAFC] text-[#0B1F3A] hover:border-[#FFB800] hover:bg-[#FFF8D6]'
-            }}
+className={[
+'ibx-score flex min-h-12 cursor-pointer items-center justify-center rounded-[12px] border-2 px-1 py-2.5 transition-all sm:min-h-[52px] sm:min-w-[52px] sm:rounded-[14px] sm',
+selected
+? 'border-[#E09B00] bg-[#FFCC00] text-[#111] shadow-[0_3px_0_#E09B00]'
+: 'border-[#1E5FA8] bg-[#F8FAFC] text-[#0B1F3A] hover:border-[#FFB800] hover:bg-[#FFF8D6]',
+].join(' ')}
 >
 <input
 type="radio"
