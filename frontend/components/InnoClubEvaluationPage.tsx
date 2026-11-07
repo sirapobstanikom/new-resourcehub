@@ -4,7 +4,7 @@ import BrandLogo from './BrandLogo';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
 const SCORE_OPTIONS = [1, 2, 3, 4, 5] as const;
-const BG_IMAGE = '/images/innoclub/innoblox-bg.jpg';
+const BG_IMAGE = 'https://supabase.com/dashboard/project/axaasphuaaadzjoffznj/storage/files/buckets/images?preview=inno+on+tour.png';
 const EVALUATION_TABLE = 'innoclub_evaluation_responses';
 
 const EVALUATION_SETUP_SQL = `create table if not exists public.innoclub_evaluation_responses (
