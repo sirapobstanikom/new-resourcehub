@@ -4,122 +4,223 @@ import BrandLogo from './BrandLogo';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
 const SCORE_OPTIONS = [1, 2, 3, 4, 5] as const;
-const BG_IMAGE = '/images/innoclub/innoblox-bg.jpg';
+const BG_IMAGE = '/images/innoclub/inno-on-tour.png';
+const EVALUATION_TABLE = 'innoclub_evaluation_responses';
+
+const EVALUATION_SETUP_SQL = `create table if not exists public.innoclub_evaluation_responses (
+  id uuid primary key default gen_random_uuid(),
+  created_at timestamptz not null default now()
+);
+
+alter table public.innoclub_evaluation_responses
+  add column if not exists facilitator_score smallint,
+  add column if not exists facilitator_comment text,
+  add column if not exists content_score smallint,
+  add column if not exists content_comment text,
+  add column if not exists overall_score smallint,
+  add column if not exists atmosphere_score smallint,
+  add column if not exists sharing_score smallint,
+  add column if not exists overall_comment text,
+  add column if not exists innovation_insight text,
+  add column if not exists innovation_value text,
+  add column if not exists innovation_application text,
+  add column if not exists improvement_suggestions text,
+  add column if not exists activity_learning_satisfaction text,
+  add column if not exists learn_apply text,
+  add column if not exists ai_plan_6months text;
+
+alter table public.innoclub_evaluation_responses enable row level security;
+
+grant select, insert on public.innoclub_evaluation_responses to anon, authenticated;
+
+drop policy if exists "Allow insert innoclub_evaluation" on public.innoclub_evaluation_responses;
+create policy "Allow insert innoclub_evaluation"
+  on public.innoclub_evaluation_responses
+  for insert
+  to anon, authenticated
+  with check (true);
+
+drop policy if exists "Allow read innoclub_evaluation" on public.innoclub_evaluation_responses;
+create policy "Allow read innoclub_evaluation"
+  on public.innoclub_evaluation_responses
+  for select
+  to anon, authenticated
+  using (true);`;
+
+type EvaluationInsert = Record<string, string | number | null>;
+
+const OPEN_ANSWER_GROUPS = [
+  ['innovation_insight', 'activity_learning_satisfaction'],
+  ['innovation_value', 'learn_apply'],
+  ['innovation_application', 'ai_plan_6months'],
+] as const;
+
+function missingColumnFromError(message: string): string | null {
+  const fromCache = message.match(/Could not find the '([^']+)' column/i);
+  if (fromCache) return fromCache[1];
+  const fromPostgres = message.match(/column "([^"]+)" of relation/i);
+  return fromPostgres?.[1] ?? null;
+}
+
+function needsDatabaseSetup(message: string): boolean {
+  const normalized = message.toLowerCase();
+  return (
+    normalized.includes('row-level security') ||
+    normalized.includes('permission denied') ||
+    normalized.includes('schema cache') ||
+    normalized.includes('could not find the table')
+  );
+}
+
+function keepsOpenAnswers(payload: EvaluationInsert): boolean {
+  return OPEN_ANSWER_GROUPS.every((group) => group.some((column) => column in payload));
+}
+
+async function insertEvaluation(payload: EvaluationInsert): Promise<{ error: string | null; needsSetup: boolean }> {
+  let current = { ...payload };
+  for (let attempt = 0; attempt < 12; attempt += 1) {
+    if (!keepsOpenAnswers(current)) {
+      return {
+        error: 'ตารางยังไม่มีคอลัมน์เก็บคำตอบปลายเปิด จึงยังบันทึกไม่ได้',
+        needsSetup: true,
+      };
+    }
+    const { error } = await supabase.from(EVALUATION_TABLE).insert(current);
+    if (!error) return { error: null, needsSetup: false };
+    const missingColumn = missingColumnFromError(error.message);
+    if (missingColumn && missingColumn in current) {
+      const next = { ...current };
+      delete next[missingColumn];
+      current = next;
+      continue;
+    }
+    return { error: error.message, needsSetup: needsDatabaseSetup(error.message) };
+  }
+  return { error: 'บันทึกคำตอบไม่สำเร็จ', needsSetup: true };
+}
 
 const InnoClubEvaluationPage: React.FC = () => {
-  const [submitted, setSubmitted] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [form, setForm] = useState({
-    facilitator_score: 0 as number,
-    facilitator_comment: '',
-    content_score: 0 as number,
-    content_comment: '',
-    overall_score: 0 as number,
-    atmosphere_score: 0 as number,
-    sharing_score: 0 as number,
-    overall_comment: '',
-    simulation_score: 0 as number,
-    skill_score: 0 as number,
-    rejoin_interest: '',
-    improvement_suggestions: '',
+const [submitted, setSubmitted] = useState(false);
+const [error, setError] = useState<string | null>(null);
+const [setupSql, setSetupSql] = useState<string | null>(null);
+const [loading, setLoading] = useState(false);
+const [form, setForm] = useState({
+facilitator_score: 0 as number,
+facilitator_comment: '',
+content_score: 0 as number,
+content_comment: '',
+overall_score: 0 as number,
+atmosphere_score: 0 as number,
+sharing_score: 0 as number,
+overall_comment: '',
+innovation_insight: '',
+innovation_value: '',
+innovation_application: '',
+improvement_suggestions: '',
+});
+
+const setScore = (key: keyof typeof form, value: number) => {
+setForm((prev) => ({ ...prev, [key]: value }));
+};
+const setText = (key: keyof typeof form, value: string) => {
+setForm((prev) => ({ ...prev, [key]: value }));
+};
+
+const requiredScores = [
+form.facilitator_score,
+form.content_score,
+form.overall_score,
+form.atmosphere_score,
+form.sharing_score,
+];
+const allRequiredFilled =
+requiredScores.every((s) => s >= 1 && s <= 5) &&
+form.innovation_insight.trim() !== '' &&
+form.innovation_value.trim() !== '' &&
+form.innovation_application.trim() !== '';
+const answeredRequiredCount =
+requiredScores.filter((s) => s >= 1 && s <= 5).length +
+[form.innovation_insight, form.innovation_value, form.innovation_application].filter((answer) => answer.trim() !== '').length;
+const requiredTotal = requiredScores.length + 3;
+
+const renderScoreGroup = (field: keyof typeof form, name: string) => (
+<div className="grid grid-cols-5 gap-1.5 sm:flex sm:flex-wrap sm:gap-x-3 sm:gap-y-3">
+{SCORE_OPTIONS.map((n) => {
+const selected = form[field] === n;
+return (
+<label
+key={n}
+className={[
+'ibx-score flex min-h-12 cursor-pointer items-center justify-center rounded-[12px] border-2 px-1 py-2.5 transition-all sm:min-h-[52px] sm:min-w-[52px] sm:rounded-[14px]',
+selected
+? 'border-[#E09B00] bg-[#FFCC00] text-[#111] shadow-[0_3px_0_#E09B00]'
+: 'border-[#1E5FA8] bg-[#F8FAFC] text-[#0B1F3A] hover:border-[#FFB800] hover:bg-[#FFF8D6]',
+].join(' ')}
+>
+<input
+type="radio"
+name={name}
+checked={form[field] === n}
+onChange={() => setScore(field, n)}
+className="sr-only"
+aria-label={`${name}-${n}`}
+/>
+<span className="text-lg font-black sm:text-lg lg:text-xl">{n}</span>
+</label>
+);
+})}
+</div>
+);
+
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setError(null);
+  setSetupSql(null);
+  if (!allRequiredFilled) {
+    setError('กรุณาตอบคำถามที่มี * ให้ครบ ทั้งคะแนน 5 ข้อและคำตอบปลายเปิด 3 ข้อ');
+    window.setTimeout(() => document.getElementById('ibx-form-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 0);
+    return;
+  }
+  if (!isSupabaseConfigured) {
+    setError('ยังไม่ได้ตั้งค่า Supabase กรุณาติดต่อผู้ดูแล');
+    return;
+  }
+  setLoading(true);
+  const { error: err, needsSetup } = await insertEvaluation({
+    facilitator_score: form.facilitator_score,
+    facilitator_comment: form.facilitator_comment.trim() || null,
+    content_score: form.content_score,
+    content_comment: form.content_comment.trim() || null,
+    overall_score: form.overall_score,
+    atmosphere_score: form.atmosphere_score,
+    sharing_score: form.sharing_score,
+    overall_comment: form.overall_comment.trim() || null,
+    innovation_insight: form.innovation_insight.trim(),
+    innovation_value: form.innovation_value.trim(),
+    innovation_application: form.innovation_application.trim(),
+    activity_learning_satisfaction: form.innovation_insight.trim(),
+    learn_apply: form.innovation_value.trim(),
+    ai_plan_6months: form.innovation_application.trim(),
+    improvement_suggestions: form.improvement_suggestions.trim() || null,
   });
+  setLoading(false);
+  if (err) {
+    setError(err);
+    setSetupSql(needsSetup ? EVALUATION_SETUP_SQL : null);
+    window.setTimeout(() => document.getElementById('ibx-form-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 0);
+    return;
+  }
+  setSubmitted(true);
+};
 
-  const setScore = (key: keyof typeof form, value: number) => {
-    setForm((prev) => ({ ...prev, [key]: value }));
-  };
-  const setText = (key: keyof typeof form, value: string) => {
-    setForm((prev) => ({ ...prev, [key]: value }));
-  };
-
-  const requiredScores = [
-    form.facilitator_score,
-    form.content_score,
-    form.overall_score,
-    form.atmosphere_score,
-    form.sharing_score,
-    form.simulation_score,
-    form.skill_score,
-  ];
-  const allRequiredFilled =
-    requiredScores.every((s) => s >= 1 && s <= 5) &&
-    (form.rejoin_interest === 'สนใจ' || form.rejoin_interest === 'ไม่สนใจ');
-  const answeredRequiredCount =
-    requiredScores.filter((s) => s >= 1 && s <= 5).length +
-    (form.rejoin_interest === 'สนใจ' || form.rejoin_interest === 'ไม่สนใจ' ? 1 : 0);
-  const requiredTotal = requiredScores.length + 1;
-
-  const renderScoreGroup = (field: keyof typeof form, name: string) => (
-    <div className="grid grid-cols-5 gap-1.5 sm:flex sm:flex-wrap sm:gap-x-3 sm:gap-y-3">
-      {SCORE_OPTIONS.map((n) => {
-        const selected = form[field] === n;
-        return (
-          <label
-            key={n}
-            className={`ibx-score flex min-h-12 cursor-pointer items-center justify-center rounded-[12px] border-2 px-1 py-2.5 transition-all sm:min-h-[52px] sm:min-w-[52px] sm:rounded-[14px] sm:px-2 ${
-              selected
-                ? 'border-[#E09B00] bg-[#FFCC00] text-[#111] shadow-[0_3px_0_#E09B00]'
-                : 'border-[#1E5FA8] bg-[#F8FAFC] text-[#0B1F3A] hover:border-[#FFB800] hover:bg-[#FFF8D6]'
-            }`}
-          >
-            <input
-              type="radio"
-              name={name}
-              checked={form[field] === n}
-              onChange={() => setScore(field, n)}
-              className="sr-only"
-              aria-label={`${name}-${n}`}
-            />
-            <span className="text-lg font-black sm:text-lg lg:text-xl">{n}</span>
-          </label>
-        );
-      })}
-    </div>
-  );
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    if (!allRequiredFilled) {
-      setError('กรุณาตอบคำถามที่จำเป็น (ระดับความพึงพอใจ 1–5) ให้ครบทุกข้อ');
-      return;
-    }
-    if (!isSupabaseConfigured) {
-      setError('ยังไม่ได้ตั้งค่า Supabase กรุณาติดต่อผู้ดูแล');
-      return;
-    }
-    setLoading(true);
-    const { error: err } = await supabase.from('innoclub_evaluation_responses').insert({
-      facilitator_score: form.facilitator_score,
-      facilitator_comment: form.facilitator_comment || null,
-      content_score: form.content_score,
-      content_comment: form.content_comment || null,
-      overall_score: form.overall_score,
-      atmosphere_score: form.atmosphere_score,
-      sharing_score: form.sharing_score,
-      overall_comment: form.overall_comment || null,
-      learn_apply: form.skill_score ? String(form.skill_score) : null,
-      ai_plan_6months: null,
-      activity_learning_satisfaction: form.simulation_score ? String(form.simulation_score) : null,
-      networking_collaboration: form.rejoin_interest || null,
-      improvement_suggestions: form.improvement_suggestions || null,
-    });
-    setLoading(false);
-    if (err) {
-      setError(err.message);
-      return;
-    }
-    setSubmitted(true);
-  };
-
-  const pageShell = (children: React.ReactNode) => (
-    <div className="ibx-page relative min-h-dvh overflow-x-hidden text-[#0B1F3A]">
-      <div className="ibx-bg pointer-events-none hidden sm:block" aria-hidden>
-        <div className="ibx-bg-photo" />
-        <div className="ibx-overlay" />
-      </div>
-      {children}
-      <style>{`
+const pageShell = (children: React.ReactNode) => (
+<div className="ibx-page relative min-h-dvh overflow-x-hidden text-[#0B1F3A]">
+<div className="ibx-bg pointer-events-none hidden sm:block" aria-hidden>
+<div className="ibx-bg-photo" />
+<div className="ibx-overlay" />
+</div>
+{children}
+<style>{`
         @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800;900&display=swap');
         .ibx-page {
           font-family: "Nunito", "Prompt", "Anuphan", ui-sans-serif, system-ui, sans-serif;
@@ -217,247 +318,244 @@ const InnoClubEvaluationPage: React.FC = () => {
             box-shadow: 0 10px 0 #E09B00, 0 22px 40px rgba(15,61,122,0.16);
           }
         }
-      `}</style>
+     `}</style>
+</div>
+);
+
+if (submitted) {
+return pageShell(
+<div className="flex min-h-dvh flex-col items-center justify-center px-6 py-16">
+<div className="ibx-hero w-full max-w-md rounded-[28px] p-8 text-center">
+<p className="ibx-display text-sm font-bold uppercase tracking-[0.2em] text-[#1E90FF]">INNO ON TOUR</p>
+<h2 className="ibx-display mt-2 text-2xl font-bold text-[#0F3D7A]">ส่งแบบประเมินแล้ว!</h2>
+<p className="mt-3 text-base font-semibold text-[#334155]">
+ขอบคุณที่ให้ความเห็น เราจะนำไปปรับปรุงกิจกรรมครั้งถัดไป
+</p>
+<Link
+         to="/"
+         className="mt-6 inline-block rounded-[16px] border-2 border-[#E09B00] bg-[#FFCC00] px-6 py-3 text-base font-black text-[#1a1a1a] shadow-[0_5px_0_#E09B00] transition hover:brightness-105"
+       >
+กลับหน้าหลัก
+</Link>
+</div>
+</div>
+);
+}
+
+return pageShell(
+<>
+
+  <div className="ibx-mobile-banner sm:hidden" aria-hidden>
+    <img src={BG_IMAGE} alt="" decoding="async" />
+    <div className="ibx-mobile-banner-fade" />
+  </div>
+
+  <main className="mx-auto w-full max-w-6xl flex-1 px-3 pb-28 pt-4 sm:px-6 sm:pb-12 sm:py-12 xl:px-10">
+    <section className="ibx-hero mx-auto mb-5 max-w-5xl rounded-[20px] p-4 text-center sm:mb-10 sm:rounded-[28px] sm:p-8">
+      <p className="ibx-display text-[11px] font-bold uppercase tracking-[0.18em] text-[#1E90FF] sm:text-sm sm:tracking-[0.28em]">
+        PTT GROUP INNO CLUB · INNO ON TOUR
+      </p>
+      <h1 className="ibx-display mt-1.5 text-[1.45rem] font-bold leading-snug text-[#0B1F3A] sm:mt-2 sm:text-4xl lg:text-5xl">
+        แบบประเมินความพึงพอใจ
+      </h1>
+      <p className="mx-auto mt-2.5 max-w-3xl text-[15px] font-extrabold leading-relaxed text-[#0B1F3A] sm:mt-3 sm:text-base lg:text-lg">
+        ครั้งที่ 4 — วันที่ 13 พฤศจิกายน 2569
+        <br />
+        มหาวิทยาลัยพระจอมเกล้าธนบุรี วิทยาเขตบางขุนเทียน 
+      </p>
+      <p className="mt-3 inline-flex max-w-full rounded-full border-2 border-[#1E90FF] bg-[#E0F2FE] px-3 py-1.5 text-left text-[13px] font-extrabold leading-snug text-[#0B1F3A] sm:mt-4 sm:px-4 sm:text-sm">
+        ระดับความพึงพอใจ: 5 = มากที่สุด · 1 = น้อยที่สุด
+      </p>
+    </section>
+
+    <div className="mb-5 rounded-[16px] border-2 border-[#1E90FF] bg-white px-3.5 py-3 sm:static sm:mx-auto sm:mb-10 sm:max-w-5xl sm:rounded-[20px] sm:bg-white/95 lg:px-6">
+      <div className="flex items-center justify-between gap-3 text-[15px] sm:text-base">
+        <p className="font-extrabold text-[#0B1F3A]">ความคืบหน้า</p>
+        <p className="font-black text-[#0B1F3A]">
+          {answeredRequiredCount}/{requiredTotal}{' '}
+          <span className="font-bold text-[#475569]">ข้อบังคับ</span>
+        </p>
+      </div>
+      <div className="mt-2 h-3 overflow-hidden rounded-full border-2 border-[#93C5FD] bg-[#E0F2FE]">
+        <div
+          className="h-full rounded-full bg-gradient-to-r from-[#1E90FF] via-[#38BDF8] to-[#FFCC00] transition-all duration-500"
+          style={{ width: `${(answeredRequiredCount / requiredTotal) * 100}%` }}
+        />
+      </div>
     </div>
-  );
 
-  if (submitted) {
-    return pageShell(
-      <div className="flex min-h-dvh flex-col items-center justify-center px-6 py-16">
-        <div className="ibx-hero w-full max-w-md rounded-[28px] p-8 text-center">
-          <p className="ibx-display text-sm font-bold uppercase tracking-[0.2em] text-[#1E90FF]">INNOBLOX</p>
-          <h2 className="ibx-display mt-2 text-2xl font-bold text-[#0F3D7A]">ส่งแบบประเมินแล้ว!</h2>
-          <p className="mt-3 text-base font-semibold text-[#334155]">
-            ขอบคุณที่ให้ความเห็น เราจะนำไปปรับปรุงกิจกรรมครั้งถัดไป
-          </p>
-          <Link
-            to="/"
-            className="mt-6 inline-block rounded-[16px] border-2 border-[#E09B00] bg-[#FFCC00] px-6 py-3 text-base font-black text-[#1a1a1a] shadow-[0_5px_0_#E09B00] transition hover:brightness-105"
-          >
-            กลับหน้าหลัก
-          </Link>
+    <form onSubmit={handleSubmit} className="mx-auto max-w-5xl space-y-4 sm:space-y-10">
+      {error && (
+        <div id="ibx-form-error" className="rounded-[16px] border-2 border-red-400 bg-red-50 px-4 py-3 text-sm font-bold text-red-700">
+          <p>{error}</p>
+          {setupSql && (
+            <>
+              <p className="mt-2 font-extrabold text-[#0B1F3A]">
+                เปิด Supabase → SQL Editor แล้วรันคำสั่งนี้หนึ่งครั้ง จากนั้นส่งแบบประเมินอีกครั้ง
+              </p>
+              <pre className="mt-2 overflow-x-auto whitespace-pre-wrap rounded-lg bg-white p-3 text-xs font-medium text-[#0B1F3A]">
+                {setupSql}
+              </pre>
+            </>
+          )}
         </div>
-      </div>
-    );
-  }
+      )}
 
-  return pageShell(
-    <>
-      <header className="sticky top-0 z-30 border-b border-[#93C5FD] bg-white px-3 py-2.5 pt-[max(0.625rem,env(safe-area-inset-top))] sm:border-b-2 sm:border-[#1E90FF]/35 sm:bg-white/90 sm:px-6 sm:py-3 sm:backdrop-blur-md">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-2">
-          <Link
-            to="/"
-            className="inline-flex min-h-11 items-center gap-1.5 rounded-[12px] border-2 border-[#93C5FD] bg-white px-3 py-2 text-sm font-extrabold text-[#0B1F3A] shadow-sm hover:border-[#FFB800]"
-          >
-            <svg className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
-            </svg>
-            หน้าหลัก
-          </Link>
-          <div className="flex items-center gap-2 rounded-[12px] border-2 border-[#E09B00] bg-[#FFCC00] px-2 py-1 text-black shadow-[0_3px_0_#E09B00] sm:rounded-[14px] sm:px-2.5 sm:py-1.5 sm:shadow-[0_4px_0_#E09B00]">
-            <BrandLogo className="text-[16px] sm:text-[22px]" tone="dark" />
-          </div>
+      <section className="ibx-card rounded-[18px] p-3.5 sm:rounded-[24px] sm:p-8 lg:p-10">
+        <h2 className="ibx-display mb-4 text-lg font-bold text-[#1E90FF] sm:mb-6 sm:text-xl lg:text-3xl">Facilitator</h2>
+        <div className="space-y-4 sm:space-y-5">
+          <p className="ibx-q text-[15px] sm:text-base lg:text-xl">1. ความพึงพอใจโดยรวมต่อ Facilitator *</p>
+          {renderScoreGroup('facilitator_score', 'facilitator_score')}
+          <p className="mt-2 text-[14px] font-bold text-[#334155] sm:text-sm">2. ข้อเสนอแนะ</p>
+          <textarea
+            value={form.facilitator_comment}
+            onChange={(e) => setText('facilitator_comment', e.target.value)}
+            rows={3}
+            placeholder="ระบุข้อเสนอแนะ (ถ้ามี)..."
+            className="ibx-input w-full resize-none rounded-[14px] px-3.5 py-3 font-semibold text-[#0B1F3A] placeholder:text-slate-500"
+          />
         </div>
-      </header>
+      </section>
 
-      <div className="ibx-mobile-banner sm:hidden" aria-hidden>
-        <img src={BG_IMAGE} alt="" decoding="async" />
-        <div className="ibx-mobile-banner-fade" />
-      </div>
+      <section className="ibx-card rounded-[18px] p-3.5 sm:rounded-[24px] sm:p-8 lg:p-10">
+        <h2 className="ibx-display mb-4 text-lg font-bold text-[#1E90FF] sm:mb-6 sm:text-xl lg:text-3xl">
+          เนื้อหาของ PTT GROUP INNO Club
+        </h2>
+        <div className="space-y-4 sm:space-y-5">
+          <p className="ibx-q text-[15px] sm:text-base lg:text-xl">1. ความพึงพอใจโดยรวมต่อเนื้อหาของกิจกรรม *</p>
+          {renderScoreGroup('content_score', 'content_score')}
+          <p className="mt-2 text-[14px] font-bold text-[#334155] sm:text-sm">2. ข้อเสนอแนะ</p>
+          <textarea
+            value={form.content_comment}
+            onChange={(e) => setText('content_comment', e.target.value)}
+            rows={3}
+            placeholder="ระบุข้อเสนอแนะ (ถ้ามี)..."
+            className="ibx-input w-full resize-none rounded-[14px] px-3.5 py-3 font-semibold text-[#0B1F3A] placeholder:text-slate-500"
+          />
+        </div>
+      </section>
 
-      <main className="mx-auto w-full max-w-6xl flex-1 px-3 pb-28 pt-4 sm:px-6 sm:pb-12 sm:py-12 xl:px-10">
-        <section className="ibx-hero mx-auto mb-5 max-w-5xl rounded-[20px] p-4 text-center sm:mb-10 sm:rounded-[28px] sm:p-8">
-          <p className="ibx-display text-[11px] font-bold uppercase tracking-[0.18em] text-[#1E90FF] sm:text-sm sm:tracking-[0.28em]">
-            PTT GROUP INNO CLUB · INNOBLOX
-          </p>
-          <h1 className="ibx-display mt-1.5 text-[1.45rem] font-bold leading-snug text-[#0B1F3A] sm:mt-2 sm:text-4xl lg:text-5xl">
-            แบบประเมินความพึงพอใจ
-          </h1>
-          <p className="mx-auto mt-2.5 max-w-3xl text-[15px] font-extrabold leading-relaxed text-[#0B1F3A] sm:mt-3 sm:text-base lg:text-lg">
-            ครั้งที่ 3 — วันที่ 27 ตุลาคม 2569
-            <br />
-            Synergy Hall EnCo C ชั้น 6
-          </p>
-          <p className="mt-3 inline-flex max-w-full rounded-full border-2 border-[#1E90FF] bg-[#E0F2FE] px-3 py-1.5 text-left text-[13px] font-extrabold leading-snug text-[#0B1F3A] sm:mt-4 sm:px-4 sm:text-sm">
-            ระดับความพึงพอใจ: 5 = มากที่สุด · 1 = น้อยที่สุด
-          </p>
-        </section>
-
-        <div className="mb-5 rounded-[16px] border-2 border-[#1E90FF] bg-white px-3.5 py-3 sm:static sm:mx-auto sm:mb-10 sm:max-w-5xl sm:rounded-[20px] sm:bg-white/95 lg:px-6">
-          <div className="flex items-center justify-between gap-3 text-[15px] sm:text-base">
-            <p className="font-extrabold text-[#0B1F3A]">ความคืบหน้า</p>
-            <p className="font-black text-[#0B1F3A]">
-              {answeredRequiredCount}/{requiredTotal}{' '}
-              <span className="font-bold text-[#475569]">ข้อบังคับ</span>
+      <section className="ibx-card rounded-[18px] p-3.5 sm:rounded-[24px] sm:p-8 lg:p-10">
+        <h2 className="ibx-display mb-4 text-lg font-bold leading-snug text-[#1E90FF] sm:mb-6 sm:text-xl lg:text-3xl">
+          ความพึงพอใจโดยรวมและความคิดเห็นต่อ PTT GROUP INNO Club
+        </h2>
+        <div className="space-y-5 sm:space-y-7">
+          <div>
+            <p className="ibx-q mb-2.5 text-[15px] sm:mb-3 sm:text-base lg:text-xl">
+              1. ความพึงพอใจโดยรวมต่อ PTT GROUP INNO Club *
             </p>
+            {renderScoreGroup('overall_score', 'overall_score')}
           </div>
-          <div className="mt-2 h-3 overflow-hidden rounded-full border-2 border-[#93C5FD] bg-[#E0F2FE]">
-            <div
-              className="h-full rounded-full bg-gradient-to-r from-[#1E90FF] via-[#38BDF8] to-[#FFCC00] transition-all duration-500"
-              style={{ width: `${(answeredRequiredCount / requiredTotal) * 100}%` }}
+          <div>
+            <p className="ibx-q mb-2.5 text-[15px] sm:mb-3 sm:text-base lg:text-xl">
+              2. ท่านเห็นบรรยากาศ PTT GROUP INNO Club ครั้งนี้ ส่งเสริมให้ทุกคนกล้าแสดงความคิดเห็น และสร้างการมีส่วนร่วมมากน้อยเพียงใด *
+            </p>
+            {renderScoreGroup('atmosphere_score', 'atmosphere_score')}
+          </div>
+          <div>
+            <p className="ibx-q mb-2.5 text-[15px] sm:mb-3 sm:text-base lg:text-xl">
+              3. PTT GROUP INNO Club ครั้งนี้ มีการแบ่งปัน แลกเปลี่ยนข้อมูลระหว่างกันมากน้อยเพียงใด *
+            </p>
+            {renderScoreGroup('sharing_score', 'sharing_score')}
+          </div>
+          <div>
+            <p className="mb-2 text-[14px] font-bold text-[#334155] sm:mb-3 sm:text-sm">4. ข้อเสนอแนะเพิ่มเติม</p>
+            <textarea
+              value={form.overall_comment}
+              onChange={(e) => setText('overall_comment', e.target.value)}
+              rows={3}
+              placeholder="ระบุข้อเสนอแนะ (ถ้ามี)..."
+              className="ibx-input w-full resize-none rounded-[14px] px-3.5 py-3 font-semibold text-[#0B1F3A] placeholder:text-slate-500"
             />
           </div>
         </div>
+      </section>
 
-        <form onSubmit={handleSubmit} className="mx-auto max-w-5xl space-y-4 sm:space-y-10">
-          {error && (
-            <div className="rounded-[16px] border-2 border-red-400 bg-red-50 px-4 py-3 text-sm font-bold text-red-700">
-              {error}
-            </div>
-          )}
-
-          <section className="ibx-card rounded-[18px] p-3.5 sm:rounded-[24px] sm:p-8 lg:p-10">
-            <h2 className="ibx-display mb-4 text-lg font-bold text-[#1E90FF] sm:mb-6 sm:text-xl lg:text-3xl">Facilitator</h2>
-            <div className="space-y-4 sm:space-y-5">
-              <p className="ibx-q text-[15px] sm:text-base lg:text-xl">1. ความพึงพอใจโดยรวมต่อ Facilitator *</p>
-              {renderScoreGroup('facilitator_score', 'facilitator_score')}
-              <p className="mt-2 text-[14px] font-bold text-[#334155] sm:text-sm">2. ข้อเสนอแนะ</p>
-              <textarea
-                value={form.facilitator_comment}
-                onChange={(e) => setText('facilitator_comment', e.target.value)}
-                rows={3}
-                placeholder="ระบุข้อเสนอแนะ (ถ้ามี)..."
-                className="ibx-input w-full resize-none rounded-[14px] px-3.5 py-3 font-semibold text-[#0B1F3A] placeholder:text-slate-500"
-              />
-            </div>
-          </section>
-
-          <section className="ibx-card rounded-[18px] p-3.5 sm:rounded-[24px] sm:p-8 lg:p-10">
-            <h2 className="ibx-display mb-4 text-lg font-bold text-[#1E90FF] sm:mb-6 sm:text-xl lg:text-3xl">
-              เนื้อหาของ PTT GROUP INNO Club
-            </h2>
-            <div className="space-y-4 sm:space-y-5">
-              <p className="ibx-q text-[15px] sm:text-base lg:text-xl">1. ความพึงพอใจโดยรวมต่อเนื้อหาของกิจกรรม *</p>
-              {renderScoreGroup('content_score', 'content_score')}
-              <p className="mt-2 text-[14px] font-bold text-[#334155] sm:text-sm">2. ข้อเสนอแนะ</p>
-              <textarea
-                value={form.content_comment}
-                onChange={(e) => setText('content_comment', e.target.value)}
-                rows={3}
-                placeholder="ระบุข้อเสนอแนะ (ถ้ามี)..."
-                className="ibx-input w-full resize-none rounded-[14px] px-3.5 py-3 font-semibold text-[#0B1F3A] placeholder:text-slate-500"
-              />
-            </div>
-          </section>
-
-          <section className="ibx-card rounded-[18px] p-3.5 sm:rounded-[24px] sm:p-8 lg:p-10">
-            <h2 className="ibx-display mb-4 text-lg font-bold leading-snug text-[#1E90FF] sm:mb-6 sm:text-xl lg:text-3xl">
-              ความพึงพอใจโดยรวมและความคิดเห็นต่อ PTT GROUP INNO Club
-            </h2>
-            <div className="space-y-5 sm:space-y-7">
-              <div>
-                <p className="ibx-q mb-2.5 text-[15px] sm:mb-3 sm:text-base lg:text-xl">
-                  1. ความพึงพอใจโดยรวมต่อ PTT GROUP INNO Club *
-                </p>
-                {renderScoreGroup('overall_score', 'overall_score')}
-              </div>
-              <div>
-                <p className="ibx-q mb-2.5 text-[15px] sm:mb-3 sm:text-base lg:text-xl">
-                  2. ท่านเห็นบรรยากาศ PTT GROUP INNO Club ครั้งนี้ ส่งเสริมให้ทุกคนกล้าแสดงความคิดเห็น และสร้างการมีส่วนร่วมมากน้อยเพียงใด *
-                </p>
-                {renderScoreGroup('atmosphere_score', 'atmosphere_score')}
-              </div>
-              <div>
-                <p className="ibx-q mb-2.5 text-[15px] sm:mb-3 sm:text-base lg:text-xl">
-                  3. PTT GROUP INNO Club ครั้งนี้ มีการแบ่งปัน แลกเปลี่ยนข้อมูลระหว่างกันมากน้อยเพียงใด *
-                </p>
-                {renderScoreGroup('sharing_score', 'sharing_score')}
-              </div>
-              <div>
-                <p className="mb-2 text-[14px] font-bold text-[#334155] sm:mb-3 sm:text-sm">4. ข้อเสนอแนะเพิ่มเติม</p>
-                <textarea
-                  value={form.overall_comment}
-                  onChange={(e) => setText('overall_comment', e.target.value)}
-                  rows={3}
-                  placeholder="ระบุข้อเสนอแนะ (ถ้ามี)..."
-                  className="ibx-input w-full resize-none rounded-[14px] px-3.5 py-3 font-semibold text-[#0B1F3A] placeholder:text-slate-500"
-                />
-              </div>
-            </div>
-          </section>
-
-          <section className="ibx-card rounded-[18px] p-3.5 sm:rounded-[24px] sm:p-8 lg:p-10">
-            <h2 className="ibx-display mb-4 text-lg font-bold text-[#1E90FF] sm:mb-6 sm:text-xl lg:text-3xl">
-              ข้อเสนอแนะและแนวทางการนำไปใช้
-            </h2>
-            <div className="space-y-5 sm:space-y-7">
-              <div>
-                <p className="ibx-q mb-2.5 text-[15px] sm:mb-3 sm:text-base lg:text-xl">
-                  1. ท่านมีความพึงพอใจต่อประสบการณ์การเรียนรู้ผ่าน Digital Simulation-Based Learning บนแพลตฟอร์ม Roblox ในระดับใด *
-                </p>
-                {renderScoreGroup('simulation_score', 'simulation_score')}
-              </div>
-              <div>
-                <p className="ibx-q mb-2.5 text-[15px] sm:mb-3 sm:text-base lg:text-xl">
-                  2. กิจกรรมจำลองสถานการณ์นี้ช่วยให้ท่านได้ฝึกทักษะการคิด การตัดสินใจ และการปรับตัวภายใต้ข้อจำกัดและการเปลี่ยนแปลงมากน้อยเพียงใด *
-                </p>
-                {renderScoreGroup('skill_score', 'skill_score')}
-              </div>
-              <div>
-                <p className="ibx-q mb-2.5 text-[15px] sm:mb-3 sm:text-base lg:text-xl">
-                  3. หากมีการจัดกิจกรรมลักษณะเดียวกันในอนาคต ท่านสนใจเข้าร่วมอีกครั้งหรือไม่ *
-                </p>
-                <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:gap-3">
-                  {(['สนใจ', 'ไม่สนใจ'] as const).map((choice) => {
-                    const selected = form.rejoin_interest === choice;
-                    return (
-                      <label
-                        key={choice}
-                        className={`flex min-h-12 cursor-pointer items-center justify-center rounded-[12px] border-2 px-3 py-3 text-[15px] font-black transition-all sm:min-h-[52px] sm:rounded-[14px] sm:px-4 sm:text-base lg:text-lg ${
-                          selected
-                            ? 'border-[#E09B00] bg-[#FFCC00] text-[#111] shadow-[0_3px_0_#E09B00]'
-                            : 'border-[#1E5FA8] bg-[#F8FAFC] text-[#0B1F3A] hover:border-[#FFB800]'
-                        }`}
-                      >
-                        <input
-                          type="radio"
-                          name="rejoin_interest"
-                          checked={selected}
-                          onChange={() => setText('rejoin_interest', choice)}
-                          className="sr-only"
-                        />
-                        {choice}
-                      </label>
-                    );
-                  })}
-                </div>
-              </div>
-              <div>
-                <p className="ibx-q mb-2.5 text-[15px] sm:mb-3 sm:text-base lg:text-xl">
-                  4. โปรดระบุข้อเสนอแนะเพิ่มเติมเพื่อปรับปรุงและพัฒนากิจกรรม
-                </p>
-                <textarea
-                  value={form.improvement_suggestions}
-                  onChange={(e) => setText('improvement_suggestions', e.target.value)}
-                  rows={4}
-                  placeholder="ระบุข้อเสนอแนะ (ถ้ามี)..."
-                  className="ibx-input w-full resize-none rounded-[14px] px-3.5 py-3 font-semibold text-[#0B1F3A] placeholder:text-slate-500"
-                />
-              </div>
-            </div>
-          </section>
-
-          <div className="fixed inset-x-0 bottom-0 z-20 border-t border-[#93C5FD] bg-white px-3 pt-2.5 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-8px_24px_rgba(15,61,122,0.12)] sm:static sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none">
-            <div className="mx-auto flex max-w-5xl flex-col justify-center gap-2 sm:flex-row sm:gap-4 sm:pt-4">
-              <button
-                type="submit"
-                disabled={loading || !allRequiredFilled}
-                className="min-h-12 w-full rounded-[14px] border-2 border-[#E09B00] bg-[#FFCC00] px-6 py-3 text-[15px] font-black text-[#111] shadow-[0_4px_0_#E09B00] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-50 sm:min-h-0 sm:w-auto sm:rounded-[16px] sm:px-8 sm:py-4 sm:text-base sm:shadow-[0_6px_0_#E09B00] lg:px-10 lg:text-lg"
-              >
-                {loading ? 'กำลังส่ง...' : 'ส่งแบบประเมิน'}
-              </button>
-              <Link
-                to="/"
-                className="flex min-h-11 w-full items-center justify-center rounded-[14px] border-2 border-[#93C5FD] bg-white px-6 py-2.5 text-center text-[15px] font-extrabold text-[#0B1F3A] sm:min-h-0 sm:w-auto sm:rounded-[16px] sm:px-8 sm:py-4 sm:text-base lg:px-10 lg:text-lg"
-              >
-                ยกเลิก
-              </Link>
-            </div>
+      <section className="ibx-card rounded-[18px] p-3.5 sm:rounded-[24px] sm:p-8 lg:p-10">
+        <h2 className="ibx-display mb-4 text-lg font-bold text-[#1E90FF] sm:mb-6 sm:text-xl lg:text-3xl">
+          ข้อเสนอแนะและแนวทางการนำไปใช้
+        </h2>
+        <div className="space-y-5 sm:space-y-7">
+          <div>
+            <p className="ibx-q mb-2.5 text-[15px] sm:mb-3 sm:text-base lg:text-xl">
+              1. Innovation Insight (Discover): จากการเยี่ยมชม BIOTEC ท่านได้เห็นแนวคิด เทคโนโลยี หรือนวัตกรรมใดที่น่าสนใจในความคิดเห็นของท่าน? *
+            </p>
+            <textarea
+              value={form.innovation_insight}
+              onChange={(e) => setText('innovation_insight', e.target.value)}
+              rows={4}
+              placeholder="ระบุแนวคิด เทคโนโลยี หรือนวัตกรรมที่ท่านสนใจ พร้อมเหตุผล..."
+              className="ibx-input w-full resize-y rounded-[14px] px-3.5 py-3 font-semibold text-[#0B1F3A] placeholder:text-slate-500"
+            />
           </div>
-        </form>
-      </main>
-    </>
-  );
+          <div>
+            <p className="ibx-q mb-2.5 text-[15px] sm:mb-3 sm:text-base lg:text-xl">
+              2. Innovation Value (Understand): จากนวัตกรรมที่ได้เรียนรู้จากข้อที่ 1 ท่านคิดว่านวัตกรรมนั้นกำลังแก้ปัญหาอะไร สร้างคุณค่าให้กับใคร และมีปัจจัยสำคัญอะไรที่ทำให้นวัตกรรมสามารถนำไปใช้ประโยชน์ได้จริง? *
+            </p>
+            <textarea
+              value={form.innovation_value}
+              onChange={(e) => setText('innovation_value', e.target.value)}
+              rows={4}
+              placeholder="อธิบายปัญหาที่นวัตกรรมช่วยแก้ คุณค่าที่สร้าง และปัจจัยที่ทำให้นำไปใช้ได้จริง..."
+              className="ibx-input w-full resize-y rounded-[14px] px-3.5 py-3 font-semibold text-[#0B1F3A] placeholder:text-slate-500"
+            />
+          </div>
+          <div>
+            <p className="ibx-q mb-2.5 text-[15px] sm:mb-3 sm:text-base lg:text-xl">
+              3. Innovation Application (Apply): หากท่านต้องนำแนวคิดหรือองค์ความรู้ที่ได้รับจาก BIOTEC มาประยุกต์ใช้ในการทำงานหรือพัฒนานวัตกรรมใหม่ใน PTT Group ท่านจะนำไปใช้กับเรื่องใด อย่างไร? *
+            </p>
+            <textarea
+              value={form.innovation_application}
+              onChange={(e) => setText('innovation_application', e.target.value)}
+              rows={4}
+              placeholder="ระบุเรื่องที่ต้องการนำไปประยุกต์ใช้ และแนวทางที่จะดำเนินการใน PTT Group..."
+              className="ibx-input w-full resize-y rounded-[14px] px-3.5 py-3 font-semibold text-[#0B1F3A] placeholder:text-slate-500"
+            />
+          </div>
+          <div>
+            <p className="ibx-q mb-2.5 text-[15px] sm:mb-3 sm:text-base lg:text-xl">
+              4. โปรดระบุข้อเสนอแนะเพิ่มเติมเพื่อปรับปรุงและพัฒนากิจกรรม
+            </p>
+            <textarea
+              value={form.improvement_suggestions}
+              onChange={(e) => setText('improvement_suggestions', e.target.value)}
+              rows={4}
+              placeholder="ระบุข้อเสนอแนะ (ถ้ามี)..."
+              className="ibx-input w-full resize-none rounded-[14px] px-3.5 py-3 font-semibold text-[#0B1F3A] placeholder:text-slate-500"
+            />
+          </div>
+        </div>
+      </section>
+
+      <div className="fixed inset-x-0 bottom-0 z-20 border-t border-[#93C5FD] bg-white px-3 pt-2.5 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-8px_24px_rgba(15,61,122,0.12)] sm:static sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none">
+        <div className="mx-auto max-w-5xl sm:pt-4">
+          {!allRequiredFilled && (
+            <p className="mb-2 text-center text-[13px] font-extrabold text-[#0B1F3A]">
+              ตอบข้อที่มี * ให้ครบ {answeredRequiredCount}/{requiredTotal} ข้อก่อนส่ง
+            </p>
+          )}
+          <div className="flex flex-col justify-center gap-2 sm:flex-row sm:gap-4">
+          <button
+            type="submit"
+            disabled={loading}
+            className="min-h-12 w-full rounded-[14px] border-2 border-[#E09B00] bg-[#FFCC00] px-6 py-3 text-[15px] font-black text-[#111] shadow-[0_4px_0_#E09B00] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-50 sm:min-h-0 sm:w-auto sm:rounded-[16px] sm:px-8 sm:py-4 sm:text-base sm:shadow-[0_6px_0_#E09B00] lg:px-10 lg:text-lg"
+          >
+            {loading ? 'กำลังส่ง...' : 'ส่งแบบประเมิน'}
+          </button>
+          <Link
+            to="/"
+            className="flex min-h-11 w-full items-center justify-center rounded-[14px] border-2 border-[#93C5FD] bg-white px-6 py-2.5 text-center text-[15px] font-extrabold text-[#0B1F3A] sm:min-h-0 sm:w-auto sm:rounded-[16px] sm:px-8 sm:py-4 sm:text-base lg:px-10 lg:text-lg"
+          >
+            ยกเลิก
+          </Link>
+          </div>
+        </div>
+      </div>
+    </form>
+  </main>
+</>
+
+);
 };
 
 export default InnoClubEvaluationPage;
