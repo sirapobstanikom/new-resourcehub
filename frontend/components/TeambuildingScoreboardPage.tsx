@@ -11,6 +11,10 @@ import {
   type TeambuildingTeam,
 } from '../lib/teambuilding';
 
+const HINO_LOGO = 'https://www.hinomanufacturing.co.th/th/_content_images/website/logo.png?vs=20260124080023';
+const HINO_RED = '#CC0000';
+const HINO_GRAY = '#4D4D4D';
+
 function useAnimatedNumber(target: number, durationMs = 750): number {
   const [value, setValue] = useState(target);
   const fromRef = useRef(target);
@@ -82,7 +86,7 @@ const ScoreRow: React.FC<RowProps> = ({ team, index, maxScore, rowVh, cols, perC
 
   return (
     <div
-      className="tb-row absolute px-[0.6vw] py-[0.5vh]"
+      className="hino-tb-row absolute px-[0.55vw] py-[0.45vh]"
       style={{
         top: `${(slot * 100) / perCol}%`,
         left: `${(col * 100) / cols}%`,
@@ -91,60 +95,55 @@ const ScoreRow: React.FC<RowProps> = ({ team, index, maxScore, rowVh, cols, perC
       }}
     >
       <div
-        className={`tb-card relative flex h-full items-center gap-[1.4vw] overflow-hidden px-[1.4vw] ${
-          isLeader ? 'tb-leader' : ''
-        } ${climbed ? 'tb-climb' : ''}`}
-        style={{ ['--team' as string]: team.color }}
+        className={`hino-tb-card relative flex h-full items-center gap-[1.2vw] overflow-hidden px-[1.3vw] ${
+          isLeader ? 'hino-tb-leader' : ''
+        } ${climbed ? 'hino-tb-climb' : ''}`}
+        style={{ ['--team' as string]: team.color || HINO_RED }}
       >
-        <span className="tb-corner tb-corner-tr" aria-hidden />
-        <span className="tb-corner tb-corner-bl" aria-hidden />
         <div
-          className="tb-fill pointer-events-none absolute inset-y-0 left-0"
+          className="hino-tb-fill pointer-events-none absolute inset-y-0 left-0"
           style={{ width: `${pct}%` }}
           aria-hidden
         />
 
         <div
-          className="tb-badge relative z-10 flex shrink-0 items-center justify-center font-black"
+          className="hino-tb-badge relative z-10 flex shrink-0 items-center justify-center font-black"
           style={{ width: badgeSize, height: badgeSize, fontSize: `calc(${badgeSize} * 0.42)` }}
         >
           {team.rank}
         </div>
 
         <div className="relative z-10 min-w-0 flex-1">
-          <p
-            className="truncate font-black leading-tight text-white"
-            style={{ fontSize: nameSize }}
-          >
+          <p className="truncate font-black leading-tight text-[#1A1A1A]" style={{ fontSize: nameSize }}>
             {team.name}
           </p>
           {podium && (
-            <p className="tb-mono mt-[0.2vh] text-[min(1.1vw,1.6vh)] font-bold tracking-[0.28em] text-[#ff4d5a]">
-              {team.rank === 1 ? 'P1  LEADER' : team.rank === 2 ? 'P2  PLACE' : 'P3  PLACE'}
+            <p className="mt-[0.25vh] text-[min(1.05vw,1.55vh)] font-bold tracking-[0.22em] text-[#CC0000]">
+              {team.rank === 1 ? 'อันดับ 1 · LEADER' : team.rank === 2 ? 'อันดับ 2' : 'อันดับ 3'}
             </p>
           )}
         </div>
 
-        <div className="relative z-10 flex shrink-0 items-end gap-[0.8vw]">
+        <div className="relative z-10 flex shrink-0 items-end gap-[0.75vw]">
           {delta && (
             <span
               key={delta.key}
-              className={`tb-delta tb-mono px-[0.8vw] py-[0.3vh] font-black ${
-                delta.value > 0 ? 'bg-[#E60012] text-white' : 'bg-white text-[#111]'
+              className={`hino-tb-delta px-[0.75vw] py-[0.35vh] font-black ${
+                delta.value > 0 ? 'bg-[#CC0000] text-white' : 'bg-[#4D4D4D] text-white'
               }`}
-              style={{ fontSize: `calc(${scoreSize} * 0.42)` }}
+              style={{ fontSize: `calc(${scoreSize} * 0.4)` }}
             >
               {delta.value > 0 ? `+${formatScore(delta.value)}` : formatScore(delta.value)}
             </span>
           )}
           <span className="flex flex-col items-end leading-none">
             <span
-              className="tb-score tabular-nums font-bold text-white"
+              className="tabular-nums font-black text-[#1A1A1A]"
               style={{ fontSize: scoreSize }}
             >
               {formatScore(Math.round(shown * 10) / 10)}
             </span>
-            <span className="tb-mono mt-[0.4vh] text-[min(0.85vw,1.3vh)] font-bold tracking-[0.32em] text-white/55">
+            <span className="mt-[0.35vh] text-[min(0.85vw,1.25vh)] font-bold tracking-[0.28em] text-[#4D4D4D]">
               PTS
             </span>
           </span>
@@ -225,58 +224,69 @@ const TeambuildingScoreboardPage: React.FC = () => {
   const rowVh = Math.min(16, 78 / perCol);
 
   return (
-    <div className="tb-stage relative flex h-[100dvh] max-h-[100dvh] flex-col overflow-hidden text-white">
-      <div className="tb-glow pointer-events-none absolute inset-0" aria-hidden />
-      <div className="tb-grid pointer-events-none absolute inset-0" aria-hidden />
-      <div className="tb-scan pointer-events-none absolute inset-x-0" aria-hidden />
+    <div className="hino-tb-stage relative flex h-[100dvh] max-h-[100dvh] flex-col overflow-hidden text-[#1A1A1A]">
+      <div className="hino-tb-bg pointer-events-none absolute inset-0" aria-hidden />
+      <div className="hino-tb-pattern pointer-events-none absolute inset-0" aria-hidden />
+      <div className="hino-tb-redline pointer-events-none absolute inset-x-0 top-0 h-[0.55vh]" aria-hidden />
 
-      <header className="relative z-20 flex shrink-0 items-center justify-between gap-4 px-[2.5vw] pt-[2.2vh] pb-[1.6vh]">
-        <div className="flex min-w-0 items-center gap-[1.1vw]">
-          <div className="tb-mark" aria-hidden>H</div>
+      <header className="relative z-20 flex shrink-0 items-center justify-between gap-4 border-b border-[#D8D8D8] bg-white/90 px-[2.2vw] py-[1.6vh] backdrop-blur-sm">
+        <div className="flex min-w-0 items-center gap-[1.2vw]">
+          <img
+            src={HINO_LOGO}
+            alt="Hino Motors Manufacturing (Thailand)"
+            className="hino-tb-logo h-[min(5.2vh,3.6vw)] w-auto object-contain"
+          />
+          <span className="hidden h-[3.2vh] w-px bg-[#D0D0D0] sm:block" />
           <div className="min-w-0">
-            <p className="tb-mono text-[min(1.05vw,1.7vh)] font-bold tracking-[0.42em] text-[#ff4d5a]">
-              HONDA // TEAMBUILDING
+            <p className="truncate text-[min(1vw,1.55vh)] font-bold uppercase tracking-[0.22em] text-[#CC0000]">
+              Hino Motors Manufacturing (Thailand) Ltd.
             </p>
-            <h1 className="tb-title truncate text-[min(3.2vw,5.4vh)] font-black leading-none text-white">
-              LIVE SCOREBOARD
+            <h1 className="truncate text-[min(2.6vw,4.2vh)] font-black leading-none tracking-tight text-[#1A1A1A]">
+              Teambuilding Scoreboard
             </h1>
           </div>
         </div>
-        <div className="flex shrink-0 items-center gap-[0.8vw]">
+        <div className="flex shrink-0 items-center gap-[0.7vw]">
           <span
-            className={`tb-mono flex items-center gap-2 px-[1vw] py-[0.6vh] text-[min(0.95vw,1.6vh)] font-bold tracking-[0.28em] ${
-              liveConnected ? 'tb-live text-white' : 'border border-white/25 text-white/60'
+            className={`flex items-center gap-2 rounded-md px-[0.95vw] py-[0.55vh] text-[min(0.9vw,1.45vh)] font-bold tracking-[0.18em] ${
+              liveConnected
+                ? 'border border-[#CC0000]/35 bg-[#CC0000]/08 text-[#CC0000]'
+                : 'border border-[#CFCFCF] text-[#4D4D4D]'
             }`}
           >
-            <span className={`h-2 w-2 rounded-full ${liveConnected ? 'tb-live-dot bg-[#E60012]' : 'bg-white/40'}`} />
+            <span
+              className={`h-2 w-2 rounded-full ${liveConnected ? 'hino-tb-live-dot bg-[#CC0000]' : 'bg-[#9A9A9A]'}`}
+            />
             {liveConnected ? 'LIVE' : 'SYNC'}
           </span>
           <button
             type="button"
             onClick={toggleFullscreen}
-            className="tb-mono border border-white/30 bg-white/5 px-[1vw] py-[0.6vh] text-[min(0.95vw,1.6vh)] font-bold tracking-[0.22em] text-white hover:border-[#E60012] hover:bg-[#E60012]"
+            className="rounded-md border border-[#CFCFCF] bg-white px-[0.95vw] py-[0.55vh] text-[min(0.9vw,1.45vh)] font-bold tracking-[0.14em] text-[#4D4D4D] transition hover:border-[#CC0000] hover:bg-[#CC0000] hover:text-white"
           >
             {isFullscreen ? 'EXIT' : 'FULLSCREEN'}
           </button>
         </div>
       </header>
 
-      <main className="relative z-10 min-h-0 flex-1 px-[1.9vw] pb-[2vh]">
+      <main className="relative z-10 min-h-0 flex-1 px-[1.8vw] py-[1.6vh]">
         {loading ? (
           <div className="flex h-full items-center justify-center">
-            <div className="tb-spinner h-[8vmin] w-[8vmin] rounded-full border-4" />
+            <div className="hino-tb-spinner h-[7.5vmin] w-[7.5vmin] rounded-full border-4" />
           </div>
         ) : error ? (
           <div className="flex h-full items-center justify-center">
-            <p className="border border-[#E60012]/50 bg-[#E60012]/10 px-8 py-6 text-[min(2vw,3vh)] text-white">
+            <p className="rounded-xl border border-[#CC0000]/40 bg-white px-8 py-6 text-[min(1.8vw,2.8vh)] font-semibold text-[#CC0000] shadow-sm">
               {error}
             </p>
           </div>
         ) : ranked.length === 0 ? (
           <div className="flex h-full flex-col items-center justify-center text-center">
-            <p className="tb-mono text-[min(1.2vw,2vh)] tracking-[0.4em] text-[#ff4d5a]">STANDBY</p>
-            <p className="mt-[2vh] text-[min(2.6vw,4.5vh)] font-black">รอทีมเข้าสู่สนาม…</p>
-            <p className="mt-[1vh] text-[min(1.4vw,2.4vh)] text-white/60">เพิ่มทีมได้ที่หน้า Admin → Dashboard Teambuilding</p>
+            <p className="text-[min(1.1vw,1.8vh)] font-bold tracking-[0.35em] text-[#CC0000]">HINO · STANDBY</p>
+            <p className="mt-[1.6vh] text-[min(2.4vw,4vh)] font-black text-[#1A1A1A]">รอทีมเข้าสู่กิจกรรม…</p>
+            <p className="mt-[0.8vh] text-[min(1.3vw,2.2vh)] text-[#4D4D4D]">
+              เพิ่มทีมได้ที่หน้า Admin → Dashboard Teambuilding
+            </p>
           </div>
         ) : (
           <div className="relative h-full w-full">
@@ -295,124 +305,113 @@ const TeambuildingScoreboardPage: React.FC = () => {
         )}
       </main>
 
+      <footer className="relative z-20 flex shrink-0 items-center justify-between gap-3 border-t border-[#D8D8D8] bg-white/85 px-[2.2vw] py-[1vh] text-[min(0.85vw,1.35vh)] text-[#4D4D4D]">
+        <p className="truncate font-semibold tracking-wide">
+          ผู้ผลิตรถยนต์บรรทุก รถยนต์โดยสารฮีโน่ และชิ้นส่วนรถยนต์ ในประเทศไทย
+        </p>
+        <p className="hidden shrink-0 font-bold tracking-[0.16em] text-[#CC0000] sm:block">HINO RED · #CC0000</p>
+      </footer>
+
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=Prompt:wght@600;700;800;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@600;700;800;900&family=Barlow+Condensed:wght@600;700;800&display=swap');
 
-        .tb-stage {
-          background: #070709;
-          font-family: "Prompt", "Anuphan", ui-sans-serif, system-ui, sans-serif;
+        .hino-tb-stage {
+          --hino-red: ${HINO_RED};
+          --hino-gray: ${HINO_GRAY};
+          background: #F3F3F3;
+          font-family: "Noto Sans Thai", "Sarabun", "Anuphan", ui-sans-serif, system-ui, sans-serif;
         }
-        .tb-mono, .tb-score, .tb-mark {
-          font-family: "Chakra Petch", "Prompt", sans-serif;
+        .hino-tb-logo,
+        .hino-tb-badge,
+        .tabular-nums {
+          font-family: "Barlow Condensed", "Noto Sans Thai", sans-serif;
         }
-        .tb-title { letter-spacing: -0.03em; }
-        .tb-mark {
-          width: min(4.4vw, 7.2vh);
-          height: min(4.4vw, 7.2vh);
-          display: grid;
-          place-items: center;
-          flex-shrink: 0;
-          background: #E60012;
-          color: #fff;
-          font-weight: 700;
-          font-size: min(2vw, 3.2vh);
-          clip-path: polygon(16% 0, 100% 0, 100% 84%, 84% 100%, 0 100%, 0 16%);
-          box-shadow: 0 0 28px rgba(230,0,18,0.45);
-        }
-        .tb-glow {
+        .hino-tb-bg {
           background:
-            radial-gradient(ellipse 50vw 28vh at 8% -4%, rgba(230,0,18,0.38), transparent 70%),
-            radial-gradient(ellipse 40vw 30vh at 100% 110%, rgba(230,0,18,0.16), transparent 70%);
+            radial-gradient(ellipse 55% 40% at 0% 0%, rgba(204,0,0,0.10), transparent 60%),
+            radial-gradient(ellipse 45% 35% at 100% 100%, rgba(77,77,77,0.08), transparent 55%),
+            linear-gradient(180deg, #FAFAFA 0%, #F0F0F0 55%, #EAEAEA 100%);
         }
-        .tb-grid {
+        .hino-tb-pattern {
+          opacity: 0.35;
           background-image:
-            linear-gradient(rgba(255,255,255,0.045) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255,255,255,0.045) 1px, transparent 1px);
-          background-size: 64px 64px;
-          mask-image: linear-gradient(180deg, #000 0%, transparent 92%);
+            linear-gradient(rgba(77,77,77,0.06) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(77,77,77,0.06) 1px, transparent 1px);
+          background-size: 48px 48px;
+          mask-image: linear-gradient(180deg, #000 0%, transparent 88%);
         }
-        .tb-scan {
-          height: 22vh;
-          background: linear-gradient(180deg, transparent, rgba(230,0,18,0.07), transparent);
-          animation: tbScan 9s linear infinite;
-        }
-        .tb-live {
-          border: 1px solid rgba(230,0,18,0.85);
-          background: rgba(230,0,18,0.16);
-          box-shadow: 0 0 18px rgba(230,0,18,0.35);
+        .hino-tb-redline {
+          background: linear-gradient(90deg, #CC0000 0%, #E03333 45%, #CC0000 100%);
         }
 
-        .tb-row {
+        .hino-tb-row {
           transition: top 0.9s cubic-bezier(0.22, 1, 0.36, 1), left 0.9s cubic-bezier(0.22, 1, 0.36, 1);
-          animation: tbRowIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+          animation: hinoTbIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
         }
-        .tb-card {
-          background:
-            linear-gradient(180deg, rgba(32,32,36,0.96), rgba(12,12,14,0.96));
-          border: 1px solid rgba(255,255,255,0.14);
-          box-shadow: inset 0.38vw 0 0 var(--team), 0 16px 40px rgba(0,0,0,0.35);
-          clip-path: polygon(16px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%, 0 16px);
+        .hino-tb-card {
+          background: linear-gradient(180deg, #FFFFFF 0%, #F7F7F7 100%);
+          border: 1px solid #D6D6D6;
+          border-radius: 14px;
+          box-shadow:
+            inset 0.42vw 0 0 var(--team),
+            0 10px 28px rgba(26,26,26,0.06);
         }
-        .tb-corner {
-          position: absolute;
-          z-index: 2;
-          width: 16px;
-          height: 16px;
-          pointer-events: none;
-        }
-        .tb-corner-tr { top: 8px; right: 8px; border-top: 2px solid rgba(255,255,255,0.7); border-right: 2px solid rgba(255,255,255,0.7); }
-        .tb-corner-bl { bottom: 8px; left: 10px; border-bottom: 2px solid #E60012; border-left: 2px solid #E60012; }
-        .tb-fill {
-          background: linear-gradient(90deg, color-mix(in srgb, var(--team) 42%, transparent), transparent 92%);
+        .hino-tb-fill {
+          background: linear-gradient(
+            90deg,
+            color-mix(in srgb, var(--team) 38%, white),
+            color-mix(in srgb, var(--team) 12%, transparent) 88%
+          );
           transition: width 0.9s cubic-bezier(0.22, 1, 0.36, 1);
         }
-        .tb-badge {
+        .hino-tb-badge {
           background: var(--team);
           color: #111;
-          clip-path: polygon(14% 0, 100% 0, 100% 86%, 86% 100%, 0 100%, 0 14%);
-          box-shadow: 0 0 18px color-mix(in srgb, var(--team) 55%, transparent);
+          border-radius: 10px;
+          box-shadow: 0 6px 16px color-mix(in srgb, var(--team) 45%, transparent);
         }
-        .tb-score { text-shadow: 0 0 18px rgba(255,255,255,0.18); }
-        .tb-leader {
-          border-color: rgba(230,0,18,0.85);
+        .hino-tb-leader {
+          border-color: color-mix(in srgb, var(--team) 65%, #CC0000);
           box-shadow:
-            inset 0.38vw 0 0 #E60012,
-            0 0 0 1px rgba(230,0,18,0.35),
-            0 0 28px rgba(230,0,18,0.28);
+            inset 0.55vw 0 0 var(--team),
+            0 0 0 1px color-mix(in srgb, var(--team) 35%, transparent),
+            0 14px 34px color-mix(in srgb, var(--team) 22%, transparent);
         }
-        .tb-climb { animation: tbClimb 1.3s ease-out; }
-        .tb-delta { animation: tbPop 1.9s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
-        .tb-live-dot { animation: tbPulse 1.4s ease-in-out infinite; }
-        .tb-spinner { animation: tbSpin 0.9s linear infinite; border-color: rgba(255,255,255,0.15); border-top-color: #E60012; }
+        .hino-tb-climb { animation: hinoTbClimb 1.25s ease-out; }
+        .hino-tb-delta {
+          border-radius: 8px;
+          animation: hinoTbPop 1.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+        .hino-tb-live-dot { animation: hinoTbPulse 1.4s ease-in-out infinite; }
+        .hino-tb-spinner {
+          animation: hinoTbSpin 0.9s linear infinite;
+          border-color: rgba(77,77,77,0.18);
+          border-top-color: #CC0000;
+        }
 
-        @keyframes tbScan {
-          from { top: -24%; }
-          to { top: 110%; }
-        }
-        @keyframes tbRowIn {
-          from { opacity: 0; transform: translateY(1.2vh); }
+        @keyframes hinoTbIn {
+          from { opacity: 0; transform: translateY(1vh); }
           to { opacity: 1; transform: translateY(0); }
         }
-        @keyframes tbClimb {
+        @keyframes hinoTbClimb {
           0% { transform: scale(1); }
-          25% { transform: scale(1.015); }
+          28% { transform: scale(1.012); }
           100% { transform: scale(1); }
         }
-        @keyframes tbPop {
-          0% { opacity: 0; transform: translateY(40%) scale(0.6); }
-          15% { opacity: 1; transform: translateY(0) scale(1.15); }
-          30% { transform: scale(1); }
-          80% { opacity: 1; transform: translateY(0); }
-          100% { opacity: 0; transform: translateY(-80%); }
+        @keyframes hinoTbPop {
+          0% { opacity: 0; transform: translateY(35%) scale(0.7); }
+          15% { opacity: 1; transform: translateY(0) scale(1.08); }
+          80% { opacity: 1; }
+          100% { opacity: 0; transform: translateY(-70%); }
         }
-        @keyframes tbPulse {
-          0%, 100% { box-shadow: 0 0 0 0 rgba(230,0,18,0.7); }
-          50% { box-shadow: 0 0 0 7px rgba(230,0,18,0); }
+        @keyframes hinoTbPulse {
+          0%, 100% { box-shadow: 0 0 0 0 rgba(204,0,0,0.55); }
+          50% { box-shadow: 0 0 0 7px rgba(204,0,0,0); }
         }
-        @keyframes tbSpin { to { transform: rotate(360deg); } }
+        @keyframes hinoTbSpin { to { transform: rotate(360deg); } }
 
         @media (prefers-reduced-motion: reduce) {
-          .tb-row, .tb-fill, .tb-climb, .tb-delta, .tb-live-dot, .tb-scan {
+          .hino-tb-row, .hino-tb-fill, .hino-tb-climb, .hino-tb-delta, .hino-tb-live-dot, .hino-tb-spinner {
             animation: none !important;
             transition: none !important;
           }
