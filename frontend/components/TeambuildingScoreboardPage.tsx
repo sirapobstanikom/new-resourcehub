@@ -20,6 +20,175 @@ const RANK_MASCOTS: Record<1 | 2 | 3, string> = {
   2: '/images/teambuilding/rank-mascot-2.jpg',
   3: '/images/teambuilding/rank-mascot-3.jpg',
 };
+const BOOBY_MASCOT = '/images/teambuilding/rank-mascot-last.jpg';
+const SCOREBOARD_BGM = '/sounds/teambuilding/scoreboard-bgm.mp3';
+
+type SfxKind = 'enter' | 'reveal3' | 'reveal2' | 'reveal1' | 'booby' | 'rest';
+
+function tone(
+  ctx: AudioContext,
+  {
+    freq,
+    when,
+    dur = 0.18,
+    type = 'triangle',
+    gain = 0.08,
+    slideTo,
+  }: {
+    freq: number;
+    when: number;
+    dur?: number;
+    type?: OscillatorType;
+    gain?: number;
+    slideTo?: number;
+  }
+) {
+  const osc = ctx.createOscillator();
+  const amp = ctx.createGain();
+  osc.type = type;
+  osc.frequency.setValueAtTime(freq, when);
+  if (slideTo != null) {
+    osc.frequency.exponentialRampToValueAtTime(Math.max(40, slideTo), when + dur);
+  }
+  amp.gain.setValueAtTime(0.0001, when);
+  amp.gain.exponentialRampToValueAtTime(gain, when + 0.02);
+  amp.gain.exponentialRampToValueAtTime(0.0001, when + dur);
+  osc.connect(amp);
+  amp.connect(ctx.destination);
+  osc.start(when);
+  osc.stop(when + dur + 0.02);
+}
+
+function playSynthesizedSfx(ctx: AudioContext, kind: SfxKind) {
+  const t0 = ctx.currentTime + 0.01;
+  if (kind === 'enter') {
+    tone(ctx, { freq: 220, when: t0, dur: 0.22, type: 'sine', gain: 0.06, slideTo: 440 });
+    tone(ctx, { freq: 330, when: t0 + 0.12, dur: 0.28, type: 'triangle', gain: 0.05, slideTo: 660 });
+    return;
+  }
+  if (kind === 'reveal3') {
+    [392, 494, 587].forEach((f, i) => tone(ctx, { freq: f, when: t0 + i * 0.09, dur: 0.2, gain: 0.07 }));
+    return;
+  }
+  if (kind === 'reveal2') {
+    [440, 554, 659, 880].forEach((f, i) => tone(ctx, { freq: f, when: t0 + i * 0.08, dur: 0.22, gain: 0.075 }));
+    return;
+  }
+  if (kind === 'reveal1') {
+    [523, 659, 784, 1046].forEach((f, i) =>
+      tone(ctx, { freq: f, when: t0 + i * 0.07, dur: 0.35, type: i === 3 ? 'square' : 'triangle', gain: 0.07 + i * 0.01 })
+    );
+    tone(ctx, { freq: 1568, when: t0 + 0.35, dur: 0.45, type: 'sine', gain: 0.04 });
+    return;
+  }
+  if (kind === 'booby') {
+    [392, 349, 311, 262].forEach((f, i) =>
+      tone(ctx, { freq: f, when: t0 + i * 0.14, dur: 0.28, type: 'sine', gain: 0.06 })
+    );
+    tone(ctx, { freq: 180, when: t0 + 0.55, dur: 0.4, type: 'triangle', gain: 0.045, slideTo: 120 });
+    return;
+  }
+  // rest
+  tone(ctx, { freq: 480, when: t0, dur: 0.25, type: 'sine', gain: 0.045, slideTo: 240 });
+  tone(ctx, { freq: 720, when: t0 + 0.05, dur: 0.2, type: 'triangle', gain: 0.03, slideTo: 360 });
+}
+
+function useScoreboardAudio() {
+  const bgmRef = useRef<HTMLAudioElement | null>(null);
+  const ctxRef = useRef<AudioContext | null>(null);
+  const bgmVolRef = useRef(0.42);
+  const duckTimerRef = useRef<number | null>(null);
+  const [muted, setMuted] = useState(false);
+  const mutedRef = useRef(false);
+  mutedRef.current = muted;
+
+  const ensureCtx = useCallback(() => {
+    const AC = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    if (!ctxRef.current) ctxRef.current = new AC();
+    if (ctxRef.current.state === 'suspended') void ctxRef.current.resume();
+    return ctxRef.current;
+  }, []);
+
+  const ensureBgm = useCallback(() => {
+    if (!bgmRef.current) {
+      const audio = new Audio(SCOREBOARD_BGM);
+      audio.loop = true;
+      audio.preload = 'auto';
+      audio.volume = bgmVolRef.current;
+      bgmRef.current = audio;
+    }
+    return bgmRef.current;
+  }, []);
+
+  const playBgm = useCallback(async () => {
+    if (mutedRef.current) return;
+    const audio = ensureBgm();
+    audio.volume = bgmVolRef.current;
+    try {
+      ensureCtx();
+      await audio.play();
+    } catch {
+      // autoplay blocked until user gesture
+    }
+  }, [ensureBgm, ensureCtx]);
+
+  const stopBgm = useCallback(() => {
+    const audio = bgmRef.current;
+    if (!audio) return;
+    audio.pause();
+    audio.currentTime = 0;
+  }, []);
+
+  const setBgmVolume = useCallback((vol: number) => {
+    bgmVolRef.current = Math.max(0, Math.min(1, vol));
+    if (bgmRef.current) bgmRef.current.volume = bgmVolRef.current;
+  }, []);
+
+  const playSfx = useCallback(
+    (kind: SfxKind) => {
+      if (mutedRef.current) return;
+      try {
+        const ctx = ensureCtx();
+        if (duckTimerRef.current != null) window.clearTimeout(duckTimerRef.current);
+        if (bgmRef.current) bgmRef.current.volume = Math.min(bgmVolRef.current, 0.16);
+        playSynthesizedSfx(ctx, kind);
+        duckTimerRef.current = window.setTimeout(() => {
+          duckTimerRef.current = null;
+          if (!mutedRef.current && bgmRef.current) bgmRef.current.volume = bgmVolRef.current;
+        }, kind === 'reveal1' ? 900 : kind === 'booby' ? 800 : 650);
+      } catch {
+        // ignore
+      }
+    },
+    [ensureCtx]
+  );
+
+  const toggleMute = useCallback(() => {
+    setMuted((m) => {
+      const next = !m;
+      mutedRef.current = next;
+      const audio = bgmRef.current;
+      if (next) {
+        audio?.pause();
+      } else {
+        void playBgm();
+      }
+      return next;
+    });
+  }, [playBgm]);
+
+  useEffect(() => {
+    return () => {
+      if (duckTimerRef.current != null) window.clearTimeout(duckTimerRef.current);
+      bgmRef.current?.pause();
+      bgmRef.current = null;
+      void ctxRef.current?.close();
+      ctxRef.current = null;
+    };
+  }, []);
+
+  return { muted, playBgm, stopBgm, playSfx, toggleMute, setBgmVolume };
+}
 
 const FIREWORK_COLORS = [
   '#CC0000',
@@ -41,21 +210,35 @@ function ShowcaseIdle({
   teams,
   canEnter,
   onEnter,
+  onStartMusic,
 }: {
   teams: RankedTeambuildingTeam[];
   canEnter: boolean;
   onEnter: () => void;
+  onStartMusic: () => void;
 }) {
+  useEffect(() => {
+    void onStartMusic();
+    const unlock = () => void onStartMusic();
+    window.addEventListener('pointerdown', unlock, { once: true });
+    window.addEventListener('keydown', unlock, { once: true });
+    return () => {
+      window.removeEventListener('pointerdown', unlock);
+      window.removeEventListener('keydown', unlock);
+    };
+  }, [onStartMusic]);
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== 'Enter') return;
       if (!canEnter) return;
       e.preventDefault();
+      void onStartMusic();
       onEnter();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [canEnter, onEnter]);
+  }, [canEnter, onEnter, onStartMusic]);
 
   return (
     <div
@@ -65,11 +248,13 @@ function ShowcaseIdle({
       role={canEnter ? 'button' : undefined}
       tabIndex={canEnter ? 0 : undefined}
       onClick={() => {
+        void onStartMusic();
         if (canEnter) onEnter();
       }}
       onKeyDown={(e) => {
         if (canEnter && e.key === 'Enter') {
           e.preventDefault();
+          void onStartMusic();
           onEnter();
         }
       }}
@@ -120,6 +305,7 @@ function ShowcaseIdle({
               className="hino-show-enter"
               onClick={(e) => {
                 e.stopPropagation();
+                void onStartMusic();
                 onEnter();
               }}
             >
@@ -129,6 +315,9 @@ function ShowcaseIdle({
             <p className="hino-show-wait mt-[1.2vh] text-[clamp(0.7rem,1.2vw,1rem)] font-semibold tracking-[0.28em] text-[#CC0000]">
               PRESS ENTER TO START
             </p>
+            <p className="mt-[0.7vh] text-[clamp(0.65rem,1vw,0.85rem)] font-semibold tracking-[0.08em] text-[#8A8A8A]">
+              แตะหน้าจอเพื่อเปิดเพลงประกอบ
+            </p>
           </>
         ) : (
           <>
@@ -137,6 +326,9 @@ function ShowcaseIdle({
             </p>
             <p className="hino-show-wait mt-[0.8vh] text-[clamp(0.7rem,1.2vw,1rem)] font-semibold tracking-[0.28em] text-[#CC0000]">
               WAITING FOR FIRST SCORE
+            </p>
+            <p className="mt-[0.7vh] text-[clamp(0.65rem,1vw,0.85rem)] font-semibold tracking-[0.08em] text-[#8A8A8A]">
+              แตะหน้าจอเพื่อเปิดเพลงประกอบ
             </p>
           </>
         )}
@@ -309,7 +501,7 @@ function FireworkBurst({
   burstKey,
 }: {
   active: boolean;
-  place: 1 | 2 | 3 | null;
+  place: 1 | 2 | 3 | 'last' | null;
   burstKey: number;
 }) {
   const show = useMemo(() => {
@@ -332,13 +524,19 @@ function FireworkBurst({
               { left: 72, top: 48, wave: 0.48 },
               { left: 50, top: 30, wave: 0.85 },
             ]
-          : [
+          : place === 'last'
+            ? [
+                { left: 50, top: 48, wave: 0 },
+                { left: 30, top: 58, wave: 0.25 },
+                { left: 70, top: 56, wave: 0.4 },
+              ]
+            : [
               { left: 50, top: 42, wave: 0 },
               { left: 32, top: 52, wave: 0.35 },
               { left: 68, top: 50, wave: 0.55 },
             ];
 
-    const perBurst = place === 1 ? 48 : place === 2 ? 38 : 30;
+    const perBurst = place === 1 ? 48 : place === 2 ? 38 : place === 'last' ? 28 : 30;
     const sparks = origins.flatMap((origin, oi) =>
       Array.from({ length: perBurst }, (_, i) => {
         const angle = (i / perBurst) * Math.PI * 2 + oi * 0.2;
@@ -358,19 +556,24 @@ function FireworkBurst({
       })
     );
 
-    const rockets = Array.from({ length: place === 1 ? 10 : place === 2 ? 7 : 5 }, (_, i) => ({
+    const fwColors =
+      place === 'last'
+        ? ['#8D6E63', '#BCAAA4', '#FFD54F', '#90A4AE', '#CC0000', '#FFE082', '#FFFFFF']
+        : FIREWORK_COLORS;
+
+    const rockets = Array.from({ length: place === 1 ? 10 : place === 2 ? 7 : place === 'last' ? 6 : 5 }, (_, i) => ({
       id: i,
       left: 10 + ((i * 17) % 80),
       delay: 0.05 + i * 0.09,
       height: 38 + (i % 5) * 8,
-      color: FIREWORK_COLORS[i % FIREWORK_COLORS.length],
+      color: fwColors[i % fwColors.length],
     }));
 
-    const confetti = Array.from({ length: place === 1 ? 64 : place === 2 ? 48 : 36 }, (_, i) => ({
+    const confetti = Array.from({ length: place === 1 ? 64 : place === 2 ? 48 : place === 'last' ? 40 : 36 }, (_, i) => ({
       id: i,
       left: 2 + ((i * 13) % 96),
       cx: -30 + ((i * 29) % 60),
-      color: FIREWORK_COLORS[i % FIREWORK_COLORS.length],
+      color: fwColors[i % fwColors.length],
       delay: 0.08 + (i % 14) * 0.07,
       rot: (i % 2 === 0 ? 1 : -1) * (140 + i * 21),
       w: 7 + (i % 4) * 3,
@@ -378,15 +581,21 @@ function FireworkBurst({
       shape: i % 3 === 0 ? 'circle' : i % 3 === 1 ? 'rect' : 'ribbon',
     }));
 
-    const glitter = Array.from({ length: place === 1 ? 40 : 24 }, (_, i) => ({
+    const glitter = Array.from({ length: place === 1 ? 40 : place === 'last' ? 20 : 24 }, (_, i) => ({
       id: i,
       left: 5 + ((i * 23) % 90),
       top: 8 + ((i * 17) % 55),
       delay: 0.15 + (i % 12) * 0.08,
-      color: FIREWORK_COLORS[i % FIREWORK_COLORS.length],
+      color: fwColors[i % fwColors.length],
     }));
 
-    return { origins, sparks, rockets, confetti, glitter };
+    // recolor sparks for last place
+    const tintedSparks = sparks.map((s, i) => ({
+      ...s,
+      color: fwColors[i % fwColors.length],
+    }));
+
+    return { origins, sparks: tintedSparks, rockets, confetti, glitter };
   }, [active, place, burstKey]);
 
   if (!show || !place) return null;
@@ -644,7 +853,84 @@ function RestCard({
   );
 }
 
-type RevealStage = 0 | 1 | 2 | 3 | 4;
+type RevealStage = number;
+
+function getRevealPlan(teams: RankedTeambuildingTeam[]) {
+  const top3 = teams.slice(0, 3);
+  const first = top3[0];
+  const second = top3[1];
+  const third = top3[2];
+  const revealOrder: { team: RankedTeambuildingTeam; place: 1 | 2 | 3; slideFrom: 'up' | 'left' | 'right' }[] = [];
+  if (third) revealOrder.push({ team: third, place: 3, slideFrom: 'right' });
+  if (second) revealOrder.push({ team: second, place: 2, slideFrom: 'left' });
+  if (first) revealOrder.push({ team: first, place: 1, slideFrom: 'up' });
+
+  const topRevealCount = revealOrder.length;
+  const booby = teams.length >= 2 ? teams[teams.length - 1] : null;
+  const middleRest = booby ? teams.slice(3).filter((t) => t.id !== booby.id) : teams.slice(3);
+  const hasMiddle = middleRest.length > 0;
+  const hasBooby = Boolean(booby);
+  // หลัง 3→2→1 เปิดบ๊วยก่อน แล้วค่อยอันดับที่เหลือ
+  const boobyStage = hasBooby ? topRevealCount + 1 : null;
+  const middleStage = hasMiddle ? topRevealCount + (hasBooby ? 1 : 0) + 1 : null;
+  const maxStage = middleStage ?? boobyStage ?? topRevealCount;
+
+  return {
+    revealOrder,
+    topRevealCount,
+    middleRest,
+    booby,
+    hasMiddle,
+    hasBooby,
+    middleStage,
+    boobyStage,
+    maxStage,
+  };
+}
+
+function BoobyCard({
+  team,
+  justRevealed,
+}: {
+  team: RankedTeambuildingTeam;
+  maxScore: number;
+  justRevealed: boolean;
+}) {
+  const shown = useAnimatedNumber(team.score, 2200, justRevealed ? 2 : 1);
+  const counting = Math.abs(shown - team.score) > 0.08;
+  const fillPct = team.score > 0 ? Math.max(0, Math.min(100, (shown / team.score) * 100)) : 0;
+
+  return (
+    <aside
+      className={`hino-booby ${justRevealed ? 'is-in' : ''} ${counting ? 'is-counting' : ''}`}
+      style={{ ['--team' as string]: team.color || '#8D6E63' }}
+      aria-label={`อันดับบ๊วย ${team.name}`}
+    >
+      <div className={`hino-mascot is-place-last ${justRevealed ? 'is-celebrate' : ''}`} aria-hidden>
+        <img src={BOOBY_MASCOT} alt="" className="hino-mascot-img" draggable={false} />
+        <span className="hino-mascot-glow" />
+      </div>
+      <div className="hino-booby-card">
+        <p className="hino-booby-badge">อันดับบ๊วย</p>
+        <div className="hino-booby-rank" aria-hidden>
+          {team.rank}
+        </div>
+        <h3 className="hino-booby-name">{team.name}</h3>
+        <p className="hino-booby-sub">LAST PLACE · SPIRIT AWARD</p>
+        <div className="hino-booby-score-wrap">
+          <span className={`hino-booby-score ${counting ? 'is-running' : ''}`}>
+            {formatRunningScore(shown, team.score)}
+          </span>
+          <span className="hino-booby-pts">PTS</span>
+        </div>
+        <div className="hino-booby-bar" aria-hidden>
+          <span className="hino-booby-bar-fill" style={{ transform: `scaleX(${fillPct / 100})` }} />
+        </div>
+        <p className="hino-booby-note">สู้ต่อไปนะ — หัวใจแชมป์ไม่แพ้ใคร</p>
+      </div>
+    </aside>
+  );
+}
 
 function RevealBoard({
   teams,
@@ -652,30 +938,32 @@ function RevealBoard({
   onAdvance,
   onBack,
   onReset,
+  onPlaySfx,
 }: {
   teams: RankedTeambuildingTeam[];
   stage: RevealStage;
   onAdvance: () => void;
   onBack: () => void;
   onReset: () => void;
+  onPlaySfx: (kind: SfxKind) => void;
 }) {
-  const top3 = teams.slice(0, 3);
-  const rest = teams.slice(3);
-  const first = top3[0];
-  const second = top3[1];
-  const third = top3[2];
+  const plan = useMemo(() => getRevealPlan(teams), [teams]);
+  const {
+    revealOrder,
+    topRevealCount,
+    middleRest,
+    booby,
+    hasMiddle,
+    hasBooby,
+    middleStage,
+    boobyStage,
+    maxStage,
+  } = plan;
+
   const prevStage = useRef(stage);
   const [freshPlaces, setFreshPlaces] = useState<Set<number>>(() => new Set());
-  const [firework, setFirework] = useState<{ place: 1 | 2 | 3; key: number } | null>(null);
-
-  // เปิดแบบงานประกาศรางวัล: 3 → 2 → 1
-  const revealOrder = useMemo(() => {
-    const order: { team: RankedTeambuildingTeam; place: 1 | 2 | 3; slideFrom: 'up' | 'left' | 'right' }[] = [];
-    if (third) order.push({ team: third, place: 3, slideFrom: 'right' });
-    if (second) order.push({ team: second, place: 2, slideFrom: 'left' });
-    if (first) order.push({ team: first, place: 1, slideFrom: 'up' });
-    return order;
-  }, [first, second, third]);
+  const [firework, setFirework] = useState<{ place: 1 | 2 | 3 | 'last'; key: number } | null>(null);
+  const [boobyFresh, setBoobyFresh] = useState(false);
 
   useEffect(() => {
     const prev = prevStage.current;
@@ -685,6 +973,7 @@ function RevealBoard({
       if (place) {
         setFreshPlaces(new Set([place]));
         setFirework({ place, key: Date.now() });
+        onPlaySfx(place === 1 ? 'reveal1' : place === 2 ? 'reveal2' : 'reveal3');
       }
       const t = window.setTimeout(() => setFreshPlaces(new Set()), 1400);
       const t2 = window.setTimeout(() => setFirework(null), 4200);
@@ -693,11 +982,26 @@ function RevealBoard({
         window.clearTimeout(t2);
       };
     }
+    if (stage > prev && hasBooby && stage === boobyStage) {
+      setBoobyFresh(true);
+      setFirework({ place: 'last', key: Date.now() });
+      onPlaySfx('booby');
+      const t = window.setTimeout(() => setBoobyFresh(false), 1600);
+      const t2 = window.setTimeout(() => setFirework(null), 4200);
+      return () => {
+        window.clearTimeout(t);
+        window.clearTimeout(t2);
+      };
+    }
+    if (stage > prev && hasMiddle && stage === middleStage) {
+      onPlaySfx('rest');
+    }
     if (stage < prev) {
       setFreshPlaces(new Set());
       setFirework(null);
+      setBoobyFresh(false);
     }
-  }, [stage, revealOrder]);
+  }, [stage, revealOrder, hasBooby, boobyStage, hasMiddle, middleStage, onPlaySfx]);
 
   const boardMaxScore = useMemo(() => {
     if (teams.length === 0) return 1;
@@ -709,15 +1013,19 @@ function RevealBoard({
     return revealOrder.slice(0, Math.min(stage, revealOrder.length));
   }, [stage, revealOrder]);
 
-  const topRevealCount = revealOrder.length;
-  const maxStage: RevealStage = (rest.length > 0 ? topRevealCount + 1 : topRevealCount) as RevealStage;
-  const nextRevealPlace = stage < topRevealCount ? revealOrder[stage]?.place : null;
+  const showMiddle = hasMiddle && middleStage != null && stage >= middleStage;
+  const showBooby = hasBooby && boobyStage != null && stage >= boobyStage && booby;
+
   const nextHint =
     stage >= maxStage
       ? 'ครบแล้ว — กด RESET เพื่อเริ่มใหม่'
-      : nextRevealPlace
-        ? `กดเพื่อเปิด อันดับ ${nextRevealPlace}`
-        : 'กดเพื่อเปิดอันดับที่เหลือ';
+      : stage < topRevealCount
+        ? `กดเพื่อเปิด อันดับ ${revealOrder[stage]?.place}`
+        : hasBooby && stage + 1 === boobyStage
+          ? 'กดเพื่อเปิด อันดับบ๊วย'
+          : hasMiddle && stage + 1 === middleStage
+            ? 'กดเพื่อเปิดอันดับที่เหลือ'
+            : 'กดขั้นถัดไป';
 
   return (
     <div className="hino-orbit-stage">
@@ -756,7 +1064,7 @@ function RevealBoard({
               ? 'READY'
               : stage >= maxStage
                 ? 'COMPLETE'
-                : `STEP ${stage}/${topRevealCount}${rest.length ? ' + REST' : ''}`}
+                : `STEP ${stage}/${maxStage}`}
           </span>
           <span className="hino-reveal-hint-text">{nextHint}</span>
           <span className="hino-reveal-hint-keys">SPACE / ENTER · ← ย้อน · R รีเซ็ต · ESC กลับหน้ารอ</span>
@@ -779,7 +1087,7 @@ function RevealBoard({
           </button>
         </div>
 
-        <div className="hino-podium-area">
+        <div className={`hino-podium-area ${showBooby ? 'has-booby' : ''}`}>
           {stage === 0 && (
             <div className="hino-reveal-ready">
               <div className="hino-reveal-ready-orbit" aria-hidden>
@@ -789,7 +1097,12 @@ function RevealBoard({
               </div>
               <p className="hino-reveal-ready-kicker">ORBITAL SCORE REVEAL</p>
               <h2 className="hino-reveal-ready-title">พร้อมเปิดอันดับ</h2>
-              <p className="hino-reveal-ready-sub">กด NEXT / SPACE / ENTER เพื่อเลื่อนเปิดอันดับ 3 → 2 → 1</p>
+              <p className="hino-reveal-ready-sub">
+                กด NEXT / SPACE / ENTER เพื่อเลื่อนเปิดอันดับ 3 → 2 → 1
+                {hasBooby ? ' → บ๊วย' : ''}
+                {hasMiddle ? ' → ที่เหลือ' : ''}
+              </p>
+              <p className="hino-reveal-ready-audio">มีเสียงเอฟเฟกต์ตอนเปิดแต่ละอันดับ</p>
               <div className="hino-reveal-ready-pulse" aria-hidden />
             </div>
           )}
@@ -808,23 +1121,27 @@ function RevealBoard({
               ))}
             </div>
           )}
+
+          {showBooby && booby && (
+            <BoobyCard team={booby} maxScore={boardMaxScore} justRevealed={boobyFresh} />
+          )}
         </div>
 
-        {stage > topRevealCount && rest.length > 0 && (
+        {showMiddle && middleRest.length > 0 && (
           <section className="hino-rest-strip" aria-label="อันดับที่เหลือ">
             <div className="hino-rest-head">
               <span>อันดับที่เหลือ</span>
-              <span className="hino-rest-count">{rest.length} ทีม</span>
+              <span className="hino-rest-count">{middleRest.length} ทีม</span>
             </div>
             <div className="hino-rest-list">
-            {rest.map((team, i) => (
-              <RestCard key={team.id} team={team} index={i} maxScore={boardMaxScore} />
-            ))}
+              {middleRest.map((team, i) => (
+                <RestCard key={team.id} team={team} index={i} maxScore={boardMaxScore} />
+              ))}
             </div>
           </section>
         )}
 
-        {stage >= 1 && stage >= maxStage && rest.length === 0 && (
+        {stage >= 1 && stage >= maxStage && !hasMiddle && !hasBooby && (
           <p className="hino-reveal-done-note">แสดงครบทุกทีมแล้ว</p>
         )}
       </div>
@@ -840,6 +1157,7 @@ const TeambuildingScoreboardPage: React.FC = () => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [revealStage, setRevealStage] = useState<RevealStage>(0);
   const [boardEntered, setBoardEntered] = useState(false);
+  const { muted, playBgm, playSfx, toggleMute, setBgmVolume } = useScoreboardAudio();
 
   const loadTeams = useCallback(async (options?: { silent?: boolean }) => {
     if (!isSupabaseConfigured) {
@@ -895,11 +1213,7 @@ const TeambuildingScoreboardPage: React.FC = () => {
   const ranked = useMemo(() => rankTeams(teams), [teams]);
   const maxScore = useMemo(() => Math.max(0, ...ranked.map((t) => t.score)), [ranked]);
 
-  const maxStage = useMemo<RevealStage>(() => {
-    const topCount = Math.min(3, ranked.length);
-    const hasRest = ranked.length > 3;
-    return (hasRest ? 4 : topCount) as RevealStage;
-  }, [ranked.length]);
+  const maxStage = useMemo(() => getRevealPlan(ranked).maxStage, [ranked]);
 
   useEffect(() => {
     if (maxScore <= 0) {
@@ -912,14 +1226,19 @@ const TeambuildingScoreboardPage: React.FC = () => {
 
   const enterBoard = useCallback(() => {
     if (maxScore <= 0) return;
+    setBgmVolume(0.34);
+    void playBgm();
+    playSfx('enter');
     setRevealStage(0);
     setBoardEntered(true);
-  }, [maxScore]);
+  }, [maxScore, playBgm, playSfx, setBgmVolume]);
 
   const exitBoard = useCallback(() => {
     setBoardEntered(false);
     setRevealStage(0);
-  }, []);
+    setBgmVolume(0.42);
+    void playBgm();
+  }, [playBgm, setBgmVolume]);
 
   useEffect(() => {
     if (!boardEntered) return;
@@ -982,6 +1301,17 @@ const TeambuildingScoreboardPage: React.FC = () => {
           </span>
           <button
             type="button"
+            onClick={() => {
+              void playBgm();
+              toggleMute();
+            }}
+            className="rounded-md border border-[#CFCFCF] bg-white px-2.5 py-1 text-[clamp(0.55rem,0.85vw,0.75rem)] font-bold tracking-[0.14em] text-[#4D4D4D] transition hover:border-[#CC0000] hover:bg-[#CC0000] hover:text-white"
+            aria-label={muted ? 'เปิดเสียง' : 'ปิดเสียง'}
+          >
+            {muted ? 'UNMUTE' : 'MUTE'}
+          </button>
+          <button
+            type="button"
             onClick={toggleFullscreen}
             className="rounded-md border border-[#CFCFCF] bg-white px-2.5 py-1 text-[clamp(0.55rem,0.85vw,0.75rem)] font-bold tracking-[0.14em] text-[#4D4D4D] transition hover:border-[#CC0000] hover:bg-[#CC0000] hover:text-white"
           >
@@ -1002,7 +1332,12 @@ const TeambuildingScoreboardPage: React.FC = () => {
             </p>
           </div>
         ) : !boardEntered ? (
-          <ShowcaseIdle teams={ranked} canEnter={maxScore > 0} onEnter={enterBoard} />
+          <ShowcaseIdle
+            teams={ranked}
+            canEnter={maxScore > 0}
+            onEnter={enterBoard}
+            onStartMusic={playBgm}
+          />
         ) : (
           <RevealBoard
             teams={ranked}
@@ -1010,6 +1345,7 @@ const TeambuildingScoreboardPage: React.FC = () => {
             onAdvance={advance}
             onBack={back}
             onReset={reset}
+            onPlaySfx={playSfx}
           />
         )}
       </main>
@@ -1275,6 +1611,142 @@ const TeambuildingScoreboardPage: React.FC = () => {
           justify-content: center;
           overflow: hidden;
           width: 100%;
+          gap: clamp(0.4rem, 1.2vw, 1rem);
+        }
+        .hino-podium-area.has-booby {
+          align-items: flex-end;
+        }
+        .hino-podium-area.has-booby .hino-podium-grid {
+          flex: 1 1 auto;
+          min-width: 0;
+        }
+        .hino-booby {
+          position: relative;
+          z-index: 4;
+          flex: 0 0 auto;
+          width: min(28vw, 260px);
+          max-width: 100%;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: flex-end;
+          gap: 0;
+          margin-bottom: 0.2rem;
+        }
+        .hino-booby.is-in {
+          animation: hinoSlideUp 0.85s cubic-bezier(0.22, 1, 0.36, 1) both;
+        }
+        .hino-booby .hino-mascot {
+          margin-bottom: -1.1rem;
+          z-index: 2;
+        }
+        .hino-booby-card {
+          position: relative;
+          z-index: 1;
+          width: 100%;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          text-align: center;
+          padding: clamp(1.5rem, 3vh, 2.1rem) clamp(0.7rem, 1.3vw, 1.1rem) 0.85rem;
+          border-radius: 22px;
+          border: 2px solid color-mix(in srgb, var(--team) 40%, #D7CCC8);
+          background: linear-gradient(180deg, #ffffff 0%, #faf6f2 100%);
+          box-shadow: 0 12px 28px rgba(26,26,26,0.1);
+        }
+        .hino-booby-badge {
+          padding: 0.2rem 0.7rem;
+          border-radius: 999px;
+          background: #8D6E63;
+          color: #fff;
+          font-size: clamp(0.65rem, 1.1vh, 0.85rem);
+          font-weight: 900;
+          letter-spacing: 0.14em;
+        }
+        .hino-booby-rank {
+          margin-top: 0.45rem;
+          width: clamp(2.2rem, 5vh, 3.2rem);
+          height: clamp(2.2rem, 5vh, 3.2rem);
+          display: grid;
+          place-items: center;
+          border-radius: 12px;
+          background: color-mix(in srgb, var(--team) 75%, #8D6E63);
+          color: #fff;
+          font-family: "Barlow Condensed", "Noto Sans Thai", sans-serif;
+          font-weight: 900;
+          font-size: clamp(1.2rem, 2.8vh, 1.9rem);
+        }
+        .hino-booby-name {
+          margin-top: 0.35rem;
+          width: 100%;
+          font-size: clamp(0.95rem, 2.2vh, 1.45rem);
+          font-weight: 900;
+          line-height: 1.15;
+          color: #1A1A1A;
+          overflow-wrap: anywhere;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+        .hino-booby-sub {
+          margin-top: 0.25rem;
+          font-size: clamp(0.55rem, 1vh, 0.75rem);
+          font-weight: 800;
+          letter-spacing: 0.16em;
+          color: #8D6E63;
+        }
+        .hino-booby-score-wrap {
+          margin-top: 0.55rem;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          line-height: 1;
+        }
+        .hino-booby-score {
+          font-family: "Barlow Condensed", "Noto Sans Thai", sans-serif;
+          font-weight: 900;
+          font-size: clamp(1.5rem, 4vh, 2.6rem);
+          color: #5D4037;
+        }
+        .hino-booby-score.is-running {
+          animation: hinoScoreRun 0.28s steps(2, end) infinite;
+          color: #CC0000;
+        }
+        .hino-booby-pts {
+          margin-top: 0.25rem;
+          font-size: clamp(0.55rem, 1vh, 0.75rem);
+          font-weight: 800;
+          letter-spacing: 0.2em;
+          color: #6D4C41;
+        }
+        .hino-booby-bar {
+          margin-top: 0.55rem;
+          width: 100%;
+          height: 0.55rem;
+          border-radius: 999px;
+          background: rgba(141,110,99,0.18);
+          overflow: hidden;
+        }
+        .hino-booby-bar-fill {
+          display: block;
+          width: 100%;
+          height: 100%;
+          transform-origin: left center;
+          transform: scaleX(0);
+          border-radius: inherit;
+          background: linear-gradient(90deg, #A1887F, var(--team), #FFD54F);
+        }
+        .hino-booby-note {
+          margin-top: 0.55rem;
+          font-size: clamp(0.65rem, 1.15vh, 0.85rem);
+          font-weight: 700;
+          color: #6D4C41;
+        }
+        .hino-fw.is-place-last .hino-fw-sky {
+          background:
+            radial-gradient(ellipse 55% 40% at 50% 48%, rgba(141,110,99,0.18), transparent 62%),
+            radial-gradient(ellipse 40% 30% at 30% 55%, rgba(255,213,79,0.12), transparent 60%);
         }
         .hino-reveal-ready {
           position: relative;
@@ -1348,6 +1820,13 @@ const TeambuildingScoreboardPage: React.FC = () => {
           background: #CC0000;
           animation: hinoTbPulse 1.4s ease-in-out infinite;
         }
+        .hino-reveal-ready-audio {
+          margin-top: 0.65rem;
+          font-size: clamp(0.7rem, 1.1vw, 0.9rem);
+          font-weight: 700;
+          color: #8A8A8A;
+          letter-spacing: 0.04em;
+        }
 
         .hino-podium-grid {
           display: grid;
@@ -1395,13 +1874,14 @@ const TeambuildingScoreboardPage: React.FC = () => {
         }
         .hino-mascot {
           position: relative;
-          z-index: 2;
+          z-index: 3;
           flex: 0 0 auto;
-          width: min(42%, 150px);
+          width: min(46%, 168px);
           aspect-ratio: 1;
-          margin-bottom: -0.35rem;
-          filter: drop-shadow(0 10px 16px rgba(26,26,26,0.18));
+          margin-bottom: -1.35rem;
+          filter: drop-shadow(0 8px 14px rgba(26,26,26,0.16));
           animation: hinoMascotIdle 2.8s ease-in-out infinite;
+          isolation: isolate;
         }
         .hino-mascot.is-place-1 {
           width: min(48%, 180px);
@@ -1409,27 +1889,38 @@ const TeambuildingScoreboardPage: React.FC = () => {
         }
         .hino-mascot.is-place-2 { width: min(40%, 140px); }
         .hino-mascot.is-place-3 { width: min(36%, 125px); }
+        .hino-mascot.is-place-last {
+          width: min(42%, 160px);
+          animation-duration: 3.2s;
+        }
+        .hino-mascot.is-place-last .hino-mascot-glow {
+          background: radial-gradient(ellipse, rgba(141,110,99,0.35), rgba(255,213,79,0.18), transparent 72%);
+        }
         .hino-mascot-img {
           width: 100%;
           height: 100%;
           object-fit: contain;
           object-position: bottom center;
-          border-radius: 18px;
+          border-radius: 0;
+          background: transparent;
           user-select: none;
           pointer-events: none;
           mix-blend-mode: multiply;
+          -webkit-mask-image: radial-gradient(ellipse 72% 78% at 50% 48%, #000 58%, transparent 78%);
+          mask-image: radial-gradient(ellipse 72% 78% at 50% 48%, #000 58%, transparent 78%);
         }
         .hino-mascot-glow {
           position: absolute;
           left: 50%;
-          bottom: 8%;
-          width: 70%;
-          height: 28%;
+          bottom: 2%;
+          width: 78%;
+          height: 22%;
           transform: translateX(-50%);
           border-radius: 50%;
-          background: radial-gradient(ellipse, rgba(204,0,0,0.28), transparent 70%);
-          filter: blur(6px);
+          background: radial-gradient(ellipse, rgba(204,0,0,0.2), transparent 72%);
+          filter: blur(8px);
           z-index: -1;
+          pointer-events: none;
         }
         .hino-mascot.is-place-1 .hino-mascot-glow {
           background: radial-gradient(ellipse, rgba(255,215,0,0.4), rgba(204,0,0,0.2), transparent 72%);
@@ -1582,6 +2073,7 @@ const TeambuildingScoreboardPage: React.FC = () => {
 
         .hino-podium-card {
           position: relative;
+          z-index: 1;
           display: flex;
           flex-direction: column;
           align-items: center;
@@ -1591,14 +2083,12 @@ const TeambuildingScoreboardPage: React.FC = () => {
           max-height: calc(100% - clamp(4.5rem, 16vh, 9rem));
           height: 68%;
           flex: 0 1 auto;
-          padding: clamp(0.4rem, 1.2vh, 1.2rem) clamp(0.4rem, 1.2vw, 1.1rem) 0;
-          border-radius: clamp(12px, 1.6vw, 22px) clamp(12px, 1.6vw, 22px) 0 0;
-          border: 2px solid color-mix(in srgb, var(--team) 45%, #D0D0D0);
+          padding: clamp(1.35rem, 3.2vh, 2rem) clamp(0.4rem, 1.2vw, 1.1rem) 0;
+          border-radius: clamp(14px, 1.8vw, 24px) clamp(14px, 1.8vw, 24px) 0 0;
+          border: 2px solid color-mix(in srgb, var(--team) 35%, #E0E0E0);
           border-bottom: none;
-          background: linear-gradient(180deg, #fff 0%, #f7f7f7 100%);
-          box-shadow:
-            inset 0 5px 0 0 var(--team),
-            0 12px 28px rgba(26,26,26,0.08);
+          background: linear-gradient(180deg, #ffffff 0%, #f7f7f7 100%);
+          box-shadow: 0 12px 28px rgba(26,26,26,0.08);
           text-align: center;
           overflow: hidden;
           transition:
@@ -1607,14 +2097,26 @@ const TeambuildingScoreboardPage: React.FC = () => {
             background 0.35s ease,
             box-shadow 0.35s ease;
         }
+        .hino-podium-card::before {
+          content: "";
+          position: absolute;
+          left: 0;
+          right: 0;
+          top: 0;
+          height: 5px;
+          background: var(--team);
+        }
         .hino-podium-card.is-place-1 {
           height: 78%;
-          border-color: #CC0000;
-          background: linear-gradient(180deg, #fff 0%, #fff1f1 100%);
+          border-color: rgba(204,0,0,0.45);
+          background: linear-gradient(180deg, #ffffff 0%, #fff5f5 100%);
           box-shadow:
-            inset 0 6px 0 0 #CC0000,
-            0 0 0 4px rgba(204,0,0,0.08),
-            0 18px 40px rgba(204,0,0,0.18);
+            0 0 0 3px rgba(204,0,0,0.06),
+            0 18px 40px rgba(204,0,0,0.14);
+        }
+        .hino-podium-card.is-place-1::before {
+          height: 6px;
+          background: linear-gradient(90deg, #990000, #CC0000, #FFD700);
         }
         .hino-podium-card.is-place-2 { height: 70%; }
         .hino-podium-card.is-place-3 { height: 62%; }
@@ -2322,6 +2824,29 @@ const TeambuildingScoreboardPage: React.FC = () => {
 
         /* จอแคบแนวตั้ง — เรียงโพเดียมลงแนวตั้ง */
         @media (max-width: 720px) {
+          .hino-podium-area {
+            flex-direction: column;
+            align-items: stretch;
+            overflow: auto;
+          }
+          .hino-booby {
+            width: 100%;
+            max-width: none;
+            order: 5;
+          }
+          .hino-booby .hino-mascot.is-place-last {
+            width: clamp(4rem, 18vw, 6rem);
+          }
+          .hino-booby-card {
+            flex-direction: row;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+            text-align: left;
+            gap: 0.35rem 0.7rem;
+          }
+          .hino-booby-score-wrap { margin-left: auto; align-items: flex-end; }
+          .hino-booby-bar { margin-top: 0.2rem; }
+          .hino-booby-note { width: 100%; }
           .hino-podium-grid.show-count-2,
           .hino-podium-grid.show-count-3 {
             grid-template-columns: minmax(0, 1fr);
