@@ -1097,12 +1097,7 @@ function RevealBoard({
               </div>
               <p className="hino-reveal-ready-kicker">ORBITAL SCORE REVEAL</p>
               <h2 className="hino-reveal-ready-title">พร้อมเปิดอันดับ</h2>
-              <p className="hino-reveal-ready-sub">
-                กด NEXT / SPACE / ENTER เพื่อเลื่อนเปิดอันดับ 3 → 2 → 1
-                {hasBooby ? ' → บ๊วย' : ''}
-                {hasMiddle ? ' → ที่เหลือ' : ''}
-              </p>
-              <p className="hino-reveal-ready-audio">มีเสียงเอฟเฟกต์ตอนเปิดแต่ละอันดับ</p>
+              <p className="hino-reveal-ready-sub">กด NEXT / SPACE / ENTER เพื่อเปิดอันดับถัดไป</p>
               <div className="hino-reveal-ready-pulse" aria-hidden />
             </div>
           )}
