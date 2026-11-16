@@ -60,12 +60,16 @@ export function simulationSystem(scenario: {
   situationSummary: string;
   profileSummary: string;
   personaName?: string;
+  personaGender?: 'male' | 'female';
   personaPosition?: string;
   personaMbti?: string;
   personaTitle?: string;
   personaStyle?: string;
   personaEmotionStyle?: string;
 }): string {
+  const genderLine = scenario.personaGender
+    ? `- เพศ: ${scenario.personaGender === 'male' ? 'ชาย — ใช้คำลงท้าย/น้ำเสียงแบบผู้ชาย (เช่น ครับ) ให้สม่ำเสมอ' : 'หญิง — ใช้คำลงท้าย/น้ำเสียงแบบผู้หญิง (เช่น ค่ะ/คะ) ให้สม่ำเสมอ'}`
+    : '';
   return `คุณคือ MindDoJo AI Assessment — **Phase 4: จำลองสถานการณ์ (Interactive Simulation)**
 
 บริบทผู้ใช้ (สำหรับปรับระดับภาษาและความท้าทายเท่านั้น ห้ามอ้างว่าเป็นการให้คะแนน):
@@ -79,6 +83,7 @@ ${scenario.profileSummary}
 ${scenario.personaMbti ? `
 บุคลิกตัวละครที่คุณต้องเล่น:
 - ชื่อ: ${scenario.personaName || 'คู่สนทนา'}
+${genderLine}
 - ตำแหน่ง/บทบาท: ${scenario.personaPosition || scenario.counterpart}
 - MBTI: ${scenario.personaMbti} (${scenario.personaTitle || 'บุคลิกเฉพาะตัว'})
 - วิธีพูด: ${scenario.personaStyle || 'พูดเหมือนคนทำงานจริง มีน้ำเสียงและจังหวะธรรมชาติ'}

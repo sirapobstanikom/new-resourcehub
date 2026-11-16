@@ -15,6 +15,7 @@ const LEGACY_STORAGE_KEY = 'minddojo.admin-link-qr.v1';
 
 const BUILTIN_LINKS: LinkItem[] = [
   { id: 'minddojo-ai', title: 'MindDoJo AI Assessment', href: '/assessment/minddojo', category: 'assessment' },
+  { id: 'minddojo-ai-voice', title: 'AI Chat Bot (Voice) Demo', href: '/assessment/minddojo-voice', category: 'assessment' },
   { id: 'leadership', title: 'แบบประเมินสมรรถนะภาวะผู้นำ', href: '/assessment/leadership', category: 'assessment' },
   { id: 'persuasion', title: 'Persuasion Test (Th)', href: '/assessment/persuasion', category: 'assessment' },
   { id: 'digital-leadership', title: 'Digital Leadership Competency', href: '/assessment/digital-leadership', category: 'assessment' },

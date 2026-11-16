@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link, Navigate, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { isAuthenticated } from '../lib/auth';
 import { isSupabaseConfigured } from '../lib/supabase';
@@ -53,6 +53,10 @@ function formatScenarioContext(context: string): string {
 
 const MindDojoResultPage: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const assessmentHome = location.pathname.includes('minddojo-voice')
+    ? '/assessment/minddojo-voice'
+    : '/assessment/minddojo';
   const { loading: authLoading } = useAuth();
   const resourceHub = isAuthenticated();
   const loggedIn =
@@ -77,7 +81,7 @@ const MindDojoResultPage: React.FC = () => {
 
   const clearAndRestart = () => {
     sessionStorage.removeItem(MINDDOJO_REPORT_STORAGE_KEY);
-    navigate('/assessment/minddojo', { replace: true });
+    navigate(assessmentHome, { replace: true });
   };
 
   if (authLoading && !resourceHub && !isMindDojoAssessmentLoggedIn()) {
@@ -89,7 +93,7 @@ const MindDojoResultPage: React.FC = () => {
   }
 
   if (!loggedIn) {
-    return <Navigate to="/assessment/minddojo" replace />;
+    return <Navigate to={assessmentHome} replace />;
   }
 
   if (!payload) {
@@ -99,10 +103,10 @@ const MindDojoResultPage: React.FC = () => {
           ยังไม่มีผลการประเมิน หรือหมดอายุการแสดงในหน้านี้ — กรุณาทำแบบประเมินให้จบแล้วกดปุ่ม <strong className="text-yellow-800">ดูผลลัพธ์</strong>
         </p>
         <Link
-          to="/assessment/minddojo"
+          to={assessmentHome}
           className="px-6 py-3 rounded-xl font-bold bg-yellow-400 text-black hover:bg-yellow-300"
         >
-          ไป MindDoJo AI Assessment
+          กลับไปทำแบบประเมิน
         </Link>
       </div>
     );
@@ -129,7 +133,7 @@ const MindDojoResultPage: React.FC = () => {
             ประเมินใหม่
           </button>
           <Link
-            to="/assessment/minddojo"
+            to={assessmentHome}
             className="md-btn-ghost px-4 py-2 touch-manipulation"
           >
             กลับแชท

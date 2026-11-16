@@ -36,6 +36,7 @@ const GrowthFixedMindsetAssessment = lazy(() => import('./components/GrowthFixed
 const ConflictManagementStyleAssessment = lazy(() => import('./components/ConflictManagementStyleAssessment'));
 const KeyPrinciplesAssessment = lazy(() => import('./components/KeyPrinciplesAssessment'));
 const MindDojoAssessment = lazy(() => import('./components/MindDojoAssessment'));
+const MindDojoVoiceAssessment = lazy(() => import('./components/MindDojoVoiceAssessment'));
 const MindDojoResultPage = lazy(() => import('./components/MindDojoResultPage'));
 const AdminMindDojoAssessmentUsersPage = lazy(() => import('./components/AdminMindDojoAssessmentUsersPage'));
 const Game10Timeout = lazy(() => import('./components/Game10Timeout'));
@@ -329,6 +330,8 @@ const App: React.FC = () => {
           <Route path="/assessment/key-principles" element={<KeyPrinciplesAssessment />} />
           <Route path="/assessment/minddojo/result" element={<MindDojoResultPage />} />
           <Route path="/assessment/minddojo" element={<MindDojoAssessment />} />
+          <Route path="/assessment/minddojo-voice/result" element={<MindDojoResultPage />} />
+          <Route path="/assessment/minddojo-voice" element={<MindDojoVoiceAssessment />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Suspense>

@@ -17,6 +17,7 @@ import {
   MapPinned,
   MessageCircle,
   MessagesSquare,
+  Mic,
   Puzzle,
   ScanFace,
   Scale,
@@ -83,6 +84,15 @@ const ASSESSMENTS: HubCard[] = [
     category: 'AI & Innovation',
     icon: MessageCircle,
     tint: 'bg-[#FFCC00] text-black',
+  },
+  {
+    id: 'minddojo-ai-voice',
+    title: 'AI Chat Bot (Voice) Demo',
+    description: 'ก็อปจาก MindDoJo AI Assessment — พูดผ่านไมค์ และฟังคำตอบ AI ด้วยเสียง',
+    href: '/assessment/minddojo-voice',
+    category: 'AI & Innovation',
+    icon: Mic,
+    tint: 'bg-violet-600 text-white',
   },
   {
     id: 'leadership',

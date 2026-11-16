@@ -16,7 +16,10 @@ function withIdentityPolicy(messages: Array<{ role: string; content: string }>) 
   return [{ role: 'system', content: IDENTITY_POLICY }, ...messages];
 }
 
-async function callOpenAIProxy(messages: Array<{ role: string; content: string }>, temperature = 0.7) {
+async function callOpenAIProxy(
+  messages: Array<{ role: string; content: string }>,
+  temperature = 0.7
+) {
   if (!supabaseFunctionsUrl || !supabaseAnonKey) {
     throw new Error('Supabase not configured. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.');
   }
@@ -26,7 +29,11 @@ async function callOpenAIProxy(messages: Array<{ role: string; content: string }
       'Content-Type': 'application/json',
       Authorization: `Bearer ${supabaseAnonKey}`,
     },
-    body: JSON.stringify({ model: 'gpt-4o', messages: withIdentityPolicy(messages), temperature }),
+    body: JSON.stringify({
+      model: 'gpt-4o',
+      messages: withIdentityPolicy(messages),
+      temperature,
+    }),
   });
   if (!response.ok) {
     const err = await response.json().catch(() => ({}));

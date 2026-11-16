@@ -42,6 +42,88 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
   try {
     const body = await req.json();
+
+    // TTS mode — เสียงพูดธรรมชาติสำหรับ Voice Demo
+    if (body?.purpose === 'tts') {
+      const input = typeof body.input === 'string' ? body.input.trim() : '';
+      if (!input) {
+        return new Response(JSON.stringify({ error: 'input text required' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      const clipped = input.slice(0, 4000);
+      const voice = typeof body.voice === 'string' ? body.voice : 'nova';
+      // default tts-1 = เร็วสุดในกลุ่ม OpenAI TTS
+      const ttsModel = typeof body.model === 'string' && body.model ? body.model : 'tts-1';
+      const speed =
+        typeof body.speed === 'number' && body.speed >= 0.25 && body.speed <= 4
+          ? body.speed
+          : 1.05;
+
+      const openaiRes = await fetch('https://api.openai.com/v1/audio/speech', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${OPENAI_API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: ttsModel,
+          voice,
+          input: clipped,
+          response_format: 'mp3',
+          speed,
+          ...(ttsModel.includes('gpt-4o')
+            ? {
+                instructions:
+                  'Speak natural conversational Thai. Warm, friendly, clear, and human — not robotic. Use a calm video-call tone with light emotion. Keep a slightly brisk pace.',
+              }
+            : {}),
+        }),
+      });
+
+      if (!openaiRes.ok) {
+        const fallback = await fetch('https://api.openai.com/v1/audio/speech', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${OPENAI_API_KEY}`,
+          },
+          body: JSON.stringify({
+            model: 'tts-1',
+            voice: voice || 'nova',
+            input: clipped,
+            response_format: 'mp3',
+            speed,
+          }),
+        });
+        if (!fallback.ok) {
+          const err = await fallback.json().catch(() => ({}));
+          return new Response(JSON.stringify(err || { error: fallback.statusText }), {
+            status: fallback.status,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+        return new Response(fallback.body, {
+          status: 200,
+          headers: {
+            ...corsHeaders,
+            'Content-Type': 'audio/mpeg',
+            'Cache-Control': 'no-store',
+          },
+        });
+      }
+
+      return new Response(openaiRes.body, {
+        status: 200,
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'audio/mpeg',
+          'Cache-Control': 'no-store',
+        },
+      });
+    }
+
     const { model = 'gpt-4o', messages, temperature, stream } = body as {
       model?: string;
       messages: Array<{ role: string; content: string }>;
