@@ -1766,27 +1766,37 @@ const MindDojoVoiceAssessment: React.FC = () => {
     ? `${simPersona!.name} ${simPersona!.mbti}`
     : 'MindDoJo cartoon';
 
+  const showActionSheet =
+    phase === 'scenario_choice' ||
+    phase === 'pick_random' ||
+    phase === 'confirm' ||
+    phase === 'awaiting_result';
+
   return (
-    <div className="relative h-[100dvh] max-h-[100dvh] overflow-hidden bg-[#0b141a] text-white">
+    <div className="relative flex h-[100dvh] max-h-[100dvh] flex-col overflow-hidden bg-[#0b141a] text-white touch-manipulation">
       <div
         className="pointer-events-none absolute inset-0"
         style={{
           background:
-            'radial-gradient(ellipse at 50% 20%, rgba(6,199,85,0.18), transparent 45%), linear-gradient(180deg, #122018 0%, #0b141a 42%, #071018 100%)',
+            'radial-gradient(ellipse at 50% 12%, rgba(6,199,85,0.2), transparent 42%), linear-gradient(180deg, #14241c 0%, #0b141a 48%, #060d12 100%)',
         }}
       />
 
-      <header className="relative z-20 flex items-center justify-between px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-2">
+      <header className="relative z-20 flex shrink-0 items-center gap-2 px-3 pt-[max(0.55rem,env(safe-area-inset-top))] pb-1.5 sm:px-4">
         <Link
           to="/"
           onClick={() => stopHumanSpeech()}
-          className="rounded-full bg-black/35 px-3 py-1.5 text-xs text-white/90 backdrop-blur-md"
+          className="shrink-0 rounded-full bg-black/40 px-2.5 py-1.5 text-[11px] text-white/90 backdrop-blur-md active:scale-95"
         >
-          ย่อเล็ก
+          ย่อ
         </Link>
-        <div className="min-w-0 text-center">
-          <p className="truncate text-sm font-semibold tracking-wide">{calleeName}</p>
-          <p className="text-[11px] text-[#06c755]">{formatCallTimer(callSeconds)}</p>
+        <div className="min-w-0 flex-1 text-center">
+          <p className="truncate text-[13px] font-semibold leading-tight tracking-wide sm:text-sm">
+            {calleeName}
+          </p>
+          <p className="mt-0.5 text-[11px] font-medium tabular-nums text-[#06c755]">
+            {formatCallTimer(callSeconds)}
+          </p>
         </div>
         <button
           type="button"
@@ -1794,291 +1804,301 @@ const MindDojoVoiceAssessment: React.FC = () => {
             clearMindDojoAssessmentSession();
             window.location.reload();
           }}
-          className="rounded-full bg-black/35 px-3 py-1.5 text-xs text-white/80 backdrop-blur-md"
+          className="shrink-0 rounded-full bg-black/40 px-2.5 py-1.5 text-[11px] text-white/80 backdrop-blur-md active:scale-95"
         >
           ออก
         </button>
       </header>
 
-      <main className="relative z-10 flex h-[calc(100dvh-11.5rem)] flex-col items-center justify-center px-4">
-        <p className="mb-4 text-center text-xs text-white/55">{calleeSub}</p>
-
-        <div className="relative mb-5">
-          {(aiSpeaking || busy) && (
-            <>
-              <span className="absolute inset-[-10px] animate-ping rounded-full bg-[#06c755]/25" />
-              <span className="absolute inset-[-18px] rounded-full border border-[#06c755]/35" />
-            </>
-          )}
-          <div
-            className={`relative h-52 w-52 overflow-hidden rounded-full border-[3px] shadow-[0_20px_60px_rgba(0,0,0,0.45)] sm:h-64 sm:w-64 ${
-              aiSpeaking ? 'border-[#06c755]' : 'border-white/20'
-            }`}
-            style={{
-              // ตัว/หัวโคลงตามจังหวะพูด
-              transform: aiSpeaking
-                ? `translateY(${-2 - mouthOpen * 5}px) rotate(${(mouthOpen - 0.35) * 3.2}deg) scale(${1.02 + mouthOpen * 0.03})`
-                : busy
-                  ? 'translateY(-1px) scale(1.01)'
-                  : 'translateY(0) rotate(0deg) scale(1)',
-              transition: aiSpeaking
-                ? 'transform 70ms linear'
-                : 'transform 280ms ease',
-              transformOrigin: '50% 70%',
-            }}
-          >
-            <img
-              src={stageAvatarUrl}
-              alt={stageAvatarAlt}
-              className="h-full w-full object-cover bg-[#ffdf80]"
-              style={{
-                transform: aiSpeaking
-                  ? `translateY(${mouthOpen * -3}px) scale(${1 + mouthOpen * 0.02})`
-                  : 'none',
-                transition: 'transform 70ms linear',
-              }}
-              referrerPolicy="no-referrer"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent" />
-            {/* ปากอยู่กลางภาพ แล้วขยับตามเสียง */}
-            <div
-              className="pointer-events-none absolute z-10"
-              style={{
-                left: '50%',
-                top: '62%',
-                width: 42,
-                height: 18,
-                marginLeft: -21,
-                marginTop: -9,
-                borderRadius: '50%',
-                background:
-                  mouthOpen > 0.08
-                    ? 'radial-gradient(circle at 50% 30%, #5a1a28 0%, #1a0508 72%)'
-                    : 'rgba(40, 20, 20, 0.4)',
-                boxShadow:
-                  mouthOpen > 0.15
-                    ? 'inset 0 2px 4px rgba(255,180,180,0.22), 0 1px 2px rgba(0,0,0,0.35)'
-                    : 'none',
-                transform: `scaleX(${0.9 + mouthOpen * 0.45}) scaleY(${0.28 + mouthOpen * 1.55})`,
-                transformOrigin: '50% 50%',
-                transition: 'transform 55ms linear, background 80ms ease, opacity 100ms ease',
-                opacity: aiSpeaking || mouthOpen > 0.05 ? 1 : 0,
-              }}
-              aria-hidden
-            >
-              <div
-                className="absolute left-1/2 top-[16%] h-[22%] w-[58%] -translate-x-1/2 rounded-sm bg-white/90"
-                style={{ opacity: mouthOpen > 0.35 ? 0.95 : 0 }}
-              />
-            </div>
-          </div>
-        </div>
-
-        <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-black/40 px-3 py-1 text-[11px] text-white/85 backdrop-blur-md">
-          <span
-            className={`h-2 w-2 rounded-full ${
-              micOn ? 'bg-red-400 animate-pulse' : aiSpeaking ? 'bg-[#06c755] animate-pulse' : 'bg-white/40'
-            }`}
-          />
-          {statusLabel}
-        </div>
-
-        <div className="w-full max-w-md rounded-2xl bg-black/45 px-4 py-3 text-center backdrop-blur-md ring-1 ring-white/10">
-          <p className="mb-1 text-[10px] uppercase tracking-wider text-white/45">คำบรรยาย</p>
-          <p className="max-h-24 overflow-y-auto whitespace-pre-wrap text-sm leading-relaxed text-white/95">
-            {captionText}
+      <main className="relative z-10 flex min-h-0 flex-1 flex-col px-3 sm:px-4">
+        {/* โซนวิดีโอคอลหลัก — ยืดตามจอ */}
+        <div className="relative flex min-h-0 flex-1 flex-col items-center justify-center">
+          <p className="mb-2 max-w-[90%] truncate text-center text-[11px] text-white/50 sm:mb-3 sm:text-xs">
+            {calleeSub}
           </p>
-          {lastUser && (
-            <p className="mt-2 border-t border-white/10 pt-2 text-xs text-[#9ae6b4]">
-              คุณ: {stripMarkdownForSpeech(lastUser.content)}
-            </p>
-          )}
-          {lastEvent && inSim && (
-            <p className="mt-1 text-[11px] text-amber-200/90">ท่าทาง: {lastEvent.content}</p>
-          )}
-        </div>
 
-        <div className="absolute bottom-3 right-3 h-28 w-20 overflow-hidden rounded-xl border border-white/20 bg-[#1a2a24] shadow-xl sm:h-36 sm:w-28">
-          <div className="flex h-full flex-col items-center justify-center gap-1 bg-gradient-to-b from-[#24352e] to-[#15201b]">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-sm font-bold text-white/80">
-              {(profile?.name || 'คุณ').slice(0, 1)}
+          <div className="relative">
+            {(aiSpeaking || busy) && (
+              <>
+                <span className="absolute inset-[-8px] animate-ping rounded-full bg-[#06c755]/20 sm:inset-[-10px]" />
+                <span className="absolute inset-[-14px] rounded-full border border-[#06c755]/30 sm:inset-[-18px]" />
+              </>
+            )}
+            <div
+              className={`relative overflow-hidden rounded-full border-[3px] shadow-[0_16px_48px_rgba(0,0,0,0.5)] ${
+                aiSpeaking ? 'border-[#06c755]' : 'border-white/20'
+              }`}
+              style={{
+                width: 'min(42vw, 13.5rem, 38dvh)',
+                height: 'min(42vw, 13.5rem, 38dvh)',
+                transform: aiSpeaking
+                  ? `translateY(${-2 - mouthOpen * 5}px) rotate(${(mouthOpen - 0.35) * 3.2}deg) scale(${1.02 + mouthOpen * 0.03})`
+                  : busy
+                    ? 'translateY(-1px) scale(1.01)'
+                    : 'translateY(0) rotate(0deg) scale(1)',
+                transition: aiSpeaking ? 'transform 70ms linear' : 'transform 280ms ease',
+                transformOrigin: '50% 70%',
+              }}
+            >
+              <img
+                src={stageAvatarUrl}
+                alt={stageAvatarAlt}
+                className="h-full w-full object-cover bg-[#ffdf80]"
+                style={{
+                  transform: aiSpeaking
+                    ? `translateY(${mouthOpen * -3}px) scale(${1 + mouthOpen * 0.02})`
+                    : 'none',
+                  transition: 'transform 70ms linear',
+                }}
+                referrerPolicy="no-referrer"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent" />
+              <div
+                className="pointer-events-none absolute z-10"
+                style={{
+                  left: '50%',
+                  top: '62%',
+                  width: '18%',
+                  height: '7.5%',
+                  marginLeft: '-9%',
+                  marginTop: '-3.75%',
+                  borderRadius: '50%',
+                  background:
+                    mouthOpen > 0.08
+                      ? 'radial-gradient(circle at 50% 30%, #5a1a28 0%, #1a0508 72%)'
+                      : 'rgba(40, 20, 20, 0.4)',
+                  boxShadow:
+                    mouthOpen > 0.15
+                      ? 'inset 0 2px 4px rgba(255,180,180,0.22), 0 1px 2px rgba(0,0,0,0.35)'
+                      : 'none',
+                  transform: `scaleX(${0.9 + mouthOpen * 0.45}) scaleY(${0.28 + mouthOpen * 1.55})`,
+                  transformOrigin: '50% 50%',
+                  transition: 'transform 55ms linear, background 80ms ease, opacity 100ms ease',
+                  opacity: aiSpeaking || mouthOpen > 0.05 ? 1 : 0,
+                }}
+                aria-hidden
+              >
+                <div
+                  className="absolute left-1/2 top-[16%] h-[22%] w-[58%] -translate-x-1/2 rounded-sm bg-white/90"
+                  style={{ opacity: mouthOpen > 0.35 ? 0.95 : 0 }}
+                />
+              </div>
             </div>
-            <span className="line-clamp-2 px-1 text-center text-[10px] text-white/70">
-              {profile?.name || 'คุณ'}
-            </span>
-            {micOn && <span className="text-[9px] text-red-300">MIC ON</span>}
+          </div>
+
+          <div className="mt-3 inline-flex max-w-[95%] items-center gap-1.5 rounded-full bg-black/45 px-2.5 py-1 text-[10px] text-white/85 backdrop-blur-md sm:mt-4 sm:text-[11px]">
+            <span
+              className={`h-1.5 w-1.5 shrink-0 rounded-full sm:h-2 sm:w-2 ${
+                micOn ? 'animate-pulse bg-red-400' : aiSpeaking ? 'animate-pulse bg-[#06c755]' : 'bg-white/40'
+              }`}
+            />
+            <span className="truncate">{statusLabel}</span>
+          </div>
+
+          {/* PiP ผู้ใช้ — มุมขวาล่างของโซนวิดีโอ */}
+          <div className="absolute bottom-1 right-0 h-[4.75rem] w-[3.4rem] overflow-hidden rounded-xl border border-white/25 bg-[#1a2a24] shadow-xl sm:bottom-2 sm:right-1 sm:h-28 sm:w-20">
+            <div className="flex h-full flex-col items-center justify-center gap-0.5 bg-gradient-to-b from-[#24352e] to-[#15201b]">
+              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-white/10 text-[11px] font-bold text-white/80 sm:h-10 sm:w-10 sm:text-sm">
+                {(profile?.name || 'คุณ').slice(0, 1)}
+              </div>
+              <span className="line-clamp-1 px-1 text-center text-[8px] text-white/70 sm:line-clamp-2 sm:text-[10px]">
+                {profile?.name || 'คุณ'}
+              </span>
+              {micOn && <span className="text-[8px] font-semibold text-red-300 sm:text-[9px]">MIC</span>}
+            </div>
           </div>
         </div>
+
+        {/* คำบรรยาย — กะทัดรัด ไม่กินจอ */}
+        {!showActionSheet && (
+          <div className="mx-auto mb-2 w-full max-w-md shrink-0 rounded-2xl bg-black/50 px-3 py-2.5 text-center backdrop-blur-md ring-1 ring-white/10 sm:mb-3 sm:px-4 sm:py-3">
+            <p className="mb-0.5 text-[9px] uppercase tracking-[0.14em] text-white/40">คำบรรยาย</p>
+            <p className="max-h-[4.5rem] overflow-y-auto whitespace-pre-wrap text-[13px] leading-snug text-white/95 sm:max-h-24 sm:text-sm sm:leading-relaxed">
+              {captionText}
+            </p>
+            {lastUser && (
+              <p className="mt-1.5 line-clamp-2 border-t border-white/10 pt-1.5 text-left text-[11px] text-[#9ae6b4] sm:text-xs">
+                คุณ: {stripMarkdownForSpeech(lastUser.content)}
+              </p>
+            )}
+            {lastEvent && inSim && (
+              <p className="mt-1 line-clamp-1 text-left text-[10px] text-amber-200/85 sm:text-[11px]">
+                ท่าทาง: {lastEvent.content}
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* แผงเลือกสถานการณ์ — อยู่ใน flow ไม่ทับปุ่ม */}
+        {showActionSheet && (
+          <div className="mx-auto mb-2 w-full max-w-lg shrink-0 overflow-hidden rounded-[1.35rem] border border-white/10 bg-[#0f1c18]/95 shadow-2xl backdrop-blur-xl sm:mb-3">
+            <div className="max-h-[min(38dvh,20rem)] overflow-y-auto overscroll-contain p-3 sm:max-h-[min(42dvh,24rem)] sm:p-4">
+              {phase === 'scenario_choice' && (
+                <div className="space-y-2.5">
+                  <p className="text-sm font-semibold text-white">เลือกวิธีเริ่มสถานการณ์</p>
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() => {
+                      setMainMessages((prev) => [
+                        ...prev,
+                        {
+                          id: uid(),
+                          role: 'assistant',
+                          content: `รับทราบค่ะ — กำลังสุ่มสถานการณ์ให้ ${RANDOM_SCENARIO_COUNT} แบบจากบริบทของคุณ รอสักครู่นะคะ`,
+                        },
+                      ]);
+                      void fetchRandomScenarios();
+                    }}
+                    className="w-full rounded-2xl bg-[#06c755] py-3 text-sm font-bold text-black active:scale-[0.99] disabled:opacity-50"
+                  >
+                    {busy ? 'กำลังสุ่ม...' : 'สุ่มสถานการณ์ (10 ตัวเลือก)'}
+                  </button>
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() => {
+                      setPhase('custom_profiling');
+                      setMainMessages((prev) => [
+                        ...prev,
+                        {
+                          id: uid(),
+                          role: 'assistant',
+                          content:
+                            'เยี่ยมเลย — เรามาออกแบบสถานการณ์ของคุณเองกันค่ะ อยากคุยกับใครในที่ทำงาน (เช่น หัวหน้า ลูกค้า เพื่อนร่วมงาน)?',
+                        },
+                      ]);
+                    }}
+                    className="w-full rounded-2xl border border-white/20 bg-white/5 py-3 text-sm font-semibold text-white active:scale-[0.99] disabled:opacity-50"
+                  >
+                    สร้างสถานการณ์เอง
+                  </button>
+                </div>
+              )}
+
+              {phase === 'pick_random' && randomOptions.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-sm font-semibold text-white">เลือกสถานการณ์</p>
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    {randomOptions.map((opt, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        disabled={busy}
+                        onClick={() => {
+                          const { shortTitle, ...sc } = opt;
+                          const persona = createSimulationPersona(
+                            `${shortTitle}-${sc.situationSummary}`,
+                            sc.counterpart,
+                          );
+                          setScenario(sc);
+                          setSimPersona(persona);
+                          setPhase('confirm');
+                          setMainMessages((prev) => [
+                            ...prev,
+                            { id: uid(), role: 'user', content: `เลือกข้อ ${i + 1}: ${shortTitle}` },
+                            {
+                              id: uid(),
+                              role: 'assistant',
+                              content: `สรุปสถานการณ์ที่เลือก:\n\n• ${shortTitle}\n• บทบาทคุณ: ${sc.userRole}\n• คู่สนทนา: ${sc.counterpart}\n• บริบท: ${sc.context}\n• ${sc.situationSummary}\n\nคู่สนทนา: ${persona.name} • ${persona.position} • ${persona.mbti}\n\nกดยืนยันเมื่อพร้อมเริ่มสายจำลอง`,
+                            },
+                          ]);
+                        }}
+                        className="rounded-2xl border border-white/10 bg-white/5 p-3 text-left active:border-[#06c755]/50 active:bg-[#06c755]/10 disabled:opacity-50"
+                      >
+                        <p className="text-xs font-bold text-[#9ae6b4]">
+                          {i + 1}. {opt.shortTitle}
+                        </p>
+                        <p className="mt-1 line-clamp-2 text-[11px] leading-snug text-white/70 sm:line-clamp-3">
+                          {opt.situationSummary}
+                        </p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {phase === 'confirm' && scenario && (
+                <div className="space-y-3">
+                  <p className="text-sm font-semibold text-white">ยืนยันก่อนเริ่มจำลอง</p>
+                  <ul className="space-y-1 text-xs leading-snug text-white/75">
+                    <li>บทบาทคุณ: {scenario.userRole}</li>
+                    <li>คู่สนทนา: {scenario.counterpart}</li>
+                    <li>บริบท: {scenario.context}</li>
+                    <li className="line-clamp-3">{scenario.situationSummary}</li>
+                  </ul>
+                  {simPersona && (
+                    <p className="text-xs text-[#9ae6b4]">
+                      คู่สาย: {simPersona.name} · {simPersona.position} · {simPersona.mbti}
+                      {simPersona.gender === 'male' ? ' · ชาย' : ' · หญิง'}
+                    </p>
+                  )}
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() => void startSimulation()}
+                    className="w-full rounded-2xl bg-[#06c755] py-3 text-sm font-bold text-black active:scale-[0.99] disabled:opacity-50"
+                  >
+                    ยืนยันและเริ่มสายจำลอง
+                  </button>
+                </div>
+              )}
+
+              {phase === 'awaiting_result' && (
+                <div className="space-y-3 text-center">
+                  <p className="text-sm font-semibold text-white">การจำลองเสร็จแล้ว</p>
+                  <p className="text-xs text-white/70">กดเพื่อสร้าง Dashboard ผลการประเมิน 6 ด้าน</p>
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() => void loadFinalReport()}
+                    className="w-full rounded-2xl bg-[#06c755] py-3 text-sm font-bold text-black active:scale-[0.99] disabled:opacity-50"
+                  >
+                    {busy ? 'กำลังสร้างผลลัพธ์...' : 'ดูผลลัพธ์'}
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {error && (
+          <div className="mb-2 shrink-0 rounded-xl border border-red-400/30 bg-red-950/85 px-3 py-2 text-xs text-red-100">
+            {error}
+          </div>
+        )}
+
+        {showKeyboard && canTalk && (
+          <div className="mb-2 shrink-0">
+            <div className="mx-auto flex w-full max-w-lg gap-2 rounded-2xl border border-white/10 bg-[#12201b]/95 p-2 backdrop-blur-xl">
+              <textarea
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={onKeyDown}
+                rows={2}
+                placeholder="พิมพ์ข้อความแทนการพูด..."
+                className="min-h-[44px] flex-1 resize-none rounded-xl border-0 bg-transparent px-2 py-2 text-[16px] text-white outline-none placeholder:text-white/35 sm:text-sm"
+              />
+              <button
+                type="button"
+                disabled={!input.trim() || busy}
+                onClick={() => void onSend()}
+                className="shrink-0 self-end rounded-xl bg-[#06c755] px-4 py-2 text-sm font-bold text-black disabled:opacity-40"
+              >
+                ส่ง
+              </button>
+            </div>
+          </div>
+        )}
       </main>
 
-      {(phase === 'scenario_choice' ||
-        phase === 'pick_random' ||
-        phase === 'confirm' ||
-        phase === 'awaiting_result') && (
-        <div className="absolute inset-x-0 bottom-[7.5rem] z-30 mx-auto max-h-[42vh] w-full max-w-lg overflow-y-auto px-3">
-          <div className="rounded-3xl border border-white/10 bg-[#0f1c18]/92 p-4 shadow-2xl backdrop-blur-xl">
-            {phase === 'scenario_choice' && (
-              <div className="space-y-3">
-                <p className="text-sm font-semibold text-white">เลือกวิธีเริ่มสถานการณ์</p>
-                <button
-                  type="button"
-                  disabled={busy}
-                  onClick={() => {
-                    setMainMessages((prev) => [
-                      ...prev,
-                      {
-                        id: uid(),
-                        role: 'assistant',
-                        content: `รับทราบค่ะ — กำลังสุ่มสถานการณ์ให้ ${RANDOM_SCENARIO_COUNT} แบบจากบริบทของคุณ รอสักครู่นะคะ`,
-                      },
-                    ]);
-                    void fetchRandomScenarios();
-                  }}
-                  className="w-full rounded-2xl bg-[#06c755] py-3 text-sm font-bold text-black disabled:opacity-50"
-                >
-                  {busy ? 'กำลังสุ่ม...' : 'สุ่มสถานการณ์ (10 ตัวเลือก)'}
-                </button>
-                <button
-                  type="button"
-                  disabled={busy}
-                  onClick={() => {
-                    setPhase('custom_profiling');
-                    setMainMessages((prev) => [
-                      ...prev,
-                      {
-                        id: uid(),
-                        role: 'assistant',
-                        content:
-                          'เยี่ยมเลย — เรามาออกแบบสถานการณ์ของคุณเองกันค่ะ อยากคุยกับใครในที่ทำงาน (เช่น หัวหน้า ลูกค้า เพื่อนร่วมงาน)?',
-                      },
-                    ]);
-                  }}
-                  className="w-full rounded-2xl border border-white/20 bg-white/5 py-3 text-sm font-semibold text-white disabled:opacity-50"
-                >
-                  สร้างสถานการณ์เอง
-                </button>
-              </div>
-            )}
-
-            {phase === 'pick_random' && randomOptions.length > 0 && (
-              <div className="space-y-2">
-                <p className="text-sm font-semibold text-white">เลือกสถานการณ์</p>
-                <div className="grid max-h-[32vh] grid-cols-1 gap-2 overflow-y-auto sm:grid-cols-2">
-                  {randomOptions.map((opt, i) => (
-                    <button
-                      key={i}
-                      type="button"
-                      disabled={busy}
-                      onClick={() => {
-                        const { shortTitle, ...sc } = opt;
-                        const persona = createSimulationPersona(
-                          `${shortTitle}-${sc.situationSummary}`,
-                          sc.counterpart
-                        );
-                        setScenario(sc);
-                        setSimPersona(persona);
-                        setPhase('confirm');
-                        setMainMessages((prev) => [
-                          ...prev,
-                          { id: uid(), role: 'user', content: `เลือกข้อ ${i + 1}: ${shortTitle}` },
-                          {
-                            id: uid(),
-                            role: 'assistant',
-                            content: `สรุปสถานการณ์ที่เลือก:\n\n• ${shortTitle}\n• บทบาทคุณ: ${sc.userRole}\n• คู่สนทนา: ${sc.counterpart}\n• บริบท: ${sc.context}\n• ${sc.situationSummary}\n\nคู่สนทนา: ${persona.name} • ${persona.position} • ${persona.mbti}\n\nกดยืนยันเมื่อพร้อมเริ่มสายจำลอง`,
-                          },
-                        ]);
-                      }}
-                      className="rounded-2xl border border-white/10 bg-white/5 p-3 text-left hover:border-[#06c755]/50 hover:bg-[#06c755]/10 disabled:opacity-50"
-                    >
-                      <p className="text-xs font-bold text-[#9ae6b4]">
-                        {i + 1}. {opt.shortTitle}
-                      </p>
-                      <p className="mt-1 line-clamp-3 text-[11px] text-white/70">{opt.situationSummary}</p>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {phase === 'confirm' && scenario && (
-              <div className="space-y-3">
-                <p className="text-sm font-semibold text-white">ยืนยันก่อนเริ่มจำลอง</p>
-                <ul className="space-y-1 text-xs text-white/75">
-                  <li>บทบาทคุณ: {scenario.userRole}</li>
-                  <li>คู่สนทนา: {scenario.counterpart}</li>
-                  <li>บริบท: {scenario.context}</li>
-                  <li>{scenario.situationSummary}</li>
-                </ul>
-                {simPersona && (
-                  <p className="text-xs text-[#9ae6b4]">
-                    คู่สาย: {simPersona.name} · {simPersona.position} · {simPersona.mbti}
-                  </p>
-                )}
-                <button
-                  type="button"
-                  disabled={busy}
-                  onClick={() => void startSimulation()}
-                  className="w-full rounded-2xl bg-[#06c755] py-3 text-sm font-bold text-black disabled:opacity-50"
-                >
-                  ยืนยันและเริ่มสายจำลอง
-                </button>
-              </div>
-            )}
-
-            {phase === 'awaiting_result' && (
-              <div className="space-y-3 text-center">
-                <p className="text-sm font-semibold text-white">การจำลองเสร็จแล้ว</p>
-                <p className="text-xs text-white/70">กดเพื่อสร้าง Dashboard ผลการประเมิน 6 ด้าน</p>
-                <button
-                  type="button"
-                  disabled={busy}
-                  onClick={() => void loadFinalReport()}
-                  className="w-full rounded-2xl bg-[#06c755] py-3 text-sm font-bold text-black disabled:opacity-50"
-                >
-                  {busy ? 'กำลังสร้างผลลัพธ์...' : 'ดูผลลัพธ์'}
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {error && (
-        <div className="absolute inset-x-3 bottom-[7.2rem] z-40 rounded-xl border border-red-400/30 bg-red-950/80 px-3 py-2 text-xs text-red-100">
-          {error}
-        </div>
-      )}
-
-      {showKeyboard && canTalk && (
-        <div className="absolute inset-x-0 bottom-[6.75rem] z-40 mx-auto w-full max-w-lg px-3">
-          <div className="flex gap-2 rounded-2xl border border-white/10 bg-[#12201b]/95 p-2 backdrop-blur-xl">
-            <textarea
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={onKeyDown}
-              rows={2}
-              placeholder="พิมพ์ข้อความแทนการพูด..."
-              className="min-h-[44px] flex-1 resize-none rounded-xl border-0 bg-transparent px-2 py-2 text-sm text-white outline-none placeholder:text-white/35"
-            />
-            <button
-              type="button"
-              disabled={!input.trim() || busy}
-              onClick={() => void onSend()}
-              className="shrink-0 self-end rounded-xl bg-[#06c755] px-4 py-2 text-sm font-bold text-black disabled:opacity-40"
-            >
-              ส่ง
-            </button>
-          </div>
-        </div>
-      )}
-
-      <footer className="absolute inset-x-0 bottom-0 z-30 bg-gradient-to-t from-black/80 via-black/50 to-transparent px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-8">
+      <footer className="relative z-30 shrink-0 bg-gradient-to-t from-black via-black/85 to-transparent px-3 pb-[max(0.65rem,env(safe-area-inset-bottom))] pt-3 sm:px-4 sm:pt-4">
         {autoDemo && (
-          <div className="mb-3 flex flex-col items-center gap-2">
-            <p className="text-center text-[11px] font-medium text-[#9ae6b4]">
+          <div className="mb-2.5 flex flex-col items-center gap-1.5">
+            <p className="text-center text-[10px] font-medium text-[#9ae6b4] sm:text-[11px]">
               โหมดคุยอัตโนมัติ · รอพูดจบก่อนไปขั้นถัดไป
             </p>
-            <div className="flex items-center gap-1 rounded-full bg-black/45 p-1 ring-1 ring-white/15">
+            <div className="flex items-center gap-0.5 rounded-full bg-black/50 p-0.5 ring-1 ring-white/15">
               {([1, 2, 3] as const).map((speed) => (
                 <button
                   key={speed}
@@ -2088,10 +2108,8 @@ const MindDojoVoiceAssessment: React.FC = () => {
                     setAutoSpeed(speed);
                     setHumanSpeechRate(speed);
                   }}
-                  className={`min-w-[2.5rem] rounded-full px-3 py-1 text-[11px] font-bold transition ${
-                    autoSpeed === speed
-                      ? 'bg-[#06c755] text-black'
-                      : 'text-white/80 hover:bg-white/10'
+                  className={`min-h-8 min-w-[2.35rem] rounded-full px-2.5 text-[11px] font-bold transition active:scale-95 ${
+                    autoSpeed === speed ? 'bg-[#06c755] text-black' : 'text-white/80'
                   }`}
                 >
                   x{speed}
@@ -2100,7 +2118,8 @@ const MindDojoVoiceAssessment: React.FC = () => {
             </div>
           </div>
         )}
-        <div className="mx-auto flex max-w-lg flex-wrap items-center justify-center gap-3 sm:gap-5">
+
+        <div className="mx-auto flex w-full max-w-md items-end justify-between gap-2 px-1 sm:max-w-lg sm:justify-center sm:gap-5">
           <button
             type="button"
             title={voiceOutEnabled ? 'ปิดลำโพง' : 'เปิดลำโพง'}
@@ -2113,7 +2132,7 @@ const MindDojoVoiceAssessment: React.FC = () => {
                 return !v;
               });
             }}
-            className={`flex h-12 w-12 flex-col items-center justify-center rounded-full sm:h-14 sm:w-14 ${
+            className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full active:scale-95 sm:h-14 sm:w-14 ${
               voiceOutEnabled ? 'bg-white/15 text-white' : 'bg-white text-[#0b141a]'
             }`}
           >
@@ -2127,7 +2146,6 @@ const MindDojoVoiceAssessment: React.FC = () => {
               setAutoDemo((v) => {
                 const next = !v;
                 if (next) {
-                  // ปิดไมค์ผู้ใช้ — ให้ระบบคุยเอง
                   micOnRef.current = false;
                   setMicOn(false);
                   stopRecognition();
@@ -2140,8 +2158,8 @@ const MindDojoVoiceAssessment: React.FC = () => {
                 return next;
               });
             }}
-            className={`flex h-12 w-12 flex-col items-center justify-center rounded-full sm:h-14 sm:w-14 ${
-              autoDemo ? 'bg-[#06c755] text-black animate-pulse' : 'bg-white/15 text-white'
+            className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full active:scale-95 sm:h-14 sm:w-14 ${
+              autoDemo ? 'animate-pulse bg-[#06c755] text-black' : 'bg-white/15 text-white'
             }`}
           >
             <Bot className="h-5 w-5" />
@@ -2150,15 +2168,11 @@ const MindDojoVoiceAssessment: React.FC = () => {
           <button
             type="button"
             title={
-              !speechSupported
-                ? 'ไม่รองรับไมค์'
-                : micOn
-                  ? 'ปิดไมค์'
-                  : 'เปิดไมค์'
+              !speechSupported ? 'ไม่รองรับไมค์' : micOn ? 'ปิดไมค์' : 'เปิดไมค์'
             }
             disabled={!speechSupported || !canTalk || autoDemo}
             onClick={toggleMic}
-            className={`flex h-14 w-14 flex-col items-center justify-center rounded-full disabled:opacity-40 sm:h-16 sm:w-16 ${
+            className={`flex h-[3.6rem] w-[3.6rem] shrink-0 items-center justify-center rounded-full disabled:opacity-40 active:scale-95 sm:h-16 sm:w-16 ${
               micOn ? 'bg-[#06c755] text-black' : 'bg-white text-[#0b141a]'
             }`}
           >
@@ -2170,7 +2184,7 @@ const MindDojoVoiceAssessment: React.FC = () => {
             title="พิมพ์ข้อความ"
             disabled={!canTalk || autoDemo}
             onClick={() => setShowKeyboard((v) => !v)}
-            className={`flex h-12 w-12 flex-col items-center justify-center rounded-full disabled:opacity-40 sm:h-14 sm:w-14 ${
+            className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full disabled:opacity-40 active:scale-95 sm:h-14 sm:w-14 ${
               showKeyboard ? 'bg-[#06c755] text-black' : 'bg-white/15 text-white'
             }`}
           >
@@ -2184,14 +2198,11 @@ const MindDojoVoiceAssessment: React.FC = () => {
               stopHumanSpeech();
             }}
             title="วางสาย"
-            className="flex h-12 w-12 items-center justify-center rounded-full bg-[#ff3b30] text-white shadow-lg shadow-red-900/40 sm:h-14 sm:w-14"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#ff3b30] text-white shadow-lg shadow-red-900/40 active:scale-95 sm:h-14 sm:w-14"
           >
             <PhoneOff className="h-5 w-5" />
           </Link>
         </div>
-        <p className="mt-3 text-center text-[10px] text-white/40">
-          AI Chat Bot (Voice) Demo · กดปุ่มหุ่นยนต์เพื่อคุยอัตโนมัติ
-        </p>
       </footer>
 
       <div ref={chatScrollRef} className="hidden" />
