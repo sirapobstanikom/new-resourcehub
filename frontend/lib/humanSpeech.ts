@@ -46,6 +46,11 @@ export function isHumanSpeechBusy() {
   return false;
 }
 
+/** บังคับเคลียร์คิวเสียงที่ค้าง (กันออโต้ติดรอพูดจบ) */
+export function forceClearHumanSpeech() {
+  stopHumanSpeech();
+}
+
 /** แนบ onEnd ถ้ายังพูดอยู่ ไม่เช่นนั้นเรียกทันที */
 export function attachSpeechEndHandler(onEnd: () => void) {
   if (!isHumanSpeechBusy()) {
@@ -168,6 +173,7 @@ export function stopHumanSpeech() {
   playQueue = [];
   pumping = false;
   hasStarted = false;
+  const end = activeHandlers?.onEnd;
   activeHandlers = null;
   stopLevelMonitor();
   try {
@@ -185,6 +191,14 @@ export function stopHumanSpeech() {
     if (typeof window !== 'undefined') window.speechSynthesis?.cancel();
   } catch {
     /* ignore */
+  }
+  // แจ้งผู้รอ onEnd ว่าจบแล้ว (เช่น setAiSpeaking(false)) — ไม่โยน error ต่อ
+  if (end) {
+    try {
+      end();
+    } catch {
+      /* ignore */
+    }
   }
 }
 

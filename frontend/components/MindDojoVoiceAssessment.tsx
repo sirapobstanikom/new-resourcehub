@@ -29,6 +29,7 @@ import {
 import {
   attachSpeechEndHandler,
   enqueueHumanThai,
+  forceClearHumanSpeech,
   isHumanSpeechBusy,
   setHumanSpeechGender,
   setHumanSpeechRate,
@@ -1365,29 +1366,49 @@ const MindDojoVoiceAssessment: React.FC = () => {
   // โหมดคุยอัตโนมัติ — รันทั้ง flow โดย AI ตอบแทนผู้ใช้
   useEffect(() => {
     if (!autoDemo || !loggedIn) return;
-    if (busy || aiSpeaking || mainStreamingId || simStreamingId || autoLockRef.current) return;
-    if (isHumanSpeechBusy()) return;
 
     const sleep = (ms: number) => new Promise<void>((r) => window.setTimeout(r, ms));
     const delay = (ms: number) =>
       sleep(Math.max(60, Math.round(ms / Math.max(1, autoSpeedRef.current))));
+    const scheduleRetry = (ms: number) => {
+      const wait = Math.max(120, Math.round(ms / Math.max(1, autoSpeedRef.current)));
+      window.setTimeout(() => {
+        if (autoDemoRef.current) kickAutoDemo();
+      }, wait);
+    };
 
-    /** รอให้ AI พูดจบก่อนไปขั้นถัดไป — กันกระโดดเฟสกลางประโยค */
+    // ถ้ายังพูด/busy อยู่ — อย่าเงียบๆ return ต้องนัด kick ใหม่
+    if (busy || aiSpeaking || mainStreamingId || simStreamingId || autoLockRef.current) {
+      scheduleRetry(700);
+      return;
+    }
+    if (isHumanSpeechBusy()) {
+      scheduleRetry(500);
+      return;
+    }
+
+    /** รอพูดจบ — มี timeout กันค้างทั้ง flow */
     const waitUntilSpeechDone = async (expectSpeech = true) => {
       if (!voiceOutEnabledRef.current || !autoDemoRef.current) return;
       if (expectSpeech) {
-        // ให้ React effect เริ่มพูดข้อความที่เพิ่งใส่
         await sleep(Math.max(120, Math.round(350 / autoSpeedRef.current)));
-        const startDeadline = Date.now() + 2800;
+        const startDeadline = Date.now() + 2200;
         while (autoDemoRef.current && Date.now() < startDeadline) {
           if (aiSpeakingRef.current || isHumanSpeechBusy()) break;
           await sleep(70);
         }
       }
+      const hardDeadline = Date.now() + 28000;
       while (autoDemoRef.current && (aiSpeakingRef.current || isHumanSpeechBusy())) {
+        if (Date.now() > hardDeadline) {
+          forceClearHumanSpeech();
+          setAiSpeaking(false);
+          aiSpeakingRef.current = false;
+          break;
+        }
         await sleep(100);
       }
-      await delay(180);
+      await delay(150);
     };
 
     const generateUserReply = async (): Promise<string> => {
@@ -1427,19 +1448,26 @@ const MindDojoVoiceAssessment: React.FC = () => {
     };
 
     const run = async () => {
+      if (autoLockRef.current) {
+        scheduleRetry(600);
+        return;
+      }
       autoLockRef.current = true;
       let retryMs = 0;
+      let pendingKey = '';
       try {
-        // กันเคส aiSpeaking เพิ่ง false แต่คิวยังมีเสียงค้าง
-        if (isHumanSpeechBusy()) {
+        if (isHumanSpeechBusy() || aiSpeakingRef.current) {
           await waitUntilSpeechDone(false);
           if (!autoDemoRef.current) return;
         }
 
         if (phase === 'scenario_choice') {
           const key = 'scenario_choice';
-          if (lastAutoHandledRef.current === key) return;
-          lastAutoHandledRef.current = key;
+          if (lastAutoHandledRef.current === key) {
+            retryMs = 800;
+            return;
+          }
+          pendingKey = key;
           await delay(700);
           if (!autoDemoRef.current) return;
           setMainMessages((prev) => [
@@ -1453,19 +1481,26 @@ const MindDojoVoiceAssessment: React.FC = () => {
           await waitUntilSpeechDone(true);
           if (!autoDemoRef.current) return;
           await fetchRandomScenarios();
+          lastAutoHandledRef.current = key;
           retryMs = Math.max(200, Math.round(500 / autoSpeedRef.current));
           return;
         }
 
         if (phase === 'pick_random' && randomOptions.length > 0) {
           const key = `pick:${randomOptions.map((o) => o.shortTitle).join('|')}`;
-          if (lastAutoHandledRef.current === key) return;
-          lastAutoHandledRef.current = key;
-          await delay(900);
+          if (lastAutoHandledRef.current === key) {
+            retryMs = 800;
+            return;
+          }
+          pendingKey = key;
+          await delay(700);
           if (!autoDemoRef.current) return;
           const idx = Math.floor(Math.random() * Math.min(3, randomOptions.length));
           const opt = randomOptions[idx];
-          if (!opt) return;
+          if (!opt) {
+            retryMs = 700;
+            return;
+          }
           const { shortTitle, ...sc } = opt;
           const persona = createSimulationPersona(`${shortTitle}-${sc.situationSummary}`, sc.counterpart);
           setScenario(sc);
@@ -1479,24 +1514,27 @@ const MindDojoVoiceAssessment: React.FC = () => {
               content: `สรุปสถานการณ์ที่เลือก:\n\n• ${shortTitle}\n• บทบาทคุณ: ${sc.userRole}\n• คู่สนทนา: ${sc.counterpart}\n• บริบท: ${sc.context}\n• ${sc.situationSummary}\n\nคู่สนทนา: ${persona.name} • ${persona.position} • ${persona.mbti}\n\nโหมดอัตโนมัติจะเริ่มสายจำลองให้นะคะ`,
             },
           ]);
-          // พูดสรุปให้จบก่อนค่อยเข้า confirm / เริ่มจำลอง
           await waitUntilSpeechDone(true);
           if (!autoDemoRef.current) return;
           setPhase('confirm');
+          lastAutoHandledRef.current = key;
           retryMs = Math.max(200, Math.round(500 / autoSpeedRef.current));
           return;
         }
 
         if (phase === 'confirm' && scenario) {
           const key = `confirm:${scenario.situationSummary}`;
-          if (lastAutoHandledRef.current === key) return;
-          lastAutoHandledRef.current = key;
-          await delay(700);
+          if (lastAutoHandledRef.current === key) {
+            retryMs = 900;
+            return;
+          }
+          pendingKey = key;
+          await delay(500);
           if (!autoDemoRef.current) return;
           await waitUntilSpeechDone(false);
           if (!autoDemoRef.current) return;
+          lastAutoHandledRef.current = key;
           await startSimulation();
-          // สำคัญ: หลังเข้าจำลองต้อง kick ใหม่ ไม่เช่นนั้นออโต้จะค้าง
           retryMs = Math.max(300, Math.round(900 / autoSpeedRef.current));
           return;
         }
@@ -1504,11 +1542,12 @@ const MindDojoVoiceAssessment: React.FC = () => {
         if (phase === 'awaiting_result') {
           const key = 'awaiting_result';
           if (lastAutoHandledRef.current === key) return;
-          lastAutoHandledRef.current = key;
-          await delay(800);
+          pendingKey = key;
+          await delay(600);
           if (!autoDemoRef.current) return;
           await waitUntilSpeechDone(false);
           if (!autoDemoRef.current) return;
+          lastAutoHandledRef.current = key;
           await loadFinalReport();
           setAutoDemo(false);
           return;
@@ -1516,44 +1555,45 @@ const MindDojoVoiceAssessment: React.FC = () => {
 
         if (phase === 'profiling' || phase === 'custom_profiling' || phase === 'simulation') {
           const pool = phase === 'simulation' ? simMessages : mainMessages;
-          // ข้าม event cue — หา assistant ล่าสุดที่มีข้อความจริง
           const lastAi = [...pool]
             .reverse()
             .find((m) => m.role === 'assistant' && m.content.trim().length > 0);
           if (!lastAi) {
-            // เพิ่งเข้า simulation ข้อความอาจยังไม่พร้อม
             retryMs = Math.max(250, Math.round(700 / autoSpeedRef.current));
             return;
           }
           const key = `reply:${phase}:${lastAi.id}`;
-          if (lastAutoHandledRef.current === key) return;
-          lastAutoHandledRef.current = key;
-          // รอพูดจบชัด ๆ ก่อนให้บอทตอบแทนผู้ใช้
+          if (lastAutoHandledRef.current === key) {
+            // ข้อความนี้ตอบไปแล้ว — รอข้อความ AI รอบใหม่ (kick เบาๆ กันค้าง)
+            retryMs = 1200;
+            return;
+          }
+          pendingKey = key;
           await waitUntilSpeechDone(false);
           if (!autoDemoRef.current) return;
-          await delay(phase === 'simulation' ? 700 : 500);
+          await delay(phase === 'simulation' ? 450 : 350);
           if (!autoDemoRef.current) return;
           const reply = await generateUserReply();
           if (!autoDemoRef.current) return;
           if (reply) {
+            lastAutoHandledRef.current = key;
             onSendRef.current(reply);
+            // onSend จะทำให้ busy=true — kick หลังจบรอบ
+            retryMs = Math.max(400, Math.round(900 / autoSpeedRef.current));
           } else {
-            // สร้างคำตอบไม่สำเร็จ — ลองใหม่
-            lastAutoHandledRef.current = '';
             retryMs = Math.max(300, Math.round(1000 / autoSpeedRef.current));
           }
         }
       } catch (e) {
         setError(e instanceof Error ? e.message : 'โหมดอัตโนมัติขัดข้อง');
-        // ปลด key ล่าสุดเพื่อให้ลองต่อได้
-        lastAutoHandledRef.current = '';
+        if (pendingKey && lastAutoHandledRef.current === pendingKey) {
+          lastAutoHandledRef.current = '';
+        }
         retryMs = Math.max(400, Math.round(1200 / autoSpeedRef.current));
       } finally {
         autoLockRef.current = false;
         if (retryMs > 0 && autoDemoRef.current) {
-          window.setTimeout(() => {
-            if (autoDemoRef.current) kickAutoDemo();
-          }, retryMs);
+          scheduleRetry(retryMs);
         }
       }
     };
@@ -1579,14 +1619,44 @@ const MindDojoVoiceAssessment: React.FC = () => {
     kickAutoDemo,
   ]);
 
-  // หลัง AI พูดจบในโหมดออโต้ — กระตุ้นให้ตอบต่อ (กันค้างตอน simulation)
+  // Watchdog — กันออโต้เงียบค้างทั้งที่ข้อความขึ้นแล้ว
+  useEffect(() => {
+    if (!autoDemo || !loggedIn) return;
+    let speechBusySince = 0;
+    const t = window.setInterval(() => {
+      if (!autoDemoRef.current) return;
+
+      const speechBusy = isHumanSpeechBusy() || aiSpeakingRef.current;
+      if (speechBusy) {
+        if (!speechBusySince) speechBusySince = Date.now();
+        // ค้างพูดผิดปกติ > 32s ค่อยบังคับเคลียร์
+        if (Date.now() - speechBusySince > 32000) {
+          forceClearHumanSpeech();
+          setAiSpeaking(false);
+          aiSpeakingRef.current = false;
+          speechBusySince = 0;
+          autoLockRef.current = false;
+          kickAutoDemo();
+        }
+        return;
+      }
+      speechBusySince = 0;
+
+      if (autoLockRef.current || busyRef.current) return;
+      kickAutoDemo();
+    }, 2800);
+    return () => window.clearInterval(t);
+  }, [autoDemo, loggedIn, kickAutoDemo]);
+
+  // หลัง AI พูดจบในโหมดออโต้ — กระตุ้นให้ตอบต่อ
   useEffect(() => {
     if (!autoDemo || aiSpeaking || busy || mainStreamingId || simStreamingId) return;
-    if (isHumanSpeechBusy()) return;
     if (phase !== 'simulation' && phase !== 'profiling' && phase !== 'custom_profiling') return;
     const t = window.setTimeout(() => {
-      if (autoDemoRef.current && !autoLockRef.current && !isHumanSpeechBusy()) kickAutoDemo();
-    }, Math.max(200, Math.round(450 / autoSpeedRef.current)));
+      if (!autoDemoRef.current || autoLockRef.current) return;
+      if (isHumanSpeechBusy()) return;
+      kickAutoDemo();
+    }, Math.max(180, Math.round(400 / autoSpeedRef.current)));
     return () => window.clearTimeout(t);
   }, [autoDemo, autoSpeed, aiSpeaking, busy, mainStreamingId, simStreamingId, phase, simMessages, mainMessages, kickAutoDemo]);
 
