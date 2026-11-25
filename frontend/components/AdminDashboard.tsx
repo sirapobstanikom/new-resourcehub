@@ -230,12 +230,22 @@ const AdminDashboard: React.FC = () => {
             <span className="hidden sm:inline text-gray-500">|</span>
             <span className="text-yellow-700 font-semibold text-sm sm:text-base truncate">Admin — ดูข้อมูล Database</span>
           </div>
-          <Link
-            to="/"
-            className="min-h-[44px] flex items-center justify-center px-4 py-3 rounded-xl font-medium bg-gray-100 text-gray-900 hover:bg-gray-200 border border-[#D6D4CC] w-full sm:w-auto text-center"
-          >
-            กลับหน้าหลัก
-          </Link>
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+            <a
+              href="/round-role"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="min-h-[44px] flex items-center justify-center px-4 py-3 rounded-xl font-bold bg-yellow-400 text-black hover:bg-yellow-300 w-full sm:w-auto text-center"
+            >
+              Round Role
+            </a>
+            <Link
+              to="/"
+              className="min-h-[44px] flex items-center justify-center px-4 py-3 rounded-xl font-medium bg-gray-100 text-gray-900 hover:bg-gray-200 border border-[#D6D4CC] w-full sm:w-auto text-center"
+            >
+              กลับหน้าหลัก
+            </Link>
+          </div>
         </header>
 
         <main className="flex-1 max-w-6xl mx-auto w-full px-3 sm:px-6 py-5 sm:py-8">

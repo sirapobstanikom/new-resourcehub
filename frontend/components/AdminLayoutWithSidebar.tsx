@@ -682,6 +682,17 @@ const AdminLayoutWithSidebar: React.FC = () => {
         >
           Pretest-Posttest editor
         </a>
+        <a
+          href="/round-role"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-between py-2.5 px-3 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors group"
+        >
+          <span>Round Role — บทบาทตามรอบ</span>
+          <svg className="w-3.5 h-3.5 text-gray-500 group-hover:text-yellow-700 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+          </svg>
+        </a>
         <details className="group rounded-lg">
           <summary className="list-none cursor-pointer py-2.5 px-3 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors flex items-center justify-between">
             <span>Whale Done Role Play</span>

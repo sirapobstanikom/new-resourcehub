@@ -70,6 +70,7 @@ const InnovationEvaluationPage = lazy(() => import('./components/InnovationEvalu
 const AdminInnovationEvaluateesPage = lazy(() => import('./components/AdminInnovationEvaluateesPage'));
 const AdminAssessmentLinksQrPage = lazy(() => import('./components/AdminAssessmentLinksQrPage'));
 const AdminPdfCompressPage = lazy(() => import('./components/AdminPdfCompressPage'));
+const RoundRoleViewer = lazy(() => import('./components/RoundRoleViewer'));
 const WhaleDoneRolePlayDashboardPage = lazy(
   () => import('./components/WhaleDoneRolePlayDashboardPage')
 );
@@ -275,6 +276,13 @@ const App: React.FC = () => {
       </Suspense>
     );
   }
+  if (pathname === '/round-role') {
+    return (
+      <Suspense fallback={<RouteFallback />}>
+        <RoundRoleViewer />
+      </Suspense>
+    );
+  }
   if (pathname.startsWith('/admin')) {
     return (
       <AdminLayout>
@@ -294,6 +302,7 @@ const App: React.FC = () => {
               <Route path="innovation-evaluatees" element={<AdminInnovationEvaluateesPage />} />
               <Route path="assessment-links" element={<AdminAssessmentLinksQrPage />} />
               <Route path="pdf-compress" element={<AdminPdfCompressPage />} />
+              <Route path="round-role" element={<Navigate to="/round-role" replace />} />
               <Route
                 path="whale-done-role-play"
                 element={<Navigate to="/gamification/whale-done-role-play/dashboard" replace />}
