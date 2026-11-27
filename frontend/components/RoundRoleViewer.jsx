@@ -553,11 +553,10 @@ const ROUNDS = [
 
 
 const CSS = `
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Noto+Serif+Thai:wght@400;500;600;700&display=swap');
 :root{--bg:#f4f6fb;--card:#ffffff;--ink:#182235;--muted:#61708a;--line:#e3e8f2;--brand:#3355d6;--blue:#3355d6;--amber:#d4a53a;--green:#20865c;--soft-blue:#eef2ff;--soft-amber:#fff8e1;--soft-green:#eaf5f0;--mono:"IBM Plex Mono",monospace}
 *{box-sizing:border-box}
 body{margin:0}
-.rr{font-family:"Noto Serif Thai",Georgia,serif;color:var(--ink);background:var(--bg);min-height:100vh;padding:32px 18px 72px}
+.rr{font-family:"Prompt",sans-serif;color:var(--ink);background:var(--bg);min-height:100vh;padding:32px 18px 72px}
 .rr-wrap{max-width:1120px;margin:0 auto}
 .rr-top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:18px}
 .stepper{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:14px 0 0;padding:12px 16px;background:var(--card);border:1px solid var(--line);border-radius:12px}
@@ -918,6 +917,21 @@ export default function RoundRoleViewer() {
 
   const round = ROUNDS.find((r) => r.id === roundId);
   const readIds = visited[roundId] || [];
+
+  useEffect(() => {
+    const css = "https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Prompt:wght@400;500;600;700;800&display=swap";
+    if (document.querySelector(`link[data-rr-fonts]`)) return;
+    const preconnect = document.createElement("link");
+    preconnect.rel = "preconnect";
+    preconnect.href = "https://fonts.gstatic.com";
+    preconnect.crossOrigin = "anonymous";
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = css;
+    link.dataset.rrFonts = "1";
+    document.head.appendChild(preconnect);
+    document.head.appendChild(link);
+  }, []);
 
   useEffect(() => {
     try { localStorage.setItem("rr-unlocked", String(unlocked)); } catch {}
