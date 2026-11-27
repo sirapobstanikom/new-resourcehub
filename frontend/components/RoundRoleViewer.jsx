@@ -553,14 +553,20 @@ const ROUNDS = [
 
 
 const CSS = `
-.rr{--bg:#f4f6fb;--card:#ffffff;--ink:#182235;--muted:#61708a;--line:#e3e8f2;--brand:#3355d6;--blue:#3355d6;--amber:#d4a53a;--green:#20865c;--soft-blue:#eef2ff;--soft-amber:#fff8e1;--soft-green:#eaf5f0;--mono:"Courier New",Courier,monospace;font-family:"Iowan Old Style","Palatino Linotype","Bookman Old Style",Georgia,serif;color:var(--ink);background:var(--bg);min-height:100dvh;padding:20px 20px 56px;box-sizing:border-box}
-.rr *,.rr *::before,.rr *::after{box-sizing:border-box}
+:root{--bg:#f4f6fb;--card:#ffffff;--ink:#182235;--muted:#61708a;--line:#e3e8f2;--brand:#3355d6;--blue:#3355d6;--amber:#d4a53a;--green:#20865c;--soft-blue:#eef2ff;--soft-amber:#fff8e1;--soft-green:#eaf5f0;--mono:"Courier New",Courier,monospace}
+*{box-sizing:border-box}
+body{margin:0}
+.rr{font-family:"Iowan Old Style","Palatino Linotype","Bookman Old Style",Georgia,serif;color:var(--ink);background:var(--bg);min-height:100vh;padding:32px 18px 72px}
 .rr-wrap{max-width:1120px;margin:0 auto}
 .rr-top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:18px}
-.docbar{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;padding:12px 16px;background:var(--card);border:1px solid var(--line);border-radius:12px;margin:14px 0 0;box-shadow:0 4px 16px #0000001a}
-.docbar-left{display:flex;flex-direction:column;gap:2px;min-width:0}
-.docbar-left h1{margin:0;font-size:20px;font-family:var(--mono);letter-spacing:.02em}
-.docbar-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.stepper{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:14px 0 0;padding:12px 16px;background:var(--card);border:1px solid var(--line);border-radius:12px}
+.step{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:800;color:var(--muted)}
+.step-num{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-family:var(--mono);font-size:12px;background:#eef2ff;color:var(--brand)}
+.step.active{color:var(--brand)}
+.step.active .step-num{background:var(--brand);color:#fff;box-shadow:0 0 0 3px var(--soft-blue)}
+.step.done .step-num{background:var(--green);color:#fff}
+.step-line{flex:1;min-width:12px;height:1px;background:var(--line)}
+.docbar{display:flex;justify-content:flex-end;align-items:center;gap:14px;flex-wrap:wrap;padding:0;margin:14px 0 0}
 .docwrap{display:grid;grid-template-columns:minmax(230px,0) 1fr;gap:16px;align-items:start;margin-top:12px}
 .docsidebar{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 12px;align-self:start}
 .docsidebar-title{margin:0 0 12px 10px;font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--ink)}
@@ -574,61 +580,48 @@ const CSS = `
 .docfile-meta{display:block;font-size:11px;color:var(--muted);line-height:1.3;letter-spacing:.04em}
 .docfile.on .docfile-name{color:var(--brand)}
 .docmain{min-width:0}
-.round-step{margin:18px 0 22px}
-.round-step-title{margin:0 0 12px;font-size:13px;font-weight:800;font-family:var(--mono);letter-spacing:.15em;text-transform:uppercase;color:var(--brand)}
-.roundbar{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;align-items:stretch}
+.round-step{margin:18px 0 26px}
+.roundbar{display:flex;gap:10px;flex-wrap:wrap}
 
 .rr-kicker{font-size:12px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--brand);font-family:var(--mono)}
 .rr h1{font-size:clamp(23px,3.4vw,34px);margin:6px 0 6px;line-height:1.25}
-.rr-sub{margin:0;color:var(--muted);font-size:14px}
 .langbar{display:flex;gap:4px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:4px;box-shadow:0 2px 14px #00000020}
 .langbar button{border:0;background:transparent;border-radius:999px;padding:7px 14px;font-size:13px;font-weight:800;color:var(--muted);cursor:pointer}
 .langbar button.on{background:var(--brand);color:#fff;box-shadow:0 0 0 2px var(--line)}
-.roundtab{min-width:0;height:100%;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:15px 17px;cursor:pointer;transition:.18s;box-shadow:0 2px 10px #00000018;display:flex;flex-direction:column}
+.roundbar{display:flex;gap:10px;flex-wrap:wrap}
+.roundtab{flex:1;min-width:210px;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:15px 17px;cursor:pointer;transition:.18s;box-shadow:0 2px 10px #00000018}
 .roundtab:hover{transform:translateY(-2px);border-color:#2b3c5c}
 .roundtab.on{border-color:var(--brand);background:var(--soft-amber);box-shadow:0 0 0 1px var(--brand);}
 .roundtab-top{display:flex;align-items:center;gap:10px;font-weight:800}
 .roundnum{width:28px;height:28px;border-radius:9px;background:#eef2ff;color:var(--brand);display:grid;place-items:center;font-size:13px;font-family:var(--mono)}
 .roundtab.on .roundnum{background:var(--brand);color:#fff}
-.pill{margin-left:auto;font-size:10px;font-weight:800;padding:4px 8px;border-radius:99px;background:#eef2ff;color:var(--muted);border:1px solid var(--line)}
-.pill.off{background:#f0f2f6;color:var(--muted);border-color:var(--line)}
-.roundtab small{display:block;margin-top:7px;color:var(--muted);font-size:12px;line-height:1.5;flex:1}
+.roundtab small{display:block;margin-top:7px;color:var(--muted);font-size:12px;line-height:1.5}
 .roundtab.locked{opacity:.62;cursor:not-allowed;background:transparent}
 .roundtab.locked:hover{transform:none}
 .roundtab.locked .roundnum{background:#eceff5;color:#9aa4b6}
 .roundtab:disabled{box-shadow:none}
-.pill.done{background:var(--soft-amber);color:var(--brand);border-color:var(--brand)}
-.pill.lock{background:#eceff4;color:#8a94a6}
-.progress{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 16px;margin:0 0 16px}
-.progress-meta{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:12px;font-weight:800;color:var(--muted);margin-bottom:8px}
-.progress-meta .ok{color:#2a9a67}
-.track{height:7px;border-radius:99px;background:#e9edf5;overflow:hidden}
-.fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--brand),#7e98f1);transition:width .3s}
 .cardhead{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .readmark{font-size:10px;font-weight:800;color:#1d7a45;background:#e8f7ee;border-radius:6px;padding:4px 8px}
-.rounddone{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-top:18px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 18px;font-size:13px;color:var(--muted)}
-.rounddone.ready{border-color:var(--brand);background:var(--soft-amber);color:var(--ink)}
-.nextbtn{border:0;border-radius:10px;padding:11px 18px;font-weight:800;font-size:13px;color:#fff;background:var(--brand);cursor:pointer;white-space:nowrap}
-.nextbtn:disabled{background:#b9c1cf;cursor:not-allowed}
-.notice.ok{border-style:solid;border-color:#bfe6cf;background:#f2fbf6;color:#1d7a45}
 .sectionhead{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:0 0 14px}
 .sectionhead h2{font-size:18px;margin:0}
 .sectionhead span{font-size:12px;color:var(--muted)}
 .openrow{margin:18px 0 2px;text-align:center}
-.openbtn{border:3px solid var(--brand);border-radius:14px;padding:11px 26px;font-weight:800;font-size:14px;color:var(--brand);background:transparent;font-family:var(--mono);letter-spacing:.08em;cursor:pointer;transition:.15s}
-.openbtn:hover:not(:disabled){background:var(--soft-amber);box-shadow:0 0 0 3px var(--line)}
-.openbtn:disabled{color:var(--muted);border-color:#3b3b44;cursor:not-allowed}
-.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;align-items:stretch}
-.card{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:0 3px 14px #00000018;transition:.18s;display:flex;flex-direction:column;height:100%}
+.openbtn{border:3px solid var(--brand);border-radius:14px;padding:11px 26px;font-weight:800;font-size:14px;color:var(--brand);background:transparent;font-family:var(--mono);letter-spacing:.08em;cursor:pointer;transition:.18s}
+.openbtn.ready{background:var(--brand);color:#fff;border-color:var(--brand);font-size:15px;padding:13px 30px;box-shadow:0 6px 20px #3355d659,0 0 0 4px #3355d61a;animation:rr-pulse 2s ease-in-out infinite}
+.openbtn.ready:hover{transform:translateY(-2px);box-shadow:0 10px 26px #3355d673,0 0 0 5px #3355d61f}
+.openbtn:disabled{color:var(--muted);border-color:#c8d0de;cursor:not-allowed}
+@keyframes rr-pulse{0%,100%{box-shadow:0 6px 20px #3355d659,0 0 0 4px #3355d61a}50%{box-shadow:0 6px 20px #3355d659,0 0 0 8px #3355d60d}}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:16px;align-items:start}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:0 3px 14px #00000018;transition:.18s}
 .card.sel{border-color:var(--accent);box-shadow:0 10px 26px #00000026;background:var(--soft-amber)}
-.card-main{width:100%;flex:1;text-align:left;border:0;background:linear-gradient(180deg,var(--soft) 0,var(--card) 120px);padding:20px;cursor:pointer;display:flex;flex-direction:column;color:inherit}
+.card-main{width:100%;text-align:left;border:0;background:linear-gradient(180deg,var(--soft) 0,var(--card) 120px);padding:20px;cursor:pointer;display:block;color:inherit}
 .card-main:hover{background:linear-gradient(180deg,var(--soft) 0,var(--card) 150px)}
 .strip{height:6px;background:var(--accent)}
 .rolebadge{width:46px;height:46px;flex:0 0 46px;display:grid;place-items:center;border-radius:14px;background:var(--accent);color:var(--bg);font-size:24px;font-weight:900;line-height:1;box-shadow:0 5px 14px #00000030}
 .chip{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.08em;color:var(--accent);background:var(--card);border:1px solid color-mix(in srgb,var(--accent) 40%,var(--line));padding:6px 10px;border-radius:7px;text-transform:uppercase}
 .card h3{font-size:22px;margin:12px 0 3px;color:var(--ink);font-family:var(--mono)}
 .play{margin:0;font-size:13px;font-weight:600;color:var(--muted);line-height:1.5}
-.arrow{margin-top:auto;display:flex;align-items:center;justify-content:center;gap:8px;border-radius:11px;background:var(--accent);color:#fff;font-size:14px;font-weight:800;padding:12px 14px;box-shadow:0 5px 14px #00000026;transition:.18s}
+.arrow{margin-top:16px;display:flex;align-items:center;justify-content:center;gap:8px;border-radius:11px;background:var(--accent);color:#fff;font-size:14px;font-weight:800;padding:12px 14px;box-shadow:0 5px 14px #00000026;transition:.18s}
 .card:hover .arrow{transform:translateY(-1px);box-shadow:0 8px 18px #00000033}
 .arrow.on{background:var(--card);color:var(--accent);border:2px solid var(--accent);box-shadow:0 0 0 2px var(--soft-amber)}
 .linkbtn{border:0;background:transparent;color:var(--brand);font-weight:700;font-size:13px;cursor:pointer;padding:6px 0;text-decoration:underline;text-underline-offset:3px}
@@ -700,35 +693,30 @@ th{background:#eef2ff;color:var(--brand);font-size:12px}
 .mfoot{padding:12px 28px 14px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:11px;color:var(--muted);background:linear-gradient(180deg,var(--card) 0,#f4f6fb 100%);flex-shrink:0;position:relative}
 .mfoot span:nth-child(1){font-weight:700;letter-spacing:.04em}
 .mfoot::before{content:"";position:absolute;inset:0;border-radius:18px;background:radial-gradient(ellipse 200% 100% at 50% 100%,rgba(212,165,58,.04),transparent 60%)}
-@media(max-width:1180px){
-  .roundbar{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-}
 @media(max-width:640px){
-  .rr{padding:18px 12px 44px}
+  .rr{padding:16px 12px 44px}
+  .stepper{flex-wrap:nowrap;gap:5px;padding:10px 12px;margin:12px 0 0}
+  .step{gap:5px;font-size:11px;white-space:nowrap}
+  .step-num{width:20px;height:20px;flex:0 0 20px;font-size:10px}
+  .step-line{min-width:6px}
+  .round-step{margin:14px 0 20px}
+  .docbar{margin:12px 0 0}
   .rr-top{gap:12px;margin-bottom:18px}
   .rr h1{font-size:24px;line-height:1.3}
-  .rr-sub{font-size:12px;line-height:1.6}
   .rr-kicker{font-size:10px}
   .langbar button{padding:6px 11px;font-size:12px}
-  .sectionhead{align-items:flex-start;margin-bottom:10px}
+  .sectionhead{align-items:flex-start;margin-bottom:12px}
   .sectionhead h2{font-size:16px;line-height:1.4}
-  .sectionhead span{font-size:11px}
-  .progress{padding:11px 12px;margin-bottom:12px}
-  .progress-meta{font-size:11px;gap:4px}
   .grid{grid-template-columns:1fr;gap:12px}
   .card-main{padding:16px}
   .card h3{font-size:20px;margin:10px 0 3px}
   .play{font-size:12px}
   .arrow{margin-top:12px;font-size:13px;padding:11px 12px}
-  .rounddone{padding:12px;gap:10px;margin-top:14px;font-size:12px}
-  .nextbtn{width:100%}
-  .roundbar{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
-  .roundtab{min-width:0;padding:11px 12px}
-  .roundtab-top{font-size:12px;gap:6px;flex-wrap:wrap}
-  .roundnum{width:22px;height:22px;font-size:11px;border-radius:7px}
-  .pill{font-size:9px;padding:3px 6px;margin-left:auto}
-  .roundtab small{font-size:10px;line-height:1.45;margin-top:6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .roundbar{display:grid;grid-template-columns:1fr;gap:8px}
+  .roundtab{min-width:0;padding:10px 12px}
+  .roundtab-top{font-size:12px;gap:6px;flex-wrap:nowrap}
+  .roundnum{width:22px;height:22px;flex:0 0 22px;font-size:11px;border-radius:7px}
+  .roundtab small{font-size:10px;line-height:1.45;margin-top:5px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
   .notice{padding:14px;font-size:12px}
   .overlay{padding:8px;align-items:stretch}
   .modal{width:100%;max-height:94vh;max-height:calc(100dvh - 16px);border-radius:14px}
@@ -751,7 +739,9 @@ th{background:#eef2ff;color:var(--brand);font-size:12px}
   .tablewrap,.doc-table-wrap{margin:8px 0 14px}
 }
 @media(max-width:380px){
-  .roundbar{grid-template-columns:1fr}
+  .step{font-size:10px;gap:4px}
+  .step-num{width:18px;height:18px;flex-basis:18px;font-size:9px}
+  .stepper{padding:9px 10px;gap:4px}
   .mhead{flex-direction:column}
   .mhead-tools{width:100%;justify-content:space-between}
 }
@@ -927,9 +917,6 @@ export default function RoundRoleViewer() {
 
   const round = ROUNDS.find((r) => r.id === roundId);
   const readIds = visited[roundId] || [];
-  const readCount = round.roles.filter((role) => readIds.includes(role.id)).length;
-  const ready = round.available && readCount >= 1;
-  const isLastRound = roundId === ROUNDS.length;
 
   useEffect(() => {
     try { localStorage.setItem("rr-unlocked", String(unlocked)); } catch {}
@@ -958,39 +945,38 @@ export default function RoundRoleViewer() {
 
   const selectedRoleObj = round.roles.find((r) => r.id === selectedRole) || null;
 
-  const finishRound = () => {
-    if (!ready) return;
-    if (!isLastRound) {
-      const next = Math.min(roundId + 1, ROUNDS.length);
-      setUnlocked((u) => Math.max(u, next));
-      setRoundId(next);
-      setSelectedRole(null);
-    }
-  };
-
   return (
     <div className="rr">
       <style>{CSS}</style>
       <div className="rr-wrap">
         <div className="docbar">
-          <div className="docbar-left">
-            <h1>{lang === "th" ? "เอกสาร (Documents)" : "Documents"}</h1>
-            <p className="rr-sub">{lang === "th" ? "ไฟล์บทนำสู่การสื่อสาร · 4 ไฟล์รอบ" : "Role briefs · 4 files"}</p>
+          <div className="langbar" role="group" aria-label="Language">
+            <button className={lang === "th" ? "on" : ""} onClick={() => setLang("th")}>ไทย</button>
+            <button className={lang === "en" ? "on" : ""} onClick={() => setLang("en")}>EN</button>
           </div>
-          <div className="docbar-right">
-            <div className="langbar" role="group" aria-label="Language">
-              <button className={lang === "th" ? "on" : ""} onClick={() => setLang("th")}>ไทย</button>
-              <button className={lang === "en" ? "on" : ""} onClick={() => setLang("en")}>EN</button>
-            </div>
+        </div>
+
+        <div className="stepper">
+          <div className="step done">
+            <span className="step-num">1</span>
+            <span>{lang === "th" ? "เลือกรอบ" : "Select round"}</span>
+          </div>
+          <span className="step-line" />
+          <div className={`step${selectedRole ? " done" : " active"}`}>
+            <span className="step-num">2</span>
+            <span>{lang === "th" ? "เลือกบท" : "Select role"}</span>
+          </div>
+          <span className="step-line" />
+          <div className={`step${activeRole ? " done" : selectedRole ? " active" : ""}`}>
+            <span className="step-num">3</span>
+            <span>{lang === "th" ? "เปิดเอกสาร" : "Open document"}</span>
           </div>
         </div>
 
         <div className="round-step">
-          <h2 className="round-step-title">{lang === "th" ? "เลือกรอบ (Round)" : "Select Round"}</h2>
           <div className="roundbar">
             {ROUNDS.map((r) => {
               const locked = r.id > unlocked;
-              const done = r.id < unlocked;
               return (
                 <button
                   key={r.id}
@@ -1002,13 +988,6 @@ export default function RoundRoleViewer() {
                   <div className="roundtab-top">
                     <span className="roundnum">{locked ? "🔒" : r.id}</span>
                     <span>{lang === "th" ? `รอบที่ ${r.id}` : `Round ${r.id}`}</span>
-                    <span className={`pill${locked ? " lock" : done ? " done" : ""}`}>
-                      {locked
-                        ? (lang === "th" ? "ถูกล็อก" : "LOCKED")
-                        : done
-                          ? (lang === "th" ? "เสร็จแล้ว" : "DONE")
-                          : (r.available ? (lang === "th" ? "พร้อม" : "READY") : (lang === "th" ? "รอเอกสาร" : "NO BRIEF"))}
-                    </span>
                   </div>
                   <small>{L(r.subtitle, lang)}</small>
                 </button>
@@ -1019,25 +998,10 @@ export default function RoundRoleViewer() {
 
         <main className="docmain">
           <div className="sectionhead">
-            <h2>{L(round.title, lang)}</h2>
-            <span>{lang === "th" ? "เปิดบทแล้วอ่านต่อได้เลยในหน้าเดียว" : "Open a role and read everything on one page"}</span>
-          </div>
-
-        <div className="progress">
-          <div className="progress-meta">
-            <span>
-              {lang === "th"
-                ? `รอบนี้ · เลือกบทแล้ว ${readCount} บท (ใช้ 1 บทก็พอ)`
-                : `This round · ${readCount} role(s) selected (1 is enough)`}
-            </span>
-            <span className={ready ? "ok" : ""}>
-              {ready
-                ? (lang === "th" ? "✓ พร้อมไปรอบถัดไป" : "✓ Ready for the next round")
-                : (lang === "th" ? "เลือกบทแล้วกดเปิดเอกสาร" : "Select 1 role, then press Open document")}
-            </span>
-          </div>
-          <div className="track"><div className="fill" style={{ width: ready ? "100%" : "0%" }} /></div>
+          <h2>{L(round.title, lang)}</h2>
         </div>
+
+
 
         <div className="grid">
           {round.roles.map((role) => {
@@ -1067,34 +1031,13 @@ export default function RoundRoleViewer() {
 
         <div className="openrow">
           <button
-            className="openbtn"
+            className={`openbtn${round.available && selectedRoleObj ? " ready" : ""}`}
             disabled={!round.available || !selectedRoleObj}
             onClick={() => { if (selectedRoleObj) setConfirmRole(selectedRoleObj); }}
           >
             {lang === "th" ? "เปิดเอกสาร →" : "Open document →"}
           </button>
         </div>
-
-        {round.available && !isLastRound && (
-          <div className={`rounddone${ready ? " ready" : ""}`}>
-            <span>
-              {ready
-                ? (lang === "th" ? "เลือกบทแล้วพร้อมไปรอบถัดไป" : "Your role is selected. Continue when you are ready.")
-                : (lang === "th" ? "กดเลือกบทนี้ 1 บทก็พอ" : "Just select the 1 role you will play.")}
-            </span>
-            <button className="nextbtn" disabled={!ready} onClick={finishRound}>
-              {lang === "th" ? "เสร็จรอบนี้ · ไปรอบถัดไป →" : "Finish this round · Next →"}
-            </button>
-          </div>
-        )}
-
-        {round.available && isLastRound && ready && (
-          <div className="notice ok">
-            {lang === "th"
-              ? "ครบทั้ง 4 รอบแล้ว 🎉 คุณสามารถกดย้อนไปดูรอบที่ผ่านได้เลย"
-              : "All 4 rounds complete 🎉 You can go back to any round any time."}
-          </div>
-        )}
 
         {!round.available && (
           <div className="notice">
