@@ -553,11 +553,11 @@ const ROUNDS = [
 
 
 const RR_FONTS_HREF =
-  "https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Prompt:wght@400;500;600;700;800&display=swap";
+  "https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700;800;900&display=swap";
 
 const CSS = `
 @import url("${RR_FONTS_HREF}");
-:root{--bg:#f4f6fb;--card:#ffffff;--ink:#182235;--muted:#61708a;--line:#e3e8f2;--brand:#3355d6;--blue:#3355d6;--amber:#d4a53a;--green:#20865c;--soft-blue:#eef2ff;--soft-amber:#fff8e1;--soft-green:#eaf5f0;--mono:"IBM Plex Mono",ui-monospace,monospace}
+:root{--bg:#f4f6fb;--card:#ffffff;--ink:#182235;--muted:#61708a;--line:#e3e8f2;--brand:#3355d6;--blue:#3355d6;--amber:#d4a53a;--green:#20865c;--soft-blue:#eef2ff;--soft-amber:#fff8e1;--soft-green:#eaf5f0;--mono:"Prompt","Anuphan",ui-sans-serif,sans-serif}
 *{box-sizing:border-box}
 body{margin:0}
 .rr{font-family:"Prompt","Anuphan",ui-sans-serif,sans-serif !important;color:var(--ink);background:var(--bg) !important;min-height:100vh;padding:32px 18px 72px}
@@ -623,7 +623,7 @@ body{margin:0}
 .strip{height:6px;background:var(--accent)}
 .rolebadge{width:46px;height:46px;flex:0 0 46px;display:grid;place-items:center;border-radius:14px;background:var(--accent);color:var(--bg);font-size:24px;font-weight:900;line-height:1;box-shadow:0 5px 14px #00000030}
 .chip{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.08em;color:var(--accent);background:var(--card);border:1px solid color-mix(in srgb,var(--accent) 40%,var(--line));padding:6px 10px;border-radius:7px;text-transform:uppercase}
-.card h3{font-size:22px;margin:12px 0 3px;color:var(--ink);font-family:var(--mono)}
+.card h3{font-size:22px;margin:12px 0 3px;color:var(--ink);font-family:var(--mono);font-weight:800}
 .play{margin:0;font-size:13px;font-weight:600;color:var(--muted);line-height:1.5}
 .arrow{margin-top:16px;display:flex;align-items:center;justify-content:center;gap:8px;border-radius:11px;background:var(--accent);color:#fff;font-size:14px;font-weight:800;padding:12px 14px;box-shadow:0 5px 14px #00000026;transition:.18s}
 .card:hover .arrow{transform:translateY(-1px);box-shadow:0 8px 18px #00000033}
@@ -923,7 +923,7 @@ export default function RoundRoleViewer() {
   const readIds = visited[roundId] || [];
 
   useEffect(() => {
-    if (document.querySelector('link[data-rr-fonts], link[href*="family=Prompt"][href*="IBM+Plex+Mono"]')) return;
+    if (document.querySelector('link[data-rr-fonts], link[href*="family=Prompt"]')) return;
     if (!document.querySelector('link[href="https://fonts.gstatic.com"][rel="preconnect"]')) {
       const preconnect = document.createElement("link");
       preconnect.rel = "preconnect";
